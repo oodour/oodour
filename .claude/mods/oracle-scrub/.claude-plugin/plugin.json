@@ -1,0 +1,5 @@
+{
+  "name": "oracle-scrub",
+  "version": "0.1.0",
+  "description": "Removes sealed-store (.oracle/) paths from Glob and Grep results, and withholds shell output that lists them, when the call did not aim at the store."
+}

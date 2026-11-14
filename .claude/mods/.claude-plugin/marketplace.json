@@ -1,0 +1,12 @@
+{
+  "name": "lz-oop-dev",
+  "owner": { "name": "Lars Gyrup Brink Nielsen" },
+  "description": "Repository-internal mods for developing lz-oop. Not for consumers.",
+  "plugins": [
+    {
+      "name": "oracle-scrub",
+      "source": "./oracle-scrub",
+      "description": "Keeps sealed-store paths out of search results that did not aim at the store."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-guard.mjs\"" }]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.mjs\"" }]
+      }
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "lz-oop-dev": {
+      "source": { "source": "directory", "path": ".claude/mods" }
+    }
+  },
+  "enabledPlugins": {
+    "oracle-scrub@lz-oop-dev": true
+  }
+}
