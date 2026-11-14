@@ -5,6 +5,10 @@
       {
         "matcher": "*",
         "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-guard.mjs\"" }]
+      },
+      {
+        "matcher": "SubagentHandback",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.mjs\"" }]
       }
     ],
     "SubagentStop": [

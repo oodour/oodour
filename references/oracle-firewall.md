@@ -62,7 +62,7 @@ which is why the guard lets any agent run it.
 | Layer | Catches | Misses |
 | --- | --- | --- |
 | `oracle-guard.mjs`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store |
-| `oracle-hand-back.mjs`, SubagentStop | An oracle, reviewer or curator answer with a 6+ word verbatim run | Close paraphrase; a run under 6 words |
+| `oracle-hand-back.mjs`, PreToolUse on `SubagentHandback` and SubagentStop | An oracle, reviewer or curator report with a 6+ word verbatim run, on either delivery path | Close paraphrase; a run under 6 words |
 | `oracle-scrub` mod, `tool.call` | Store paths in Glob and Grep results, and in shell output, when the call did not aim at the store | `tree` output, which names files without their folder path; sessions where the mod engine is off or the plugin is not enabled |
 
 The classic hooks are the floor: they run in every Claude Code session, headless runs and
@@ -70,6 +70,12 @@ subagents included. The mod runs only where the `oracle-scrub@lz-oop-dev` plugin
 (`.claude/settings.json` enables it for this project) and the Claude Code build has the mod
 engine. Measured on 2026-11-15: the Glob tool run from the repository root lists files inside
 the git-ignored `.oracle/`, which is the gap the mod closes.
+
+A subagent delivers its report in one of two ways, measured on 2026-11-15. Through the
+`SubagentHandback` tool, the report is that call's `message`, and SubagentStop then carries no
+last message; the gate denies the call, the agent rewrites, and only the rewrite is delivered.
+Through its last message, the gate blocks SubagentStop instead. The first live oracle answer, on
+the first path, carried a 6-word run past a SubagentStop-only gate, which is why both exist.
 
 The guard identifies the oracle agents by `agent_type`. A subagent type named `oracle`,
 `oracle-reviewer` or `oracle-curator` from any source passes it, so define no other agent with

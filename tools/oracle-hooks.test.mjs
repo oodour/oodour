@@ -80,9 +80,24 @@ test('the hand-back gate blocks an oracle answer that copies, and passes one tha
   const copied = { agent_type: 'oracle', last_assistant_message: 'It says the quick brown fox jumps over the lazy dog.' };
 
   assert.match(review(copied, corpus), /words 3-11 \(9 words, entry book\)/);
-  assert.match(review({ ...copied, stop_hook_active: true }, corpus), /withheld: source wording/);
+  assert.match(review({ ...copied, stop_hook_active: true }, corpus), /already sent back once/);
   assert.equal(review({ agent_type: 'oracle', last_assistant_message: 'A fox leaps a sleepy hound.' }, corpus), undefined);
   assert.equal(review({ ...copied, agent_type: 'general-purpose' }, corpus), undefined);
+});
+
+test('the hand-back gate reads a SubagentHandback report, where SubagentStop has no last message', () => {
+  const corpus = syntheticCorpus(6);
+  const handback = (message, agent_type = 'oracle') => ({
+    hook_event_name: 'PreToolUse',
+    tool_name: 'SubagentHandback',
+    tool_input: { message },
+    agent_type,
+  });
+
+  assert.match(review(handback('It says the quick brown fox jumps over the lazy dog.'), corpus), /Nothing was delivered/);
+  assert.equal(review(handback('A fox leaps a sleepy hound.'), corpus), undefined);
+  assert.equal(review(handback('the quick brown fox jumps over the lazy dog', 'haiku-low'), corpus), undefined);
+  assert.equal(review({ hook_event_name: 'SubagentStop', agent_type: 'oracle' }, corpus), undefined);
 });
 
 test('the real store loads and a run lifted from it is caught', () => {

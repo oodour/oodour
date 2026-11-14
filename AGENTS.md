@@ -72,8 +72,9 @@ Three layers back the prose, and none of them replaces it.
 
 - `.claude/hooks/oracle-guard.mjs` (PreToolUse) denies any tool call that names a store path,
   except from the oracle agents, the `.oracle/README.md` listing, and `tools/source-overlap.mjs`.
-- `.claude/hooks/oracle-hand-back.mjs` (SubagentStop) sends an oracle agent back to rewrite its
-  answer while it shares a run of six or more words with the store, so the copy never reaches you.
+- `.claude/hooks/oracle-hand-back.mjs` (PreToolUse on `SubagentHandback`, and SubagentStop) sends
+  an oracle agent back to rewrite its report while it shares a run of six or more words with the
+  store, so the copy never reaches you.
 - The `oracle-scrub` mod (`.claude/mods/`) removes store paths from Glob and Grep results that did
   not aim at the store, and withholds shell output that lists them.
 
