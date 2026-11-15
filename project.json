@@ -15,7 +15,7 @@
   },
   "targets": {
     "typecheck": {
-      "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard/.node-test"
+      "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard && tsc -p .claude/mods/oracle-guard/.node-test"
     },
     "lint": {
       "command": "eslint ."
@@ -25,7 +25,7 @@
       "cache": false
     },
     "test-mods": {
-      "command": "claude plugin validate .claude/mods/oracle-scrub && claude plugin test .claude/mods/oracle-scrub",
+      "command": "claude plugin validate .claude/mods/oracle-scrub && claude plugin test .claude/mods/oracle-scrub && claude plugin validate .claude/mods/oracle-guard && claude plugin test .claude/mods/oracle-guard",
       "cache": true,
       "inputs": ["{projectRoot}/.claude/mods/**/*", { "runtime": "claude --version" }],
       "outputs": []

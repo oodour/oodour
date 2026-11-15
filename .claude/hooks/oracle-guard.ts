@@ -4,7 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import { decide, metaPathOf, ownerFromMeta } from '../mods/oracle-guard/hooks/decide.ts';
+import { decide, failedReason, metaPathOf, ownerFromMeta } from '../mods/oracle-guard/hooks/decide.ts';
 import { denyOutput, type HookInput, readHookInput } from './hook-input.ts';
 
 export { decide, type DecideOptions, storePath } from '../mods/oracle-guard/hooks/decide.ts';
@@ -18,14 +18,13 @@ function transcriptOwner(path: string): string | undefined {
   }
 }
 
-// Fails closed: a guard that cannot read its input denies the call rather than letting it through.
 export function run(read: () => HookInput, write: (output: string) => void): void {
   let reason: string | undefined;
 
   try {
     reason = decide(read(), { agentTypeOf: transcriptOwner, projectDir: process.env['CLAUDE_PROJECT_DIR'] });
   } catch (error) {
-    reason = `oracle-guard: the guard failed (${error instanceof Error ? error.message : String(error)}), so the call was denied.`;
+    reason = failedReason(error instanceof Error ? error.message : String(error));
   }
 
   if (reason !== undefined) {

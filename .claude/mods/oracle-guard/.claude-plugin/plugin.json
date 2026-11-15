@@ -1,0 +1,5 @@
+{
+  "name": "oracle-guard",
+  "version": "0.1.0",
+  "description": "Denies every tool call that reaches the sealed store (.oracle/) unless an oracle agent makes it, in the main loop and in every subagent's."
+}

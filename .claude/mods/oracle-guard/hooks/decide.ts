@@ -63,12 +63,25 @@ const curatorWriteReason =
 const lowThresholdReason =
   'oracle-guard: run `node tools/source-overlap.ts` with `--min-words` 6 or more. A lower threshold turns the tool into a probe of the source\'s wording.';
 
+// Fails closed: a guard that cannot decide denies the call rather than letting it through.
+export function failedReason(message: string): string {
+  return `oracle-guard: the guard failed (${message}), so the call was denied.`;
+}
+
 // The fields of a tool call the guard reads, as the classic hook's input and the mod's event both carry them.
 export interface GuardCall {
   readonly toolName: string | undefined;
   readonly toolInput: Readonly<Record<string, unknown>>;
   readonly agentType: string | undefined;
   readonly cwd: string | undefined;
+}
+
+// A tool.call event spreads the tool's arguments beside keys of its own, which the classic hook's
+// tool_input never carries; another plugin may put any text in requestMeta.
+const eventKeys: ReadonlySet<string> = new Set(['tool', 'tool_use_id', 'agentId', 'requestMeta']);
+
+export function toolInputOf(event: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  return Object.fromEntries(Object.entries(event).filter(([key]) => !eventKeys.has(key)));
 }
 
 export function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

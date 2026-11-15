@@ -7,6 +7,11 @@
       "name": "oracle-scrub",
       "source": "./oracle-scrub",
       "description": "Keeps sealed-store paths out of search results that did not aim at the store."
+    },
+    {
+      "name": "oracle-guard",
+      "source": "./oracle-guard",
+      "description": "Denies tool calls that reach the sealed store unless an oracle agent makes them, as the classic oracle-guard hook does."
     }
   ]
 }
