@@ -36,7 +36,7 @@ This skill adds, as its own guidance:
   Things, 2014, uses such a default in one example and says raising an error is also an option.)
 - **Template Method**: a hierarchy that meets these conditions is usually a Template Method. Go
   Ahead, Make a Mess, 2012, says inheritance of that kind suits variants that are nearly alike; the
-  link between that and the conditions above is this skill's inference.
+  link between that and the conditions above is this plugin's inference.
 
 When the conditions hold, recommend keeping the hierarchy and say which properties support that.
 

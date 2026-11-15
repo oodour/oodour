@@ -1,6 +1,6 @@
 ---
 name: lz-audit
-description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository, based on Sandi Metz's principles and practices. Use when a developer asks to audit the design of a codebase, find its design hot spots, decide which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
+description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository, based on Sandi Metz's principles and practices. Use when a developer asks to audit the design of a codebase, find its design hot spots or technical debt, decide where to start refactoring a legacy codebase or which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
 ---
 
 # lz-audit: design audit of a package or repository
@@ -16,8 +16,11 @@ code sits (controllers, components, handlers) and where the domain code sits, an
 Code that changes often and is hard to understand costs the most; plot each file on those two axes (the talk Polly
 Want a Message, 2018, credits Michael Feathers for this view).
 
-- **Churn**: count commits per file over the last year, for example
-  `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`.
+- **Churn**: count commits per file over the last year, for example in a POSIX shell
+  `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count
+  the paths that `git log --format= --name-only` prints in another way. A shallow clone
+  (`git rev-parse --is-shallow-repository` prints `true`), a short history, or no Git history at all limits this
+  measure: use what exists and say so in the report.
 - **Complexity**: use what the repository already measures (ESLint `complexity`, `max-lines-per-function`,
   `sonarjs/cognitive-complexity`); otherwise approximate with file length, function length and the number of
   conditionals.
@@ -44,7 +47,7 @@ idea needs its JavaScript or TypeScript form.
 - Say what is healthy and should be left alone, and why.
 - Recommend an order of work. Code is opened up for a change that has actually been requested (Ch.3); ranking the
   rest by the changes the history suggests will come next is this plugin's judgement, and the report says so.
-- This is a report: change nothing.
+- This is a report: change nothing. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.
 
 ## Sources and attribution
 

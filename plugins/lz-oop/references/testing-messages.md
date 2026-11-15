@@ -32,7 +32,7 @@ changes something.
 - A fake (Meszaros's term) is a small real object that plays the collaborator's role, so a test can
   show what the class does without depending on the real collaborator's output (Ch.9).
 - Where several objects play one role, fakes included, a shared role test checks that each one
-  answers the role's messages (Ch.9). TypeScript (this skill's inference): an interface for the role,
+  answers the role's messages (Ch.9). TypeScript (this plugin's inference): an interface for the role,
   with each player typed against it, does part of that check at compile time; a role test still
   checks behaviour the types cannot express.
 

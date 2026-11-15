@@ -6,6 +6,11 @@ chapter or talk is cited: the plugin takes no TypeScript guidance from its sourc
 examples below are its own, checked against current TypeScript, Node.js, ESLint, Vitest, Jest and `node:test`
 documentation.
 
+Contents: Roles; Role tests in Vitest, Jest and node:test; Choosing a variant: the factory map; Absence: Null
+Object, `?.` and `??`; Injecting collaborators; Testing outgoing messages; Commands and queries; Private state;
+Parameter lists and options objects; Inheritance, mixins and built-in types; Per-call state and `await`; Framework
+code at the edges; Characterisation tests; Measuring complexity.
+
 Examples are TypeScript in syntax that Node.js can strip (`erasableSyntaxOnly`, TypeScript 5.8 and later): no
 `enum`, no runtime `namespace`, no constructor parameter properties. A JavaScript note follows where the languages
 differ.

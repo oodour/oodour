@@ -1,6 +1,6 @@
 ---
 name: lz-review
-description: Object-oriented design review of a change in JavaScript or TypeScript, based on Sandi Metz's principles and practices. Use when a developer asks for a design review of a diff, uncommitted or staged changes, a commit, a branch or a pull request, or asks whether a change made the code harder to change next time (new branches on a type switch, flag arguments, hard-coded collaborators, message chains, inheritance, tests that mock too much). Reports findings ranked by what they will cost later; changes nothing unless asked. Not for one question about one piece of code, not for auditing a whole package, and not for code in other languages.
+description: Object-oriented design review of a change in JavaScript or TypeScript, based on Sandi Metz's principles and practices. Use when a developer asks for a design review of a diff, uncommitted or staged changes, a commit, a branch or a pull request, or asks whether a change made the code harder to change next time (new branches on a type switch, flag arguments, hard-coded collaborators, message chains, inheritance, tests that mock too much). Reports findings ranked by what they will cost later; changes nothing unless asked. Not for the design of one file, class or module as it stands (a change, not a file), not for auditing a whole package, and not for code in other languages.
 ---
 
 # lz-review: design review of a change
@@ -14,7 +14,8 @@ request. When nothing is named, review the uncommitted changes, or the last comm
 
 Read the diff, then the code around it: the callers of each changed function or class, the collaborators it now
 uses, and the tests that cover it. A change can raise the cost of code it does not touch, such as every other place
-that switches on the same kind.
+that switches on the same kind. For a large change, rank the changed areas by how many places depend on them, read
+the top ones first, and say in the report which areas were not read.
 
 ## 3. Look for what the change does to the next change
 

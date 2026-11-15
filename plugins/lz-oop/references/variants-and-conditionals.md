@@ -15,7 +15,8 @@ Sort each conditional into one of two groups (Ch.5 and Ch.6; the talk Polly Want
 
 ## Adding a kind when the code switches on kinds
 
-1. Restructure first, as SKILL.md step 3 says; the new kind comes after.
+1. Restructure first, with the tests green and unchanged, until adding the kind is easy; the new kind comes after
+   (Ch.3).
 2. Give each kind its own object (a class, or a module or object literal where that is the house
    style). Every one of them answers the same messages, so a caller sends the message and never asks
    which kind it holds (Ch.6).
@@ -43,7 +44,7 @@ Pick by what changes and who has to read it (Ch.7; If You Build It, They Will Co
 Lookups built from naming conventions (a class name assembled from a string) are open but cannot be
 searched for and fail quietly on a typo (Ch.7). This skill starts from the `switch` and prefers an
 explicit map over a name-built lookup in JavaScript and TypeScript.
-TypeScript (this skill's inference): type the map as `Record<Kind, ...>` over a union of kind
+TypeScript (this plugin's inference): type the map as `Record<Kind, ...>` over a union of kind
 literals, so the compiler reports a kind with no entry.
 
 ## Flag arguments

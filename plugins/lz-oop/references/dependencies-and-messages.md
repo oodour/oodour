@@ -17,7 +17,7 @@ and the objects it holds or creates, not to objects those return (Ch.8).
 
 1. Do not judge by counting dots. Ask whether each step in the chain hands back an object with a
    different interface. Stepping through several unrelated objects is the problem (Ch.8). By the
-   same test, this skill reads a pipeline whose steps each return the same kind of value (array
+   same test, this plugin reads a pipeline whose steps each return the same kind of value (array
    methods, a builder, a fluent query) as no violation.
 2. Say what the chain costs: the sender breaks when any object along the way changes, it is hard to
    reuse elsewhere, its tests have to build the whole chain, and the intention behind it has no name
@@ -34,7 +34,7 @@ and the objects it holds or creates, not to objects those return (Ch.8).
    their concrete classes (Ch.8).
 2. Pass the collaborator in. A default parameter value keeps existing callers unchanged while you
    make the move; the book treats that default as a step in the refactoring and later removes it
-   (Ch.8 and Ch.9). Keeping a default for good, and putting it in an options object, are this skill's
+   (Ch.8 and Ch.9). Keeping a default for good, and putting it in an options object, are this plugin's
    choices for callers that should not have to know the collaborator exists.
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for
    the class that plays it today (Ch.8).
@@ -43,7 +43,7 @@ and the objects it holds or creates, not to objects those return (Ch.8).
 5. Move object creation outward, toward the code that starts the program, and keep concrete class
    names out of the methods that do the work (Ch.8).
 
-TypeScript (this skill's inference): type the injected role as an interface or a type with only the
+TypeScript (this plugin's inference): type the injected role as an interface or a type with only the
 messages the receiver sends, so any object with those methods can play it, a test fake included.
 
 ## Values that keep a caller guessing

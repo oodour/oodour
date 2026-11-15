@@ -4,6 +4,9 @@ Used by the `lz-oop` skill when a developer writes code test-first, asks which t
 behave while code is restructured. What to assert about an object's messages, and which collaborators to replace, is
 in [testing-messages.md](testing-messages.md).
 
+Contents: Before the first test; Choosing the next test; Getting to green; What a test asserts; When to stop; Tests
+while restructuring; Unit tests per class; In JavaScript and TypeScript.
+
 ## Before the first test
 
 - Sketch the public API first: which messages will callers send, and with what? Then begin where you understand the
@@ -52,7 +55,7 @@ is plain, and do not chase DRY before every example is in (Ch.1 and Ch.2).
 - Expected values are written out literally. A test that computes its expectation with logic like the production
   code's, or asserts that one method returns what another returns, is tied to how the code works and breaks when
   the code is restructured (Ch.2).
-- Tests can repeat themselves more than production code; readability wins there (the talk The Design of Tests).
+- Tests can repeat themselves more than production code; readability wins there (the talk The Design of Tests, Hashrocket, year not known).
 - Keep one arrange, act, assert shape in every test (Ch.2, Ch.9).
 - Signal arbitrary data: a prime number, or an absurdly large one, tells the reader that the exact value does not
   matter (the Prime Number Signal, Ch.9).
@@ -78,7 +81,7 @@ is plain, and do not chase DRY before every example is in (Ch.1 and Ch.2).
 - Code you do not understand: pin its current behaviour with characterisation tests first, then restructure it in
   small steps on green (the talk All the Little Things, 2014). For legacy code with few tests, Sandi Metz recommends
   Michael Feathers' *Working Effectively with Legacy Code* (the Maintainable podcast interview Making is Easy,
-  Mending is a Challenge).
+  Mending is a Challenge, year not known).
 
 ## Unit tests per class
 
