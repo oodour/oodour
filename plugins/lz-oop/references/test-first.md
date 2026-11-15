@@ -5,7 +5,8 @@ behave while code is restructured. What to assert about an object's messages, an
 in [testing-messages.md](testing-messages.md).
 
 Contents: Before the first test; Choosing the next test; Getting to green; What a test asserts; When to stop; Tests
-while restructuring; Unit tests per class; In JavaScript and TypeScript.
+while restructuring (Tidying the tests after the code has new owners); Unit tests per class; In JavaScript and
+TypeScript.
 
 ## Before the first test
 
@@ -108,6 +109,28 @@ is plain, and do not chase DRY before every example is in (the book).
 
 - Changing a signature or a type that many places use, one green step at a time (the four stages per edit, Gradual
   Cutover, removing a parameter, accepting two kinds for a while): [changing-in-steps.md](changing-in-steps.md).
+
+### Tidying the tests after the code has new owners
+
+Use when restructuring has moved behaviour into new classes and the tests still sit where they were first written.
+The book treats this as a debt that grows with each extraction: the outer tests slowly turn into integration tests
+that tell a reader the wrong story (*99 Bottles of OOP*).
+
+1. Move each outer test that checks behaviour a new class now owns into that class's tests: move the first one by
+   the copy-then-delete steps above, then the rest the same way as a group.
+2. Delete outer tests that now check the same thing as another test, such as one written only to combine cases that
+   have their own tests (the book).
+3. Rewrite the outer class's remaining tests so they no longer depend on its collaborator's real output; a fake
+   playing the collaborator's role does this (the book; [testing-messages.md](testing-messages.md), Doubles).
+4. Rename tests whose names were chosen before the domain was understood, so the names state the rule the tests now
+   show; rename a test group in the same small green steps when its class is renamed. An out-of-date name can wait
+   until other tests make the right one clear (the book).
+5. Give each special case its own test in the tests of the class that uses it, even where a broad test already
+   covers it, so the tests tell a complete story (the book). Whether the special-case classes get tests of their own
+   is in Unit tests per class below.
+
+Done: each test sits with the class that owns its behaviour, no two tests check the same thing, and each name says
+what its test shows.
 
 ## Unit tests per class
 

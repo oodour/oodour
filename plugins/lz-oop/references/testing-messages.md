@@ -37,6 +37,28 @@ changes something.
   checks behaviour the types cannot express. How to write that shared test in Vitest, Jest and
   `node:test`: [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
 
+### How far to mock
+
+Use when deciding whether a collaborator gets a double or the real object.
+
+- **Double only what you own.** Sandi Metz holds herself to mocking only classes she owns (the talk SOLID
+  Object-Oriented Design, 2009). In that talk, a job that called a remote-transfer library directly could not be
+  mocked; she moved the transfer into a class of her own, injected it, and mocked that class in the job's test.
+  The real class could then be checked against the real server in a separate slow suite. Moving foreign calls
+  behind your own object is in [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not
+  own.
+- **Use the real object when it is cheap.** A collaborator with nothing external behind it, that runs fast and only
+  holds data, such as a value object, goes into the test as itself; trying to mock everything makes the code fragile
+  (SOLID Object-Oriented Design, 2009). For an outgoing command whose effect is cheap and close by, plugging in the
+  real object is fine too; the further and costlier the effect, the more a mock at the nearest boundary pays (The
+  Magic Tricks of Testing, 2013).
+- **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
+  checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
+  assertions on values for messages received from outside).
+
+Done: every double stands for an object your code owns, and every assertion checks a value the object under test
+computed or an outgoing command it sent.
+
 ## Testing a hierarchy
 
 Use when someone asks how to test a parent class and its subclasses. The layers below follow Sandi
