@@ -45,8 +45,8 @@ TypeScript form.
 
 - Rank findings by how much the change raises the cost of likely future changes, most first. Say which future change
   each finding makes expensive.
-- For each finding: file and lines, the smell's name, the cure, and the first small step toward it, with a short
-  TypeScript sketch where it helps.
+- For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
+  helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design.
 - Say plainly what the change did well and what is fine as it is, with the properties that make it fine.
 - Leave formatting, lint and naming nits out unless a name hides a concept.
 - Change no code unless the developer asks; then make the smallest step, run the tests, and stop.
