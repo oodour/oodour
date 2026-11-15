@@ -82,7 +82,8 @@ a PDF with WebFetch; download it with curl and convert it locally.
 To transcribe a talk, listen to its audio, or watch it (frames synced with the transcript), use the
 `/watch:watch` skill (Lars, 2026-11-15: "Subagents including oracle subagents should use
 /watch:watch when they need to transcribe, listen (audio-only), or *watch* (frames captured and
-synced with audio transcript) a video"). Always pass `--out-dir` inside the entry you were handed,
+synced with audio transcript) a video", narrowed the same day: "Agreed, `/watch` is only needed by
+the oracle curator."). Always pass `--out-dir` inside the entry you were handed,
 under `.oracle/<entry>/.watch/<file-stem>/`, so its downloads, frames and transcript stay in the
 sealed store; its default temp folder is outside the store and unguarded. Use `--detail transcript`
 when only the words are needed. The skill's setup step may ask for a Whisper API key: do not ask
