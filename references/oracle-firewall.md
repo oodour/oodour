@@ -64,9 +64,9 @@ which is why the guard lets any agent run it.
 
 | Layer | Catches | Misses |
 | --- | --- | --- |
-| `oracle-guard.ts`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle`; a path or command naming an oracle agent's transcript (`subagents/agent-<id>.jsonl`, owner read from the `agent-<id>.meta.json` beside it, denied when unreadable); a Glob or Grep aimed at a `subagents` folder under `.claude/projects` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store; a recursive Glob or Grep from the project or session folder above `subagents` |
+| `oracle-guard.ts`, PreToolUse | Any tool call whose path fields, or whose shell command (Bash, PowerShell, Monitor), name `.oracle`; a path or command naming an oracle agent's transcript (`subagents/agent-<id>.jsonl`, owner read from the `agent-<id>.meta.json` beside it, denied when unreadable); a Glob or Grep aimed at a `subagents` folder under `.claude/projects` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store; a recursive Glob or Grep from the project or session folder above `subagents` |
 | `oracle-hand-back.ts`, PreToolUse on `SubagentHandback` and SubagentStop | An oracle, reviewer or curator report with a 6+ word verbatim run, on either delivery path | Close paraphrase; a run under 6 words |
-| `oracle-scrub` mod, `tool.call` | Store paths in Glob and Grep results, and in shell output, when the call did not aim at the store | `tree` output, which names files without their folder path; sessions where the mod engine is off or the plugin is not enabled |
+| `oracle-scrub` mod, `tool.call` | Store paths in Glob and Grep results, and in shell output, when the call did not aim at the store | `tree` output, which names files without their folder path; the lines a Monitor command streams, which reach the session as notifications after the tool call returns (inferred from the mod engine's types: a Monitor call's result is its task id); sessions where the mod engine is off or the plugin is not enabled |
 
 The classic hooks are the floor: they run in every Claude Code session, headless runs and
 subagents included. The mod runs only where the `oracle-scrub@lz-oop-dev` plugin is enabled

@@ -67,3 +67,12 @@ for (const tool of ['Bash', 'PowerShell'] as const) {
     expect(ran.deny).toBeUndefined()
   })
 }
+
+test('Monitor output that lists the store is withheld', async ($, on) => {
+  on('tool.call', () => shell('./AGENTS.md\n./.oracle/metz-talks/x.md'))
+
+  const ran = await $.tool.call({ tool: 'Monitor', command: 'find .', description: 'd', timeout_ms: 1000 })
+
+  expect(ran.result).toBeUndefined()
+  expect(ran.deny ?? ran.text).toMatch(/withheld/)
+})
