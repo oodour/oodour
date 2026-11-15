@@ -221,8 +221,10 @@ test('only the message tools carry free text past the guard', () => {
     assert.equal(call(tool, { message: text, prompt: text, args: text }), undefined, tool);
   }
 
+  assert.equal(call('TodoWrite', { todos: [{ content: text }] }), undefined);
+  assert.equal(call('ExitPlanMode', { plan: text }), undefined);
   assert.match(call('WebFetch', { url: 'https://example.com/.oracle/x', prompt: 'p' }) ?? '', /oracle-guard/);
-  assert.match(call('TodoWrite', { todos: [{ content: text }] }) ?? '', /oracle-guard/);
+  assert.match(call('Artifact', { files: { 'a.md': '.oracle/x.md' } }) ?? '', /oracle-guard/);
 });
 
 test('a reader agent gets no tool but Read and Glob on the store', () => {

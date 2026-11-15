@@ -26,6 +26,8 @@ const messageTools: ReadonlySet<string> = new Set([
   'CronCreate',
   'PushNotification',
   'SendFeedback',
+  'TodoWrite',
+  'ExitPlanMode',
 ]);
 // Arguments are separated by spaces or tabs only: a newline or a shell operator would start a second command.
 const storeTools = /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
