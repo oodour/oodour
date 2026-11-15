@@ -222,6 +222,26 @@ test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   assert.ok(printed.every((line) => !line.includes('quick brown')), 'no matched text is printed');
 });
 
+test('a draft that cannot be read is an error, exit 2, not an overlap', (t) => {
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main([join(tmpdir(), 'no-such-draft.md')], syntheticStore()), 2);
+});
+
+test('the other drafts are still checked when one cannot be read', (t) => {
+  const printed: string[] = [];
+  const copy = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'copy.md');
+  writeFileSync(copy, 'the quick brown fox jumps over the lazy dog');
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--min-words', '6', join(tmpdir(), 'no-such-draft.md'), copy], syntheticStore()), 2);
+  assert.ok(printed.some((line) => line.startsWith(`${copy}: words 1-9`)));
+  assert.ok(printed.some((line) => /no-such-draft\.md: cannot read it/.test(line)));
+});
+
 test('the real store loads and a run lifted from it is caught', () => {
   const corpus = loadCorpus(6);
   const file = readdirSync(join(storeDir, 'metz-talks')).find((name) => name.endsWith('.md') && name !== 'index.md') ?? '';

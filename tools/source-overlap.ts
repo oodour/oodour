@@ -6,7 +6,8 @@
 //   node tools/source-overlap.ts <file> [more files]
 //   node tools/source-overlap.ts --min-words 6 <file>
 //
-// Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage.
+// Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage or a file
+// that cannot be read (the other files are still checked and their runs printed).
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, extname, join, relative, resolve, sep } from 'node:path';
@@ -230,6 +231,17 @@ export function parseArgs(args: readonly string[]): Options | undefined {
   return files.length > 0 && Number.isInteger(minWords) && minWords >= 4 ? { minWords, files } : undefined;
 }
 
+// Undefined, with the reason on stderr, when the file cannot be read.
+function readDraft(file: string): string | undefined {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    console.error(`[ERROR] ${file}: cannot read it (${error instanceof Error ? error.message : String(error)})`);
+
+    return undefined;
+  }
+}
+
 export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
@@ -241,12 +253,24 @@ export function main(args: readonly string[], dir: string = storeDir): number {
 
   const corpus = loadCorpus(options.minWords, dir);
   let found = 0;
+  let unreadable = 0;
 
   for (const file of options.files) {
-    for (const line of describeRuns(findRuns(readFileSync(file, 'utf8'), corpus))) {
+    const text = readDraft(file);
+
+    if (text === undefined) {
+      unreadable++;
+      continue;
+    }
+
+    for (const line of describeRuns(findRuns(text, corpus))) {
       console.log(`${file}: ${line}`);
       found++;
     }
+  }
+
+  if (unreadable > 0) {
+    return 2;
   }
 
   console.log(
