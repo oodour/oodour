@@ -112,6 +112,54 @@ test('compatibility characters in the store are normalized too', () => {
   assert.equal(findRuns('we find the first fix that fits', loadCorpus(6, dir)).length, 1);
 });
 
+const lifted = 'one two three four five six seven eight';
+
+// A store whose only run of text sits in the named file.
+function storeWith(path: string, content: string = lifted): string {
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  const file = join(dir, ...path.split('/'));
+  mkdirSync(join(file, '..'), { recursive: true });
+  writeFileSync(file, content);
+
+  return dir;
+}
+
+test('a run copied from example code is found', () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('book/code.js'))).length, 1);
+});
+
+test('a run from a README.md inside an entry is found', () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('metz-written/github/repo/README.md'))).length, 1);
+});
+
+test("the store's own listing is not a work", () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('README.md'))).length, 0);
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('book/index.md'))).length, 0);
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('book/repo/index.md'))).length, 1);
+});
+
+test("a clone's git folder is not read", () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('99bottles-js/repo/.git/x.md'))).length, 0);
+});
+
+test('installed dependencies are not read', () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('99bottles-js/repo/node_modules/lib/index.js'))).length, 0);
+});
+
+test('lock files and other file types are not read, prose and code of every listed kind is', () => {
+  for (const path of ['repo/package-lock.json', 'repo/yarn.lock', 'repo/pnpm-lock.yaml', 'repo/data.json', 'repo/a.png']) {
+    assert.equal(findRuns(lifted, loadCorpus(6, storeWith(`book/${path}`))).length, 0, path);
+  }
+
+  for (const extension of ['md', 'txt', 'js', 'mjs', 'cjs', 'ts', 'jsx', 'tsx', 'rb', 'RB']) {
+    assert.equal(findRuns(lifted, loadCorpus(6, storeWith(`book/a.${extension}`))).length, 1, extension);
+  }
+});
+
+test('a file holding a NUL byte is not read', () => {
+  assert.equal(findRuns(lifted, loadCorpus(6, storeWith('book/a.txt', `${lifted}\u0000`))).length, 0);
+});
+
 test('arguments parse into a threshold and files, and bad usage is refused', () => {
   assert.deepEqual(parseArgs(['a.md']), { minWords: 8, files: ['a.md'] });
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });

@@ -49,8 +49,10 @@ your recommendation."
 
 ## The overlap check
 
-`tools/source-overlap.ts` reports runs of words shared with every `.md` file in the store except
-`index.md` and `README.md`, as word positions, a length and an entry name. It never prints text,
+`tools/source-overlap.ts` reports runs of words shared with every prose and code file in the store
+(`.md`, `.txt`, `.js`, `.mjs`, `.cjs`, `.ts`, `.jsx`, `.tsx`, `.rb`), as word positions, a length and an
+entry name. It leaves out the store's own `README.md` and each entry's `index.md` (files of those names
+deeper in an entry count), `.git` and `node_modules` folders, and any file holding a NUL byte. It never prints text,
 which is why the guard lets any agent run it.
 
 - Threshold 8 words for a draft (default), 6 for an oracle's hand-back. Ordinary technical English

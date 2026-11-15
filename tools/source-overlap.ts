@@ -9,7 +9,7 @@
 // Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage.
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { basename, join, relative, resolve, sep } from 'node:path';
+import { basename, extname, join, relative, resolve, sep } from 'node:path';
 
 export const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 export const draftMinWords = 8;
@@ -37,7 +37,6 @@ export const permittedPhrases: readonly string[] = [
 // A work's title is a name, so the talk and article titles their indexes list are permitted.
 // A book's chapter headings are expression, so the book's index is not read for this.
 export const titledEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', 'owen-talks']);
-const indexNames: ReadonlySet<string> = new Set(['index.md', 'README.md']);
 
 export interface Run {
   readonly start: number;
@@ -59,20 +58,32 @@ export function tokenize(text: string): readonly string[] {
   return normalize(text).match(/[a-z0-9]+(?:'[a-z0-9]+)*/g) ?? [];
 }
 
-function listMarkdown(dir: string): readonly string[] {
+// The prose and the example code a work holds.
+const textExtensions: ReadonlySet<string> = new Set(['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.jsx', '.tsx', '.rb']);
+// A clone's history and its installed dependencies are not the work.
+const skippedFolders: ReadonlySet<string> = new Set(['.git', 'node_modules']);
+
+function listTextFiles(dir: string): readonly string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      return listMarkdown(path);
+      return skippedFolders.has(entry.name) ? [] : listTextFiles(path);
     }
 
-    return entry.isFile() && entry.name.endsWith('.md') ? [path] : [];
+    return entry.isFile() && textExtensions.has(extname(entry.name).toLowerCase()) ? [path] : [];
   });
 }
 
 function entryOf(dir: string, file: string): string {
   return relative(dir, file).split(sep)[0] ?? '';
+}
+
+// The store's listing and each entry's own index describe the works; files of those names deeper in an entry are works.
+function isIndex(dir: string, file: string): boolean {
+  const parts = relative(dir, file).split(sep);
+
+  return (parts.length === 1 && parts[0] === 'README.md') || (parts.length === 2 && parts[1] === 'index.md');
 }
 
 function firstCell(line: string): string {
@@ -81,7 +92,7 @@ function firstCell(line: string): string {
 
 function indexTitles(dir: string, files: readonly string[]): readonly string[] {
   return files
-    .filter((file) => indexNames.has(basename(file)) && titledEntries.has(entryOf(dir, file)))
+    .filter((file) => isIndex(dir, file) && titledEntries.has(entryOf(dir, file)))
     .flatMap((file) => readFileSync(file, 'utf8').split('\n').map(firstCell))
     .filter((cell) => cell !== '' && !/^-+$|^(title|talk|book|entry)$/i.test(cell))
     .flatMap((cell) => [cell, cell.replace(/\s*\([^)]*\)\s*$/, '')]);
@@ -89,11 +100,13 @@ function indexTitles(dir: string, files: readonly string[]): readonly string[] {
 
 export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
   const grams = new Map<string, string>();
-  const files = listMarkdown(dir);
+  const files = listTextFiles(dir);
 
-  for (const file of files.filter((path) => !indexNames.has(basename(path)))) {
+  for (const file of files.filter((path) => !isIndex(dir, path))) {
     const entry = entryOf(dir, file);
-    const tokens = tokenize(readFileSync(file, 'utf8'));
+    const text = readFileSync(file, 'utf8');
+    // A NUL byte marks a binary file whatever its extension.
+    const tokens = text.includes('\u0000') ? [] : tokenize(text);
 
     for (let i = 0; i + minWords <= tokens.length; i++) {
       const gram = tokens.slice(i, i + minWords).join(' ');
