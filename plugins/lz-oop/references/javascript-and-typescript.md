@@ -247,13 +247,39 @@ enforce.
 
 ## Characterisation tests
 
-To pin the current behaviour of code before restructuring it, a snapshot of its output is the quickest tool:
-`toMatchSnapshot` and `toMatchInlineSnapshot` in Vitest and Jest, `t.assert.snapshot` in `node:test`. Make the output
-deterministic (fake time and randomness), never update a snapshot to make a failing test pass without reading the
-difference, and replace snapshots with assertions that name the behaviour once you understand it. The practice of
-pinning legacy behaviour with tests before refactoring is shown in full in Katrina Owen's talk Therapeutic
-Refactoring (2012); the snapshot tools, fixed time and randomness, and replacing the snapshots later are this
-plugin's advice.
+Use before restructuring code whose inputs and expected output you do not know, only that it works today. Katrina
+Owen pins such a method in the talk Therapeutic Refactoring (2012); the steps restate hers:
+
+1. Call the code with a stand-in for its input, and assert a value you know is wrong. The failure is the point: it
+   shows what the code needs or what it returns.
+2. While the failure is a missing input (the stand-in lacks something the code asks for), read the code at that line,
+   learn what kind of value it wants, add it, and run again.
+3. Once the failure is a plain mismatch, paste the actual value it reports in as the expected value. Green.
+4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
+   from each failure.
+5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a
+   threshold.
+6. Where the behaviour looks wrong, pin it anyway as the current behaviour and ask whoever owns the requirement.
+
+She stops once every line runs under some input and every branch is reached from a test. The result is a
+regression suite and a record of today's behaviour, not a specification.
+
+```ts
+// Step 1, in Vitest (Jest is the same with its globals): the expected value is a placeholder
+it('builds the label as it does today', () => {
+  expect(shippingLabel({ name: 'Ada', zip: '1000' })).toBe('WRONG');
+});
+// node:test: assert.equal(shippingLabel(...), 'WRONG') from node:assert/strict
+```
+
+For output too long to paste, a snapshot does steps 1 and 3 at once: `toMatchSnapshot` and `toMatchInlineSnapshot` in
+Vitest and Jest, `t.assert.snapshot` in `node:test`. Make the output deterministic (fake time and randomness), never
+update a snapshot to make a failing test pass without reading the difference, and replace snapshots with assertions
+that name the behaviour once you understand it. The snapshot tools, fixed time and randomness, and replacing the
+snapshots later are this plugin's advice.
+
+Done: every line you will touch runs under a test, every branch is reached, and the suite is green on the unchanged
+code.
 
 ## Measuring complexity
 

@@ -105,10 +105,12 @@ is plain, and do not chase DRY before every example is in (the book).
 - Code you do not understand: pin its current behaviour with characterisation tests first, then restructure it in
   small steps on green (the talk All the Little Things, 2014). For legacy code with few tests, Sandi Metz recommends
   Michael Feathers' *Working Effectively with Legacy Code* (the Maintainable podcast interview Making is Easy,
-  Mending is a Challenge, year not known).
+  Mending is a Challenge, year not known). Procedure: [javascript-and-typescript.md](javascript-and-typescript.md),
+  Characterisation tests.
 
 - Changing a signature or a type that many places use, one green step at a time (the four stages per edit, Gradual
-  Cutover, removing a parameter, accepting two kinds for a while): [changing-in-steps.md](changing-in-steps.md).
+  Cutover, removing a parameter, accepting two kinds for a while; taking a long method apart with Method Object,
+  extraction and clearing code junk): [changing-in-steps.md](changing-in-steps.md).
 
 ### Tidying the tests after the code has new owners
 

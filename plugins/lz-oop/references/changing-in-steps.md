@@ -6,7 +6,7 @@ into small edits that each end on green, so the code could ship after any of the
 numbered steps are this plugin's restatement of the book's moves; the TypeScript examples are this plugin's own.
 
 Contents: The four stages of one edit; Adding a parameter: Gradual Cutover; Removing a parameter; Accepting two kinds
-for a while.
+for a while; Taking a long method apart.
 
 ## The four stages of one edit
 
@@ -119,3 +119,53 @@ step 2 log the old kind while you convert, so the log shows who is left. It must
 
 Done: no union, no `instanceof` or `typeof` check for the old kind, and every implementor and caller deals only in
 the new kind.
+
+## Taking a long method apart
+
+Use when one method has grown too long to read and you need to change it. Pin its behaviour first:
+[javascript-and-typescript.md](javascript-and-typescript.md), "Characterisation tests". Katrina Owen takes such a
+method apart in the talk Therapeutic Refactoring (2012) in fewer than thirty steps, each ending on green and each
+committed on its own. The steps below restate hers; the TypeScript example is this plugin's.
+
+1. If the method sits where it is hard to test, first move it into its own class (Replace Method with Method Object,
+   which she credits to Martin Fowler's *Refactoring*): the constructor takes the method's argument, the body becomes
+   a method with no parameter, and the old method only builds the object and calls it. Green. She notes that the
+   usual reason for this move is a method with many temporaries you would otherwise pass around; hers had only its
+   one argument, so only that became the object's state.
+2. Extract one piece: add an empty method named for what the piece is, not how it is computed; copy the lines in.
+   Where a local variable is built up across those lines, she prefers making the new method a query that returns its
+   part over passing the variable in or storing it in a field. In the original, use the query's result and delete the
+   temporaries nothing reads any more. Run the tests.
+3. Choose the next piece. Her order was her own pick: the largest chunk first, then whichever line is now longest.
+4. When the extractions are done, make a separate pass that removes what she calls code junk: noise that adds nothing
+   to understanding, such as comments that repeat or contradict the code, dead code kept for history, imports the
+   code never uses, and work the language already does for you. Small pieces of it left in place pile up into the
+   kind of method you started from.
+
+```ts
+// Step 1: the method moved into its own class; the old function only delegates
+export function shippingCost(order: Order): number {
+  return new ShippingCost(order).total();
+}
+
+class ShippingCost {
+  #order: Order;
+
+  constructor(order: Order) {
+    this.#order = order;
+  }
+
+  total(): number {
+    return this.#base() + this.#weightSurcharge() - this.#loyaltyDiscount(); // after steps 2 and 3
+  }
+  // #base, #weightSurcharge and #loyaltyDiscount are the extracted queries
+}
+```
+
+When a conditional is too tangled to extract from at all, Sandi Metz rebuilds it instead in the talk All the Little
+Things (2014): add a branch at the top that sends one category of input to a new, empty method; check that exactly
+the tests for that category now fail; write new code until each of those tests is green in turn, then tidy that
+method; repeat for each category; then delete the old conditional, never having had to understand it.
+
+Done: each piece is a method named for what it does, the original reads as a few calls at one level of detail, no
+unused temporaries or code junk remain, and every step between was green.
