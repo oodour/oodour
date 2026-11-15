@@ -18,8 +18,8 @@ In one change:
 1. The `oracle-curator` agent files the work under its entry and adds its index row. Lars can do
    the same by hand.
 2. A new entry gets a line in `.oracle/README.md` and a row in the tier table in `AGENTS.md`.
-3. The work's title and author names go into `permittedPhrases` in `tools/source-overlap.mjs`.
-4. Re-run `node --test tools/oracle-hooks.test.mjs`.
+3. The work's title and author names go into `permittedPhrases` in `tools/source-overlap.ts`.
+4. Run `node tools/store-check.ts` (index and files agree) and `npm run check`.
 
 Admitting a source can make earlier prose overlap with it, above all when the author published
 the same ideas freely elsewhere. After an admission, re-run the overlap check on the repository's

@@ -25,7 +25,7 @@ Adapted on 2026-11-15 from the firewalls in `angular-clean-architecture` and
 ## Writing from an answer
 
 - The oracle's answer is already in its own words, but your prose built from it is new text that
-  nothing has checked yet. Run `node tools/source-overlap.mjs <file>` on it before you commit.
+  nothing has checked yet. Run `node tools/source-overlap.ts <file>` on it before you commit.
 - Run the tool on a finished draft only. Feeding it candidate sentences to see which ones match
   turns it into a probe that reconstructs the source one bit at a time.
 - A claim credited to Sandi Metz needs an oracle answer behind it. Advice the project adds is the
@@ -46,7 +46,7 @@ exception does not apply here: paraphrase the statement and name it.
 
 ## The overlap check
 
-`tools/source-overlap.mjs` reports runs of words shared with every `.md` file in the store except
+`tools/source-overlap.ts` reports runs of words shared with every `.md` file in the store except
 `index.md` and `README.md`, as word positions, a length and an entry name. It never prints text,
 which is why the guard lets any agent run it.
 
@@ -61,8 +61,8 @@ which is why the guard lets any agent run it.
 
 | Layer | Catches | Misses |
 | --- | --- | --- |
-| `oracle-guard.mjs`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store |
-| `oracle-hand-back.mjs`, PreToolUse on `SubagentHandback` and SubagentStop | An oracle, reviewer or curator report with a 6+ word verbatim run, on either delivery path | Close paraphrase; a run under 6 words |
+| `oracle-guard.ts`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store |
+| `oracle-hand-back.ts`, PreToolUse on `SubagentHandback` and SubagentStop | An oracle, reviewer or curator report with a 6+ word verbatim run, on either delivery path | Close paraphrase; a run under 6 words |
 | `oracle-scrub` mod, `tool.call` | Store paths in Glob and Grep results, and in shell output, when the call did not aim at the store | `tree` output, which names files without their folder path; sessions where the mod engine is off or the plugin is not enabled |
 
 The classic hooks are the floor: they run in every Claude Code session, headless runs and
@@ -83,7 +83,7 @@ those names.
 
 ## Changing the firewall
 
-- Change the store pattern in both `oracle-guard.mjs` and the mod's `register.ts`; the test
+- Change the store pattern in both `oracle-guard.ts` and the mod's `hooks/scrub.ts`; the test
   `the mod scrubs with the same store pattern the guard denies on` fails until they agree.
-- Run `node --test tools/oracle-hooks.test.mjs` and `claude plugin test .claude/mods/oracle-scrub`
+- Run `npm run check`, which also runs `claude plugin test .claude/mods/oracle-scrub`,
   after any change to a hook, the mod, or the overlap tool.

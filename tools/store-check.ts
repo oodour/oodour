@@ -1,0 +1,102 @@
+// Checks that each store entry's index and files agree: every path an index names exists and is
+// not empty, and every Markdown file at the top of an entry has an index row. It prints counts,
+// and names only for collections, whose file names are work titles. A book's file names carry its
+// chapter headings, so for a book it prints counts alone. It never prints file content.
+//
+// Usage: node tools/store-check.ts        Exit 0 = consistent. Exit 1 = a problem. Exit 2 = no store.
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { basename, join } from 'node:path';
+import { storeDir } from './source-overlap.ts';
+
+const namedEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', '99bottles-js']);
+
+export interface EntryReport {
+  readonly entry: string;
+  readonly indexed: number;
+  readonly missing: readonly string[];
+  readonly empty: readonly string[];
+  readonly unindexed: readonly string[];
+}
+
+// The backticked cells of an index's table rows: `name.md`, `github/repo/`, `repo/lib`.
+export function indexedPaths(index: string): readonly string[] {
+  return index
+    .split('\n')
+    .filter((line) => line.startsWith('|'))
+    .flatMap((line) => [...line.matchAll(/`([^`]+)`/g)].map((match) => match[1] ?? ''))
+    .filter((cell) => cell !== '' && !/\s/.test(cell) && !cell.startsWith('http'));
+}
+
+function size(path: string): number {
+  const stat = statSync(path);
+
+  return stat.isDirectory() ? readdirSync(path).length : stat.size;
+}
+
+// A cell resolves against the entry folder, or against a folder at its top (a clone's `repo/`).
+function resolveCell(entryDir: string, cell: string): string | undefined {
+  const roots = [entryDir, ...readdirSync(entryDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => join(entryDir, d.name))];
+
+  return roots.map((root) => join(root, cell.replace(/[\\/]+$/, ''))).find((path) => existsSync(path));
+}
+
+export function checkEntry(dir: string, entry: string): EntryReport | undefined {
+  const entryDir = join(dir, entry);
+  const indexPath = join(entryDir, 'index.md');
+
+  if (!existsSync(indexPath)) {
+    return undefined;
+  }
+
+  const cells = [...new Set(indexedPaths(readFileSync(indexPath, 'utf8')))];
+  const resolved = cells.map((cell) => ({ cell, path: resolveCell(entryDir, cell) }));
+  const named = new Set(cells.map((cell) => basename(cell.replace(/[\\/]+$/, ''))));
+  const topFiles = readdirSync(entryDir).filter((name) => name.endsWith('.md') && name !== 'index.md');
+
+  return {
+    entry,
+    indexed: cells.length,
+    missing: resolved.flatMap(({ cell, path }) => (path === undefined ? [cell] : [])),
+    empty: resolved.flatMap(({ cell, path }) => (path !== undefined && size(path) === 0 ? [cell] : [])),
+    unindexed: topFiles.filter((name) => !named.has(name)),
+  };
+}
+
+export function describe(report: EntryReport): readonly string[] {
+  const problems = report.missing.length + report.empty.length + report.unindexed.length;
+  const head = `${report.entry}: ${String(report.indexed)} indexed, ${String(report.missing.length)} missing, ${String(report.empty.length)} empty, ${String(report.unindexed.length)} unindexed`;
+
+  if (problems === 0 || !namedEntries.has(report.entry)) {
+    return [problems === 0 ? `[OK] ${head}` : `[ERROR] ${head}`];
+  }
+
+  return [
+    `[ERROR] ${head}`,
+    ...report.missing.map((name) => `  missing: ${name}`),
+    ...report.empty.map((name) => `  empty: ${name}`),
+    ...report.unindexed.map((name) => `  unindexed: ${name}`),
+  ];
+}
+
+export function main(dir: string = storeDir): number {
+  if (!existsSync(dir)) {
+    console.error('[ERROR] no store at .oracle/');
+
+    return 2;
+  }
+
+  const reports = readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .flatMap((d) => checkEntry(dir, d.name) ?? []);
+
+  for (const line of reports.flatMap(describe)) {
+    console.log(line);
+  }
+
+  return reports.every((r) => r.missing.length + r.empty.length + r.unindexed.length === 0) ? 0 : 1;
+}
+
+if (process.argv[1] !== undefined && basename(process.argv[1]) === 'store-check.ts') {
+  process.exitCode = main();
+}

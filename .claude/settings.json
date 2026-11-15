@@ -4,16 +4,16 @@
     "PreToolUse": [
       {
         "matcher": "*",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-guard.mjs\"" }]
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-guard.ts\"" }]
       },
       {
         "matcher": "SubagentHandback",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.mjs\"" }]
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\"" }]
       }
     ],
     "SubagentStop": [
       {
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.mjs\"" }]
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\"" }]
       }
     ]
   },

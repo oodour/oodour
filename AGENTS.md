@@ -46,7 +46,7 @@ ban, ask Lars instead of shipping the ban.
 | An answer from a source | Read, search, print, or fetch its text, from the store or the web | Ask the `oracle` agent: a question plus one entry's `index.md` path, passed as a string |
 | A drafted document checked against a source | Check it yourself from memory | Run `oracle-reviewer` with the draft paths and one entry's index path |
 | To know which works exist | List or glob the store | Read `.oracle/README.md`, the one file outside the agents you may open |
-| To know whether a text copies a source | Compare by hand | `node tools/source-overlap.mjs <file>` (prints positions, never text) |
+| To know whether a text copies a source | Compare by hand | `node tools/source-overlap.ts <file>` (prints positions, never text) |
 | A source added or fixed | Write into `.oracle/` | Brief the `oracle-curator` agent, or ask Lars to run the command with `!` |
 | To search the repository | Run an unscoped `find`, `ls -R`, `Get-ChildItem -Recurse` or `tree` from the root | Scope the search to the directory you mean |
 | To search for the string `.oracle` | Pass it in a shell command | Use the Grep tool with a path outside the store |
@@ -63,16 +63,17 @@ output), stop reading it, do not use it, and tell Lars.
   its year for the others. Never derive a chapter number from a file name.
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
-- Run `node tools/source-overlap.mjs <file>` on any prose you wrote from an oracle answer before you
+- Run `node tools/source-overlap.ts <file>` on any prose you wrote from an oracle answer before you
   commit it.
 
 ### Enforcement
 
 Three layers back the prose, and none of them replaces it.
 
-- `.claude/hooks/oracle-guard.mjs` (PreToolUse) denies any tool call that names a store path,
-  except from the oracle agents, the `.oracle/README.md` listing, and `tools/source-overlap.mjs`.
-- `.claude/hooks/oracle-hand-back.mjs` (PreToolUse on `SubagentHandback`, and SubagentStop) sends
+- `.claude/hooks/oracle-guard.ts` (PreToolUse) denies any tool call that names a store path,
+  except from the oracle agents, the `.oracle/README.md` listing, `tools/source-overlap.ts` and
+  `tools/store-check.ts`.
+- `.claude/hooks/oracle-hand-back.ts` (PreToolUse on `SubagentHandback`, and SubagentStop) sends
   an oracle agent back to rewrite its report while it shares a run of six or more words with the
   store, so the copy never reaches you.
 - The `oracle-scrub` mod (`.claude/mods/`) removes store paths from Glob and Grep results that did
@@ -85,4 +86,7 @@ admit a source, and the record of what was imported and left out:
 lz-tdd to use for oracle work, and what each must not do near the store:
 [`references/agent-workflow.md`](references/agent-workflow.md).
 
-Tests: `node --test tools/oracle-hooks.test.mjs` and `claude plugin test .claude/mods/oracle-scrub`.
+The hooks, the mod and the tools meet the script bar in `~/.claude/references/lars-skill-authoring.md`
+(Lars, 2026-11-15: "Claude mod and hook scripts should meet the same bar as those I require for user-scope
+skill scripts"): erasable-syntax TypeScript with `.test.ts` tests on Node.js 22 and 24. `npm run check`
+type-checks, lints and tests all of them.
