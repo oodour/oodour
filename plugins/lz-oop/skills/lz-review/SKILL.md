@@ -43,8 +43,13 @@ TypeScript form.
 
 ## 4. Report
 
-- Rank findings by how much the change raises the cost of likely future changes, most first. Say which future change
-  each finding makes expensive.
+- A finding is something this change did that makes a change harder: a new branch, flag, hard-coded collaborator,
+  chain or subclass, or a test that checks how rather than what. Rank findings by how much each raises that cost,
+  most first, and say which change each makes expensive.
+- A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. The book waits
+  for the actual change request, which shows the shape the code needs, and treats an unforced change to working code
+  as a bet (Ch.3, Ch.8). At most, name it in one line as what to reconsider when that request arrives.
+- When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design.
 - Say plainly what the change did well and what is fine as it is, with the properties that make it fine.
