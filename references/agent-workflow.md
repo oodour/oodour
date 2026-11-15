@@ -40,6 +40,24 @@ because keeping source wording out of an own-words answer is the hard part; `ora
 Sonnet, because fetching and filing is mechanical and the hand-back gate checks its report. Do not
 pass `model` on the Agent call for them (`lars-principle-fit-model-and-effort`).
 
+## Turning Ruby examples into JavaScript and TypeScript
+
+Most talks and articles teach in Ruby, so an oracle answer often describes a Ruby idiom the plugin must restate in
+JavaScript or TypeScript. Lars, 2026-11-16: "For Ruby to JavaScript/TypeScript, consider
+@D:\projects\github\microsoft\slack-plus-teams\experts\convert\index.md and its relevant siblings." and "...as well
+as the convert documents' links and references". The relevant files there are `ruby-to-ts-ts.md`,
+`type-mapping-ts.md` and `js-to-ts-ts.md`; their references sections link the primary documentation to check a
+mapping against (the TypeScript handbook's classes, object types, mixins, narrowing, generics, everyday types,
+types-from-types and utility types pages; MDN's Array reference; Ruby's Enumerable). Use them for the mapping, write
+the plugin's wording and examples yourself, and keep the plugin's rules where they differ:
+
+- Checking whether an object answers a method (`respond_to?` turned into a type guard) is the same smell as checking
+  its class. Name the role in a type and trust it.
+- No constructor parameter properties, `namespace` or `enum`: the plugin's TypeScript must be erasable. Use fields
+  and string literal unions.
+- A Ruby module shared by several classes becomes composition (an injected object playing a role), not a mixin
+  copied onto a prototype.
+
 ## The plugin itself
 
 `lz-oop` stays independent of `lz-tdd` and every other plugin (c642f84); its test-first practices come
