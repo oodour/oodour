@@ -1,6 +1,6 @@
 // Holds the firewall's scripts to the script bar in ~/.claude/references/lars-skill-authoring.md
 // (Lars, 2026-11-15: "Claude mod and hook scripts should meet the same bar as those I require for
-// user-scope skill scripts"): every script is TypeScript, and a .test.ts names it by path.
+// user-scope skill scripts"): every script is TypeScript, and a .test.ts imports it.
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,6 +17,25 @@ const scriptFolders: readonly { readonly folder: string; readonly testFolders: r
 
 const isScript = (name: string): boolean => name.endsWith('.ts') && !name.endsWith('.test.ts') && !name.endsWith('.d.ts');
 
+// A test imports the script: `from '<path>/<name>'`, `import '<path>/<name>'` or `import('<path>/<name>')`.
+const namesScript = (testText: string, name: string): boolean => {
+  const specifier = `['"][^'"\\n]*/${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`;
+
+  return new RegExp(`\\bfrom\\s*${specifier}|\\bimport\\s*\\(?\\s*${specifier}`).test(testText);
+};
+
+test('a script named only in a comment is not tested', () => {
+  assert.equal(namesScript("// covered by './store-check.ts' elsewhere", 'store-check.ts'), false);
+});
+
+test('a script is tested when a test imports it in any import form', () => {
+  assert.ok(namesScript("import { main } from './store-check.ts';", 'store-check.ts'));
+  assert.ok(namesScript('import "../tools/store-check.ts";', 'store-check.ts'));
+  assert.ok(namesScript("await import('./store-check.ts')", 'store-check.ts'));
+  assert.equal(namesScript("import { x } from './my-store-check.ts';", 'store-check.ts'), false);
+  assert.equal(namesScript("import { x } from './store-checkxts';", 'store-check.ts'), false);
+});
+
 for (const { folder, testFolders } of scriptFolders) {
   const files = readdirSync(join(root, folder));
 
@@ -28,7 +47,7 @@ for (const { folder, testFolders } of scriptFolders) {
     );
   });
 
-  test(`every script in ${folder} is named by a test`, () => {
+  test(`every script in ${folder} is imported by a test`, () => {
     const testText = testFolders
       .flatMap((dir) =>
         readdirSync(join(root, dir))
@@ -39,7 +58,7 @@ for (const { folder, testFolders } of scriptFolders) {
     // The engine's test kit loads register.ts by itself, so a mod's register.test.ts names it by existing.
     const untested = files
       .filter(isScript)
-      .filter((name) => !testText.includes(`/${name}'`))
+      .filter((name) => !namesScript(testText, name))
       .filter((name) => !(name === 'register.ts' && files.includes('register.test.ts')));
 
     assert.deepEqual(untested, []);
