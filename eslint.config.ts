@@ -16,4 +16,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // The engine's generic `on` overloads expand each hook parameter to a union of every event's hook,
+    // which this check walks for each call: minutes per file against 1 s for tsc. Hooks return
+    // `Result | Promise<Result>`, never void, so the check cannot fire on them.
+    files: ['.claude/mods/*/hooks/**/*.ts'],
+    rules: { '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }] },
+  },
 );
