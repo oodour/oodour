@@ -24,7 +24,8 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
    narrow, its subclasses at the edges of the object graph, and each subclass using all it inherits), and duplicated
    lines that may still diverge are often the right call. Support that verdict with the
    specific properties of this code.
-4. For each smell, open the leaf that covers it:
+4. For each smell, Read the file that covers it before you recommend a cure. This leaf names the smells; the cures,
+   their steps and their exceptions are in those files, not here:
    - a conditional that switches on a kind, or a flag argument:
      [variants-and-conditionals.md](variants-and-conditionals.md);
    - duplication, or shared code bent by its callers: [duplication-and-abstraction.md](duplication-and-abstraction.md);
@@ -32,6 +33,7 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
      [dependencies-and-messages.md](dependencies-and-messages.md);
    - a class hierarchy: [inheritance.md](inheritance.md);
    - tests that are hard to write, or that mock too much: [testing-messages.md](testing-messages.md);
+   - a class or method that does more than one job: Does it do one job? below;
    - a class you have not read yet, alike methods, a raw value standing for a domain idea, values that
      travel together, or a class carrying traces of where it was born: the checks below.
 5. Keep each finding concrete: the file and lines, the smell's name, what change it makes expensive, the cure, and
@@ -108,6 +110,38 @@ Methods that have the same shape are easy to read and easy to change next. When 
 one method a shape unlike its siblings (an extra branch, a guard for a value that cannot occur),
 treat that as a hint, not proof, that the abstraction is wrong, and reconsider what the method is
 responsible for. Variation in form that serves no purpose hides a shape the methods share.
+
+### Does it do one job? (Single Responsibility)
+
+Use it on a class or method that a change made longer, or that is hard to name.
+
+1. Describe it in one sentence. A sentence that needs "and" suggests two jobs; one that needs "or" suggests two
+   jobs that are not even related (the talk SOLID Object-Oriented Design, 2009; *99 Bottles of OOP* raises the same
+   suspicion when describing a method takes an "and"). Treat the sentence as a guide, not a law: in her POODR talk
+   with the Toronto Ruby Brigade (2013) a class is good enough when one sentence covers everything in it.
+2. Look for cues in the code:
+   - a blank line inside a method that marks a change of topic (the book names it as a smell);
+   - a method that relies on only some of the class's fields, and may belong with those fields in a new class (her
+     public example-code repositories, poodr and poodr2);
+   - a method that loops over a collection and also does the work for each item; split it into one method that only
+     loops and one that handles a single item (the same repositories; the book argues for the looping-only form).
+3. Ask whether its parts change at one pace. Parts that change at different rates belong apart (the talk SOLID
+   Object-Oriented Design, 2009). The 2013 Toronto talk loosens this: one reason to change, and parts that change
+   at the same moment, are rules of thumb for cohesion, not strict conditions.
+4. Ask whether it could be two things, and what each would be. A believable answer means it may hold too much, and
+   the split is worth trying; inline it again if the result reads worse (Katrina Owen, the talks Overkill, 2014, and
+   Succession, 2016). Length is not the test: a method of a few lines can still serve unrelated ends.
+
+The cure, one job at a time, with the tests green after each step: break the code into small methods, then move a
+job into a new class and inject an instance of it (the talk All the Little Things, 2014, goes from small methods to
+small objects; the talk SOLID Object-Oriented Design, 2009, extracts and injects one duty at a time). When to move
+methods out is this plugin's reading: when a group of them leans on the same few values. For the steps of
+Extract Class, see Primitive Obsession above. The book waits for a change request before splitting a short method
+that works, so weigh the split against step 1 of this leaf.
+
+Done looks like: each class and method passes the one-sentence test without an "and" and can be read and tested
+alone with little setup (the book), and its parts share one pace of change (the 2009 SOLID talk, which repeats its
+questions at each green step until nothing is left to extract).
 
 ### More smells
 

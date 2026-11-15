@@ -24,6 +24,10 @@ For each changed area, ask:
 - **Two jobs in one?** Did the change restructure and add behaviour in the same step? Restructuring with tests green
   and unchanged, then adding the behaviour, is the safer order (*99 Bottles of OOP*). What a restructure may do to
   tests: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring.
+- **A second responsibility for a class or method?** Did the change give a class or method a job beyond the one it
+  had: a new topic after a blank line, a loop now also doing the work for each item, a method that uses only some
+  fields? Not the same as the question above, which is about the steps of the change, not what the code now does:
+  `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job?
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next
   kind costs the same edits again: `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - **A new flag or parameter on shared code?** Shared code gaining a boolean or a mode for one caller is the usual
@@ -41,6 +45,10 @@ For each changed area, ask:
 Judge each candidate finding with `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and use
 `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or
 TypeScript form.
+
+This file only routes. Before you report a finding, Read the reference its question above names, and the file
+judging-design.md sends you to for its smell: the cure, its steps and its exceptions are there, not here. A
+finding written from this file alone is incomplete.
 
 ## 4. Report
 
