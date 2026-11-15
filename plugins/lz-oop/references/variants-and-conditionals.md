@@ -55,12 +55,16 @@ callee, and each conditional it adds doubles the paths through the code (Polly W
 
 1. Name the flag list as the problem, not its length: the shared code is doing several jobs and the
    callers pick between them.
-2. Pass in something that already knows how to do the caller's part (an object or a function for
+2. Before proposing a new shape, ask whether several callers have bent this shared code, each with
+   its own combination of flags. If so, say that it may be the wrong abstraction, and weigh undoing
+   it: the code goes back into each caller first, and only what is truly shared is extracted again
+   (see Shared code that callers keep bending in
+   [duplication-and-abstraction.md](duplication-and-abstraction.md)).
+3. Pass in something that already knows how to do the caller's part (an object or a function for
    that purpose) instead of a flag the callee has to translate. Translate a token into an object as
    early, and as far up the call chain, as possible (the article The Shape at the Bottom of All
    Things, 2014).
-3. Where an option has a usual value, inject the collaborator with that value as the default rather
+4. Where an option has a usual value, inject the collaborator with that value as the default rather
    than adding a flag and an `if` (the article Getting It Right By Betting On Wrong, 2014).
-4. Bundling the flags into an options object hides the count but keeps the branching; it is not the
-   cure. When the shared code has been bent this way by several callers, it may be the wrong
-   abstraction: see [duplication-and-abstraction.md](duplication-and-abstraction.md).
+5. Bundling the flags into an options object hides the count but keeps the branching; it is not the
+   cure.
