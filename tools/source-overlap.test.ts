@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { test } from 'node:test';
@@ -409,11 +409,21 @@ test('run as a command with no arguments, it prints its usage and exits 2', () =
   assert.match(run.stderr, /^usage: /);
 });
 
+const repositoryStore = join(dirname(import.meta.dirname), '.oracle');
+
+// Mutation runs copy the repository without its store and skip the real-store test, so this pins the default there.
+test(
+  'with no store present, loading the default corpus names the missing store folder at the repository root',
+  { skip: existsSync(repositoryStore) && 'the store is present, and the real-store test covers the default' },
+  () => {
+    assert.throws(() => loadCorpus(6), (error: unknown) => error instanceof Error && error.message.includes(repositoryStore));
+  },
+);
+
 test('the real store loads and a run lifted from it is caught', () => {
   const corpus = loadCorpus(6);
-  const storeDir = join(dirname(import.meta.dirname), '.oracle');
-  const file = readdirSync(join(storeDir, 'metz-talks')).find((name) => name.endsWith('.md') && name !== 'index.md') ?? '';
-  const tokens = tokenize(readFileSync(join(storeDir, 'metz-talks', file), 'utf8'));
+  const file = readdirSync(join(repositoryStore, 'metz-talks')).find((name) => name.endsWith('.md') && name !== 'index.md') ?? '';
+  const tokens = tokenize(readFileSync(join(repositoryStore, 'metz-talks', file), 'utf8'));
   const start = Math.floor(tokens.length / 2);
   const lifted = tokens.slice(start, start + 10).join(' ');
 
