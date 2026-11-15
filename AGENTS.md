@@ -10,7 +10,8 @@ important rule here.
 ## Oracle firewall
 
 `.oracle/` holds the full text of copyrighted works: Sandi Metz, Katrina Owen and TJ Stankus,
-*99 Bottles of OOP*, 2nd edition, JavaScript; transcripts of Sandi Metz talks; and her articles.
+*99 Bottles of OOP*, 2nd edition, JavaScript, and its companion code; transcripts of Sandi Metz
+talks; and her articles and example code.
 It is git-ignored and must stay that way.
 
 The plugin must be original work. Text an agent has read shapes the text it then writes, so
@@ -33,8 +34,9 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Entry | Path | Tier |
 | --- | --- | --- |
 | Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript | `.oracle/99-bottles-2e-js/` | Sealed |
-| Sandi Metz talk transcripts (16 talks, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
-| Sandi Metz articles | `.oracle/metz-written/` | Sealed |
+| Sandi Metz talk transcripts (21 talks, interviews and Q&A sessions, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
+| Sandi Metz articles, blog posts, and her public example-code repositories | `.oracle/metz-written/` | Sealed |
+| The book's companion code, `sandimetz/99bottles_js`, as a full git clone | `.oracle/99bottles-js/` | Sealed |
 
 ### What you need, and the permitted route
 
