@@ -7,5 +7,5 @@ reports/stryker-incremental/
 evals/*/results/
 dist/
 .nx/
-.claude/worktrees/
+.claude/worktrees
 .claude/settings.local.json
