@@ -12,7 +12,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, extname, join, relative, resolve, sep } from 'node:path';
 
-export const storeDir = resolve(import.meta.dirname, '..', '.oracle');
+// Not exported: an imported store path would let a script reach the store without naming it.
+const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 export const draftMinWords = 8;
 // Ordinary technical English collides by chance at four or five words (measured in
 // angular-clean-architecture, 2026-08-16), so six is the floor for an agent's hand-back, and for every
@@ -48,9 +49,15 @@ export interface Run {
 
 export interface Corpus {
   readonly minWords: number;
+}
+
+interface Contents {
   readonly grams: ReadonlyMap<string, string>;
   readonly phrases: readonly string[];
 }
+
+// The words stay inside this module, so a script that imports it learns run positions and never the text.
+const contents = new WeakMap<Corpus, Contents>();
 
 function normalize(text: string): string {
   return text.normalize('NFKC').toLowerCase().replace(/[‘’]/g, "'");
@@ -169,7 +176,10 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
     }
   }
 
-  return { minWords, grams, phrases: [...permittedPhrases, ...indexTitles(dir, files)] };
+  const corpus: Corpus = { minWords };
+  contents.set(corpus, { grams, phrases: [...permittedPhrases, ...indexTitles(dir, files)] });
+
+  return corpus;
 }
 
 // The positions of the tokens that belong to a permitted phrase.
@@ -190,15 +200,21 @@ function maskedPositions(tokens: readonly string[], phrases: readonly string[]):
 
 // Runs are word offsets into the text (1-based), never the words.
 export function findRuns(text: string, corpus: Corpus): readonly Run[] {
+  const loaded = contents.get(corpus);
+
+  if (loaded === undefined) {
+    throw new Error('source-overlap: not a corpus that loadCorpus returned');
+  }
+
   const tokens = tokenize(text);
-  const masked = maskedPositions(tokens, corpus.phrases);
+  const masked = maskedPositions(tokens, loaded.phrases);
   const runs: { start: number; words: number; entry: string }[] = [];
   let current: { start: number; words: number; entry: string } | undefined;
 
   // Stryker disable next-line ArithmeticOperator: a window past the end has fewer words than any gram, so it matches none
   for (let i = 0; i + corpus.minWords <= tokens.length; i++) {
     const window = tokens.slice(i, i + corpus.minWords);
-    const entry = window.some((_, k) => masked.has(i + k)) ? undefined : corpus.grams.get(window.join(' '));
+    const entry = window.some((_, k) => masked.has(i + k)) ? undefined : loaded.grams.get(window.join(' '));
 
     if (entry === undefined) {
       current = undefined;

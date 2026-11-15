@@ -7,8 +7,11 @@
 // Usage: node tools/store-check.ts        Exit 0 = consistent. Exit 1 = a problem. Exit 2 = no store.
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { basename, join } from 'node:path';
-import { storeDir, titledEntries } from './source-overlap.ts';
+import { basename, join, resolve } from 'node:path';
+import { titledEntries } from './source-overlap.ts';
+
+// Not exported or shared: an imported store path would let a script reach the store without naming it.
+const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 
 const namedEntries: ReadonlySet<string> = new Set([...titledEntries, '99bottles-js']);
 

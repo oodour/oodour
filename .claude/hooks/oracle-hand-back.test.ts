@@ -156,13 +156,8 @@ test('a record after the last assistant message is not part of the answer', () =
 });
 
 test('an empty report is never checked against the store', () => {
-  const untouchable: Corpus = {
-    minWords: 6,
-    grams: new Map(),
-    get phrases(): readonly string[] {
-      throw new Error('the store was read');
-    },
-  };
+  // findRuns throws on a corpus loadCorpus did not return, so a check of the report fails this test.
+  const untouchable: Corpus = { minWords: 6 };
 
   assert.equal(review(parseHookInput({ hook_event_name: 'PreToolUse', tool_name: 'SubagentHandback', tool_input: {}, agent_type: 'oracle' }), untouchable), undefined);
   assert.equal(review(parseHookInput({ hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { message: copied }, agent_type: 'oracle' }), untouchable), undefined);

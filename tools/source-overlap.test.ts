@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { test } from 'node:test';
-import { describeRuns, findRuns, loadCorpus, main, parseArgs, permittedPhrases, storeDir, tokenize } from './source-overlap.ts';
+import { describeRuns, findRuns, loadCorpus, main, parseArgs, permittedPhrases, tokenize } from './source-overlap.ts';
 
 function syntheticStore(): string {
   const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
@@ -27,6 +27,41 @@ function syntheticStore(): string {
 
   return dir;
 }
+
+// Every string a script that holds the value can reach: keys, values, and the contents of maps and sets.
+function reachableStrings(value: unknown, seen: Set<unknown> = new Set()): readonly string[] {
+  if (typeof value === 'string') {
+    return [value];
+  }
+
+  if (typeof value !== 'object' || value === null || seen.has(value)) {
+    return [];
+  }
+
+  seen.add(value);
+  const keys = Reflect.ownKeys(value);
+  const values: readonly unknown[] = keys.map((key): unknown => Reflect.get(value, key));
+  const contents: readonly unknown[] = value instanceof Map || value instanceof Set ? [...value.entries()].flat() : [];
+
+  return [...keys, ...values, ...contents].flatMap((child) => reachableStrings(child, seen));
+}
+
+test('a loaded corpus holds none of the words it was loaded from', () => {
+  const corpus = loadCorpus(6, syntheticStore());
+
+  assert.equal(findRuns('the quick brown fox jumps over', corpus).length, 1);
+  assert.deepEqual(reachableStrings(corpus).filter((text) => /quick|seven small/i.test(text)), []);
+});
+
+test('the module exports no file system path', async () => {
+  const exported = Object.values(await import('./source-overlap.ts'));
+
+  assert.deepEqual(exported.filter((value) => typeof value === 'string' && isAbsolute(value)), []);
+});
+
+test('a corpus that loadCorpus did not return is refused', () => {
+  assert.throws(() => findRuns('the quick brown fox jumps over', { minWords: 6 }), /not a corpus that loadCorpus returned/);
+});
 
 test('a copied run is found by position and length, never by text', () => {
   const runs = findRuns('Intro words. The quick brown fox jumps over the lazy dog, I said.', loadCorpus(6, syntheticStore()));
@@ -246,10 +281,6 @@ test('the other drafts are still checked when one cannot be read', (t) => {
   assert.ok(printed.some((line) => /no-such-draft\.md: cannot read it/.test(line)));
 });
 
-test('the store is the .oracle folder at the repository root', () => {
-  assert.equal(storeDir, join(dirname(import.meta.dirname), '.oracle'));
-});
-
 test('only the listing at the store root and an index at the top of an entry are skipped', () => {
   for (const path of ['notes.md', 'README.md/a.md', 'book/index.md/a.md']) {
     assert.equal(findRuns(lifted, loadCorpus(6, storeWith(path))).length, 1, path);
@@ -380,11 +411,11 @@ test('run as a command with no arguments, it prints its usage and exits 2', () =
 
 test('the real store loads and a run lifted from it is caught', () => {
   const corpus = loadCorpus(6);
+  const storeDir = join(dirname(import.meta.dirname), '.oracle');
   const file = readdirSync(join(storeDir, 'metz-talks')).find((name) => name.endsWith('.md') && name !== 'index.md') ?? '';
   const tokens = tokenize(readFileSync(join(storeDir, 'metz-talks', file), 'utf8'));
   const start = Math.floor(tokens.length / 2);
   const lifted = tokens.slice(start, start + 10).join(' ');
 
-  assert.ok(corpus.grams.size > 100000, 'store corpus is loaded');
   assert.equal(findRuns(`my own opening words ${lifted} my own closing words`, corpus)[0]?.entry, 'metz-talks');
 });
