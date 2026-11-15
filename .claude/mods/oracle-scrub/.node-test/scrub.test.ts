@@ -39,6 +39,20 @@ test('shell output lists the store when any line is a store line', () => {
   assert.equal(listsStore('.gitignore\n.oracle\nAGENTS.md'), false);
 });
 
+test('shell output lists the store when a JSON line carries a store path', () => {
+  assert.ok(listsStore('{"type":"begin","data":{"path":{"text":".oracle\\\\x\\\\a.md"}}}'));
+});
+
+test('shell output lists the store when a path inside it sits anywhere in a line', () => {
+  assert.ok(listsStore(' Directory of D:\\repo\\.oracle\\metz-talks\n\n01/01/2026  x.md'));
+  assert.ok(listsStore('match in "D:/repo/.oracle/x/a.md" at 3'));
+  assert.ok(listsStore('C:\\Users\\Some User\\repo\\.oracle\\x.md:3:text'));
+});
+
+test('shell output that mentions the store in prose does not list it', () => {
+  assert.equal(listsStore('AGENTS.md:12:keep out of .oracle/ entirely\n`.oracle/` holds the full text\nrepo\\x.oracle\\a.md'), false);
+});
+
 test('shell output joins the text with stdout and stderr, and ignores a result that is not an object', () => {
   assert.equal(shellOutput('t', { stdout: 'o', stderr: 'e' }), 't\no\ne');
   assert.equal(shellOutput(undefined, { stdout: 7 }), '\n\n');

@@ -47,6 +47,8 @@ for (const tool of ['Bash', 'PowerShell'] as const) {
     ['find', './AGENTS.md\n./.oracle/metz-talks/x.md'],
     ['ls -R', '.:\nAGENTS.md\n\n./.oracle/99-bottles-2e-js:\nindex.md'],
     ['Get-ChildItem', '    Directory: D:\\repo\\.oracle\\metz-talks\n\nMode  Name\n-a--- x.md'],
+    ['dir /s', ' Directory of D:\\repo\\.oracle\\metz-talks\n\n01/01/2026  12:00  1 x.md'],
+    ['rg --json', '{"type":"begin","data":{"path":{"text":".oracle\\\\x\\\\a.md"}}}'],
   ] as const) {
     test(`${tool} output that lists the store is withheld (${label})`, async ($, on) => {
       on('tool.call', () => shell(stdout))
