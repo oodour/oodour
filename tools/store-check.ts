@@ -1,7 +1,8 @@
 // Checks that each store entry's index and files agree: every path an index names exists and is
 // not empty, and every Markdown file at the top of an entry has an index row. It prints counts,
 // and names only for collections, whose file names are work titles. A book's file names carry its
-// chapter headings, so for a book it prints counts alone. It never prints file content.
+// chapter headings, so for a book it prints counts alone. Of the missing cells it names only those
+// that end in `.md` or `/`. It never prints file content.
 //
 // Usage: node tools/store-check.ts        Exit 0 = consistent. Exit 1 = a problem. Exit 2 = no store.
 
@@ -97,7 +98,8 @@ export function describe(report: EntryReport): readonly string[] {
 
   return [
     `[ERROR] ${head}`,
-    ...report.missing.map((name) => `  missing: ${name}`),
+    // Any other cell could be a code token from a work.
+    ...report.missing.filter((name) => /(?:\.md|\/)$/.test(name)).map((name) => `  missing: ${name}`),
     ...report.empty.map((name) => `  empty: ${name}`),
     ...report.unindexed.map((name) => `  unindexed: ${name}`),
   ];

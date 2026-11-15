@@ -84,6 +84,18 @@ test('a collection names its problems, a book gives counts alone', () => {
   assert.deepEqual(describe(checkEntry(dir, 'book') ?? assert.fail()), ['[ERROR] book: 1 indexed, 0 missing, 0 empty, 1 unindexed']);
 });
 
+test('a missing cell that is not a file or folder name is counted but not printed', () => {
+  const report = { entry: 'metz-talks', indexed: 2, missing: ['gone.md', 'obj.method'], empty: [], unindexed: [] };
+
+  assert.deepEqual(describe(report), ['[ERROR] metz-talks: 2 indexed, 2 missing, 0 empty, 0 unindexed', '  missing: gone.md']);
+});
+
+test('a missing folder cell is printed', () => {
+  const report = { entry: 'metz-written', indexed: 1, missing: ['github/poodr/', 'github/poodr'], empty: [], unindexed: [] };
+
+  assert.deepEqual(describe(report).slice(1), ['  missing: github/poodr/']);
+});
+
 test('the command exits 0 when consistent, 1 on a problem and 2 with no store', (t) => {
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
