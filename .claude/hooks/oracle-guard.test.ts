@@ -236,6 +236,17 @@ test('the curator may not write outside the store', () => {
   assert.match(call('Write', { file_path: 'D:\\repo\\draft.md', content: 'x' }, 'oracle-curator') ?? '', /oracle-guard/);
 });
 
+test("a curator write counts as inside the store only below this project's store folder", () => {
+  assert.match(call('Write', { file_path: 'D:\\repo\\.oracle.md', content: 'x' }, 'oracle-curator') ?? '', /oracle-guard/);
+  assert.match(call('Write', { file_path: 'C:/tmp/.oracle/copy.md', content: 'x' }, 'oracle-curator') ?? '', /oracle-guard/);
+  assert.match(call('Write', { file_path: 'D:\\repo\\sub\\.oracle\\a.md', content: 'x' }, 'oracle-curator') ?? '', /oracle-guard/);
+  assert.equal(call('Write', { file_path: 'd:/REPO/.oracle/x/a.md', content: 'x' }, 'oracle-curator'), undefined);
+  assert.match(
+    decide(parseHookInput({ tool_name: 'Write', tool_input: { file_path: 'D:\\repo\\.oracle\\x\\a.md' }, agent_type: 'oracle-curator' })) ?? '',
+    /oracle-guard/,
+  );
+});
+
 test('a curator write that climbs out of the store is denied', () => {
   assert.match(call('Edit', { file_path: 'D:\\repo\\.oracle\\..\\draft.md', old_string: 'a', new_string: 'b' }, 'oracle-curator') ?? '', /oracle-guard/);
 });

@@ -148,8 +148,12 @@ export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOpti
     return lowThresholdReason;
   }
 
+  // Inside means below this project's store folder, compared case-insensitively as Windows paths are.
   if (curators.has(agentType) && writeTools.has(toolName)) {
-    return targets(input).every((path) => storePath.test(normalize(path))) ? undefined : curatorWriteReason;
+    const store = projectDir === undefined ? undefined : `${resolve(projectDir, '.oracle').toLowerCase()}${sep}`;
+    const inside = (path: string): boolean => store !== undefined && resolve(input.cwd ?? projectDir ?? '', path).toLowerCase().startsWith(store);
+
+    return targets(input).every(inside) ? undefined : curatorWriteReason;
   }
 
   if (curators.has(agentType) || (readers.has(agentType) && readerTools.has(toolName))) {
