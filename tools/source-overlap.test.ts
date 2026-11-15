@@ -91,6 +91,15 @@ test('curly apostrophes and case do not hide a copy', () => {
   assert.deepEqual(tokenize("Don’t stop"), ["don't", 'stop']);
 });
 
+test('single quotes around a copied run do not hide it', () => {
+  assert.equal(findRuns("She wrote 'the quick brown fox jumps over' once.", loadCorpus(6, syntheticStore())).length, 1);
+});
+
+test('an apostrophe counts only inside a word', () => {
+  assert.deepEqual(tokenize("'one two' don't 'tis ''"), ['one', 'two', "don't", 'tis']);
+  assert.equal(findRuns("the quick brown 'fox jumps over'", loadCorpus(6, syntheticStore())).length, 1);
+});
+
 test('arguments parse into a threshold and files, and bad usage is refused', () => {
   assert.deepEqual(parseArgs(['a.md']), { minWords: 8, files: ['a.md'] });
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });

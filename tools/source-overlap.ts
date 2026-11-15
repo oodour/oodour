@@ -56,7 +56,7 @@ function normalize(text: string): string {
 }
 
 export function tokenize(text: string): readonly string[] {
-  return normalize(text).match(/[a-z0-9']+|\u0000/g) ?? [];
+  return normalize(text).match(/[a-z0-9]+(?:'[a-z0-9]+)*/g) ?? [];
 }
 
 function listMarkdown(dir: string): readonly string[] {
