@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 import { chapterCitations, main } from './chapter-citations.ts';
 
@@ -37,6 +38,18 @@ test('run as a script, it checks the files named on the command line and sets th
 
   assert.equal(run.status, 1);
   assert.equal(run.stdout, `${cited}:1:6: Ch.3\n[ERROR] 1 chapter citation(s); name the practice instead\n`);
+});
+
+test('imported as a module, it checks nothing and leaves the exit code alone', () => {
+  const [cited] = files({ 'cited.md': 'Two (Ch.3).' });
+  assert.ok(cited);
+  const script = pathToFileURL(join(import.meta.dirname, 'chapter-citations.ts')).href;
+  const run = spawnSync(process.execPath, ['--input-type=module', '-e', `await import('${script}');`, cited, cited], {
+    encoding: 'utf8',
+  });
+
+  assert.equal(run.status, 0);
+  assert.equal(run.stdout, '');
 });
 
 test('a chapter number written out is reported too, and a chapter without a number is not', () => {

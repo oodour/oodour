@@ -40,6 +40,7 @@ export function main(files: readonly string[], print: (line: string) => void): n
 }
 
 if (import.meta.main) {
+  // Stryker disable next-line MethodExpression: argv[0] and argv[1] are the node binary and this script, and neither holds a chapter citation, so the output is the same
   process.exitCode = main(process.argv.slice(2), (line) => {
     console.log(line);
   });
