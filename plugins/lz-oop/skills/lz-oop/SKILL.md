@@ -24,6 +24,10 @@ module of functions or a record of closures can play a role as well as a class c
 
 Advise on a question; change code only on an explicit request to do so, then stop.
 
+This file only routes. Before you answer, Read each reference file the matching section below names for the
+request, and every further reference that file sends you to for the smell or practice at hand: the steps, the
+exceptions and the sources are there, not here. An answer written from this file alone is incomplete.
+
 ## Shape: new code, or code that must change
 
 1. Pin down what the requirement asks for, and build nothing it does not ask for.
