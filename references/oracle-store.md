@@ -4,7 +4,7 @@
 
 | Entry | Holds | Index |
 | --- | --- | --- |
-| `99-bottles/` | *99 Bottles of OOP*, 2nd edition, JavaScript, converted to Markdown, one file per front-matter part or chapter, plus `images/` | `.oracle/99-bottles/index.md` |
+| `99-bottles-2e-js/` | *99 Bottles of OOP*, 2nd edition, JavaScript, converted to Markdown, one file per front-matter part or chapter, plus `images/` | `.oracle/99-bottles-2e-js/index.md` |
 | `metz-talks/` | Caption transcripts of 16 Sandi Metz talks, interviews and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work | `.oracle/metz-written/index.md` |
 
@@ -40,5 +40,5 @@ Triaged from that repository's `.oracle/videos/index.md` (talk titles and descri
   talk on luck (RubyConf 2019). Import them with the same procedure if that changes.
 - **Not imported, related**: two talks by co-author Katrina Owen in the same store (Therapeutic
   Refactoring, Cascadia Ruby 2012; Overkill, Ancient City Ruby 2014).
-- **Already present**: that repository's `99-bottles-2e-js/` is byte-identical to `99-bottles/`
-  here (same 30 files, same combined SHA-1 of per-file hashes).
+- **Already present**: that repository's `99-bottles-2e-js/` is byte-identical to the entry of
+  the same name here (renamed from `99-bottles/` on 2026-11-15, at Lars's request) (same 30 files, same combined SHA-1 of per-file hashes).

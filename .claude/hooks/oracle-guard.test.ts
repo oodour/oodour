@@ -11,11 +11,11 @@ test('the guard denies the driver and other agents every route into the store', 
   assert.match(call('Read', { file_path: 'D:\\repo\\.oracle\\metz-talks\\index.md' }) ?? '', /oracle-guard/);
   assert.match(call('Glob', { pattern: '.oracle/**/*.md' }) ?? '', /oracle-guard/);
   assert.match(call('Grep', { pattern: 'x', path: '.oracle' }) ?? '', /oracle-guard/);
-  assert.match(call('Bash', { command: 'cat .oracle/99-bottles/index.md' }) ?? '', /oracle-guard/);
+  assert.match(call('Bash', { command: 'cat .oracle/99-bottles-2e-js/index.md' }) ?? '', /oracle-guard/);
   assert.match(call('PowerShell', { command: 'Get-Content .ORACLE\\x.md' }) ?? '', /oracle-guard/);
   assert.match(call('Write', { file_path: '.oracle/new.md', content: 'x' }) ?? '', /oracle-guard/);
   assert.match(call('NotebookEdit', { notebook_path: '.oracle/n.ipynb' }) ?? '', /oracle-guard/);
-  assert.match(call('Read', { file_path: '.oracle/99-bottles/index.md' }, 'general-purpose') ?? '', /oracle-guard/);
+  assert.match(call('Read', { file_path: '.oracle/99-bottles-2e-js/index.md' }, 'general-purpose') ?? '', /oracle-guard/);
   assert.match(call('mcp__fs__read_file', { path: '/repo/.oracle/a.md' }) ?? '', /oracle-guard/);
 });
 
@@ -31,13 +31,13 @@ test('the overlap tool exception admits no second command', () => {
 test('the listing exception covers the listing alone', () => {
   assert.equal(call('Read', { file_path: '.oracle/README.md' }), undefined);
   assert.equal(call('Read', { file_path: 'D:\\repo\\.oracle\\README.md' }), undefined);
-  assert.match(call('Read', { file_path: '.oracle/99-bottles/README.md' }) ?? '', /oracle-guard/);
+  assert.match(call('Read', { file_path: '.oracle/99-bottles-2e-js/README.md' }) ?? '', /oracle-guard/);
   assert.match(call('Read', { file_path: '.oracle/x/.oracle/README.md' }) ?? '', /oracle-guard/);
   assert.match(call('Glob', { pattern: 'README.md', path: '.oracle' }) ?? '', /oracle-guard/);
 });
 
 test('the guard lets the permitted routes through', () => {
-  assert.equal(call('Read', { file_path: '.oracle/99-bottles/index.md' }, 'oracle'), undefined);
+  assert.equal(call('Read', { file_path: '.oracle/99-bottles-2e-js/index.md' }, 'oracle'), undefined);
   assert.equal(call('Glob', { pattern: '*.md', path: '.oracle/metz-talks' }, 'oracle-reviewer'), undefined);
   assert.equal(call('Bash', { command: 'cp a.md .oracle/metz-written/a.md' }, 'oracle-curator'), undefined);
   assert.equal(call('Bash', { command: 'node tools/source-overlap.ts --min-words 6 draft.md' }), undefined);

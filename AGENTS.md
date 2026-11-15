@@ -32,7 +32,7 @@ oracle agents. A source gets a row here in the same change that admits it.
 
 | Entry | Path | Tier |
 | --- | --- | --- |
-| Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript | `.oracle/99-bottles/` | Sealed |
+| Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript | `.oracle/99-bottles-2e-js/` | Sealed |
 | Sandi Metz talk transcripts (16 talks, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
 | Sandi Metz articles | `.oracle/metz-written/` | Sealed |
 

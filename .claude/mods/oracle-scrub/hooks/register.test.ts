@@ -44,7 +44,7 @@ test('a Grep keeps lines that mention the store and drops lines inside it', asyn
 
 for (const [label, stdout] of [
   ['find', './AGENTS.md\n./.oracle/metz-talks/x.md'],
-  ['ls -R', '.:\nAGENTS.md\n\n./.oracle/99-bottles:\nindex.md'],
+  ['ls -R', '.:\nAGENTS.md\n\n./.oracle/99-bottles-2e-js:\nindex.md'],
   ['Get-ChildItem', '    Directory: D:\\repo\\.oracle\\metz-talks\n\nMode  Name\n-a--- x.md'],
 ] as const) {
   test(`shell output that lists the store is withheld (${label})`, async ($, on) => {

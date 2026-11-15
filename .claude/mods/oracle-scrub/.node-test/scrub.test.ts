@@ -6,8 +6,8 @@ test('a line that starts with a store path is a store line, in every listing sha
   for (const line of [
     '.oracle/metz-talks/x.md',
     '.oracle\\metz-talks\\x.md',
-    './.oracle/99-bottles/index.md',
-    './.oracle/99-bottles:',
+    './.oracle/99-bottles-2e-js/index.md',
+    './.oracle/99-bottles-2e-js:',
     'D:/repo/.oracle/a.md',
     'D:\\repo\\.oracle\\a.md',
     '.oracle/metz-talks/x.md:3:text',
