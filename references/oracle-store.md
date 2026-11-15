@@ -91,7 +91,9 @@ shared heavy lock; the curator definition now asks for it.
 Later that day the oracle could not read the file: whisper had written the whole body as one line,
 longer than the Read tool's limit. The curator broke it at sentence ends into lines of at most 200
 characters, with the same 16,700 words before and after, and corrected the entry's intro, which
-still said 22 transcripts, to the 28 it indexes.
+still said 22 transcripts, to the 28 it indexes. Read in full after the reflow, the transcript stops
+partway through the panel, with no closing picks, against the 88 minutes its header gives; since the
+reflow kept every word, the cut comes from the transcription. A fresh whisper.cpp run of the tail is open.
 
 ### 2026-11-15: sweep for audio, video and text
 
