@@ -7,8 +7,9 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
    and what this design would make that change cost. Code that works and will not change can stay as it is, however
    it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017).
    A change no requirement asks for yet is a bet that later savings repay its cost now. Some such bets
-   always pay and others never do; loosening coupling is one *99 Bottles of OOP* argues for from the start,
-   because nobody can predict where change will land, and the cheapest moment to loosen it is before
+   always pay and others are long shots best left alone. Loosening coupling is one that *99 Bottles of OOP*
+   says to make from a code's first version, because nobody can predict where change will land, and the
+   cheapest moment to loosen it is before
    a second user reuses the code.
    Weigh also what it costs a reader to follow the code today: every reader pays that, so it always counts.
    An extraction that saves future edits but makes the code harder to follow pays only when the
