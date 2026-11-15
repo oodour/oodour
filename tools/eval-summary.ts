@@ -34,6 +34,8 @@ interface Grader {
   readonly name: string;
   readonly passed: boolean;
   readonly withOnly: boolean;
+  readonly scored: boolean;
+  readonly weight: number;
 }
 
 interface Run {
@@ -84,27 +86,46 @@ function expect(condition: boolean, field: string): asserts condition {
   }
 }
 
+// Each case's with-only graders: did the skill fire, and did its route reach the case's reference leaf. Under
+// --ablation none the tool scores them like any criterion, so they are known by name.
+const indicatorNames: readonly string[] = ['skill-fired', 'leaf-read'];
+
+function isIndicator(grader: Grader): boolean {
+  return indicatorNames.includes(grader.name);
+}
+
 function parseGrader(value: unknown, path: string): Grader {
   expect(isRecord(value), path);
-  const { name, passed, withOnly } = value;
+  const { name, passed, withOnly, scored, weight } = value;
   expect(typeof name === 'string', `${path}.name`);
   expect(typeof passed === 'boolean', `${path}.passed`);
 
-  return { name, passed, withOnly: withOnly === true };
+  return { name, passed, withOnly: withOnly === true, scored: scored === true, weight: typeof weight === 'number' ? weight : 1 };
 }
 
-function parseRun(value: unknown, path: string): Run {
+// The tool's score is the weighted share of scored graders that passed; this one leaves the indicators out.
+function scoreWithoutIndicators(graders: readonly Grader[]): number {
+  const criteria = graders.filter((grader) => grader.scored && !isIndicator(grader));
+  const weightOf = (list: readonly Grader[]): number => list.reduce((sum, grader) => sum + grader.weight, 0);
+
+  return weightOf(criteria.filter((grader) => grader.passed)) / weightOf(criteria);
+}
+
+function parseRun(value: unknown, path: string, threshold: number): Run {
   expect(isRecord(value), path);
   const { score, passed, error, graders } = value;
   expect(typeof score === 'number', `${path}.score`);
   expect(typeof passed === 'boolean', `${path}.passed`);
   expect(Array.isArray(graders), `${path}.graders`);
+  const parsed = graders.map((grader, index) => parseGrader(grader, `${path}.graders[${String(index)}]`));
+  const indicatorsScored = parsed.some((grader) => grader.scored && isIndicator(grader));
+  const rescored = indicatorsScored ? scoreWithoutIndicators(parsed) : score;
 
   return {
-    score,
-    passed,
+    score: rescored,
+    passed: indicatorsScored ? rescored >= threshold : passed,
     errored: error !== undefined && error !== null,
-    graders: graders.map((grader, index) => parseGrader(grader, `${path}.graders[${String(index)}]`)),
+    graders: parsed,
   };
 }
 
@@ -114,9 +135,9 @@ function rate(values: readonly boolean[]): number {
 
 function summariseArm(runs: readonly Run[]): ArmSummary {
   const all = runs.flatMap((run) => run.graders);
-  const scored = all.filter((grader) => !grader.withOnly);
+  const scored = all.filter((grader) => !grader.withOnly && !isIndicator(grader));
   const indicator = (name: string): number | undefined => {
-    const results = all.filter((grader) => grader.withOnly && grader.name === name).map((grader) => grader.passed);
+    const results = all.filter((grader) => grader.name === name).map((grader) => grader.passed);
 
     return results.length > 0 ? rate(results) : undefined;
   };
@@ -135,7 +156,7 @@ function summariseArm(runs: readonly Run[]): ArmSummary {
   };
 }
 
-function parseCase(value: unknown, path: string): CaseSummary {
+function parseCase(value: unknown, path: string, threshold: number): CaseSummary {
   expect(isRecord(value), path);
   const { name, arms } = value;
   expect(typeof name === 'string', `${path}.name`);
@@ -147,7 +168,7 @@ function parseCase(value: unknown, path: string): CaseSummary {
       Object.entries(arms).map(([arm, runs]) => {
         expect(Array.isArray(runs), `${path}.arms.${arm}`);
 
-        return [arm, summariseArm(runs.map((run, index) => parseRun(run, `${path}.arms.${arm}[${String(index)}]`)))];
+        return [arm, summariseArm(runs.map((run, index) => parseRun(run, `${path}.arms.${arm}[${String(index)}]`, threshold)))];
       }),
     ),
   };
@@ -159,13 +180,13 @@ export function summarise(result: unknown): Summary {
   expect(Array.isArray(cases), 'cases');
   expect(isRecord(suite), 'suite');
   expect(typeof costUsd === 'number', 'costUsd');
-  const { modelOverride, judgeModel } = suite;
+  const { modelOverride, judgeModel, threshold } = suite;
 
   return {
     model: typeof modelOverride === 'string' ? modelOverride : undefined,
     judge: typeof judgeModel === 'string' ? judgeModel : undefined,
     costUsd,
-    cases: cases.map((item, index) => parseCase(item, `cases[${String(index)}]`)),
+    cases: cases.map((item, index) => parseCase(item, `cases[${String(index)}]`, typeof threshold === 'number' ? threshold : 1)),
   };
 }
 

@@ -76,6 +76,38 @@ test('the skill counts as fired from its skill-fired grader alone, whatever the 
   assert.equal(summarise(withLeafRead(true, false)).cases[0]?.arms['with']?.skillFired, 1);
 });
 
+const scoredIndicators = (skillFired: boolean, leafRead: boolean) => ({
+  suite: { ablation: 'none', threshold: 1 },
+  costUsd: 0,
+  cases: [{ name: 'x', arms: { with: [{ score: 1 / 3, passed: false, graders: [grader('c1', true), grader('skill-fired', skillFired), grader('leaf-read', leafRead)] }] } }],
+});
+
+test('with --ablation none the indicators are scored, and still count as indicators', () => {
+  const arm = summarise(scoredIndicators(true, false)).cases[0]?.arms['with'];
+
+  assert.equal(arm?.skillFired, 1);
+  assert.equal(arm.leafRead, 0);
+});
+
+test('a run whose indicators were scored is scored again without them, by grader weight', () => {
+  const run = (graders: unknown[]) => ({ suite: { ablation: 'none', threshold: 1 }, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 0, passed: false, graders }] } }] });
+
+  assert.equal(summarise(scoredIndicators(true, false)).cases[0]?.arms['with']?.meanScore, 1);
+  assert.equal(summarise(run([{ ...grader('c1', true), weight: 3 }, grader('c2', false), grader('skill-fired', false)])).cases[0]?.arms['with']?.meanScore, 0.75);
+});
+
+test('a run whose indicators were scored passes when its new score reaches the suite threshold', () => {
+  const run = (threshold: number) => ({ suite: { ablation: 'none', threshold }, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 0.5, passed: false, graders: [{ ...grader('c1', true), weight: 3 }, grader('c2', false), grader('skill-fired', false)] }] } }] });
+
+  assert.equal(summarise(scoredIndicators(true, false)).cases[0]?.arms['with']?.passed, 1);
+  assert.equal(summarise(run(0.75)).cases[0]?.arms['with']?.passed, 1);
+  assert.equal(summarise(run(0.8)).cases[0]?.arms['with']?.passed, 0);
+});
+
+test('scored indicators are left out of the criteria', () => {
+  assert.deepEqual(summarise(scoredIndicators(true, false)).cases[0]?.arms['with']?.criteria, { c1: 1 });
+});
+
 test('a summary gives how often the route reached its reference leaf, from the leaf-read grader', () => {
   assert.equal(summarise(withLeafRead(false, true)).cases[0]?.arms['with']?.leafRead, 1);
   assert.equal(summarise(result).cases[0]?.arms['with']?.leafRead, undefined);
