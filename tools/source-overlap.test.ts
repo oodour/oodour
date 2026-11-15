@@ -160,6 +160,43 @@ test('a file holding a NUL byte is not read', () => {
   assert.equal(findRuns(lifted, loadCorpus(6, storeWith('book/a.txt', `${lifted}\u0000`))).length, 0);
 });
 
+// A talks entry whose index holds the given table and whose one talk holds the run.
+function talksWithIndex(table: string, talk: string): string {
+  const dir = storeWith('metz-talks/t.md', talk);
+  writeFileSync(join(dir, 'metz-talks', 'index.md'), table);
+
+  return dir;
+}
+
+test('a one-word index title does not mask that word', () => {
+  const dir = talksWithIndex('| Talk | File |\n| --- | --- |\n| Again | `t.md` |\n', 'one two three again four five six');
+
+  assert.equal(findRuns('one two three again four five six', loadCorpus(6, dir)).length, 1);
+});
+
+test('a numeric index cell does not mask those numbers', () => {
+  const dir = talksWithIndex('| Talk | File |\n| --- | --- |\n| 20 16 | `t.md` |\n', 'one two three 20 16 four five six');
+
+  assert.equal(findRuns('one two three 20 16 four five six', loadCorpus(6, dir)).length, 1);
+});
+
+test('a header row is never a title', () => {
+  const dir = talksWithIndex('| Talk Title | File |\n| --- | --- |\n| Some Talk | `t.md` |\n', 'one two talk title four five six');
+
+  assert.equal(findRuns('one two talk title four five six', loadCorpus(6, dir)).length, 1);
+});
+
+test('titles come from the title column, not from another first column', () => {
+  const dir = talksWithIndex(
+    '| Venue Name | Title | File |\n| --- | --- | --- |\n| Big Conf | Small Objects Walk Far | `t.md` |\n',
+    'one two big conf three four five six seven and small objects walk far as before',
+  );
+  const corpus = loadCorpus(6, dir);
+
+  assert.equal(findRuns('one two big conf three four five six seven', corpus).length, 1);
+  assert.deepEqual(findRuns('seven and small objects walk far as before', corpus), []);
+});
+
 test('arguments parse into a threshold and files, and bad usage is refused', () => {
   assert.deepEqual(parseArgs(['a.md']), { minWords: 8, files: ['a.md'] });
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });

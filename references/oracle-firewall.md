@@ -59,7 +59,10 @@ which is why the guard lets any agent run it.
   collides by chance at four or five words, so lower thresholds buy noise. The guard denies an
   agent's run with `--min-words` under 6, where hit positions start to work as a probe.
 - `permittedPhrases` in the tool masks titles, author names, and the public-domain song the
-  99 Bottles exercise is built on. Add a work's title there when you admit it.
+  99 Bottles exercise is built on. Add a work's title there when you admit it. The titles in the
+  talks and written indexes are masked too: the cells of the column whose header is `Title` or
+  `Talk` (the first column when no header says so), with two or more words and at least one letter,
+  never a header row.
 - It catches verbatim overlap only. A close paraphrase passes it; that judgement stays with you and
   with `oracle-reviewer`.
 

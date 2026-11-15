@@ -86,16 +86,56 @@ function isIndex(dir: string, file: string): boolean {
   return (parts.length === 1 && parts[0] === 'README.md') || (parts.length === 2 && parts[1] === 'index.md');
 }
 
-function firstCell(line: string): string {
-  return /^\|\s*([^|]+?)\s*\|/.exec(line)?.[1] ?? '';
+function isSeparator(line: string): boolean {
+  return /^\|(?:\s*:?-+:?\s*\|)+\s*$/.test(line);
+}
+
+function cellsOf(row: string): readonly string[] {
+  return row
+    .replace(/^\||\|$/g, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+// The title cell of each body row: the column a header names Title or Talk, else the first.
+// A header row (the row above a separator) is never a title.
+function titleCells(index: string): readonly string[] {
+  const lines = index.split('\n').map((line) => line.trim());
+  const titles: string[] = [];
+  let column = 0;
+
+  lines.forEach((line, i) => {
+    if (!line.startsWith('|') || isSeparator(line)) {
+      return;
+    }
+
+    const cells = cellsOf(line);
+
+    if (isSeparator(lines[i + 1] ?? '')) {
+      column = Math.max(0, cells.findIndex((cell) => /^(title|talk)$/i.test(cell)));
+
+      return;
+    }
+
+    titles.push(cells[column] ?? '');
+  });
+
+  return titles;
+}
+
+// A one-word or numeric cell would mask a common word or number everywhere in a report.
+function isTitle(cell: string): boolean {
+  const words = tokenize(cell);
+
+  return words.length >= 2 && words.some((word) => /[a-z]/.test(word));
 }
 
 function indexTitles(dir: string, files: readonly string[]): readonly string[] {
   return files
     .filter((file) => isIndex(dir, file) && titledEntries.has(entryOf(dir, file)))
-    .flatMap((file) => readFileSync(file, 'utf8').split('\n').map(firstCell))
-    .filter((cell) => cell !== '' && !/^-+$|^(title|talk|book|entry)$/i.test(cell))
-    .flatMap((cell) => [cell, cell.replace(/\s*\([^)]*\)\s*$/, '')]);
+    .flatMap((file) => titleCells(readFileSync(file, 'utf8')))
+    .flatMap((cell) => [cell, cell.replace(/\s*\([^)]*\)\s*$/, '')])
+    .filter(isTitle);
 }
 
 export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
