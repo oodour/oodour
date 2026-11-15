@@ -49,6 +49,13 @@ test('shell output lists the store when a path inside it sits anywhere in a line
   assert.ok(listsStore('C:\\Users\\Some User\\repo\\.oracle\\x.md:3:text'));
 });
 
+test('shell output lists the store when a relative store path follows a space or a colour code', () => {
+  assert.ok(listsStore('     12 .oracle/entry/file.md\n     40 total'));
+  assert.ok(listsStore('AGENTS.md .oracle/entry/a.md tools/x.ts'));
+  assert.ok(listsStore('\u001b[0m\u001b[35m.oracle/entry/file.md\u001b[0m'));
+  assert.ok(listsStore('\u001b[35m.oracle\\entry\\file.md\u001b[0m:3:text'));
+});
+
 test('shell output that mentions the store in prose does not list it', () => {
   assert.equal(listsStore('AGENTS.md:12:keep out of .oracle/ entirely\n`.oracle/` holds the full text\nrepo\\x.oracle\\a.md'), false);
 });

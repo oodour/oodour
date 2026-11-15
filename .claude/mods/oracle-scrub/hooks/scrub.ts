@@ -8,8 +8,13 @@ export const storePath = /(?<![A-Za-z0-9_-])\.oracle(?![A-Za-z0-9_-])/i;
 export const storeLine = /^\s*(?:Directory:\s*)?(?:[A-Za-z]:)?(?:[^\s:]*[\\/])?\.oracle[\\/:]/i;
 
 // A store path anywhere in a line: inside a folder path or a quoted string, with a separator after it,
-// as JSON output (rg --json) and cmd's `Directory of` headers print it. Docs write it as `.oracle/`.
-export const storeMention = /[\\/"]\.oracle[\\/]/i;
+// as JSON output (rg --json) and cmd's `Directory of` headers print it; or a relative path that starts a
+// space-separated token and goes on past the separator, as `wc -l` and space-joined lists print it.
+// Docs write it as `.oracle/`, backticked or followed by a space, which neither form matches.
+export const storeMention = /[\\/"]\.oracle[\\/]|(?:^|\s)\.oracle[\\/][^\s`]/i;
+
+// Terminal colour codes, as `--color always` puts them in front of a path.
+const colourCode = /\u001b\[[0-9;]*[A-Za-z]/g;
 
 export const withheld =
   'oracle-scrub: this output listed paths inside the sealed store (.oracle/) and was withheld. Scope the command to the directory you mean instead of the repository root (AGENTS.md, "Oracle firewall").';
@@ -21,7 +26,10 @@ export function keep(line: string): boolean {
 }
 
 export function listsStore(text: string): boolean {
-  return text.split(/\r?\n/).some((line) => storeLine.test(line) || storeMention.test(line));
+  return text
+    .replace(colourCode, '')
+    .split(/\r?\n/)
+    .some((line) => storeLine.test(line) || storeMention.test(line));
 }
 
 function field(result: unknown, key: 'stdout' | 'stderr'): string {
