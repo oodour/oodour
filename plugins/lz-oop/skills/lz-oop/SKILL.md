@@ -65,7 +65,9 @@ developer asked you to change the code.
 
 ## Judge: one piece of existing code
 
-Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`.
+Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. It gives the verdict and names each smell, and its step 4
+names the reference file that holds each smell's cure; it does not hold those cures itself. Open that file for every
+smell you report before you recommend a cure.
 
 ## Tests
 
