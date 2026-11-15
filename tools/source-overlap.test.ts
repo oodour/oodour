@@ -48,6 +48,7 @@ test('a run is found at exactly the threshold and not one word below it', () => 
 
   assert.equal(findRuns('the quick brown fox jumps over', loadCorpus(6, store)).length, 1);
   assert.equal(findRuns('the quick brown fox jumps', loadCorpus(6, store)).length, 0);
+  assert.throws(() => loadCorpus(5, store), /at least 6 words/);
 });
 
 test('permitted phrases, index files and a book index title are handled as names or skipped', () => {
@@ -202,6 +203,8 @@ test('arguments parse into a threshold and files, and bad usage is refused', () 
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });
   assert.equal(parseArgs([]), undefined);
   assert.equal(parseArgs(['--min-words', '3', 'a.md']), undefined);
+  assert.equal(parseArgs(['--min-words', '4', 'a.md']), undefined);
+  assert.equal(parseArgs(['--min-words', '5', 'a.md']), undefined);
   assert.equal(parseArgs(['--min-words', 'six', 'a.md']), undefined);
 });
 

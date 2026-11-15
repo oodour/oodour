@@ -15,7 +15,8 @@ import { basename, extname, join, relative, resolve, sep } from 'node:path';
 export const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 export const draftMinWords = 8;
 // Ordinary technical English collides by chance at four or five words (measured in
-// angular-clean-architecture, 2026-08-16), so six is the floor for an agent's hand-back.
+// angular-clean-architecture, 2026-08-16), so six is the floor for an agent's hand-back, and for every
+// caller: below it, hit positions let a caller test candidate wording against the source.
 export const handBackMinWords = 6;
 
 // Names are allowed; expression is not. A run made only of a work's title, or of the
@@ -140,6 +141,10 @@ function indexTitles(dir: string, files: readonly string[]): readonly string[] {
 }
 
 export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
+  if (!(Number.isInteger(minWords) && minWords >= handBackMinWords)) {
+    throw new Error(`source-overlap: a run must be at least ${String(handBackMinWords)} words, got ${String(minWords)}`);
+  }
+
   const grams = new Map<string, string>();
   const files = listTextFiles(dir);
 
@@ -228,7 +233,7 @@ export function parseArgs(args: readonly string[]): Options | undefined {
     }
   }
 
-  return files.length > 0 && Number.isInteger(minWords) && minWords >= 4 ? { minWords, files } : undefined;
+  return files.length > 0 && Number.isInteger(minWords) && minWords >= handBackMinWords ? { minWords, files } : undefined;
 }
 
 // Undefined, with the reason on stderr, when the file cannot be read.
@@ -246,7 +251,7 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
   if (options === undefined) {
-    console.error('usage: node tools/source-overlap.ts [--min-words N>=4] <file> [more files]');
+    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] <file> [more files]');
 
     return 2;
   }
