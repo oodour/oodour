@@ -39,6 +39,21 @@ export function assemble(plugin: string, evals: string, out: string): void {
   });
 }
 
+// `claude plugin eval` reads cases only below the plugin root, and the cases stay out of the distributed plugin.
+function assembleTarget(root: string, evals: string, assembled: string): TargetConfiguration {
+  return {
+    command: `node tools/nx/claude-plugin.ts assemble ${root} ${evals} ${assembled}`,
+    cache: true,
+    inputs: [
+      'default',
+      `{workspaceRoot}/${evals}/**/*`,
+      `!{workspaceRoot}/${evals}/results/**/*`,
+      '{workspaceRoot}/tools/nx/claude-plugin.ts',
+    ],
+    outputs: [`{workspaceRoot}/${assembled}`],
+  };
+}
+
 export function pluginTargets(
   root: string,
   name: string,
@@ -48,21 +63,17 @@ export function pluginTargets(
   const assembled = `dist/eval/${name}`;
 
   return {
-    // `claude plugin eval` reads cases only below the plugin root, and the cases stay out of the distributed plugin.
-    'pre-eval': {
-      command: `node tools/nx/claude-plugin.ts assemble ${root} ${evals} ${assembled}`,
-      cache: true,
-      inputs: [
-        'default',
-        `{workspaceRoot}/${evals}/**/*`,
-        `!{workspaceRoot}/${evals}/results/**/*`,
-        '{workspaceRoot}/tools/nx/claude-plugin.ts',
-      ],
-      outputs: [`{workspaceRoot}/${assembled}`],
-    },
+    'pre-eval': assembleTarget(root, evals, assembled),
+    'pre-eval-real': assembleTarget(root, `${evals}-real`, `${assembled}-real`),
     eval: {
       command: `claude plugin eval ${assembled}`,
       dependsOn: ['pre-eval'],
+      cache: false,
+    },
+    // Real-repository cases unpack a pinned commit with a scaffold script, which runs only under --scaffold.
+    'eval-real': {
+      command: `claude plugin eval ${assembled}-real --scaffold`,
+      dependsOn: ['pre-eval-real'],
       cache: false,
     },
     validate: {

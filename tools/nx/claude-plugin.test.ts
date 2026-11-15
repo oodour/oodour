@@ -131,3 +131,25 @@ test('eval runs the assembled copy after pre-eval and is never cached', () => {
   assert.deepEqual(evaluate.dependsOn, ['pre-eval']);
   assert.equal(evaluate.cache, false);
 });
+
+test('pre-eval-real assembles the plugin with its real-repository cases beside the synthetic suite, cached on both', () => {
+  const preEvalReal = pluginTargets('plugins/demo', 'demo', [])['pre-eval-real'];
+
+  assert.equal(preEvalReal?.command, 'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo-real dist/eval/demo-real');
+  assert.equal(preEvalReal.cache, true);
+  assert.deepEqual(preEvalReal.inputs, [
+    'default',
+    '{workspaceRoot}/evals/demo-real/**/*',
+    '!{workspaceRoot}/evals/demo-real/results/**/*',
+    '{workspaceRoot}/tools/nx/claude-plugin.ts',
+  ]);
+  assert.deepEqual(preEvalReal.outputs, ['{workspaceRoot}/dist/eval/demo-real']);
+});
+
+test('eval-real runs the real-repository suite with its scaffold scripts after pre-eval-real, never cached', () => {
+  const evalReal = pluginTargets('plugins/demo', 'demo', [])['eval-real'];
+
+  assert.equal(evalReal?.command, 'claude plugin eval dist/eval/demo-real --scaffold');
+  assert.deepEqual(evalReal.dependsOn, ['pre-eval-real']);
+  assert.equal(evalReal.cache, false);
+});
