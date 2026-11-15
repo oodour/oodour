@@ -60,8 +60,9 @@ and its pagination. The `oracle-curator` agent fetched them.
 - **metz-written, added**: 12 blog posts, a dev.to AMA, and 13 public `skmetz` GitHub example
   repositories: 11 READMEs as top-level files and 232 code files under `github/<repo>/`.
 - **Not stored**: Ruby Rogues episode 87 (the POODR book club; the host returned HTTP 500 and the
-  url-to-markdown fallback crashed; playwriter-cli and WebFetch were not tried); seven short
-  third-party clips, left for Lars to decide; her newsletter, which has no public archive.
+  url-to-markdown fallback crashed; playwriter-cli and WebFetch were not tried), filed later the same
+  day (see below); seven short third-party clips, left for Lars to decide; her newsletter, which has
+  no public archive.
 
 ### 2026-11-15: the companion code repository
 
@@ -76,6 +77,16 @@ Asked whether to import Katrina Owen's two talks, Lars answered: "Yes." The cura
 transcripts byte for byte from `lz-engineering-claude-plugins`' store into a new entry,
 `owen-talks/` (verified with `cmp`), since `metz-talks/` holds Sandi Metz's talks. Their titles
 count as permitted names in the overlap check, like the other talk and article titles.
+
+### 2026-11-15: Ruby Rogues episode 87
+
+Lars: "Retry Ruby Rogues episode 87 with playwriter-cli: Yes". The podcast moved from devchat.tv
+(HTTP 500, then connect timeouts) to topenddevs.com, whose episode page has show notes and no
+transcript, and playwriter-cli is not installed here. The curator fetched the episode audio from its
+public podcast feed host (about 88 minutes, January 2013) and transcribed it with whisper.cpp
+(`small.en`), since no captions exist; the file header says names may be misheard. Filed in
+`metz-talks/`, which now indexes 22 transcripts. The whisper run was not booked on the machine's
+shared heavy lock; the curator definition now asks for it.
 
 ### 2026-11-15: working copies cleaned up
 

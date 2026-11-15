@@ -91,6 +91,14 @@ anyone; when a video has no captions, transcribe it locally with whisper.cpp as
 `~/.claude/references/whisper-cpp-transcription.md` says, and report a failure if that is not
 possible. File the transcript in the entry format above with `Fetch: watch` (or `whisper.cpp`).
 
+A whisper.cpp run loads every core for many minutes, and other Claude sessions share this machine.
+Book it on the shared heavy lock first, as the `lars-shared-machine` skill describes
+(`node C:/Users/LarsGyrupBrinkNielse/.claude/references/shared-machine/heavy-lock.ts`, `wait`, then
+`acquire` when `status --owner` exits 0, `release` right after the run), with `--owner` set to the
+session name the brief gives you. Without one, write the audio's path and length in your report and
+leave the transcription to the driver. Close every browser or `playwright-cli` session you open
+before you report.
+
 ## Verify before you report
 
 - Every file you wrote exists, is non-empty, and has the header block.
