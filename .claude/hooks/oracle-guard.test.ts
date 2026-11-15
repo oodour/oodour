@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { storePath as scrubStorePath } from '../mods/oracle-scrub/hooks/scrub.ts';
 import { parseHookInput } from './hook-input.ts';
 import { decide, run, storePath } from './oracle-guard.ts';
 
@@ -146,7 +147,5 @@ test('an allowed call writes nothing', () => {
 });
 
 test('the mod scrubs with the same store pattern the guard denies on', () => {
-  const mod = readFileSync(new URL('../mods/oracle-scrub/hooks/scrub.ts', import.meta.url), 'utf8');
-
-  assert.ok(mod.includes(`export const storePath = ${String(storePath)};`), 'pattern copies agree');
+  assert.equal(String(scrubStorePath), String(storePath), 'pattern copies agree');
 });

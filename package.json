@@ -8,9 +8,13 @@
     "lint": "eslint --flag unstable_native_nodejs_ts_config .",
     "test": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
     "test:mods": "claude plugin validate .claude/mods/oracle-scrub && claude plugin test .claude/mods/oracle-scrub",
+    "test:stryker": "node --test --test-skip-pattern=\"the real store\" \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
+    "test:mutation": "stryker run",
     "check": "npm run typecheck && npm run lint && npm test && npm run test:mods"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/typescript-checker": "10.1.1",
     "@types/node": "24.19.2",
     "eslint": "10.13.0",
     "typescript": "6.0.3",

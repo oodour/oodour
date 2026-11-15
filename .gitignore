@@ -1,3 +1,6 @@
 .oracle/
 node_modules/
 plans/
+.stryker-tmp/
+reports/mutation/
+reports/stryker-incremental/

@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "command",
+  "commandRunner": { "command": "npm run test:stryker" },
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "reporters": ["clear-text", "progress", "html"],
+  "mutate": [
+    ".claude/hooks/*.ts",
+    "!.claude/hooks/*.test.ts",
+    ".claude/mods/oracle-scrub/hooks/*.ts",
+    "!.claude/mods/oracle-scrub/hooks/*.test.ts",
+    "tools/*.ts",
+    "!tools/*.test.ts"
+  ],
+  "ignorePatterns": ["/.oracle", "/plans", "/reports"],
+  "incrementalFile": "reports/stryker-incremental/lz-oop.json"
+}
