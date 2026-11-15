@@ -5,7 +5,7 @@
 | Entry | Holds | Index |
 | --- | --- | --- |
 | `99-bottles-2e-js/` | *99 Bottles of OOP*, 2nd edition, JavaScript, converted to Markdown, one file per front-matter part or chapter, plus `images/` | `.oracle/99-bottles-2e-js/index.md` |
-| `metz-talks/` | Transcripts of 21 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
+| `metz-talks/` | Transcripts of 28 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
 | `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/` | `.oracle/99bottles-js/index.md` |
 | `owen-talks/` | Caption transcripts of 2 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
