@@ -104,6 +104,12 @@ test('a run whose indicators were scored passes when its new score reaches the s
   assert.equal(summarise(run(0.8)).cases[0]?.arms['with']?.passed, 0);
 });
 
+test('a with-only grader is left out of the criteria whatever its name', () => {
+  const run = { suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 1, passed: true, graders: [grader('c1', true), grader('read-source', false, true)] }] } }] };
+
+  assert.deepEqual(summarise(run).cases[0]?.arms['with']?.criteria, { c1: 1 });
+});
+
 test('scored indicators are left out of the criteria', () => {
   assert.deepEqual(summarise(scoredIndicators(true, false)).cases[0]?.arms['with']?.criteria, { c1: 1 });
 });

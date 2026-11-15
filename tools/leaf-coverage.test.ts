@@ -18,6 +18,14 @@ test('a grader file gives its single-quoted input_match as the pattern', () => {
   assert.equal(leafReadPattern(grader), "references[\\\\/]+it's\\.md");
 });
 
+test('a YAML comment after the quoted pattern is not part of it', () => {
+  assert.equal(leafReadPattern("---\ninput_match: 'references[\\\\/]+inheritance\\.md' # one leaf\n---\n"), 'references[\\\\/]+inheritance\\.md');
+});
+
+test('an input_match in the middle of a line is not the key', () => {
+  assert.throws(() => leafReadPattern("---\nnote: input_match: 'x'\n---\n"), /no single-quoted input_match/);
+});
+
 test('a grader file without a single-quoted input_match is refused', () => {
   assert.throws(() => leafReadPattern('---\ntype: tool_used\ninput_match: "x"\n---\n'), /no single-quoted input_match/);
 });
