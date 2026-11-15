@@ -1,5 +1,5 @@
 ---
-tags: [trigger, should-stay-quiet, tdd, tuning]
+tags: [trigger, should-fire, tdd, tuning]
 max_turns: 3
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

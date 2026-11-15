@@ -4,4 +4,4 @@ plans/
 .stryker-tmp/
 reports/mutation/
 reports/stryker-incremental/
-plugins/lz-oop/evals/results/
+evals/*/results/
