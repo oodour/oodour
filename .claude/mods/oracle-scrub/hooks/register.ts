@@ -31,13 +31,7 @@ export const register: Register = (on) => {
       : { result: { ...ran.result, filenames, numFiles: filenames.length, content } };
   }).catch((_, e, next) => (next.called ? failClosed : next(e)));
 
-  on('tool.call', { tool: 'Bash' }, async (_, e, next) => {
-    const ran = await next(e);
-
-    return aimedAtStore([e.command]) || !listsStore(shellOutput(ran.text, ran.result)) ? ran : { deny: withheld };
-  }).catch((_, e, next) => (next.called ? failClosed : next(e)));
-
-  on('tool.call', { tool: 'PowerShell' }, async (_, e, next) => {
+  on('tool.call', { tool: ['Bash', 'PowerShell'] }, async (_, e, next) => {
     const ran = await next(e);
 
     return aimedAtStore([e.command]) || !listsStore(shellOutput(ran.text, ran.result)) ? ran : { deny: withheld };
