@@ -1,6 +1,6 @@
 ---
 tags: [trigger, should-fire, review, holdout]
-max_turns: 3
+max_turns: 5
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
