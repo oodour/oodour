@@ -51,27 +51,54 @@ first, because following the rules makes it appear.
 3. Remove only that point, with the least edit you can, in four moves, with the tests run after
    each: add the new code so it parses, run it, use its result, then delete what it replaced.
 4. Keep each edit to about a line, and undo any edit that turns the tests red.
-5. Repeat from step 1 until the copies are identical, then let one replace the rest.
+5. Repeat from step 1. A copy is removed only once it matches another character for character.
+6. A branch that has come to match the default branch goes in one deletion, and the conditional
+   stays for the branches that still differ. When the last branches match, collapse the conditional
+   in two edits with the tests run after each: put one copy above the conditional, then delete the
+   conditional (the book).
+
+Copies in two separate functions are the plugin's adaptation of the same rules. Make the bodies
+identical first: each function reaches its varying parts through calls of the same name, or through
+one object of parts. Then merge in edits of their own, with the tests after each:
+
+1. Extract a shared function from the first copy, taking the varying parts as a parameter.
+2. Make the first function call it with its parts.
+3. Make the second function call it with its own parts.
+4. Only if callers should see one function, move them over one at a time (Gradual Cutover in
+   [changing-in-steps.md](changing-in-steps.md)), then delete the old functions.
+
+Writing the shared function and switching both copies to it in one edit skips these steps, so a red
+test no longer points at one change.
 
 Give each difference you remove a name one level above the concrete values it hides (the book);
-see Naming below. Done looks like: the copies are identical, the suite has stayed green
-throughout, and the name of each removed difference reads as a domain concept.
+see Naming below. Done looks like: the copies became identical before any was deleted, the suite
+stayed green after every edit, and the name of each removed difference reads as a domain concept.
 
-Example (the plugin's own, in TypeScript). Two branches differ only in a word and a rate:
+Example (the plugin's own, in TypeScript). Two branches differ only in a word and a rate; each state
+below is green:
 
 ```ts
-// before
+// 1. before
 if (tier === 'gold') {
   return `Gold members earn ${points * 2} points`;
 }
 return `Silver members earn ${points * 1} points`;
 
-// after one difference is named (the multiplier), then the next (the label)
+// 2. the rate is the smallest difference: both branches now ask multiplierFor
+if (tier === 'gold') {
+  return `Gold members earn ${points * multiplierFor(tier)} points`;
+}
+return `Silver members earn ${points * multiplierFor(tier)} points`;
+
+// 3. then the label: the two branches are now identical
+if (tier === 'gold') {
+  return `${labelFor(tier)} members earn ${points * multiplierFor(tier)} points`;
+}
+return `${labelFor(tier)} members earn ${points * multiplierFor(tier)} points`;
+
+// 4. one copy above the conditional, run the tests, then delete the conditional and the other copy
 return `${labelFor(tier)} members earn ${points * multiplierFor(tier)} points`;
 ```
-
-The rate was the smallest difference, so it went first, as `multiplierFor`; the branches then
-differed only in the label, which became `labelFor`.
 
 ## Separating what varies
 
