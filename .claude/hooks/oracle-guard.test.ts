@@ -22,6 +22,26 @@ test('the guard denies the driver and other agents every route into the store', 
   assert.match(call('mcp__fs__read_file', { path: '/repo/.oracle/a.md' }) ?? '', /oracle-guard/);
 });
 
+test('a store name right after a shell redirection is denied', () => {
+  assert.match(call('Bash', { command: 'cat<.oracle/x/index.md' }) ?? '', /oracle-guard/);
+});
+
+test('a store name next to a separator, a brace, a comma or a stream suffix is denied', () => {
+  assert.match(call('Bash', { command: 'cd .oracle;cat */*.md' }) ?? '', /oracle-guard/);
+  assert.match(call('Bash', { command: 'cd .oracle&&cat */*.md' }) ?? '', /oracle-guard/);
+  assert.match(call('Bash', { command: 'ls .oracle|head' }) ?? '', /oracle-guard/);
+  assert.match(call('Bash', { command: 'cat {.oracle,x}/x/index.md' }) ?? '', /oracle-guard/);
+  assert.match(call('PowerShell', { command: 'Get-Content .oracle,x' }) ?? '', /oracle-guard/);
+  assert.match(call('Glob', { pattern: '{.oracle,src}/**/*.md' }) ?? '', /oracle-guard/);
+  assert.match(call('Read', { file_path: 'D:\\repo\\.oracle::$INDEX_ALLOCATION\\x\\index.md' }) ?? '', /oracle-guard/);
+});
+
+test('a name that only contains the store name is not the store', () => {
+  assert.equal(call('Read', { file_path: 'my.oracle/x.md' }), undefined);
+  assert.equal(call('Read', { file_path: 'src/oracle/x.md' }), undefined);
+  assert.equal(call('Read', { file_path: '.oracle-notes.md' }), undefined);
+});
+
 const subagents = 'C:\\Users\\u\\.claude\\projects\\D--repo\\s1\\subagents';
 
 test("a Read of an oracle agent's transcript is denied", () => {

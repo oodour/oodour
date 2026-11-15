@@ -1,7 +1,7 @@
 // What the scrub decides, kept apart from the hooks so node:test covers it on Node.js 22 and 24.
 
 // Same pattern as .claude/hooks/oracle-guard.ts; oracle-guard.test.ts guards the copy.
-export const storePath = /(^|[\\/"'\s=:])\.oracle([\\/"'\s]|$)/i;
+export const storePath = /(?<![A-Za-z0-9_-])\.oracle(?![A-Za-z0-9_-])/i;
 
 // A line whose first token is a path inside the store, as find, ls -R, rg and Get-ChildItem print
 // them. A line that only mentions the store further in, as this repository's docs do, is kept.

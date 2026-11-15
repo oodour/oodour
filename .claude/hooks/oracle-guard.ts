@@ -6,7 +6,7 @@ import { basename, normalize, sep } from 'node:path';
 import { denyOutput, type HookInput, isRecord, readHookInput, stringField } from './hook-input.ts';
 
 // Same pattern as .claude/mods/oracle-scrub/hooks/scrub.ts; oracle-guard.test.ts guards the copy.
-export const storePath = /(^|[\\/"'\s=:])\.oracle([\\/"'\s]|$)/i;
+export const storePath = /(?<![A-Za-z0-9_-])\.oracle(?![A-Za-z0-9_-])/i;
 
 const readers: ReadonlySet<string> = new Set(['oracle', 'oracle-reviewer']);
 const curators: ReadonlySet<string> = new Set(['oracle-curator']);
