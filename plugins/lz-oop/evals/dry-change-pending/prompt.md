@@ -1,5 +1,5 @@
 ---
-tags: [behaviour, shape, duplication, decoy]
+tags: [behaviour, shape, duplication]
 max_turns: 6
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
