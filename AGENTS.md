@@ -63,8 +63,14 @@ output), stop reading it, do not use it, and tell Lars.
 - Never write a source's chapter or section heading, a definition's wording, example code, a
   memorable line, or an anecdote. Names of principles, rules, refactorings, smells and patterns
   are free: Shameless Green, the Flocking Rules, the Law of Demeter.
-- Cite as the oracles do: `Ch.<n> (<your own words>)` for the book, the talk or article title with
-  its year for the others. Never derive a chapter number from a file name.
+- In research notes and plans, cite as the oracles do: `Ch.<n> (<your own words>)` for the book, the
+  talk or article title with its year for the others. Never derive a chapter number from a file name.
+- In the distributed plugin (`plugins/lz-oop/`), never cite a chapter number: a reader without the book
+  gains nothing from it. Name the pattern, principle or practice, state its meaning, intent and steps
+  in your own words, credit the book by title, and have `oracle-reviewer` gate the result. Talks and
+  articles keep their title and year (Lars, 2026-11-15: "Ideally, it shouldn't be necessary for the
+  distributed skill or reference documents to mention the Chapter number since it adds no value to
+  consumers that don't have the oracle or book available.").
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
 - Run `node tools/source-overlap.ts <file>` on any prose you wrote from an oracle answer before you
