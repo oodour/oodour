@@ -103,7 +103,7 @@ test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
 
 test('the real store loads and a run lifted from it is caught', () => {
   const corpus = loadCorpus(6);
-  const file = readdirSync(join(storeDir, 'metz-talks')).find((name) => name !== 'index.md') ?? '';
+  const file = readdirSync(join(storeDir, 'metz-talks')).find((name) => name.endsWith('.md') && name !== 'index.md') ?? '';
   const tokens = tokenize(readFileSync(join(storeDir, 'metz-talks', file), 'utf8'));
   const start = Math.floor(tokens.length / 2);
   const lifted = tokens.slice(start, start + 10).join(' ');
