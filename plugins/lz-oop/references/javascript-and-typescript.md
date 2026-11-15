@@ -8,7 +8,8 @@ documentation.
 
 Contents: Roles; Role tests in Vitest, Jest and node:test; Choosing a variant: the factory map; Absence: Null
 Object, `?.` and `??`; Injecting collaborators; Testing outgoing messages; Commands and queries; Private state;
-Parameter lists and options objects; Inheritance, mixins and built-in types; Per-call state and `await`; Framework
+Parameter lists and options objects; Inheritance, mixins and built-in types; Immutable values, caching and the cost
+of objects; Per-call state and `await`; Framework
 code at the edges; Characterisation tests; Measuring complexity.
 
 Examples are TypeScript in syntax that Node.js can strip (`erasableSyntaxOnly`, TypeScript 5.8 and later): no
@@ -25,6 +26,11 @@ A role is the set of messages a collaborator must answer. Ruby leaves roles impl
 - `Pick<Concrete, 'a' | 'b'>` suits a one-off test double; once a second player is plausible, a named role
   interface is clearer.
 - Types check the shape, not the behaviour. Keep a shared role test (below) that every player runs.
+- Trust the player. Once the receiver depends on a role, it sends the message and asks nothing about who answers.
+  A single `instanceof`, `typeof` or `in` check on that collaborator takes the trust back and ties the receiver to
+  the classes again (Less, the Path to Better Design, 2011); in her view a dynamic language repays its looseness only
+  when objects are reliable enough to be trusted without such checks (AMA, 2018). Checking the type of data at a
+  boundary (JSON, user input) is a different job and stays (this plugin's note).
 
 ```ts
 export interface Discount {
@@ -68,8 +74,11 @@ describeDiscountRole(() => new PercentDiscount(10));
 ## Choosing a variant: the factory map
 
 The book weighs several factory forms in JavaScript, among them building a class name at run time, variants that
-register themselves, and a key/value lookup, and leaves the choice to the situation (Ch.7). This plugin's default in
-TypeScript is the key/value lookup, built in one place, with the `satisfies` check below.
+register themselves, and a key/value lookup, and leaves the choice to the situation (Ch.7). This plugin starts, as
+[variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory while the kinds
+are few and change rarely: it is the easiest form to read. Once kinds keep arriving, or other code must stay in step
+with the list, its default in TypeScript is the key/value lookup, built in one place, with the `satisfies` check
+below.
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -129,7 +138,13 @@ export class Checkout {
 }
 ```
 
-- A default keeps call sites short while tests pass a fake.
+- A default keeps call sites short while tests pass a fake. The book removes such defaults once callers pass the
+  collaborator, because a default ties the class to its first setting (Ch.9); keeping one is this plugin's choice,
+  and [dependencies-and-messages.md](dependencies-and-messages.md) says when to drop it.
+- Domain behaviour belongs on instances (Ch.8). In JavaScript and TypeScript the same applies to `static` methods
+  and to exported module functions that hold domain rules: a function that takes a record and decides for it cannot
+  be replaced by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure
+  calculation with no variants in sight (this plugin's reading).
 - Constructor parameter properties (`constructor(private payments: PaymentGateway)`) are not erasable; assign the
   field in the body.
 - In a framework with its own injection (Angular providers and `inject()`, NestJS providers), use it there.
@@ -173,6 +188,8 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   enforced in review.
 - Use an options object for optional settings with defaults. When the same few values travel together through
   several calls, make them one value object.
+- Adding, removing or retyping a parameter that many callers use, in green steps, with what `tsc` checks and what
+  JavaScript leaves to a temporary guard: [changing-in-steps.md](changing-in-steps.md).
 
 ## Inheritance, mixins and built-in types
 
@@ -185,6 +202,18 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   an object, not a string (`s === 'x'` is false).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function.
+
+## Immutable values, caching and the cost of objects
+
+- The book prefers objects that do not change: they are easier to reason about and cheaper to test. It treats
+  creating objects as free in a first version and adds no caching there: storing a result is easy, knowing when it is
+  stale is not, and people guess wrong about speed, so write the plain version, measure, and optimise only the hot
+  spot the profiler shows (Ch.5).
+- TypeScript form: `readonly` fields and `ReadonlyArray<T>` (or `readonly T[]`) make the compiler refuse writes;
+  `#private` fields with no setter keep the value fixed at run time. Return a new object from a method that would
+  change one. `Object.freeze` adds a run-time check, shallow only.
+- Measure in Node.js with `--cpu-prof` or `node --prof`, or the browser's performance panel, before caching anything.
+- JavaScript note: no `readonly`; `Object.freeze` in the constructor, and `#private` fields, give the run-time half.
 
 ## Per-call state and `await`
 

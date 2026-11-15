@@ -31,18 +31,29 @@ Advise on a question; change code only on an explicit request to do so, then sto
    - a new kind of thing that a conditional switches on, or a flag argument that steers shared code:
      `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`;
    - shared code that callers keep bending with parameters, or duplication you are tempted to remove:
-     `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md`;
+     `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md` (also for naming a new concept, section
+     Naming);
    - a collaborator created or reached for inside the class, or a chain of calls through other objects:
      `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`;
-   - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`.
+   - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
+   - a raw number, string or boolean that stands for a domain idea and gets passed around:
+     `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession.
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
    the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, Ch.1 and Ch.2).
 4. A change to existing code is two separate jobs (Ch.3; the article Getting It Right By Betting On Wrong, 2014,
-   which credits the idea to Kent Beck). First ask whether the code is already open to this change. If it is, add
-   the change. If it is not, first restructure it, with the tests green and unchanged, until the change is easy;
-   then add the change, test-first.
+   which credits the idea to Kent Beck). Follow the Open/Closed path (Ch.3) each time a requirement lands:
+   1. Can the change go in without editing the code that is there? Then add it, test-first.
+   2. If not, and you can see how to make it open, restructure first, with the tests green and unchanged, until the
+      change is easy; then add the change, test-first.
+   3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again. A way to
+      open the code tends to appear as the smells go; keep an improvement even when the code is still closed
+      (Ch.3, Ch.5). To choose which smell to start on, sketch in a comment the conditional the change would need;
+      the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (Ch.8).
+
+   The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never changed.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
-   take a smaller one. Never rewrite the whole class in one go (Ch.3).
+   take a smaller one. Never rewrite the whole class in one go (Ch.3). To change a signature, a parameter or a
+   return type across its senders in such steps, use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, the first small step, and the test that drives it. Stop there unless the
 developer asked you to change the code.
@@ -55,7 +66,7 @@ Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`.
 
 - Writing code test-first, or choosing the next test: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`.
 - Tests that break whenever the code is restructured: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section
-  Tests while restructuring, and `testing-messages.md` (next bullet).
+  Tests while restructuring, and `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md` (next bullet).
 - What to assert for an object's messages, doubles, and tests that are hard to write:
   `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Treat a test that is hard to write as news about the
   design, and say what in the design causes it.

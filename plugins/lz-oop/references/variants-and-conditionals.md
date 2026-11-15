@@ -6,12 +6,36 @@ boolean or string argument steers what shared code does.
 ## Choosing versus doing
 
 Sort each conditional into one of two groups (Ch.5 and Ch.6; the talk Polly Want a Message, 2018).
+Ch.7 draws the contrast directly: a conditional that both recognises each case and holds that case's
+behaviour is procedural, while one that only records which object gets the job, kept in one place
+apart from the behaviour, is the object-oriented form.
 
 - **It chooses which object to use.** One conditional that maps a kind to an object is fine, and some
   such choice is unavoidable. Keep it.
 - **It does the work for each kind.** Branches that compute, format or decide something per kind
   mean an object per kind is missing. Every new kind adds a branch here and in each place that
   switches on the same value.
+
+## Signs of a role nobody named
+
+A role (a duck type) is an agreement on a set of messages and nothing else; once the sender trusts
+every player to answer, it stops caring which class it holds (Less, 2011; Polly Want a Message,
+2018). These signs say a role exists in the code but was never named or given its own objects:
+
+- A check on what kind of object an argument is. Her talks name a switch on the class and Ruby's
+  `kind_of?`, `is_a?` and `respond_to?` (Less, 2011; POODR with the Toronto Ruby Brigade, 2013; SOLID,
+  2009, which calls it a Liskov smell). The JavaScript and TypeScript equivalents are this plugin's
+  mapping: `instanceof`, `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
+- A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
+- A check for null or `undefined` before each use (Nothing is Something, 2015).
+- Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom
+  of All Things, 2014, reads the repeated part as a missing object).
+- A flag passed in where a smarter object should be (Polly Want a Message, 2018).
+
+A switch on the language's own built-in, stable types is tolerable (Less, 2011). Elsewhere, one class
+check undoes the trust the role gives (Less, 2011): send the message, and let a factory pick the player
+so the sender stays unaware of the choice (Devs for Ukraine, 2022). Each new player of a role gets the
+role's shared test; see Role tests in [javascript-and-typescript.md](javascript-and-typescript.md).
 
 ## Adding a kind when the code switches on kinds
 
@@ -42,10 +66,22 @@ Pick by what changes and who has to read it (Ch.7; If You Build It, They Will Co
 | Candidates register themselves | Yes | Each candidate depends on the registry |
 
 Lookups built from naming conventions (a class name assembled from a string) are open but cannot be
-searched for and fail quietly on a typo (Ch.7). This skill starts from the `switch` and prefers an
-explicit map over a name-built lookup in JavaScript and TypeScript.
-TypeScript (this plugin's inference): type the map as `Record<Kind, ...>` over a union of kind
-literals, so the compiler reports a kind with no entry.
+searched for and fail quietly on a typo (Ch.7).
+
+- **Where the choosing logic lives.** By default it lives in the factory, which suits a choice that
+  is simple and stable. When the test for a kind grows complex and changes whenever that kind
+  changes, Ch.7 moves it into the kind itself, and each candidate reports whether it handles the
+  input (the third row).
+- **Which form to start from.** The book weighs these forms and leaves the choice to the situation
+  (Ch.7). This plugin starts from a `switch` in the one factory while the kinds are few. It moves to
+  a map, typed so the compiler reports a kind with no entry, once new kinds keep arriving or other
+  code has to stay in step with the list (see Choosing a variant: the factory map in
+  [javascript-and-typescript.md](javascript-and-typescript.md)). Either way, prefer an explicit list
+  over a name-built lookup. These defaults are the plugin's, not the book's.
+- **Name the message, not the receiver.** Keep the receiver's type out of a message's name: the
+  sender should not need to know which kind it holds, and a name that repeats the type breaks when
+  the type is renamed. A generic factory name (`for`, `create`) lets one factory stand in for another
+  (Ch.6).
 
 ## Flag arguments
 

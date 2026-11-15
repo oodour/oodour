@@ -22,7 +22,8 @@ the top ones first, and say in the report which areas were not read.
 For each changed area, ask:
 
 - **Two jobs in one?** Did the change restructure and add behaviour in the same step? Restructuring with tests green
-  and unchanged, then adding the behaviour, is the safer order (Ch.3).
+  and unchanged, then adding the behaviour, is the safer order (Ch.3). What a restructure may do to tests:
+  `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring.
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next
   kind costs the same edits again: `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - **A new flag or parameter on shared code?** Shared code gaining a boolean or a mode for one caller is the usual
@@ -49,9 +50,18 @@ TypeScript form.
 - A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. The book waits
   for the actual change request, which shows the shape the code needs, and treats an unforced change to working code
   as a bet (Ch.3, Ch.8). At most, name it in one line as what to reconsider when that request arrives.
+- The book also counts some unforced changes as bets always worth taking: those that loosen coupling (behaviour on
+  instances, collaborators injected as roles, objects created at the edges, no chains through other objects),
+  because change will come where no one can predict (Ch.8). A change of that kind is a strength to name, not a
+  finding.
+- Indirection the change adds without need is a finding: a layer, wrapper or general method that no current caller
+  needs makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one
+  (Ch.1). Name what the simpler form would be.
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
-  helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design.
+  helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the
+  cure changes a signature many callers use, give the green steps from
+  `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 - Say plainly what the change did well and what is fine as it is, with the properties that make it fine.
 - Leave formatting, lint and naming nits out unless a name hides a concept.
 - Change no code unless the developer asks; then make the smallest step, run the tests, and stop.

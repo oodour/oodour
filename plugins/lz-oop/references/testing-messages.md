@@ -34,13 +34,27 @@ changes something.
 - Where several objects play one role, fakes included, a shared role test checks that each one
   answers the role's messages (Ch.9). TypeScript (this plugin's inference): an interface for the role,
   with each player typed against it, does part of that check at compile time; a role test still
-  checks behaviour the types cannot express.
+  checks behaviour the types cannot express. How to write that shared test in Vitest, Jest and
+  `node:test`: [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
 
 ## When the test is hard to write
 
 Heavy setup, many doubles, or a long chain to build are design feedback: the object knows too many
 others or reaches through them. Fix the code rather than the test (Ch.9; the talk Get a Whiff of
 This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
+
+## Unit tests and integration tests
+
+- They have different jobs (Ch.9). A unit test sends messages to one class's public interface and leaves its
+  collaborators out of the question: it is the programmer's tool, fast, and fails close to the fault. An
+  integration test shows that a group of objects works together from end to end; it is slower and points less
+  precisely. Do not ask one kind to do the other's job.
+- A test that only restates what the code returns verbatim, such as a method that returns a fixed string, checks
+  nothing that could break on its own: it must be edited whenever the code is. Let that method run inside another
+  class's tests instead (Ch.9).
+- Full coverage means every line runs under the unit tests, not one test per public method. Leaving a class without
+  its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
+  (Ch.9).
 
 ## Other guidance
 

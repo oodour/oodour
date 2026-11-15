@@ -23,7 +23,7 @@ while restructuring; Unit tests per class; In JavaScript and TypeScript.
 - Write the smallest test that proves the current code wrong. It is easier than the first, because you can define
   it against what already exists (Ch.2).
 - Pin both ends of a run of alike cases early: after its first case, test its other end. Take the special cases
-  after that, in their natural order (Ch.2).
+  after that, in their natural order (Ch.2). Each more specific test should push the code to be more general.
 - Keep two hats apart: as the test writer you hold the whole plan in mind; as the code writer you act as if you know
   only what the tests so far demand (Ch.2).
 - A test that is hard to write, or that needs heavy setup, is news about the design. Fix the design rather than
@@ -36,7 +36,30 @@ The book takes three ways to pass a test from Kent Beck's *Test-Driven Developme
 - **Fake It**: return the expected value as a literal. It pushes you to write the test that forces the real code.
 - **Obvious Implementation**: write the real code, but only for a tiny step you are sure of. A wrong guess costs
   the feedback that small steps give.
-- **Triangulate**: let several concrete examples point to the general form.
+- **Triangulate**: hold several failing tests at once and make them all pass with one change, so together they
+  point to the general form. Another copy of a case you already have adds nothing; only a distinct case does.
+
+Triangulate, as steps an agent can follow (steps and the done check are this plugin's reading of Ch.2):
+
+1. Write two or more failing tests whose cases differ in the way the general rule must handle.
+2. Do not make them pass one by one with a literal each; look for the single change that passes all of them.
+3. Make that change and run the tests. If one still fails, the general form is wrong or a case is missing: drop
+   back to the last green and add the distinct case that tells the forms apart.
+
+Use it when you cannot yet see the general form and Fake It would only give you a pile of literals. It is done when
+one piece of code, with no branch per test, passes every case, and a new distinct case passes without editing it.
+
+```ts
+// Before: one literal per test, each faked on its own
+function shippingFee(kg: number): number {
+  return kg === 2 ? 7 : 11; // passes the 2 kg and 4 kg tests only
+}
+
+// After: one change passes the 2 kg, 4 kg and 10 kg tests together
+function shippingFee(kg: number): number {
+  return 3 + 2 * kg;
+}
+```
 
 Shameless Green carries triangulation over to the code: keep the concrete, duplicated cases until the abstraction
 is plain, and do not chase DRY before every example is in (Ch.1 and Ch.2).
@@ -82,6 +105,9 @@ is plain, and do not chase DRY before every example is in (Ch.1 and Ch.2).
   small steps on green (the talk All the Little Things, 2014). For legacy code with few tests, Sandi Metz recommends
   Michael Feathers' *Working Effectively with Legacy Code* (the Maintainable podcast interview Making is Easy,
   Mending is a Challenge, year not known).
+
+- Changing a signature or a type that many places use, one green step at a time (the four stages per edit, Gradual
+  Cutover, removing a parameter, accepting two kinds for a while): [changing-in-steps.md](changing-in-steps.md).
 
 ## Unit tests per class
 
