@@ -2,6 +2,7 @@
   "name": "lz-oop",
   "version": "0.0.0",
   "description": "Coaches object-oriented design in JavaScript and TypeScript, based on Sandi Metz's principles and practices: shaping code that is about to be written or changed, reviewing the design of existing code, and explaining design ideas.",
+  "license": "MIT",
   "author": {
     "name": "Lars Gyrup Brink Nielsen",
     "email": "larsbrinknielsen@gmail.com"

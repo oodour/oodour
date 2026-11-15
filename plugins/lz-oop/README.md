@@ -21,3 +21,7 @@ refactoring mechanics belong to a test-driven development plugin such as lz-tdd.
 
 All text in this plugin is original writing. Ideas credited to Sandi Metz are cited to the work
 they come from.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
