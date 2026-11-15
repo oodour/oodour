@@ -54,7 +54,8 @@ your recommendation."
 which is why the guard lets any agent run it.
 
 - Threshold 8 words for a draft (default), 6 for an oracle's hand-back. Ordinary technical English
-  collides by chance at four or five words, so lower thresholds buy noise.
+  collides by chance at four or five words, so lower thresholds buy noise. The guard denies an
+  agent's run with `--min-words` under 6, where hit positions start to work as a probe.
 - `permittedPhrases` in the tool masks titles, author names, and the public-domain song the
   99 Bottles exercise is built on. Add a work's title there when you admit it.
 - It catches verbatim overlap only. A close paraphrase passes it; that judgement stays with you and

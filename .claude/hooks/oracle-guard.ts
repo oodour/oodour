@@ -53,6 +53,9 @@ const deniedReason = [
   'import or change store files through the `oracle-curator` agent, or ask Lars to run the command with `!`.',
 ].join(' ');
 
+const lowThresholdReason =
+  'oracle-guard: run `node tools/source-overlap.ts` with `--min-words` 6 or more. A lower threshold turns the tool into a probe of the source\'s wording.';
+
 // The listing is readable by anyone: a path whose only store segment is followed by README.md alone.
 function isListing(path: string): boolean {
   const segments = normalize(path).split(sep).filter((segment) => segment !== '');
@@ -106,6 +109,14 @@ function readsOracleTranscript(input: HookInput, agentTypeOf?: (path: string) =>
   );
 }
 
+// Below six words the overlap tool's hit positions let a caller test candidate wording against the source.
+function lowThreshold(command: string): boolean {
+  return (
+    command.includes('source-overlap') &&
+    [...command.matchAll(/--min-words(?:[ \t]+(\S*))?/g)].some(([, value]) => !(Number(value) >= 6 && Number.isInteger(Number(value))))
+  );
+}
+
 // Case-insensitive, as the Windows file systems this project runs on are.
 function isProjectDir(cwd: string | undefined, projectDir: string | undefined): boolean {
   return cwd !== undefined && projectDir !== undefined && resolve(cwd).toLowerCase() === resolve(projectDir).toLowerCase();
@@ -124,6 +135,10 @@ export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOpti
 
   if (readsOracleTranscript(input, agentTypeOf)) {
     return deniedReason;
+  }
+
+  if (shellTools.has(toolName) && lowThreshold(stringField(input.toolInput, 'command') ?? '')) {
+    return lowThresholdReason;
   }
 
   if (curators.has(agentType) || (readers.has(agentType) && readerTools.has(toolName))) {

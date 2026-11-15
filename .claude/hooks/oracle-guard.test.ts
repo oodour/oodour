@@ -157,6 +157,20 @@ test('the hook takes the project directory from CLAUDE_PROJECT_DIR', () => {
   assert.deepEqual(written, []);
 });
 
+test('the overlap tool is denied a threshold under six words', () => {
+  assert.match(call('Bash', { command: 'node tools/source-overlap.ts --min-words 4 draft.md' }) ?? '', /oracle-guard/);
+});
+
+test('every threshold the overlap tool gets must be a whole number of six or more', () => {
+  for (const args of ['--min-words 5 d.md', '--min-words 4.5 d.md', '--min-words', '--min-words 6 --min-words 4 d.md', '--min-words six d.md']) {
+    assert.match(call('Bash', { command: `node tools/source-overlap.ts ${args}` }) ?? '', /min-words/, args);
+  }
+
+  assert.equal(call('Bash', { command: 'node tools/source-overlap.ts --min-words 6 d.md' }), undefined);
+  assert.equal(call('Bash', { command: 'node tools/source-overlap.ts --min-words 12 .oracle/a.md' }), undefined);
+  assert.equal(call('PowerShell', { command: 'node tools\\source-overlap.ts --min-words 8 d.md' }), undefined);
+});
+
 test('the listing exception covers the listing alone', () => {
   assert.equal(call('Read', { file_path: '.oracle/README.md' }), undefined);
   assert.equal(call('Read', { file_path: 'D:\\repo\\.oracle\\README.md' }), undefined);
