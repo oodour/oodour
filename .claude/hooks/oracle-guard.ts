@@ -1,18 +1,24 @@
 // PreToolUse: keeps every agent except the oracle agents out of the sealed store (.oracle/).
 // Rules and permitted routes: AGENTS.md, "Oracle firewall".
 
+import { readFileSync } from 'node:fs';
 import { basename, normalize, sep } from 'node:path';
-import { denyOutput, type HookInput, readHookInput, stringField } from './hook-input.ts';
+import { denyOutput, type HookInput, isRecord, readHookInput, stringField } from './hook-input.ts';
 
 // Same pattern as .claude/mods/oracle-scrub/hooks/scrub.ts; oracle-guard.test.ts guards the copy.
 export const storePath = /(^|[\\/"'\s=:])\.oracle([\\/"'\s]|$)/i;
 
 const readers: ReadonlySet<string> = new Set(['oracle', 'oracle-reviewer']);
 const curators: ReadonlySet<string> = new Set(['oracle-curator']);
+const oracleAgents: ReadonlySet<string> = new Set([...readers, ...curators]);
 const readerTools: ReadonlySet<string> = new Set(['Read', 'Glob']);
 const shellTools: ReadonlySet<string> = new Set(['Bash', 'PowerShell']);
+const searchTools: ReadonlySet<string> = new Set(['Glob', 'Grep']);
 // Arguments are separated by spaces or tabs only: a newline or a shell operator would start a second command.
 const storeTools = /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
+// An oracle agent's transcript holds the store text it read.
+const subagentsFolder = /[\\/]\.claude[\\/]projects[\\/](?:[^\\/]+[\\/])*subagents(?:[\\/]|$)/i;
+const transcripts = /[^\s"'|;&<>`]*[\\/]subagents[\\/]agent-[^\\/\s"'|;&<>`]+\.jsonl/gi;
 
 const pathFields: Readonly<Record<string, readonly string[]>> = {
   Read: ['file_path'],
@@ -62,9 +68,28 @@ function targets(input: HookInput): readonly string[] {
   );
 }
 
-export function decide(input: HookInput): string | undefined {
+function readsOracleTranscript(input: HookInput, agentTypeOf?: (path: string) => string | undefined): boolean {
+  const values = targets(input);
+  const searchRoot = searchTools.has(input.toolName ?? '') ? values.join('/') : '';
+  const transcriptPaths = values.flatMap((value) => value.match(transcripts) ?? []);
+
+  return (
+    subagentsFolder.test(searchRoot) ||
+    transcriptPaths.some((path) => {
+      const owner = agentTypeOf?.(path);
+
+      return owner === undefined || oracleAgents.has(owner);
+    })
+  );
+}
+
+export function decide(input: HookInput, agentTypeOf?: (path: string) => string | undefined): string | undefined {
   const toolName = input.toolName ?? '';
   const agentType = input.agentType ?? '';
+
+  if (readsOracleTranscript(input, agentTypeOf)) {
+    return deniedReason;
+  }
 
   if (curators.has(agentType) || (readers.has(agentType) && readerTools.has(toolName))) {
     return undefined;
@@ -81,12 +106,23 @@ export function decide(input: HookInput): string | undefined {
   return targets(input).some((value) => storePath.test(value)) ? deniedReason : undefined;
 }
 
+// Claude Code writes agent-<id>.meta.json beside each subagent transcript; undefined when it cannot be read.
+function transcriptOwner(path: string): string | undefined {
+  try {
+    const meta: unknown = JSON.parse(readFileSync(path.replace(/\.jsonl$/i, '.meta.json'), 'utf8'));
+
+    return isRecord(meta) ? stringField(meta, 'agentType') : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Fails closed: a guard that cannot read its input denies the call rather than letting it through.
 export function run(read: () => HookInput, write: (output: string) => void): void {
   let reason: string | undefined;
 
   try {
-    reason = decide(read());
+    reason = decide(read(), transcriptOwner);
   } catch (error) {
     reason = `oracle-guard: the guard failed (${error instanceof Error ? error.message : String(error)}), so the call was denied.`;
   }

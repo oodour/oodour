@@ -64,7 +64,7 @@ which is why the guard lets any agent run it.
 
 | Layer | Catches | Misses |
 | --- | --- | --- |
-| `oracle-guard.ts`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store |
+| `oracle-guard.ts`, PreToolUse | Any tool call whose path fields, or whose shell command, name `.oracle`; a path or command naming an oracle agent's transcript (`subagents/agent-<id>.jsonl`, owner read from the `agent-<id>.meta.json` beside it, denied when unreadable); a Glob or Grep aimed at a `subagents` folder under `.claude/projects` | A path built at run time (a glob like `.ora*`, a variable); a recursive listing from the root that never names the store; a recursive Glob or Grep from the project or session folder above `subagents` |
 | `oracle-hand-back.ts`, PreToolUse on `SubagentHandback` and SubagentStop | An oracle, reviewer or curator report with a 6+ word verbatim run, on either delivery path | Close paraphrase; a run under 6 words |
 | `oracle-scrub` mod, `tool.call` | Store paths in Glob and Grep results, and in shell output, when the call did not aim at the store | `tree` output, which names files without their folder path; sessions where the mod engine is off or the plugin is not enabled |
 
@@ -80,6 +80,10 @@ last message; the gate denies the call, the agent rewrites, and only the rewrite
 Through its last message, the gate blocks SubagentStop instead. The first live oracle answer, on
 the first path, carried a 6-word run past a SubagentStop-only gate, which is why both exist.
 
+An oracle agent's transcript holds every store file it read: measured on 2026-11-15, two oracle
+transcripts shared 155,786 and 41,766 words with the store. The guard denies them to every agent,
+the curator included; transcripts of other agents stay readable.
+
 The guard identifies the oracle agents by `agent_type`. A subagent type named `oracle`,
 `oracle-reviewer` or `oracle-curator` from any source passes it, so define no other agent with
 those names.
@@ -90,3 +94,7 @@ those names.
   `the mod scrubs with the same store pattern the guard denies on` fails until they agree.
 - Run `npm run check`, which also runs `claude plugin test .claude/mods/oracle-scrub`,
   after any change to a hook, the mod, or the overlap tool.
+- Leave `oracle-guard.ts` runnable after every single edit. Claude Code runs it from the working
+  tree before every tool call, and it denies the call when it throws, so an edit that leaves a
+  name undefined denies every later call, the fixing edit included. On 2026-11-15 that happened;
+  Lars ran `git stash push -- .claude/hooks/oracle-guard.ts` to restore the committed copy.
