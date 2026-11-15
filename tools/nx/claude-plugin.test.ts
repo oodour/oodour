@@ -110,6 +110,15 @@ test('every Markdown file of a plugin is checked against the store at the six-wo
   assert.equal(overlap.cache, false);
 });
 
+test('every Markdown file of a plugin is checked for chapter numbers, cached on the files and the checker', () => {
+  const { citations } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/z.md']);
+
+  assert.equal(citations?.command, 'node tools/chapter-citations.ts plugins/demo/README.md plugins/demo/z.md');
+  assert.equal(citations.cache, true);
+  assert.deepEqual(citations.inputs, ['default', '{workspaceRoot}/tools/chapter-citations.ts']);
+  assert.deepEqual(citations.outputs, []);
+});
+
 test('pre-eval assembles the plugin and its eval cases outside the distributed plugin, cached on both', () => {
   const preEval = pluginTargets('plugins/demo', 'demo', [])['pre-eval'];
 

@@ -87,6 +87,12 @@ export function pluginTargets(
       command: ['node tools/source-overlap.ts --min-words 6', ...markdown].join(' '),
       cache: false,
     },
+    citations: {
+      command: ['node tools/chapter-citations.ts', ...markdown].join(' '),
+      cache: true,
+      inputs: ['default', '{workspaceRoot}/tools/chapter-citations.ts'],
+      outputs: [],
+    },
   };
 }
 
