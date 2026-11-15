@@ -1,0 +1,19 @@
+{
+  "name": "lz-oop",
+  "version": "0.0.0",
+  "description": "Coaches object-oriented design in JavaScript and TypeScript, based on Sandi Metz's principles and practices: shaping code that is about to be written or changed, reviewing the design of existing code, and explaining design ideas.",
+  "author": {
+    "name": "Lars Gyrup Brink Nielsen",
+    "email": "larsbrinknielsen@gmail.com"
+  },
+  "keywords": [
+    "object-oriented-design",
+    "oop",
+    "sandi-metz",
+    "refactoring",
+    "code-smells",
+    "design-patterns",
+    "javascript",
+    "typescript"
+  ]
+}
