@@ -33,7 +33,25 @@ function store(): string {
 }
 
 test('index cells are the backticked paths of table rows only', () => {
-  assert.deepEqual(indexedPaths('see `x.md`\n| a | `b.md` | `c d` | `https://x` |\n| `repo/lib` |'), ['b.md', 'repo/lib']);
+  assert.deepEqual(indexedPaths('see `x.md`\n| a | `b.md` | `c d` | `https://x` | `kind_of?` |\n| `repo/lib` |'), [
+    'b.md',
+    'repo/lib',
+  ]);
+});
+
+test('index cells also include relative link targets and bare file cells', () => {
+  assert.deepEqual(
+    indexedPaths(
+      [
+        '- [Chapter one](01%20one.md#start)',
+        '- [Site](https://example.com/a.md)',
+        '| A title | a.md | 2016 |',
+        '| Repo | github/poodr/ | n/a |',
+        '| Prose | some words here.md |',
+      ].join('\n'),
+    ),
+    ['01 one.md', 'a.md', 'github/poodr/'],
+  );
 });
 
 test('an entry reports missing, empty and unindexed files', () => {

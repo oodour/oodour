@@ -19,13 +19,37 @@ export interface EntryReport {
   readonly unindexed: readonly string[];
 }
 
-// The backticked cells of an index's table rows: `name.md`, `github/repo/`, `repo/lib`.
+function decoded(target: string): string {
+  try {
+    return decodeURIComponent(target);
+  } catch {
+    return target;
+  }
+}
+
+// What an index names: relative link targets on any line, and on table rows the backticked cells
+// that hold a path (`name.md`, `repo/lib`, not `kind_of?`) and the bare cells that are a file or a
+// folder (name.md, github/repo/).
 export function indexedPaths(index: string): readonly string[] {
-  return index
-    .split('\n')
-    .filter((line) => line.startsWith('|'))
-    .flatMap((line) => [...line.matchAll(/`([^`]+)`/g)].map((match) => match[1] ?? ''))
-    .filter((cell) => cell !== '' && !/\s/.test(cell) && !cell.startsWith('http'));
+  return index.split('\n').flatMap((line) => {
+    const links = [...line.matchAll(/\]\(([^)\s]+)\)/g)]
+      .map((match) => decoded((match[1] ?? '').replace(/#.*$/, '')))
+      .filter((target) => target !== '' && !/^[a-z]+:/i.test(target));
+
+    if (!line.startsWith('|')) {
+      return links;
+    }
+
+    const ticked = [...line.matchAll(/`([^`]+)`/g)]
+      .map((match) => match[1] ?? '')
+      .filter((cell) => /[./]/.test(cell) && !/\s/.test(cell) && !cell.startsWith('http'));
+    const bare = line
+      .split('|')
+      .map((cell) => cell.trim())
+      .filter((cell) => /^[^`\s()[\]]+(\.md|\/)$/.test(cell) && !cell.startsWith('http'));
+
+    return [...links, ...ticked, ...bare];
+  });
 }
 
 function size(path: string): number {
