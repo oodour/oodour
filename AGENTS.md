@@ -73,9 +73,11 @@ output), stop reading it, do not use it, and tell Lars.
 
 Three layers back the prose, and none of them replaces it.
 
-- `.claude/hooks/oracle-guard.ts` (PreToolUse) denies any tool call that names a store path,
-  except from the oracle agents, the `.oracle/README.md` listing, `tools/source-overlap.ts` and
-  `tools/store-check.ts`.
+- The `oracle-guard` mod (`.claude/mods/oracle-guard/`, on `tool.call`) denies any tool call that
+  names a store path, except from the oracle agents, the `.oracle/README.md` listing,
+  `tools/source-overlap.ts` and `tools/store-check.ts`. It denies the call when its own check fails.
+  `.claude/hooks/oracle-guard.ts` makes the same decision as a command hook, kept for sessions
+  without the mod engine; `.claude/settings.json` no longer runs it on every call.
 - `.claude/hooks/oracle-hand-back.ts` (PreToolUse on `SubagentHandback`, and SubagentStop) sends
   an oracle agent back to rewrite its report while it shares a run of six or more words with the
   store, so the copy never reaches you.

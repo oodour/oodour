@@ -3,10 +3,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "*",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-guard.ts\"" }]
-      },
-      {
         "matcher": "SubagentHandback",
         "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\"" }]
       }
@@ -23,6 +19,7 @@
     }
   },
   "enabledPlugins": {
-    "oracle-scrub@lz-oop-dev": true
+    "oracle-scrub@lz-oop-dev": true,
+    "oracle-guard@lz-oop-dev": true
   }
 }
