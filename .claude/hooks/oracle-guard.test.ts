@@ -230,6 +230,27 @@ test('a reader agent gets no tool but Read and Glob on the store', () => {
   assert.match(call('Write', { file_path: '.oracle/a.md' }, 'oracle-reviewer') ?? '', /oracle-guard/);
 });
 
+test('the curator may not write outside the store', () => {
+  assert.match(call('Write', { file_path: 'D:\\repo\\draft.md', content: 'x' }, 'oracle-curator') ?? '', /oracle-guard/);
+});
+
+test('a curator write that climbs out of the store is denied', () => {
+  assert.match(call('Edit', { file_path: 'D:\\repo\\.oracle\\..\\draft.md', old_string: 'a', new_string: 'b' }, 'oracle-curator') ?? '', /oracle-guard/);
+});
+
+test('the curator writes inside the store and keeps its other tools everywhere', () => {
+  const curator = (toolName: string, toolInput: Record<string, unknown>): string | undefined => call(toolName, toolInput, 'oracle-curator');
+
+  assert.equal(curator('Write', { file_path: 'D:\\repo\\.oracle\\metz-written\\a.md', content: 'x' }), undefined);
+  assert.equal(curator('Edit', { file_path: '.oracle/metz-written/index.md', old_string: 'a', new_string: 'b' }), undefined);
+  assert.equal(curator('MultiEdit', { file_path: '.oracle/metz-written/index.md', edits: [] }), undefined);
+  assert.equal(curator('NotebookEdit', { notebook_path: '.oracle/x/n.ipynb', new_source: 'x' }), undefined);
+  assert.match(curator('NotebookEdit', { notebook_path: 'n.ipynb', new_source: 'x' }) ?? '', /oracle-guard/);
+  assert.match(curator('MultiEdit', { file_path: 'AGENTS.md', edits: [] }) ?? '', /oracle-guard/);
+  assert.equal(curator('Read', { file_path: 'references/oracle-store.md' }), undefined);
+  assert.equal(curator('Bash', { command: 'cp .oracle/x/a.md D:/tmp/a.md' }), undefined);
+});
+
 test('a guard that cannot read its input denies the call', () => {
   const written: string[] = [];
 

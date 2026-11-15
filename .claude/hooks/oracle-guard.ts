@@ -53,6 +53,11 @@ const deniedReason = [
   'import or change store files through the `oracle-curator` agent, or ask Lars to run the command with `!`.',
 ].join(' ');
 
+const writeTools: ReadonlySet<string> = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
+
+const curatorWriteReason =
+  'oracle-guard: the oracle-curator writes only inside the sealed store (.oracle/). A file it wrote anywhere else would carry store text to other agents.';
+
 const lowThresholdReason =
   'oracle-guard: run `node tools/source-overlap.ts` with `--min-words` 6 or more. A lower threshold turns the tool into a probe of the source\'s wording.';
 
@@ -139,6 +144,10 @@ export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOpti
 
   if (shellTools.has(toolName) && lowThreshold(stringField(input.toolInput, 'command') ?? '')) {
     return lowThresholdReason;
+  }
+
+  if (curators.has(agentType) && writeTools.has(toolName)) {
+    return targets(input).every((path) => storePath.test(normalize(path))) ? undefined : curatorWriteReason;
   }
 
   if (curators.has(agentType) || (readers.has(agentType) && readerTools.has(toolName))) {
