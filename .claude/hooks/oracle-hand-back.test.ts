@@ -68,23 +68,57 @@ test('the last assistant text is read from a transcript when the stop carries no
   assert.match(review(stop({ agent_type: 'oracle', agent_transcript_path: path }), corpus()) ?? '', /Nothing was delivered/);
 });
 
+test('a transcript line that cannot be parsed is skipped', () => {
+  const transcript = [JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'last' }] } }), '{"type":"assist'].join('\n');
+
+  assert.equal(lastAssistantText(transcript), 'last');
+});
+
+test('the last message is gathered from every trailing record that carries its id', () => {
+  const record = (id: string, text: string): string => JSON.stringify({ type: 'assistant', message: { id, content: [{ type: 'text', text }] } });
+  const transcript = [record('m1', 'earlier'), record('m2', 'first part'), record('m2', 'second part')].join('\n');
+
+  assert.equal(lastAssistantText(transcript), 'first part\nsecond part');
+});
+
+test('an empty last message is read from the transcript like a missing one', () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'oracle-transcript-')), 't.jsonl');
+  writeFileSync(path, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: copied }] } }));
+
+  assert.match(review(stop({ agent_type: 'oracle', last_assistant_message: '', agent_transcript_path: path }), corpus()) ?? '', /Nothing was delivered/);
+});
+
+test('a transcript with no readable answer and an unparsable line blocks a first stop', () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'oracle-transcript-')), 't.jsonl');
+  const written: string[] = [];
+  writeFileSync(path, `${JSON.stringify({ type: 'user', message: { content: 'q' } })}\n{"type":"assist`);
+
+  run(() => stop({ agent_type: 'oracle', agent_transcript_path: path }), (text) => written.push(text), () => undefined);
+
+  assert.match(written[0] ?? '', /"decision":"block".*could not be parsed/);
+});
+
 test('the result is a deny at PreToolUse and a block at SubagentStop', () => {
   assert.match(output(handback(copied), 'r'), /"permissionDecision":"deny"/);
   assert.deepEqual(JSON.parse(output(stop({}), 'r')), { decision: 'block', reason: 'r' });
 });
 
-test('a failed gate denies a hand-back and lets a stop through with a warning', () => {
+test('a failed gate denies a hand-back, blocks a first stop, and lets a second stop through with a warning', () => {
   const written: string[] = [];
   const warned: string[] = [];
   const failing = () => {
     throw new Error('broken');
   };
+  const missing = join(tmpdir(), 'no-such-transcript.jsonl');
 
   run(failing, (text) => written.push(text), (message) => warned.push(message));
   assert.match(written[0] ?? '', /"permissionDecision":"deny".*gate failed \(broken\)/);
 
-  const brokenTranscript = stop({ agent_type: 'oracle', agent_transcript_path: join(tmpdir(), 'no-such-transcript.jsonl') });
-  run(() => brokenTranscript, (text) => written.push(text), (message) => warned.push(message));
-  assert.equal(written.length, 1);
+  run(() => stop({ agent_type: 'oracle', agent_transcript_path: missing }), (text) => written.push(text), (message) => warned.push(message));
+  assert.match(written[1] ?? '', /"decision":"block".*gate failed/);
+  assert.equal(warned.length, 0);
+
+  run(() => stop({ agent_type: 'oracle', agent_transcript_path: missing, stop_hook_active: true }), (text) => written.push(text), (message) => warned.push(message));
+  assert.equal(written.length, 2);
   assert.match(warned[0] ?? '', /gate failed/);
 });

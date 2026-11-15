@@ -28,20 +28,35 @@ function textBlocks(content: unknown): string {
     .join('\n');
 }
 
+// Undefined for a line that is not JSON, such as a half-written last line.
+function parseLine(line: string): unknown {
+  try {
+    return JSON.parse(line);
+  } catch {
+    return undefined;
+  }
+}
+
+// Claude Code can write one message's content blocks as several records that share its id.
 export function lastAssistantText(transcript: string): string {
-  const lines = transcript.trim().split('\n').reverse();
+  const records = transcript.trim().split('\n').map(parseLine);
+  const messages = records.flatMap((record) =>
+    isRecord(record) && record['type'] === 'assistant' ? [isRecord(record['message']) ? record['message'] : {}] : [],
+  );
+  const last = messages.at(-1);
 
-  for (const line of lines) {
-    const record: unknown = JSON.parse(line);
-
-    if (isRecord(record) && record['type'] === 'assistant') {
-      const message = record['message'];
-
-      return isRecord(message) ? textBlocks(message['content']) : '';
-    }
+  if (last === undefined && records.includes(undefined)) {
+    throw new Error('the transcript could not be parsed');
   }
 
-  return '';
+  if (last === undefined) {
+    return '';
+  }
+
+  const id = last['id'];
+  const trailing = id === undefined ? [last] : messages.slice(messages.findLastIndex((message) => message['id'] !== id) + 1);
+
+  return trailing.map((message) => textBlocks(message['content'])).join('\n');
 }
 
 function report(input: HookInput): string {
@@ -49,7 +64,7 @@ function report(input: HookInput): string {
     return input.toolName === 'SubagentHandback' ? (stringField(input.toolInput, 'message') ?? '') : '';
   }
 
-  if (input.lastAssistantMessage !== undefined) {
+  if (input.lastAssistantMessage !== undefined && input.lastAssistantMessage !== '') {
     return input.lastAssistantMessage;
   }
 
@@ -88,8 +103,8 @@ export function output(input: HookInput, reason: string): string {
 }
 
 // At PreToolUse a failed gate denies the hand-back, so nothing unchecked is delivered. At
-// SubagentStop it lets the stop through and reports on stderr: blocking a stop it cannot judge
-// would hold the agent in a loop.
+// SubagentStop it blocks the first stop, and lets the second through with a warning on stderr:
+// blocking every stop it cannot judge would hold the agent in a loop.
 export function run(read: () => HookInput, write: (output: string) => void, warn: (message: string) => void): void {
   let input: HookInput | undefined;
 
@@ -103,7 +118,9 @@ export function run(read: () => HookInput, write: (output: string) => void, warn
   } catch (error) {
     const message = `oracle-hand-back: the gate failed (${error instanceof Error ? error.message : String(error)}).`;
 
-    if (input?.hookEventName === 'SubagentStop') {
+    if (input?.hookEventName === 'SubagentStop' && !input.stopHookActive) {
+      write(output(input, `${message} Your report was not checked. Send it again as your last message.`));
+    } else if (input?.hookEventName === 'SubagentStop') {
       warn(message);
     } else {
       write(denyOutput(`${message} Nothing was delivered; tell the driver the gate failed.`));
