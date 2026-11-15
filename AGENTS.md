@@ -116,7 +116,8 @@ The repository is an Nx workspace with two projects: `tooling` (the hooks, the m
 `project.json`) and `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest). Run Nx as
 `npm exec -- nx`.
 
-- `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap`.
+- `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`. `citations`
+  fails when the distributed plugin cites a chapter number (see "What you write").
 - `npm exec -- nx run lz-oop:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
   the plugin and `evals/lz-oop/` into `dist/eval/lz-oop/`, because `claude plugin eval` reads cases only below a
   plugin root and the cases stay out of the distributed plugin. `nx run lz-oop:eval-real` does the same for the

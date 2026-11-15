@@ -95,7 +95,7 @@ is plain, and do not chase DRY before every example is in (the book).
 - Restructuring changes the code's shape but not what it does, so the tests stay unchanged and green after every
   step. Run them after each small edit; undo a step that turns them red and take a smaller one (*99 Bottles of OOP*).
 - If tests fail while the behaviour has not changed, they check how the code works rather than what it does. Stop,
-  fix those tests on their own, then restart the restructuring. Tests are never edited in the middle of it (the book).
+  fix those tests on their own, then restart the restructuring. While a restructuring is under way, the tests stay as they are (the book).
 - Green tests do not prove an abstraction right: wrong code can pass them (the book).
 - When you extract a class, the outer tests protect the move; copy the code unchanged and put it to use before
   editing it. The new class then needs its own unit tests (the book).
