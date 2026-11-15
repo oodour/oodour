@@ -36,6 +36,16 @@ test('a store name next to a separator, a brace, a comma or a stream suffix is d
   assert.match(call('Read', { file_path: 'D:\\repo\\.oracle::$INDEX_ALLOCATION\\x\\index.md' }) ?? '', /oracle-guard/);
 });
 
+test('a Monitor command naming the store is denied', () => {
+  assert.match(call('Monitor', { command: 'cat .oracle/x/index.md', description: 'd', timeout_ms: 1000 }) ?? '', /oracle-guard/);
+});
+
+test("a Monitor command naming an oracle agent's transcript is denied", () => {
+  const command = 'tail -f C:/Users/u/.claude/projects/D--repo/s1/subagents/agent-a1.jsonl';
+
+  assert.match(decide(parseHookInput({ tool_name: 'Monitor', tool_input: { command } }), () => 'oracle') ?? '', /oracle-guard/);
+});
+
 test('a name that only contains the store name is not the store', () => {
   assert.equal(call('Read', { file_path: 'my.oracle/x.md' }), undefined);
   assert.equal(call('Read', { file_path: 'src/oracle/x.md' }), undefined);

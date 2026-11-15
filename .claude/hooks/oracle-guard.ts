@@ -12,7 +12,7 @@ const readers: ReadonlySet<string> = new Set(['oracle', 'oracle-reviewer']);
 const curators: ReadonlySet<string> = new Set(['oracle-curator']);
 const oracleAgents: ReadonlySet<string> = new Set([...readers, ...curators]);
 const readerTools: ReadonlySet<string> = new Set(['Read', 'Glob']);
-const shellTools: ReadonlySet<string> = new Set(['Bash', 'PowerShell']);
+const shellTools: ReadonlySet<string> = new Set(['Bash', 'PowerShell', 'Monitor']);
 const searchTools: ReadonlySet<string> = new Set(['Glob', 'Grep']);
 // Arguments are separated by spaces or tabs only: a newline or a shell operator would start a second command.
 const storeTools = /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
