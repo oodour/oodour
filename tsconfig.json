@@ -28,6 +28,9 @@
     ".claude/hooks/**/*.ts",
     ".claude/mods/oracle-scrub/hooks/scrub.ts",
     ".claude/mods/oracle-scrub/.node-test/*.ts",
+    ".claude/mods/oracle-guard/hooks/decide.ts",
+    ".claude/mods/oracle-guard/hooks/paths.ts",
+    ".claude/mods/oracle-guard/.node-test/*.ts",
     "tools/**/*.ts",
     "*.test.ts",
     "eslint.config.ts"

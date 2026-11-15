@@ -1,0 +1,5 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "include": ["*.ts", "../hooks/*.ts"],
+  "exclude": ["../hooks/register.ts", "../hooks/register.test.ts"]
+}

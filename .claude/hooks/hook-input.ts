@@ -1,6 +1,9 @@
 // Parses the JSON a Claude Code command hook receives on stdin into the fields these hooks read.
 
 import { readFileSync } from 'node:fs';
+import { isRecord, stringField } from '../mods/oracle-guard/hooks/decide.ts';
+
+export { isRecord, stringField } from '../mods/oracle-guard/hooks/decide.ts';
 
 export interface HookInput {
   readonly hookEventName: string | undefined;
@@ -11,16 +14,6 @@ export interface HookInput {
   readonly lastAssistantMessage: string | undefined;
   readonly agentTranscriptPath: string | undefined;
   readonly stopHookActive: boolean;
-}
-
-export function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-export function stringField(record: Readonly<Record<string, unknown>>, key: string): string | undefined {
-  const value = record[key];
-
-  return typeof value === 'string' ? value : undefined;
 }
 
 export function parseHookInput(raw: unknown): HookInput {

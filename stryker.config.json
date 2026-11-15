@@ -9,6 +9,8 @@
     ".claude/hooks/*.ts",
     "!.claude/hooks/*.test.ts",
     ".claude/mods/oracle-scrub/hooks/scrub.ts",
+    ".claude/mods/oracle-guard/hooks/decide.ts",
+    ".claude/mods/oracle-guard/hooks/paths.ts",
     "tools/**/*.ts",
     "!tools/**/*.test.ts"
   ],
