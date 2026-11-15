@@ -8,8 +8,7 @@
   "mutate": [
     ".claude/hooks/*.ts",
     "!.claude/hooks/*.test.ts",
-    ".claude/mods/oracle-scrub/hooks/*.ts",
-    "!.claude/mods/oracle-scrub/hooks/*.test.ts",
+    ".claude/mods/oracle-scrub/hooks/scrub.ts",
     "tools/*.ts",
     "!tools/*.test.ts"
   ],
