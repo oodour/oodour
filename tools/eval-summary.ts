@@ -44,7 +44,9 @@ function choose(n: number, k: number): number {
   let result = 1;
 
   for (let i = 0; i < k; i++) {
-    result = (result * (n - i)) / (i + 1);
+    result *= n - i;
+    // Stryker disable next-line AssignmentOperator: every caller divides two choose() values of the same k, so a k!-squared factor cancels
+    result /= i + 1;
   }
 
   return result;

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { test } from 'node:test';
-import { describeRuns, findRuns, loadCorpus, main, parseArgs, storeDir, tokenize } from './source-overlap.ts';
+import { describeRuns, findRuns, loadCorpus, main, parseArgs, permittedPhrases, storeDir, tokenize } from './source-overlap.ts';
 
 function syntheticStore(): string {
   const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
@@ -243,6 +244,138 @@ test('the other drafts are still checked when one cannot be read', (t) => {
   assert.equal(main(['--min-words', '6', join(tmpdir(), 'no-such-draft.md'), copy], syntheticStore()), 2);
   assert.ok(printed.some((line) => line.startsWith(`${copy}: words 1-9`)));
   assert.ok(printed.some((line) => /no-such-draft\.md: cannot read it/.test(line)));
+});
+
+test('the store is the .oracle folder at the repository root', () => {
+  assert.equal(storeDir, join(dirname(import.meta.dirname), '.oracle'));
+});
+
+test('only the listing at the store root and an index at the top of an entry are skipped', () => {
+  for (const path of ['notes.md', 'README.md/a.md', 'book/index.md/a.md']) {
+    assert.equal(findRuns(lifted, loadCorpus(6, storeWith(path))).length, 1, path);
+  }
+});
+
+test('a line is a separator only when it is all separator cells', () => {
+  const title = '| Talk | File |\n| --- | --- |\n| Patient Gardens Grow Slowly | `t.md` |\n';
+  const talk = 'one two patient gardens grow slowly three four';
+
+  for (const after of ['note |---|', '|---|x']) {
+    assert.deepEqual(findRuns(talk, loadCorpus(6, talksWithIndex(`${title}${after}\n`, talk))), [], after);
+  }
+});
+
+test('an indented table row is read like any other', () => {
+  const dir = talksWithIndex('| Talk | File |\n| --- | --- |\n  | Patient Gardens Grow Slowly | `t.md` |\n', 'one two patient gardens grow slowly three four');
+
+  assert.deepEqual(findRuns('one two patient gardens grow slowly three four', loadCorpus(6, dir)), []);
+});
+
+test('a two-word title with a number in it is a name', () => {
+  const dir = talksWithIndex('| Talk | File |\n| --- | --- |\n| Gardens 2016 | `t.md` |\n', 'one two three gardens 2016 four five six');
+
+  assert.deepEqual(findRuns('one two three gardens 2016 four five six', loadCorpus(6, dir)), []);
+});
+
+test('every permitted phrase is a name inside a copied run', () => {
+  for (const phrase of permittedPhrases) {
+    const text = `one two three ${phrase} four five six`;
+
+    assert.deepEqual(findRuns(text, loadCorpus(6, storeWith('book/a.md', text))), [], phrase);
+  }
+});
+
+test('text without words has no tokens, and an apostrophe joins whole word parts', () => {
+  assert.deepEqual(tokenize('-- ... --'), []);
+  assert.deepEqual(tokenize("o'clock rock'n'roll"), ["o'clock", "rock'n'roll"]);
+});
+
+test('a compact separator row still marks the header', () => {
+  const dir = talksWithIndex(
+    '| Venue Name | Title | File |\n|---|---|---|\n| Big Conf | Small Objects Walk Far | `t.md` |\n',
+    'one two big conf three four five six seven and small objects walk far as before',
+  );
+  const corpus = loadCorpus(6, dir);
+
+  assert.equal(findRuns('one two big conf three four five six seven', corpus).length, 1);
+  assert.deepEqual(findRuns('seven and small objects walk far as before', corpus), []);
+});
+
+test('prose lines in an index are not titles, and a row without a closing pipe is', () => {
+  const prose = talksWithIndex('one two three four\n\n| Talk | File |\n| --- | --- |\n| Some Talk | `t.md` |\n', 'one two three four five six');
+
+  assert.equal(findRuns('one two three four five six', loadCorpus(6, prose)).length, 1);
+
+  const open = talksWithIndex('| Talk | File |\n| --- | --- |\n| Patient Gardens Grow Slowly | `t.md`\n', 'one two patient gardens grow slowly three four');
+
+  assert.deepEqual(findRuns('one two patient gardens grow slowly three four', loadCorpus(6, open)), []);
+});
+
+test('the title column is the header cell that is exactly Title or Talk', () => {
+  const dir = talksWithIndex(
+    '| Talk Venue | Keynote Talk | Title | File |\n| --- | --- | --- | --- |\n| Big Conf | Main Hall | Small Objects Walk Far | `t.md` |\n',
+    'one two big conf three four and one two main hall three four and small objects walk far as before',
+  );
+  const corpus = loadCorpus(6, dir);
+
+  assert.equal(findRuns('one two big conf three four', corpus).length, 1);
+  assert.equal(findRuns('one two main hall three four', corpus).length, 1);
+  assert.deepEqual(findRuns('and small objects walk far as before', corpus), []);
+});
+
+test('a title is also a name without its trailing parenthesis, and only a trailing one', () => {
+  const glued = talksWithIndex('| Talk | File |\n| --- | --- |\n| Patient Gardens Grow(Venue) | `t.md` |\n', 'patient gardens grow one two three four five');
+
+  assert.deepEqual(findRuns('patient gardens grow one two three four five', loadCorpus(6, glued)), []);
+
+  const inner = talksWithIndex('| Talk | File |\n| --- | --- |\n| Deep Roots (Live) - Hold Fast | `t.md` |\n', 'deep roots hold fast one two three four');
+
+  assert.equal(findRuns('deep roots hold fast one two three four', loadCorpus(6, inner)).length, 1);
+});
+
+test('a parenthesis followed by more of the title is kept', () => {
+  const dir = talksWithIndex('| Talk | File |\n| --- | --- |\n| Patient Gardens (Live)Grow | `t.md` |\n', 'one two three patient gardens four five six');
+
+  assert.equal(findRuns('one two three patient gardens four five six', loadCorpus(6, dir)).length, 1);
+});
+
+test('a run found in two entries belongs to the first entry read', () => {
+  const dir = storeWith('a-entry/x.md');
+  mkdirSync(join(dir, 'b-entry'));
+  writeFileSync(join(dir, 'b-entry', 'x.md'), lifted);
+  const first = readdirSync(dir)[0];
+
+  assert.equal(findRuns(lifted, loadCorpus(6, dir))[0]?.entry, first);
+});
+
+test('the command prints its usage, its verdict and its run count', (t) => {
+  const store = syntheticStore();
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const clean = join(dir, 'clean.md');
+  const copy = join(dir, 'copy.md');
+  writeFileSync(clean, 'A fox leaps a sleepy hound.');
+  writeFileSync(copy, 'the quick brown fox jumps over the lazy dog');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  main([clean], store);
+  main(['--min-words', '6', copy], store);
+  main([], store);
+
+  assert.deepEqual(printed, [
+    '[OK] no run of 8+ words shared with the store',
+    `${copy}: words 1-9 (9 words, entry book)`,
+    '[ERROR] 1 run(s)',
+    'usage: node tools/source-overlap.ts [--min-words N>=6] <file> [more files]',
+  ]);
+});
+
+test('run as a command with no arguments, it prints its usage and exits 2', () => {
+  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'source-overlap.ts')], { encoding: 'utf8' });
+
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /^usage: /);
 });
 
 test('the real store loads and a run lifted from it is caught', () => {

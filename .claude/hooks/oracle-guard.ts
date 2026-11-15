@@ -73,19 +73,27 @@ function isListing(path: string): boolean {
   return storeSegments.length === 1 && beforeLast === '.oracle' && last === 'readme.md';
 }
 
+// A missing or non-text field reads as empty.
+function inputText(input: HookInput, key: string): string {
+  // Stryker disable next-line StringLiteral: no caller tells the empty fallback from other text without a store name, a transcript path or source-overlap
+  return stringField(input.toolInput, key) ?? '';
+}
+
 function targets(input: HookInput): readonly string[] {
+  // Stryker disable next-line StringLiteral: no tool set or path field table holds the fallback name, so a missing tool name is judged alike
   const toolName = input.toolName ?? '';
 
   if (shellTools.has(toolName)) {
-    return [stringField(input.toolInput, 'command') ?? ''];
+    return [inputText(input, 'command')];
   }
 
   const fields = pathFields[toolName];
 
   if (fields !== undefined) {
-    return fields.map((field) => stringField(input.toolInput, field) ?? '');
+    return fields.map((field) => inputText(input, field));
   }
 
+  // Stryker disable next-line ArrayDeclaration: an extra target without a store name or a transcript path changes no verdict
   return messageTools.has(toolName) ? [] : strings(input.toolInput);
 }
 
@@ -98,16 +106,21 @@ function strings(value: unknown): readonly string[] {
     return value.flatMap(strings);
   }
 
-  return isRecord(value) ? Object.entries(value).flatMap(([key, item]) => [key, ...strings(item)]) : [];
+  if (!isRecord(value)) {
+    // Stryker disable next-line ArrayDeclaration: an extra target without a store name or a transcript path changes no verdict
+    return [];
+  }
+
+  return Object.entries(value).flatMap(([key, item]) => [key, ...strings(item)]);
 }
 
 function readsOracleTranscript(input: HookInput, agentTypeOf?: (path: string) => string | undefined): boolean {
   const values = targets(input);
-  const searchRoot = searchTools.has(input.toolName ?? '') ? values.join('/') : '';
+  const searched = input.toolName !== undefined && searchTools.has(input.toolName);
   const transcriptPaths = values.flatMap((value) => value.match(transcripts) ?? []);
 
   return (
-    subagentsFolder.test(searchRoot) ||
+    (searched && subagentsFolder.test(values.join('/'))) ||
     transcriptPaths.some((path) => {
       const owner = agentTypeOf?.(path);
 
@@ -137,22 +150,26 @@ export interface DecideOptions {
 }
 
 export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOptions = {}): string | undefined {
+  // Stryker disable next-line StringLiteral: no tool set holds the fallback name, so a missing tool name is judged alike
   const toolName = input.toolName ?? '';
+  // Stryker disable next-line StringLiteral: no agent set holds the fallback name, so a missing agent type is judged alike
   const agentType = input.agentType ?? '';
 
   if (readsOracleTranscript(input, agentTypeOf)) {
     return deniedReason;
   }
 
-  if (shellTools.has(toolName) && lowThreshold(stringField(input.toolInput, 'command') ?? '')) {
+  if (shellTools.has(toolName) && lowThreshold(inputText(input, 'command'))) {
     return lowThresholdReason;
   }
 
   // Inside means below this project's store folder, compared case-insensitively as Windows paths are.
   if (curators.has(agentType) && writeTools.has(toolName)) {
     const store = projectDir === undefined ? undefined : `${resolve(projectDir, '.oracle').toLowerCase()}${sep}`;
+    // Stryker disable next-line StringLiteral: unreachable, since store is set only when projectDir is
     const inside = (path: string): boolean => store !== undefined && resolve(input.cwd ?? projectDir ?? '', path).toLowerCase().startsWith(store);
 
+    // Stryker disable next-line MethodExpression: every write tool names one path, so every and some agree
     return targets(input).every(inside) ? undefined : curatorWriteReason;
   }
 
@@ -160,12 +177,12 @@ export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOpti
     return undefined;
   }
 
-  if (toolName === 'Read' && isListing(stringField(input.toolInput, 'file_path') ?? '')) {
+  if (toolName === 'Read' && isListing(inputText(input, 'file_path'))) {
     return undefined;
   }
 
   // The tool paths are relative, so the exception holds only where they resolve to this project's tools.
-  if (shellTools.has(toolName) && isProjectDir(input.cwd, projectDir) && storeTools.test(stringField(input.toolInput, 'command') ?? '')) {
+  if (shellTools.has(toolName) && isProjectDir(input.cwd, projectDir) && storeTools.test(inputText(input, 'command'))) {
     return undefined;
   }
 

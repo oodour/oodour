@@ -78,6 +78,7 @@ function listTextFiles(dir: string): readonly string[] {
 }
 
 function entryOf(dir: string, file: string): string {
+  // Stryker disable next-line StringLiteral: split always returns a first element, so the fallback never runs
   return relative(dir, file).split(sep)[0] ?? '';
 }
 
@@ -103,6 +104,7 @@ function cellsOf(row: string): readonly string[] {
 // A header row (the row above a separator) is never a title.
 function titleCells(index: string): readonly string[] {
   const lines = index.split('\n').map((line) => line.trim());
+  // Stryker disable next-line ArrayDeclaration: a seeded title differs only for a draft that quotes the seeded text itself
   const titles: string[] = [];
   let column = 0;
 
@@ -113,12 +115,14 @@ function titleCells(index: string): readonly string[] {
 
     const cells = cellsOf(line);
 
+    // Stryker disable next-line StringLiteral: the fallback after the last line is no separator, whatever its text
     if (isSeparator(lines[i + 1] ?? '')) {
       column = Math.max(0, cells.findIndex((cell) => /^(title|talk)$/i.test(cell)));
 
       return;
     }
 
+    // Stryker disable next-line StringLiteral: a short row's fallback differs only for a draft that quotes the replacement text itself
     titles.push(cells[column] ?? '');
   });
 
@@ -152,8 +156,10 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
     const entry = entryOf(dir, file);
     const text = readFileSync(file, 'utf8');
     // A NUL byte marks a binary file whatever its extension.
+    // Stryker disable next-line ArrayDeclaration: one token is below the six-word floor, so it adds no gram
     const tokens = text.includes('\u0000') ? [] : tokenize(text);
 
+    // Stryker disable next-line ArithmeticOperator: a gram past the end has fewer words than every window findRuns looks up, so it matches none
     for (let i = 0; i + minWords <= tokens.length; i++) {
       const gram = tokens.slice(i, i + minWords).join(' ');
 
@@ -170,7 +176,8 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
 function maskedPositions(tokens: readonly string[], phrases: readonly string[]): ReadonlySet<number> {
   const masked = new Set<number>();
 
-  for (const words of phrases.map(tokenize).filter((words) => words.length > 0)) {
+  for (const words of phrases.map(tokenize)) {
+    // Stryker disable next-line ArithmeticOperator: positions past the end read undefined, which matches no word
     for (let i = 0; i + words.length <= tokens.length; i++) {
       if (words.every((word, k) => tokens[i + k] === word)) {
         words.forEach((_, k) => masked.add(i + k));
@@ -188,6 +195,7 @@ export function findRuns(text: string, corpus: Corpus): readonly Run[] {
   const runs: { start: number; words: number; entry: string }[] = [];
   let current: { start: number; words: number; entry: string } | undefined;
 
+  // Stryker disable next-line ArithmeticOperator: a window past the end has fewer words than any gram, so it matches none
   for (let i = 0; i + corpus.minWords <= tokens.length; i++) {
     const window = tokens.slice(i, i + corpus.minWords);
     const entry = window.some((_, k) => masked.has(i + k)) ? undefined : corpus.grams.get(window.join(' '));
@@ -197,7 +205,8 @@ export function findRuns(text: string, corpus: Corpus): readonly Run[] {
       continue;
     }
 
-    if (current !== undefined && current.start + current.words - corpus.minWords === i) {
+    // A miss resets current, so a run still open here ends at the window before this one.
+    if (current !== undefined) {
       current.words++;
     } else {
       current = { start: i + 1, words: corpus.minWords, entry };
@@ -222,13 +231,12 @@ interface Options {
 export function parseArgs(args: readonly string[]): Options | undefined {
   let minWords = draftMinWords;
   const files: string[] = [];
+  const rest = [...args];
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
+  for (let arg = rest.shift(); arg !== undefined; arg = rest.shift()) {
     if (arg === '--min-words') {
-      minWords = Number(args[++i]);
-    } else if (arg !== undefined) {
+      minWords = Number(rest.shift());
+    } else {
       files.push(arg);
     }
   }

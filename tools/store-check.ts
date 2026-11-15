@@ -34,7 +34,8 @@ function decoded(target: string): string {
 export function indexedPaths(index: string): readonly string[] {
   return index.split('\n').flatMap((line) => {
     const links = [...line.matchAll(/\]\(([^)\s]+)\)/g)]
-      .map((match) => decoded((match[1] ?? '').replace(/#.*$/, '')))
+      .flatMap((match) => match.slice(1, 2))
+      .map((target) => decoded(target.replace(/#.*/, '')))
       .filter((target) => target !== '' && !/^[a-z]+:/i.test(target));
 
     if (!line.startsWith('|')) {
@@ -42,7 +43,7 @@ export function indexedPaths(index: string): readonly string[] {
     }
 
     const ticked = [...line.matchAll(/`([^`]+)`/g)]
-      .map((match) => match[1] ?? '')
+      .flatMap((match) => match.slice(1, 2))
       .filter((cell) => /[./]/.test(cell) && !/\s/.test(cell) && !cell.startsWith('http'));
     const bare = line
       .split('|')
@@ -63,7 +64,7 @@ function size(path: string): number {
 function resolveCell(entryDir: string, cell: string): string | undefined {
   const roots = [entryDir, ...readdirSync(entryDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => join(entryDir, d.name))];
 
-  return roots.map((root) => join(root, cell.replace(/[\\/]+$/, ''))).find((path) => existsSync(path));
+  return roots.map((root) => join(root, cell)).find((path) => existsSync(path));
 }
 
 export function checkEntry(dir: string, entry: string): EntryReport | undefined {
@@ -76,7 +77,7 @@ export function checkEntry(dir: string, entry: string): EntryReport | undefined 
 
   const cells = [...new Set(indexedPaths(readFileSync(indexPath, 'utf8')))];
   const resolved = cells.map((cell) => ({ cell, path: resolveCell(entryDir, cell) }));
-  const named = new Set(cells.map((cell) => basename(cell.replace(/[\\/]+$/, ''))));
+  const named = new Set(cells.map((cell) => basename(cell)));
   const topFiles = readdirSync(entryDir).filter((name) => name.endsWith('.md') && name !== 'index.md');
 
   return {
@@ -112,6 +113,7 @@ export function main(dir: string = storeDir): number {
     return 2;
   }
 
+  // Stryker disable next-line MethodExpression: a file at the store root has no index.md below it, so checkEntry skips it anyway
   const reports = readdirSync(dir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .flatMap((d) => checkEntry(dir, d.name) ?? []);

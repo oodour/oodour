@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { loadCorpus } from '../../tools/source-overlap.ts';
+import { type Corpus, loadCorpus } from '../../tools/source-overlap.ts';
 import { parseHookInput } from './hook-input.ts';
 import { lastAssistantText, output, review, run } from './oracle-hand-back.ts';
 
@@ -127,4 +128,79 @@ test('a failed gate denies a hand-back, blocks a first stop, and lets a second s
   run(() => stop({ agent_type: 'oracle', agent_transcript_path: missing, stop_hook_active: true }), (text) => written.push(text), (message) => warned.push(message));
   assert.equal(written.length, 2);
   assert.match(warned[0] ?? '', /gate failed/);
+});
+
+test('a text block without text adds nothing, and text blocks are joined by a newline', () => {
+  const content = [{ type: 'text' }, { type: 'text', text: 'a' }, { type: 'text', text: 'b' }];
+
+  assert.equal(lastAssistantText(JSON.stringify({ type: 'assistant', message: { content } })), '\na\nb');
+});
+
+test('an assistant message without content reads as empty', () => {
+  assert.equal(lastAssistantText(JSON.stringify({ type: 'assistant', message: {} })), '');
+});
+
+test('blank space around the transcript does not count as a half-written line', () => {
+  const said = JSON.stringify({ type: 'assistant', message: { content: 'answer' } });
+
+  assert.equal(lastAssistantText(`\n${said}\n`), 'answer');
+});
+
+test('a record after the last assistant message is not part of the answer', () => {
+  const transcript = [
+    JSON.stringify({ type: 'assistant', message: { content: 'answer' } }),
+    JSON.stringify({ type: 'user', message: { content: 'question' } }),
+  ].join('\n');
+
+  assert.equal(lastAssistantText(transcript), 'answer');
+});
+
+test('an empty report is never checked against the store', () => {
+  const untouchable: Corpus = {
+    minWords: 6,
+    grams: new Map(),
+    get phrases(): readonly string[] {
+      throw new Error('the store was read');
+    },
+  };
+
+  assert.equal(review(parseHookInput({ hook_event_name: 'PreToolUse', tool_name: 'SubagentHandback', tool_input: {}, agent_type: 'oracle' }), untouchable), undefined);
+  assert.equal(review(parseHookInput({ hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { message: copied }, agent_type: 'oracle' }), untouchable), undefined);
+  assert.equal(review(stop({ agent_type: 'oracle' }), untouchable), undefined);
+});
+
+test('the reason counts the runs and lists each position, separated by semicolons', () => {
+  const reason = review(handback('the quick brown fox jumps over and so lazy dog while the cat watches'), corpus()) ?? '';
+
+  assert.match(
+    reason,
+    /^oracle-hand-back: your report shares 2 verbatim run\(s\) of 6\+ words with the store, at words 1-6 \(6 words, entry book\); words 9-14 \(6 words, entry book\) \(word positions in your report\)\. Nothing was delivered\. Rewrite each listed passage in your own words and send the whole report again\. Names of works, principles and patterns are fine; the wording around them is not\. If a passage cannot be said differently, replace it with "\[withheld: source wording\]"\.$/,
+  );
+});
+
+test('a transcript with no assistant message and an unparsable line before the last fails the check', () => {
+  assert.throws(() => lastAssistantText(['{"type":"assist', JSON.stringify({ type: 'user', message: { content: 'q' } })].join('\n')), /could not be parsed/);
+});
+
+test('a copying hand-back is denied through the write callback', () => {
+  const written: string[] = [];
+
+  run(() => handback(copied), (text) => written.push(text), () => undefined, corpus());
+
+  assert.equal(written.length, 1);
+  assert.match(written[0] ?? '', /"permissionDecision":"deny".*verbatim run/);
+});
+
+test('run as a command, the hook denies on stdout when its input cannot be read', () => {
+  const result = spawnSync(process.execPath, [join(import.meta.dirname, 'oracle-hand-back.ts')], { input: 'not json', encoding: 'utf8' });
+
+  assert.match(result.stdout, /"permissionDecision":"deny".*gate failed/);
+});
+
+test('run as a command, the hook warns on stderr, one line, when it lets a second stop through', () => {
+  const input = { hook_event_name: 'SubagentStop', agent_type: 'oracle', agent_transcript_path: join(tmpdir(), 'no-such-transcript.jsonl'), stop_hook_active: true };
+  const result = spawnSync(process.execPath, [join(import.meta.dirname, 'oracle-hand-back.ts')], { input: JSON.stringify(input), encoding: 'utf8' });
+
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /^oracle-hand-back: the gate failed \(.*\)\.\n$/);
 });

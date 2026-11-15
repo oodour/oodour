@@ -1,6 +1,22 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { aimedAtStore, keep, listsStore, shellOutput, storeLine } from '../hooks/scrub.ts';
+import { aimedAtStore, keep, listsStore, shellOutput, storeLine, storeMention, withheld } from '../hooks/scrub.ts';
+
+test('a relative store path at the start of a line is a store mention', () => {
+  assert.ok(storeMention.test('.oracle/entry/file.md'));
+});
+
+test('each line of LF output is judged on its own, so a store listing header after the first line is found', () => {
+  assert.ok(listsStore('AGENTS.md\n./.oracle:'));
+});
+
+test('a Directory header with several blanks before the store path is a store line', () => {
+  assert.equal(keep('Directory:  D:\\repo\\.oracle\\metz-talks'), false);
+});
+
+test('the withheld notice says why and how to scope the command', () => {
+  assert.match(withheld, /^oracle-scrub: this output listed paths inside the sealed store \(\.oracle\/\) and was withheld\. Scope the command to the directory you mean/);
+});
 
 test('a line that starts with a store path is a store line, in every listing shape', () => {
   for (const line of [

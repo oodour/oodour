@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -309,4 +310,76 @@ test('an allowed call writes nothing', () => {
 
 test('the mod scrubs with the same store pattern the guard denies on', () => {
   assert.equal(String(scrubStorePath), String(storePath), 'pattern copies agree');
+});
+
+test('the denial names every permitted route in one readable sentence run', () => {
+  const reason = call('Read', { file_path: '.oracle/a.md' }) ?? '';
+
+  assert.match(reason, /may open\. Permitted routes: ask the `oracle` agent \(a question plus one entry's index path as a string\); gate a draft/);
+  assert.match(reason, /store-check\.ts`; read the listing at \.oracle\/README\.md; search for the literal string "\.oracle" with the Grep tool/);
+  assert.match(reason, /outside the store; import or change store files through the `oracle-curator` agent, or ask Lars to run the command with `!`\.$/);
+});
+
+test('Monitor and PowerShell commands get the same threshold check as Bash', () => {
+  assert.match(call('Monitor', { command: 'node tools/source-overlap.ts --min-words 4 d.md' }) ?? '', /min-words/);
+  assert.match(call('PowerShell', { command: 'node tools\\source-overlap.ts --min-words 4 d.md' }) ?? '', /min-words/);
+});
+
+test('the threshold check applies to the overlap tool only, and reads the value after any run of blanks', () => {
+  assert.equal(call('Bash', { command: 'echo --min-words 2' }), undefined);
+  assert.equal(call('Bash', { command: 'node tools/source-overlap.ts --min-words  8 d.md' }), undefined);
+});
+
+test('the store tools exception must start the command and allows trailing blanks', () => {
+  assert.match(call('Bash', { command: 'cat .oracle/a.md; node tools/store-check.ts' }) ?? '', /oracle-guard/);
+  assert.equal(call('Bash', { command: 'node tools/source-overlap.ts .oracle/a.md ' }), undefined);
+});
+
+test('the store tools exception takes any run of blanks between its words', () => {
+  assert.equal(call('Bash', { command: 'node  tools/source-overlap.ts .oracle/a.md' }), undefined);
+  assert.equal(call('Bash', { command: 'node tools/source-overlap.ts  .oracle/a.md' }), undefined);
+});
+
+test('a Glob whose pattern ends at a subagents folder is denied', () => {
+  assert.match(decide(parseHookInput({ tool_name: 'Glob', tool_input: { path: 'C:\\Users\\u', pattern: '.claude/projects/p/subagents' } })) ?? '', /oracle-guard/);
+});
+
+test("the owner's metadata sits beside the transcript even when a folder name holds .jsonl", () => {
+  const folder = join(mkdtempSync(join(tmpdir(), 'oracle-guard-')), 'runs.jsonl.d', 'subagents');
+  const written: string[] = [];
+  mkdirSync(folder, { recursive: true });
+  writeFileSync(join(folder, 'agent-g1.meta.json'), JSON.stringify({ agentType: 'general-purpose' }));
+
+  run(() => parseHookInput({ tool_name: 'Read', tool_input: { file_path: join(folder, 'agent-g1.jsonl') } }), (output) => written.push(output));
+
+  assert.deepEqual(written, []);
+});
+
+test('a Grep whose glob names the store, and an LSP call on a store file, are denied', () => {
+  assert.match(call('Grep', { pattern: 'x', path: 'src', glob: '.oracle/**/*.md' }) ?? '', /oracle-guard/);
+  assert.match(call('LSP', { operation: 'hover', filePath: '.oracle/x/a.md', line: 1, character: 1 }) ?? '', /oracle-guard/);
+});
+
+test('null, number and boolean fields of an unknown tool add no target', () => {
+  assert.equal(call('mcp__fs__stat', { path: 'AGENTS.md', depth: null, size: 1, follow: true }), undefined);
+});
+
+test('a shell call is judged by its command alone', () => {
+  assert.equal(call('Bash', { command: 'ls', description: 'list .oracle' }), undefined);
+});
+
+test('the listing exception ignores a trailing separator and holds for Read only', () => {
+  assert.equal(call('Read', { file_path: '.oracle/README.md/' }), undefined);
+  assert.match(call('Write', { file_path: '.oracle/README.md', content: 'x' }) ?? '', /oracle-guard/);
+  assert.match(call('Edit', { file_path: '.oracle/README.md', old_string: 'a', new_string: 'b' }) ?? '', /oracle-guard/);
+});
+
+test('run as a command, the hook prints its denial on stdout', () => {
+  const result = spawnSync(process.execPath, [join(import.meta.dirname, 'oracle-guard.ts')], {
+    input: JSON.stringify({ tool_name: 'Read', tool_input: { file_path: '.oracle/a.md' } }),
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /^\{"hookSpecificOutput":\{.*"permissionDecision":"deny"/);
 });

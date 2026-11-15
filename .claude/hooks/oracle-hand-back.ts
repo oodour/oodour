@@ -73,6 +73,7 @@ function report(input: HookInput): string {
 }
 
 export function review(input: HookInput, corpus?: Corpus): string | undefined {
+  // Stryker disable next-line StringLiteral: no gated agent has the fallback name, so a missing agent type passes alike
   if (!gated.has(input.agentType ?? '')) {
     return undefined;
   }
@@ -106,12 +107,12 @@ export function output(input: HookInput, reason: string): string {
 // At PreToolUse a failed gate denies the hand-back, so nothing unchecked is delivered. At
 // SubagentStop it blocks the first stop, and lets the second through with a warning on stderr:
 // blocking every stop it cannot judge would hold the agent in a loop.
-export function run(read: () => HookInput, write: (output: string) => void, warn: (message: string) => void): void {
+export function run(read: () => HookInput, write: (output: string) => void, warn: (message: string) => void, corpus?: Corpus): void {
   let input: HookInput | undefined;
 
   try {
     input = read();
-    const reason = review(input);
+    const reason = review(input, corpus);
 
     if (reason !== undefined) {
       write(output(input, reason));

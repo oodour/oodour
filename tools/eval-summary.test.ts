@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { formatReport, passAtK, passHatK, summarise } from './eval-summary.ts';
 
 test('pass@k is the chance that at least one of k drawn runs passed', () => {
@@ -96,4 +101,75 @@ test('the report ends with an overall row per arm: runs, passes, errors and the 
 test('a result that is not an eval result is refused with the field that is wrong', () => {
   assert.throws(() => summarise({ cases: 'nope' }), /cases/);
   assert.throws(() => summarise({ suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 'high' }] } }] }), /score/);
+});
+
+test('each refusal names the full path of the field that is wrong', () => {
+  const refused = (value: unknown, field: string): void => {
+    assert.throws(() => summarise(value), { message: `not an eval result: ${field} is missing or has the wrong type` });
+  };
+  const withRuns = (runs: unknown): unknown => ({ suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: runs } }] });
+
+  refused(null, 'result');
+  refused('text', 'result');
+  refused({ cases: [] }, 'suite');
+  refused({ cases: [], suite: {} }, 'costUsd');
+  refused({ suite: {}, costUsd: 0, cases: [{ arms: {} }] }, 'cases[0].name');
+  refused(withRuns('nope'), 'cases[0].arms.with');
+  refused({ suite: {}, costUsd: 0, cases: [{ name: 'x', arms: [] }] }, 'cases[0].arms');
+  refused(withRuns([{ score: 1 }]), 'cases[0].arms.with[0].passed');
+  refused(withRuns([{ score: 1, passed: true }]), 'cases[0].arms.with[0].graders');
+  refused(withRuns([{ score: 1, passed: true, graders: [{ passed: true }] }]), 'cases[0].arms.with[0].graders[0].name');
+  refused(withRuns([{ score: 1, passed: true, graders: [{ name: 'c1' }] }]), 'cases[0].arms.with[0].graders[0].passed');
+});
+
+test('a run counts as errored only when its error is set', () => {
+  const arm = (error: unknown) => summarise({ suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 0, passed: false, error, graders: [] }] } }] }).cases[0]?.arms['with']?.errored;
+
+  assert.equal(arm({ message: 'limit' }), 1);
+  assert.equal(arm(null), 0);
+});
+
+test('the report opens with the model line, a blank line and the table header', () => {
+  const lines = formatReport(summarise({ suite: {}, costUsd: 0, cases: [] })).split('\n');
+
+  assert.deepEqual(lines.slice(0, 4), [
+    'Model unknown, judge unknown, cost $0.00',
+    '',
+    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Criteria below 100% |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+  ]);
+});
+
+test('the overall row averages the case means over the cases that ran', () => {
+  const twoCases = {
+    suite: {},
+    costUsd: 0,
+    cases: [
+      { name: 'a', arms: { with: [{ score: 1, passed: true, graders: [] }] } },
+      { name: 'b', arms: { with: [{ score: 0, passed: false, graders: [] }] } },
+    ],
+  };
+
+  assert.match(formatReport(summarise(twoCases)), /^\| overall \| with \| 2 \| 1 \| 0 \| 50% \| 50% \| 50% \| - \| - \|$/m);
+});
+
+test('importing the module runs no command, whatever the arguments', () => {
+  const file = join(mkdtempSync(join(tmpdir(), 'eval-summary-')), 'result.json');
+  writeFileSync(file, JSON.stringify(result));
+  const module = pathToFileURL(join(import.meta.dirname, 'eval-summary.ts')).href;
+
+  const run = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(module)});`, 'first', file], { encoding: 'utf8' });
+
+  assert.equal(run.status, 0);
+  assert.equal(run.stdout, '');
+});
+
+test('run as a command, it prints the report of each file it is given, then a blank line', () => {
+  const file = join(mkdtempSync(join(tmpdir(), 'eval-summary-')), 'result.json');
+  writeFileSync(file, JSON.stringify(result));
+
+  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'eval-summary.ts'), file], { encoding: 'utf8' });
+
+  assert.equal(run.status, 0);
+  assert.equal(run.stdout, `${formatReport(summarise(result))}\n\n`);
 });
