@@ -38,7 +38,6 @@ export const permittedPhrases: readonly string[] = [
 // A book's chapter headings are expression, so the book's index is not read for this.
 export const titledEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', 'owen-talks']);
 const indexNames: ReadonlySet<string> = new Set(['index.md', 'README.md']);
-const breakToken = '\u0000';
 
 export interface Run {
   readonly start: number;
@@ -58,24 +57,6 @@ function normalize(text: string): string {
 
 export function tokenize(text: string): readonly string[] {
   return normalize(text).match(/[a-z0-9']+|\u0000/g) ?? [];
-}
-
-function escapeRegExp(word: string): string {
-  return word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function maskPhrases(text: string, phrases: readonly string[]): string {
-  let masked = normalize(text);
-
-  for (const phrase of phrases) {
-    const words = tokenize(phrase).map(escapeRegExp);
-
-    if (words.length > 0) {
-      masked = masked.replace(new RegExp(`\\b${words.join("[^a-z0-9']+")}\\b`, 'g'), ` ${breakToken} `);
-    }
-  }
-
-  return masked;
 }
 
 function listMarkdown(dir: string): readonly string[] {
@@ -126,15 +107,31 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
   return { minWords, grams, phrases: [...permittedPhrases, ...indexTitles(dir, files)] };
 }
 
+// The positions of the tokens that belong to a permitted phrase.
+function maskedPositions(tokens: readonly string[], phrases: readonly string[]): ReadonlySet<number> {
+  const masked = new Set<number>();
+
+  for (const words of phrases.map(tokenize).filter((words) => words.length > 0)) {
+    for (let i = 0; i + words.length <= tokens.length; i++) {
+      if (words.every((word, k) => tokens[i + k] === word)) {
+        words.forEach((_, k) => masked.add(i + k));
+      }
+    }
+  }
+
+  return masked;
+}
+
 // Runs are word offsets into the text (1-based), never the words.
 export function findRuns(text: string, corpus: Corpus): readonly Run[] {
-  const tokens = tokenize(maskPhrases(text, corpus.phrases));
+  const tokens = tokenize(text);
+  const masked = maskedPositions(tokens, corpus.phrases);
   const runs: { start: number; words: number; entry: string }[] = [];
   let current: { start: number; words: number; entry: string } | undefined;
 
   for (let i = 0; i + corpus.minWords <= tokens.length; i++) {
     const window = tokens.slice(i, i + corpus.minWords);
-    const entry = window.includes(breakToken) ? undefined : corpus.grams.get(window.join(' '));
+    const entry = window.some((_, k) => masked.has(i + k)) ? undefined : corpus.grams.get(window.join(' '));
 
     if (entry === undefined) {
       current = undefined;

@@ -63,8 +63,14 @@ test('a talk title listed in its index is a name, and the words after it still c
 
   assert.deepEqual(findRuns('In her talk Seven Small Objects Walk Into A Bar, she argues.', corpus), []);
   assert.deepEqual(findRuns('seven small objects walk into a bar a transcript follows here with many more words after it', corpus), [
-    { start: 2, words: 10, entry: 'metz-talks' },
+    { start: 8, words: 10, entry: 'metz-talks' },
   ]);
+});
+
+test('positions count the words of a permitted phrase before a run', () => {
+  const runs = findRuns('Sandi Metz Katrina Owen the quick brown fox jumps over', loadCorpus(6, syntheticStore()));
+
+  assert.deepEqual(describeRuns(runs), ['words 5-10 (6 words, entry book)']);
 });
 
 test('a talk title in the co-author talks index is a name too', () => {
