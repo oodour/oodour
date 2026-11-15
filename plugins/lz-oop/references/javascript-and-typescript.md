@@ -149,6 +149,12 @@ export class Checkout {
 - Constructor parameter properties (`constructor(private payments: PaymentGateway)`) are not erasable; assign the
   field in the body.
 - In a framework with its own injection (Angular providers and `inject()`, NestJS providers), use it there.
+- When injection must wait, create the collaborator on first use in one private place, so the working methods never
+  name its class: a field `#gateway?: PaymentGateway` read only through
+  `get #payments(): PaymentGateway { return (this.#gateway ??= new CardGateway()); }`.
+- When only the receiver knows what its collaborator needs to be built, inject a factory function typed by what the
+  receiver wants back, and call it once: `constructor(quoteFor: (seats: number) => Quote)`. Steps and sources:
+  [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not own.
 - JavaScript note: the same, without the types.
 
 ## Testing outgoing messages
@@ -184,6 +190,12 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 
 ## Parameter lists and options objects
 
+- *Practical Object-Oriented Design* treats a fixed argument order as a dependency of its own: every caller must
+  know it. It prefers named arguments, which let callers pass them in any order and let the receiver add or drop
+  parameters and defaults without breaking callers; a short list whose order is obvious and settled can stay
+  positional (this plugin's example: `clamp(value, min, max)`), and existing code can move over gradually as it
+  is touched. Its named arguments are Ruby's; this plugin's JavaScript form is one destructured options object,
+  `function schedule({ start, end, timezone = 'UTC' }: ScheduleOptions)`.
 - ESLint `max-params` (default 3) counts an options object as one parameter, so it cannot see a large options
   object. Treat each key as a parameter when judging an argument list; that limit is this plugin's judgement,
   enforced in review.

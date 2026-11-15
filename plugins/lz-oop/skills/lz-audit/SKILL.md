@@ -26,6 +26,12 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
   Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
   tests than its score has untested logic; say so in the report (the book).
+- **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
+  (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
+  `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that
+  changes often and that many files depend on is the costly corner of *Practical Object-Oriented Design*'s grid of
+  likelihood of change against dependents; reading churn as likelihood of change is this plugin's. Its cures are in
+  `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
 - **Read the quadrants**:
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
     time is the worst case (Polly Want a Message, 2018);
@@ -36,14 +42,17 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
 ## 3. Judge the hot spots
 
 For the top hot spots, at most about ten, read the code, its callers and its tests, and judge each with
-`${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. Look across files too: the same type switch in several places,
+`${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. This file only routes: Read judging-design.md, and for each
+smell you report the file its step 4 names, before you write the report; the cures and their steps are there, not
+here. Look across files too: the same type switch in several places,
 the same parameters passed together, and the same collaborator created in many classes are findings about the
 package, not about one file. Use `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's
 idea needs its JavaScript or TypeScript form.
 
 ## 4. Report
 
-- Lead with the hot-spot table: file, commits in the period, the complexity measure used, and the quadrant.
+- Lead with the hot-spot table: file, commits in the period, dependents where counted, the complexity measure
+  used, and the quadrant.
 - Then the findings, ranked by cost: the files and lines, the smell's name, what change it makes expensive, the
   cure, and the first small step. Group findings that share one cure. Where the cure changes a signature or type used
   across the package, point to the green steps in `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.

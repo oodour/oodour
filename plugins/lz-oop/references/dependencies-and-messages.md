@@ -50,9 +50,8 @@ not to objects those return (the book).
    (the book).
 5. Move object creation outward, toward the code that starts the program, and keep concrete class
    names out of the methods that do the work (the book). Of two possible dependencies, depend on the
-   one less likely to change. *Practical Object-Oriented Design* develops this rule, weighing how likely
-   each class is to change, whether it is concrete or abstract, and how many classes depend on it;
-   *99 Bottles of OOP* applies it when choosing what a factory's candidates should depend on.
+   one less likely to change (below, Which way a dependency points); *99 Bottles of OOP* applies this
+   when choosing what a factory's candidates should depend on.
 6. Put domain behaviour on instances, not on static methods or bare class-level functions. Static
    code bets that the concept will never hold varying data, and it is hard to refactor when that bet
    loses; creating an instance costs almost nothing, so the book creates one every time. A static
@@ -62,6 +61,62 @@ not to objects those return (the book).
 
 TypeScript (this plugin's inference): type the injected role as an interface or a type with only the
 messages the receiver sends, so any object with those methods can play it, a test fake included.
+The forms in code: Injecting collaborators in [javascript-and-typescript.md](javascript-and-typescript.md).
+
+## Which way a dependency points
+
+Use when deciding which of two collaborators should know about the other, or when a class that many others use
+keeps changing.
+
+1. Every dependency has a direction, chosen on purpose or by accident; point it at the side less likely to change
+   than the one that depends on it (the talks SOLID Object-Oriented Design, 2009, and Less, the Path to Better
+   Design, 2011). Stability is relative: what matters is only that the thing depended on is steadier than its
+   dependent (Go Ahead, Make a Mess, 2012).
+2. Weigh three facts about the candidate (*Practical Object-Oriented Design*): how often its requirements are likely
+   to change, whether it is concrete or abstract (abstractions change less than the concrete classes they came from),
+   and how many others depend on it (each change reaches every dependent).
+3. Place it on the book's grid of likelihood of change against number of dependents. Steady with many dependents
+   is usually an abstraction, and fine; changeable with few dependents is usually concrete code, and fine because
+   little relies on it; steady with few dependents hardly matters. The costly corner is changeable with many
+   dependents: each edit spreads to them all. Suspect a concrete class with many dependents of sitting there even
+   when it looks stable (the book).
+4. Prefer depending on a message to depending on a class: a sender that knows only what it wants to ask, not which
+   class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). Saying that message names
+   are steadier than class names is this plugin's summary of those talks, not a sentence from them.
+5. When neither side is clearly steadier, do not guess a direction: cut what each side knows of the other to the
+   least, with each side expecting a role rather than a class (Less, 2011).
+
+Dependency Inversion is the name for the end state: neither the higher-level class nor its collaborator depends on
+the other's concrete class; both depend on a role (*99 Bottles of OOP*; the SOLID talk, 2009, reads it as favouring
+abstractions over concrete classes). Done (this plugin's test, drawn from the book's advice to keep concrete class
+names out of instance methods): the receiver's methods name no concrete collaborator class, only the role it plays,
+and the concrete class is chosen where objects are created.
+
+## Interfaces you do not own
+
+Use when code calls a library, a framework or a collaborator whose interface may change and that you cannot change.
+
+1. Wrap creation of a third-party object behind one method or module of your own, so only that place knows its
+   constructor's shape, such as a fixed argument order; the rest of the code calls your wrapper with named options
+   (*Practical Object-Oriented Design*, and her example code for the book). The book calls an object made only to
+   build others a factory, and wants application code to depend on what the application owns.
+2. Wrap a risky outgoing message to a collaborator in a method of the sender's own, even before any duplication
+   exists: if the collaborator renames the message or changes its arguments, one method changes. This is the
+   exception to waiting for duplication; keep it for the messages most likely to change (the book).
+3. When you cannot inject a collaborator yet, isolate its creation: build it in the constructor, or on first use in
+   a dedicated method that builds it once. Either keeps creation out of the method that does the work and makes
+   the dependency visible, though the class still knows its collaborator's class (the book). The SOLID talk (2009) then turns that
+   creation into a constructor argument whose default is the new instance. TypeScript form (this plugin's): a
+   `#field` set with `??=` in a private getter.
+4. When only the receiver knows an argument needed to build its collaborator, so the caller cannot pass a ready
+   instance, inject the class instead and send it one message that asks for the result the receiver wants, with
+   creation hidden behind it. Creating an object is a message too, so creating one and then asking it for something
+   is a chain of the kind the Law of Demeter flags (*99 Bottles of OOP*). TypeScript form (this plugin's): inject a
+   factory function typed by the role, or by the result.
+
+Done: one place in your code knows each foreign interface, and the receiver's working methods name no class they
+create.
+
 The forms in code: Injecting collaborators in [javascript-and-typescript.md](javascript-and-typescript.md).
 
 ## What a receiver owes its senders (Liskov Substitution, generalised)
