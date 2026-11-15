@@ -30,6 +30,19 @@ export const permittedPhrases: readonly string[] = [
   'Sandi Metz',
   'Katrina Owen',
   'TJ Stankus',
+  'Refactoring: Improving the Design of Existing Code',
+  'Refactoring to Patterns',
+  'xUnit Test Patterns: Refactoring Test Code',
+  'Design Patterns: Elements of Reusable Object-Oriented Software',
+  'Working Effectively with Legacy Code',
+  'Martin Fowler',
+  'Michael Feathers',
+  'Joshua Kerievsky',
+  'Gerard Meszaros',
+  'Object Design: Roles, Responsibilities, and Collaborations',
+  'Rebecca Wirfs-Brock',
+  'Alan McKean',
+  'Kent Beck',
   'bottles of beer on the wall',
   'take one down and pass it around',
   'take it down and pass it around',
@@ -39,7 +52,13 @@ export const permittedPhrases: readonly string[] = [
 
 // A work's title is a name, so the talk and article titles their indexes list are permitted.
 // A book's chapter headings are expression, so the book's index is not read for this.
-export const titledEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', 'owen-talks']);
+export const titledEntries: ReadonlySet<string> = new Set([
+  'metz-talks',
+  'metz-written',
+  'owen-talks',
+  'metz-cited-articles',
+  'beck-writing',
+]);
 
 export interface Run {
   readonly start: number;

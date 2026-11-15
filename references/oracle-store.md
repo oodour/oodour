@@ -8,7 +8,15 @@
 | `metz-talks/` | Transcripts of 28 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
 | `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/` | `.oracle/99bottles-js/index.md` |
-| `owen-talks/` | Caption transcripts of 2 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
+| `owen-talks/` | Caption transcripts of 3 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
+| `poodr-2e-sample/` | The publisher's public table of contents and sample pages of *Practical Object-Oriented Design*, 2nd edition | `.oracle/poodr-2e-sample/index.md` |
+| `fowler-refactoring-2e/` | Martin Fowler, *Refactoring*, 2nd edition, one file per chapter, plus `images/` | `.oracle/fowler-refactoring-2e/index.md` |
+| `meszaros-xunit-test-patterns/` | Gerard Meszaros, *xUnit Test Patterns*, one file per chapter, plus `images/` | `.oracle/meszaros-xunit-test-patterns/index.md` |
+| `kerievsky-refactoring-to-patterns/` | Joshua Kerievsky, *Refactoring to Patterns*, one file per chapter, plus `images/` | `.oracle/kerievsky-refactoring-to-patterns/index.md` |
+| `gamma-design-patterns/` | Gamma, Helm, Johnson and Vlissides, *Design Patterns*, one file per chapter, plus `images/` | `.oracle/gamma-design-patterns/index.md` |
+| `metz-cited-articles/` | Public articles and papers the Metz corpus cites, one file per work | `.oracle/metz-cited-articles/index.md` |
+| `beck-writing/` | Kent Beck's essays (`written-content/`) and blog archive (`beck-blog/`) | `.oracle/beck-writing/index.md` |
+| `wirfs-brock-object-design/` | Rebecca Wirfs-Brock and Alan McKean, *Object Design*, one file per chapter, plus `images/` | `.oracle/wirfs-brock-object-design/index.md` |
 
 `.oracle/README.md` lists one line per entry: the title and its index path. It holds nothing else
 (no descriptions, no chapter lists), because every agent may read it.
@@ -144,3 +152,34 @@ https://www.informit.com/store/practical-object-oriented-design-an-agile-primer-
 - **Not stored**: two InformIT articles by other authors; six further Owen videos off these topics; event pages
   that repeat stored talks; posts by other authors; a paid retailer chapter and a pirated copy. Two searches found
   no public Owen articles on these topics.
+
+### 2026-11-15: the works the corpus keeps citing
+
+Lars asked: "Let me know if Sandi Metz and/or Katrina Owen's corpus repeatedly refers to a source that we should add
+to the oracle store". One oracle per entry listed the outside works it cites (summary:
+`plans/lz-oop-research/cited-sources.md`, git-ignored). Lars then asked Claude to get them from the repositories that
+hold Markdown sources: "Ask the "refactoring-oracle-ee" session (the repo that produces Markdown sources) about
+sources it has and to provide the ones in your list that it has available to your oracle store." and approved the
+rest: "May the curator agent fetch the public texts once, for the store: Approve." In the lz-tdd session he ruled,
+as that session relayed it: "For sources both in this repo's store and refactoring-oracle's libray, lz-oop should get
+them from refactoring-oracle."
+
+- **Four books, new entries**: Fowler, *Refactoring*, 2nd edition; Meszaros, *xUnit Test Patterns*; Kerievsky,
+  *Refactoring to Patterns*; Gamma, Helm, Johnson and Vlissides, *Design Patterns*. They are Lars's purchased copies,
+  converted by the refactoring-oracle repository, which copied them to an intake folder on Lars's yes in its session.
+  The curator copied each whole, images included, and checked it with `diff -r`, file counts and byte totals.
+- **metz-cited-articles, new entry**: Robert C. Martin's 2000 paper on design principles and patterns (the archived
+  PDF kept beside its `pdftotext -layout` text; MarkItDown garbled its apostrophes), Fowler's Design Stamina
+  Hypothesis and CommandQuerySeparation bliki pages, and Feathers's Getting Empirical about Refactoring (from
+  stickyminds.com; the agileconnection.com address returned a landing page). Fetched once.
+- **Not stored**: Katrina Owen's Zero Confidence (Railsberry 2013). Its only recording found is on Vimeo, which needs
+  a login; no workaround was tried. Meszaros's test-double web pages were skipped, as the book covers them.
+- **From lz-tdd's store**, on Lars's "2: Approve" in that session (as it relayed it), copy-only and checked with
+  `diff -r` and `cmp`: Kent Beck's essays and blog archive into a new entry, `beck-writing/`, and three
+  martinfowler.com pages on test doubles into `metz-cited-articles/`. Five Metz talks copied by mistake, the ones
+  left out as off-topic in the first import above, were removed again.
+- **Object Design**: Wirfs-Brock and McKean (2002), which both angular-clean-architecture's store and
+  refactoring-oracle hold byte for byte, came from refactoring-oracle per the ruling above, on Lars's "1: Approve" in
+  that session, into a new entry, `wirfs-brock-object-design/`.
+- **Overlap**: the plugin's 6-word check then found two runs against the new books, a book title with its author and
+  a common phrase in `lz-audit`. The titles and author names joined `permittedPhrases`, and the phrase was reworded.

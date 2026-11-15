@@ -9,7 +9,7 @@ description: Object-oriented design audit of a JavaScript or TypeScript package,
 
 Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole
 repository. Read the README, the package manifest, the entry points and the test setup. Note where the framework
-code sits (controllers, components, handlers) and where the domain code sits, and how the tests are written.
+code sits (controllers, components, handlers) and where the domain code sits, and the style of the existing tests.
 
 ## 2. Find the hot spots: churn against complexity
 

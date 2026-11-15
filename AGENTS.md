@@ -39,6 +39,13 @@ oracle agents. A source gets a row here in the same change that admits it.
 | The book's companion code, `sandimetz/99bottles_js`, as a full git clone | `.oracle/99bottles-js/` | Sealed |
 | Katrina Owen talk transcripts (3 talks, 2012, 2014 and 2016) | `.oracle/owen-talks/` | Sealed |
 | Sandi Metz, *Practical Object-Oriented Design*, 2nd edition: the publisher's public table of contents and sample pages | `.oracle/poodr-2e-sample/` | Sealed |
+| Martin Fowler, *Refactoring*, 2nd edition (2018) | `.oracle/fowler-refactoring-2e/` | Sealed |
+| Gerard Meszaros, *xUnit Test Patterns* (2007) | `.oracle/meszaros-xunit-test-patterns/` | Sealed |
+| Joshua Kerievsky, *Refactoring to Patterns* (2004) | `.oracle/kerievsky-refactoring-to-patterns/` | Sealed |
+| Gamma, Helm, Johnson and Vlissides, *Design Patterns* (1994) | `.oracle/gamma-design-patterns/` | Sealed |
+| Public articles and papers the Metz corpus cites: Robert C. Martin (2000), five martinfowler.com pages, Feathers (2011) | `.oracle/metz-cited-articles/` | Sealed |
+| Kent Beck's essays and blog archive (the two book files are short summaries, not the books) | `.oracle/beck-writing/` | Sealed |
+| Rebecca Wirfs-Brock and Alan McKean, *Object Design* (2002) | `.oracle/wirfs-brock-object-design/` | Sealed |
 
 ### What you need, and the permitted route
 
