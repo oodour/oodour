@@ -43,11 +43,17 @@ test('the assemble command assembles the folders it is given', () => {
   assert.equal(readFileSync(join(workspace, 'out/evals/case-a/prompt.md'), 'utf8'), 'prompt');
 });
 
-test('any other command prints its usage and exits 2', () => {
-  const run = spawnSync(process.execPath, [cli, 'assemble', 'plugin'], { encoding: 'utf8' });
+test('a missing folder, an extra argument or another command prints the usage and exits 2', () => {
+  for (const args of [
+    ['assemble', 'plugin'],
+    ['assemble', 'plugin', 'evals', 'out', 'extra'],
+    ['build', 'plugin', 'evals', 'out'],
+  ]) {
+    const run = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
 
-  assert.equal(run.status, 2);
-  assert.match(run.stderr, /usage: node tools\/nx\/claude-plugin\.ts assemble <plugin> <evals> <out>/);
+    assert.equal(run.status, 2, args.join(' '));
+    assert.match(run.stderr, /usage: node tools\/nx\/claude-plugin\.ts assemble <plugin> <evals> <out>/);
+  }
 });
 
 test('each plugin manifest becomes a project named after the plugin, with its Markdown files in the overlap check', async () => {
@@ -56,6 +62,7 @@ test('each plugin manifest becomes a project named after the plugin, with its Ma
     'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
     'plugins/demo/README.md': 'readme',
     'plugins/demo/skills/a/SKILL.md': 'skill',
+    'plugins/demo/z.md': 'last',
     'plugins/demo/LICENSE': 'MIT',
   });
   const [pattern, infer] = createNodes;
@@ -70,7 +77,7 @@ test('each plugin manifest becomes a project named after the plugin, with its Ma
   assert.equal(project?.name, 'demo');
   assert.equal(
     project.targets?.['overlap']?.command,
-    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md plugins/demo/skills/a/SKILL.md',
+    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md plugins/demo/skills/a/SKILL.md plugins/demo/z.md',
   );
 });
 
@@ -89,6 +96,8 @@ test('a plugin validates strictly with the Claude Code CLI', () => {
 
   assert.equal(validate?.command, 'claude plugin validate --strict plugins/demo');
   assert.equal(validate.cache, true);
+  assert.deepEqual(validate.inputs, ['default', { runtime: 'claude --version' }]);
+  assert.deepEqual(validate.outputs, []);
 });
 
 test('every Markdown file of a plugin is checked against the store at the six-word floor, never from cache', () => {

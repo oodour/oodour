@@ -34,7 +34,8 @@ export function assemble(plugin: string, evals: string, out: string): void {
   cpSync(plugin, out, { recursive: true });
   cpSync(evals, join(out, 'evals'), {
     recursive: true,
-    filter: (source) => source !== results && !source.startsWith(`${results}${sep}`),
+    // A folder the filter refuses is not entered, so its files need no check of their own.
+    filter: (source) => source !== results,
   });
 }
 
