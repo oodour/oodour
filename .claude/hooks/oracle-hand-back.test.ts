@@ -68,10 +68,16 @@ test('the last assistant text is read from a transcript when the stop carries no
   assert.match(review(stop({ agent_type: 'oracle', agent_transcript_path: path }), corpus()) ?? '', /Nothing was delivered/);
 });
 
-test('a transcript line that cannot be parsed is skipped', () => {
-  const transcript = [JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'last' }] } }), '{"type":"assist'].join('\n');
+test('a transcript line that cannot be parsed is skipped when a parsed line follows it', () => {
+  const said = (text: string): string => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text }] } });
 
-  assert.equal(lastAssistantText(transcript), 'last');
+  assert.equal(lastAssistantText([said('first'), '{"type":"assist', said('last')].join('\n')), 'last');
+});
+
+test('a half-written last line fails the check, since it may be the final report', () => {
+  const said = JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'earlier' }] } });
+
+  assert.throws(() => lastAssistantText([said, '{"type":"assist'].join('\n')), /could not be parsed/);
 });
 
 test('the last message is gathered from every trailing record that carries its id', () => {

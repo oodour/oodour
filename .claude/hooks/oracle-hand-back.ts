@@ -45,7 +45,8 @@ export function lastAssistantText(transcript: string): string {
   );
   const last = messages.at(-1);
 
-  if (last === undefined && records.includes(undefined)) {
+  // A half-written last line may be the final report, so an earlier message must not stand in for it.
+  if (records.at(-1) === undefined || (last === undefined && records.includes(undefined))) {
     throw new Error('the transcript could not be parsed');
   }
 
