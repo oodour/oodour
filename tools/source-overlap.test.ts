@@ -100,6 +100,18 @@ test('an apostrophe counts only inside a word', () => {
   assert.equal(findRuns("the quick brown 'fox jumps over'", loadCorpus(6, syntheticStore())).length, 1);
 });
 
+test('compatibility characters in a copy do not hide it', () => {
+  assert.equal(findRuns('the ｑｕｉｃｋ brown fox jumps over', loadCorpus(6, syntheticStore())).length, 1);
+});
+
+test('compatibility characters in the store are normalized too', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  mkdirSync(join(dir, 'book'));
+  writeFileSync(join(dir, 'book', 'a.md'), 'we ﬁnd the ﬁrst ﬁx that ﬁts');
+
+  assert.equal(findRuns('we find the first fix that fits', loadCorpus(6, dir)).length, 1);
+});
+
 test('arguments parse into a threshold and files, and bad usage is refused', () => {
   assert.deepEqual(parseArgs(['a.md']), { minWords: 8, files: ['a.md'] });
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });

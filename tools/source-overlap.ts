@@ -52,7 +52,7 @@ export interface Corpus {
 }
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/[‘’]/g, "'");
+  return text.normalize('NFKC').toLowerCase().replace(/[‘’]/g, "'");
 }
 
 export function tokenize(text: string): readonly string[] {
