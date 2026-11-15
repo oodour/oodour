@@ -1,0 +1,103 @@
+# Writing code test-first
+
+Used by the `lz-oop` skill when a developer writes code test-first, asks which test comes next, or asks how tests
+behave while code is restructured. What to assert about an object's messages, and which collaborators to replace, is
+in [testing-messages.md](testing-messages.md).
+
+## Before the first test
+
+- Sketch the public API first: which messages will callers send, and with what? Then begin where you understand the
+  problem best, usually the simplest single case (Ch.2).
+- Do not agonise over the first test. You know least at the start; some early tests exist only to show that an idea
+  was wrong (Ch.2).
+- Choose plain, unsurprising example values, so a reader does not hunt for meaning in them (Ch.9).
+- Sandi Metz moved away from drawing the target design first and test-driving toward it. Gather concrete examples
+  first and let the abstraction come out of them; the next test is often just the next example (the podcast Why Are
+  Computers #3, with Katrina Owen, 2016).
+
+## Choosing the next test
+
+- Write the smallest test that proves the current code wrong. It is easier than the first, because you can define
+  it against what already exists (Ch.2).
+- Pin both ends of a run of alike cases early: after its first case, test its other end. Take the special cases
+  after that, in their natural order (Ch.2).
+- Keep two hats apart: as the test writer you hold the whole plan in mind; as the code writer you act as if you know
+  only what the tests so far demand (Ch.2).
+- A test that is hard to write, or that needs heavy setup, is news about the design. Fix the design rather than
+  piling on setup (Ch.9; the talks SOLID Object-Oriented Design, 2009, and Get a Whiff of This, 2016).
+
+## Getting to green
+
+The book takes three ways to pass a test from Kent Beck's *Test-Driven Development by Example* (Ch.2):
+
+- **Fake It**: return the expected value as a literal. It pushes you to write the test that forces the real code.
+- **Obvious Implementation**: write the real code, but only for a tiny step you are sure of. A wrong guess costs
+  the feedback that small steps give.
+- **Triangulate**: let several concrete examples point to the general form.
+
+Shameless Green carries triangulation over to the code: keep the concrete, duplicated cases until the abstraction
+is plain, and do not chase DRY before every example is in (Ch.1 and Ch.2).
+
+- Generalise when many examples agree and you can name the abstraction. With only two examples, or when the
+  abstraction would make the code harder to read, keep the duplication and ask what waiting costs and how soon more
+  examples will come (Ch.2).
+- Katrina Owen named a common misreading of red/green/refactor: remove every duplication after every test. Sandi
+  Metz's answer was that squeezing it out that early disguises code that truly matches, so the real abstraction is
+  harder to see later (Why Are Computers #3, 2016).
+- Never copy an example that already exists in the code; call it. Duplication earns its place only by adding a new,
+  independent example (Ch.2).
+
+## What a test asserts
+
+- Expected values are written out literally. A test that computes its expectation with logic like the production
+  code's, or asserts that one method returns what another returns, is tied to how the code works and breaks when
+  the code is restructured (Ch.2).
+- Tests can repeat themselves more than production code; readability wins there (the talk The Design of Tests).
+- Keep one arrange, act, assert shape in every test (Ch.2, Ch.9).
+- Signal arbitrary data: a prime number, or an absurdly large one, tells the reader that the exact value does not
+  matter (the Prime Number Signal, Ch.9).
+
+## When to stop
+
+- Stop adding single-case tests once every distinct kind of case has one. Cover the gaps between them (order, the
+  cases in the middle) with one broader test whose expected output is written in full (Ch.2).
+- Delete a test that checks the same thing as another (Ch.9).
+- Not everything needs its own test; test each fact once, in one place (the talk The Magic Tricks of Testing, 2013).
+
+## Tests while restructuring
+
+- Restructuring changes the code's shape but not what it does, so the tests stay unchanged and green after every
+  step. Run them after each small edit; undo a step that turns them red and take a smaller one (Ch.3).
+- If tests fail while the behaviour has not changed, they check how the code works rather than what it does. Stop,
+  fix those tests on their own, then restart the restructuring. Tests are never edited in the middle of it (Ch.3).
+- Green tests do not prove an abstraction right: wrong code can pass them (Ch.4).
+- When you extract a class, the outer tests protect the move; copy the code unchanged and put it to use before
+  editing it. The new class then needs its own unit tests (Ch.5, Ch.8, Ch.9).
+- Moving a test to a new home is itself a small restructuring: copy it, run, retarget, run, delete the original,
+  checking the test count each time (Ch.9).
+- Code you do not understand: pin its current behaviour with characterisation tests first, then restructure it in
+  small steps on green (the talk All the Little Things, 2014). For legacy code with few tests, Sandi Metz recommends
+  Michael Feathers' *Working Effectively with Legacy Code* (the Maintainable podcast interview Making is Easy,
+  Mending is a Challenge).
+
+## Unit tests per class
+
+- By default each class gets unit tests for its public messages. A small class that only one owner uses and no one
+  outside can see may be tested through its owner; revisit that if it grows or gets reused (Ch.9).
+- A factory's test checks only which object it returns for each input (Ch.9).
+- Replace a collaborator with a fake, a small working stand-in written for tests, and keep the fake honest with a
+  role test that also runs against every real player of the role (Ch.9): [testing-messages.md](testing-messages.md).
+
+## In JavaScript and TypeScript (this plugin's adaptation)
+
+- **The first red differs by tool.** A runner that strips types without checking them (Node.js `node --test`,
+  Vitest, Jest with a transpile-only transform) runs the test and fails with a `ReferenceError` or `TypeError` for a
+  missing class or method, as plain JavaScript does. `tsc --noEmit` reports the same gap before any test runs. Count
+  either as the first red, and keep `tsc` in the loop so type errors do not hide behind green tests.
+- **Fake It in TypeScript**: a literal return still has to satisfy the declared return type, which is fine; avoid
+  `as` casts to fake a value the type does not allow.
+- **Literal expectations**: a template literal holds multi-line expected output as it will print.
+- **Equality**: Jest's and Vitest's `toBe` use `Object.is`; use `toEqual` or `toStrictEqual` for objects.
+  `node:test` uses `assert.strictEqual` and `assert.deepStrictEqual`.
+- **Tests not yet written**: `it.todo('...')` (Vitest, Jest) or `test('...', { todo: true })` (`node:test`) keeps
+  the test list in the file; `it.skip` hides a written test, so unskip one at a time.
