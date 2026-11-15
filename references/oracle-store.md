@@ -88,6 +88,11 @@ public podcast feed host (about 88 minutes, January 2013) and transcribed it wit
 `metz-talks/`, which now indexes 22 transcripts. The whisper run was not booked on the machine's
 shared heavy lock; the curator definition now asks for it.
 
+Later that day the oracle could not read the file: whisper had written the whole body as one line,
+longer than the Read tool's limit. The curator broke it at sentence ends into lines of at most 200
+characters, with the same 16,700 words before and after, and corrected the entry's intro, which
+still said 22 transcripts, to the 28 it indexes.
+
 ### 2026-11-15: sweep for audio, video and text
 
 Lars's program asked for "oracle curation of Sandi Metz audio (look for podcasts, etc.), video, and
