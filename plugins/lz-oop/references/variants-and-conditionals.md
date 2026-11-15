@@ -16,6 +16,51 @@ apart from the behaviour, is the object-oriented form.
   mean an object per kind is missing. Every new kind adds a branch here and in each place that
   switches on the same value.
 
+## What a conditional's form tells the reader
+
+Use when writing or reviewing a conditional, and before deciding whether it should become objects.
+The form of a conditional is a message to whoever reads it next; choose the one whose message is
+accurate.
+
+- **Test for one exact value.** Prefer `===` against a named value to `<`, `>` or a range, even
+  when the tests pass either way. Only that value reaches the special branch, anything unexpected
+  falls to the default, and the precision helps later refactorings (*99 Bottles of OOP*). Lined up,
+  equality tests also show which values are special, and those values are the cue for giving each
+  its own object (the book).
+- **`switch` for cases that are alike, `if`/`else if` for conditions that differ.** A `switch`
+  says each case compares one subject with a written value, so the cases are alike. An `else if`
+  chain says each condition may test something different, so the reader checks each one. Use the
+  form that matches what the conditions do (the book).
+- **No nested ternaries.** The reader has to hold one condition in mind while decoding the next,
+  and the saved lines are not worth that effort (the book).
+- **Same logic, same shape.** When several conditionals do the same thing, write them all in one
+  form; mixing ternaries, guard clauses and full `if`/`else` blocks for the same logic makes alike
+  code look different, and the Squint Test can no longer spot the pattern (the book).
+- **An early return means stop now.** Keep it for an exit that really is exceptional. Katrina Owen
+  doubts early returns where the branches are a few roughly equal alternatives, since the form
+  signals an exit nothing in the code calls for (Overkill, 2014). Giving such alternatives one
+  equal form, a `switch` or a full `if`/`else`, is this plugin's reading of her objection.
+- **Keep only the smallest difference inside, and name what varies.** When a rule meets one
+  exception partway through a refactoring, Owen keeps in the conditional only what differs between
+  the two cases, moves out what both share, and keeps both branches even when one is almost empty.
+  Seeing both sides makes the name cover the one idea they express, not the exception alone; she
+  calls such a conditional symmetrical (Succession, 2016). Name its parameter for what the value is
+  here, too (the same talk).
+
+An example of the last point (the plugin's): name the concept the branches vary, not the exception.
+
+```ts
+function leadTimeDays(region: string): number {
+  if (region === 'domestic') {
+    return 2;
+  } else {
+    return 7;
+  }
+}
+```
+
+A name such as `isOverseasDelay` would describe only one branch.
+
 ## Signs of a role nobody named
 
 A role (a duck type) is an agreement on a set of messages and nothing else; once the sender trusts
@@ -55,6 +100,24 @@ role's shared test; see Role tests in [javascript-and-typescript.md](javascript-
    does the harmless thing, instead of checking for it at every call site (Nothing is Something,
    2015; the article The Shape at the Bottom of All Things, 2014).
 
+## When two unrelated rules apply: make every case the same
+
+Use when a conditional picks between two rules, and an object per rule would still leave something
+that has to choose between them.
+
+1. Ask whether the rules are variants of one idea. If they are, give each its own object that plays
+   one role and inject the one to use (see Adding a kind above). If they are two separate jobs that
+   act on the same input, they are not alternatives, and choosing between them is the mistake.
+2. Split the jobs into steps and pass every input through all of them, in order.
+3. Let a step leave an input it does not concern unchanged. Do not first check whether the step
+   applies: that check is the conditional being removed.
+4. Accept the extra work on inputs that pass through unchanged; treating every case alike is worth
+   it (the article Make Everything The Same, 2016, which chains two conversions this way and
+   reports simpler code and easier tests).
+
+Done when no conditional chooses between the rules, each rule is one small step, and every input
+takes the same path.
+
 ## Factory forms
 
 Pick by what changes and who has to read it (*99 Bottles of OOP*; If You Build It, They Will Come, 2022).
@@ -88,7 +151,10 @@ searched for and fail quietly on a typo (the book).
 
 A boolean or a mode string passed into shared code makes the caller choose a branch inside the
 callee, and each conditional it adds doubles the paths through the code (Polly Want a Message,
-2018). Do not add another.
+2018). Do not add another. Sandi Metz names this control coupling and calls it an anti-pattern:
+the receiver ends up making a choice that belongs with the caller, which already knows enough to
+hand over the collaborator that does the work. She allows that sometimes only the receiver holds
+what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013).
 
 1. Name the flag list as the problem, not its length: the shared code is doing several jobs and the
    callers pick between them.
