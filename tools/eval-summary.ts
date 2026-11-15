@@ -1,5 +1,6 @@
 // Summarises a `claude plugin eval --json` result per case and arm: runs passed, mean score, each
-// criterion's pass rate, how often the skill fired, and Pass@k and Pass^k, which the tool does not report.
+// criterion's pass rate, how often the skill fired and how often its route reached the case's reference leaf (the
+// with-only `skill-fired` and `leaf-read` graders), and Pass@k and Pass^k, which the tool does not report.
 // Usage: node tools/eval-summary.ts <result.json>...
 
 import { readFileSync } from 'node:fs';
@@ -13,6 +14,8 @@ export interface ArmSummary {
   readonly meanScore: number;
   readonly criteria: Readonly<Record<string, number>>;
   readonly skillFired: number | undefined;
+  // Runs whose skill route reached the reference leaf the case needs.
+  readonly leafRead: number | undefined;
 }
 
 export interface CaseSummary {
@@ -112,7 +115,11 @@ function rate(values: readonly boolean[]): number {
 function summariseArm(runs: readonly Run[]): ArmSummary {
   const all = runs.flatMap((run) => run.graders);
   const scored = all.filter((grader) => !grader.withOnly);
-  const fired = all.filter((grader) => grader.withOnly).map((grader) => grader.passed);
+  const indicator = (name: string): number | undefined => {
+    const results = all.filter((grader) => grader.withOnly && grader.name === name).map((grader) => grader.passed);
+
+    return results.length > 0 ? rate(results) : undefined;
+  };
   const names = [...new Set(scored.map((grader) => grader.name))];
 
   return {
@@ -123,7 +130,8 @@ function summariseArm(runs: readonly Run[]): ArmSummary {
     criteria: Object.fromEntries(
       names.map((name) => [name, rate(scored.filter((grader) => grader.name === name).map((grader) => grader.passed))]),
     ),
-    skillFired: fired.length > 0 ? rate(fired) : undefined,
+    skillFired: indicator('skill-fired'),
+    leafRead: indicator('leaf-read'),
   };
 }
 
@@ -177,8 +185,8 @@ export function formatReport(summary: Summary): string {
   const lines = [
     `Model ${summary.model ?? 'unknown'}, judge ${summary.judge ?? 'unknown'}, cost $${summary.costUsd.toFixed(2)}`,
     '',
-    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Criteria below 100% |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Leaf read | Criteria below 100% |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
   ];
   const byArm = new Map<string, ArmSummary[]>();
 
@@ -201,6 +209,7 @@ export function formatReport(summary: Summary): string {
             ran ? passAtK(stats.runs, stats.passed, 1) : undefined,
             ran ? passHatK(stats.runs, stats.passed, stats.runs) : undefined,
             stats.skillFired,
+            stats.leafRead,
           ],
           weak === '' ? '-' : weak,
         ),
@@ -211,6 +220,8 @@ export function formatReport(summary: Summary): string {
   for (const [arm, arms] of byArm) {
     const ran = arms.filter((stats) => stats.runs > 0);
     const total = (key: 'runs' | 'passed' | 'errored'): number => arms.reduce((sum, stats) => sum + stats[key], 0);
+    const indicatorMean = (key: 'skillFired' | 'leafRead'): number | undefined =>
+      mean(arms.flatMap((stats) => stats[key] ?? []));
 
     lines.push(
       row(
@@ -221,7 +232,8 @@ export function formatReport(summary: Summary): string {
           mean(ran.map((stats) => stats.meanScore)),
           mean(ran.map((stats) => passAtK(stats.runs, stats.passed, 1))),
           mean(ran.map((stats) => passHatK(stats.runs, stats.passed, stats.runs))),
-          mean(arms.flatMap((stats) => (stats.skillFired === undefined ? [] : [stats.skillFired]))),
+          indicatorMean('skillFired'),
+          indicatorMean('leafRead'),
         ],
         '-',
       ),

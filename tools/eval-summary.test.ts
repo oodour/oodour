@@ -59,19 +59,38 @@ test('a summary gives each arm its score, passes, criterion rates and how often 
     {
       name: 'case-a',
       arms: {
-        with: { runs: 2, passed: 1, errored: 0, meanScore: 0.75, criteria: { c1: 1, c2: 0.5 }, skillFired: 0.5 },
-        without: { runs: 2, passed: 0, errored: 0, meanScore: 0.25, criteria: { c1: 0, c2: 0.5 }, skillFired: undefined },
+        with: { runs: 2, passed: 1, errored: 0, meanScore: 0.75, criteria: { c1: 1, c2: 0.5 }, skillFired: 0.5, leafRead: undefined },
+        without: { runs: 2, passed: 0, errored: 0, meanScore: 0.25, criteria: { c1: 0, c2: 0.5 }, skillFired: undefined, leafRead: undefined },
       },
     },
   ]);
+});
+
+const withLeafRead = (skillFired: boolean, leafRead: boolean) => ({
+  suite: {},
+  costUsd: 0,
+  cases: [{ name: 'x', arms: { with: [{ score: 1, passed: true, graders: [grader('c1', true), grader('skill-fired', skillFired, true), grader('leaf-read', leafRead, true)] }] } }],
+});
+
+test('the skill counts as fired from its skill-fired grader alone, whatever the leaf-read grader says', () => {
+  assert.equal(summarise(withLeafRead(true, false)).cases[0]?.arms['with']?.skillFired, 1);
+});
+
+test('a summary gives how often the route reached its reference leaf, from the leaf-read grader', () => {
+  assert.equal(summarise(withLeafRead(false, true)).cases[0]?.arms['with']?.leafRead, 1);
+  assert.equal(summarise(result).cases[0]?.arms['with']?.leafRead, undefined);
+});
+
+test('the report gives each case row its leaf-read rate after the skill-fired rate', () => {
+  assert.match(formatReport(summarise(withLeafRead(true, false))), /^\| x \| with \| 1 \| 1 \| 0 \| 100% \| 100% \| 100% \| 100% \| 0% \| - \|$/m);
 });
 
 test('the report gives a row per case and arm with Pass@1, Pass^n and the criteria below 100%', () => {
   const report = formatReport(summarise(result));
 
   assert.match(report, /^Model claude-opus-5-5, judge claude-sonnet-5-5, cost \$1\.50$/m);
-  assert.match(report, /^\| case-a \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| c2 50% \|$/m);
-  assert.match(report, /^\| case-a \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| c1 0%, c2 50% \|$/m);
+  assert.match(report, /^\| case-a \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| - \| c2 50% \|$/m);
+  assert.match(report, /^\| case-a \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| - \| c1 0%, c2 50% \|$/m);
 });
 
 test('a run that ended in an error is counted, so a zero score is not read as a failed criterion', () => {
@@ -88,14 +107,28 @@ test('a run that ended in an error is counted, so a zero score is not read as a 
 test('an arm with no runs is reported with dashes instead of failing the whole report', () => {
   const empty = { suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [] } }] };
 
-  assert.match(formatReport(summarise(empty)), /^\| x \| with \| 0 \| 0 \| 0 \| - \| - \| - \| - \| - \|$/m);
+  assert.match(formatReport(summarise(empty)), /^\| x \| with \| 0 \| 0 \| 0 \| - \| - \| - \| - \| - \| - \|$/m);
 });
 
 test('the report ends with an overall row per arm: runs, passes, errors and the mean Pass@1 and Pass^n over cases', () => {
   const report = formatReport(summarise(result));
 
-  assert.match(report, /^\| overall \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| - \|$/m);
-  assert.match(report, /^\| overall \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| - \|$/m);
+  assert.match(report, /^\| overall \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| - \| - \|$/m);
+  assert.match(report, /^\| overall \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| - \| - \|$/m);
+});
+
+test('the overall row averages the leaf-read rate over the cases that report one', () => {
+  const twoCases = {
+    suite: {},
+    costUsd: 0,
+    cases: [
+      { name: 'a', arms: { with: [{ score: 1, passed: true, graders: [grader('leaf-read', true, true)] }] } },
+      { name: 'b', arms: { with: [{ score: 1, passed: true, graders: [grader('leaf-read', false, true)] }] } },
+      { name: 'c', arms: { with: [{ score: 1, passed: true, graders: [] }] } },
+    ],
+  };
+
+  assert.match(formatReport(summarise(twoCases)), /^\| overall \| with \| 3 \| 3 \| 0 \| 100% \| 100% \| 100% \| - \| 50% \| - \|$/m);
 });
 
 test('a result that is not an eval result is refused with the field that is wrong', () => {
@@ -135,8 +168,8 @@ test('the report opens with the model line, a blank line and the table header', 
   assert.deepEqual(lines.slice(0, 4), [
     'Model unknown, judge unknown, cost $0.00',
     '',
-    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Criteria below 100% |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Leaf read | Criteria below 100% |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
   ]);
 });
 
@@ -150,7 +183,7 @@ test('the overall row averages the case means over the cases that ran', () => {
     ],
   };
 
-  assert.match(formatReport(summarise(twoCases)), /^\| overall \| with \| 2 \| 1 \| 0 \| 50% \| 50% \| 50% \| - \| - \|$/m);
+  assert.match(formatReport(summarise(twoCases)), /^\| overall \| with \| 2 \| 1 \| 0 \| 50% \| 50% \| 50% \| - \| - \| - \|$/m);
 });
 
 test('importing the module runs no command, whatever the arguments', () => {
