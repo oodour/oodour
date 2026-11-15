@@ -93,3 +93,20 @@ The hooks, the mod and the tools meet the script bar in `~/.claude/references/la
 (Lars, 2026-11-15: "Claude mod and hook scripts should meet the same bar as those I require for user-scope
 skill scripts"): erasable-syntax TypeScript with `.test.ts` tests on Node.js 22 and 24. `npm run check`
 type-checks, lints and tests all of them.
+
+## Nx workspace
+
+The repository is an Nx workspace with two projects: `tooling` (the hooks, the mod and the tools, from
+`project.json`) and `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest). Run Nx as
+`npm exec -- nx`.
+
+- `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap`.
+- `npm exec -- nx run lz-oop:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
+  the plugin and `evals/lz-oop/` into `dist/eval/lz-oop/`, because `claude plugin eval` reads cases only below a
+  plugin root and the cases stay out of the distributed plugin. Every eval round waits for Lars's go-ahead (Lars,
+  2026-11-15: "block on me before each round of runs so that I may check remaining token budget in our Claude
+  plan").
+- `test` and `overlap` are never cached: both read the git-ignored store, which Nx cannot hash.
+- Never set `NX_DAEMON=false` or pass `--skip-nx-cache` (Lars, 2026-11-15: "this Nx workspace may never use
+  `NX_DAEMON=false` or `--skip-nx-cache` which is always a smell indicating a misconfigured workspace or
+  environment"). Fix the configuration instead.

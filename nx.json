@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "sharedGlobals": ["{workspaceRoot}/tsconfig.json"]
+  },
+  "plugins": ["./tools/nx/claude-plugin.ts"],
+  "targetDefaults": {
+    "lint": {
+      "cache": true,
+      "outputs": [],
+      "inputs": [
+        "default",
+        "{workspaceRoot}/eslint.config.ts",
+        { "externalDependencies": ["eslint", "typescript-eslint", "typescript", "jiti"] }
+      ]
+    },
+    "typecheck": {
+      "cache": true,
+      "inputs": ["default", { "externalDependencies": ["typescript", "@types/node"] }],
+      "outputs": []
+    }
+  }
+}

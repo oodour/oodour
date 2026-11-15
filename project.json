@@ -1,0 +1,39 @@
+{
+  "name": "tooling",
+  "$schema": "node_modules/nx/schemas/project-schema.json",
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/.claude/hooks/**/*",
+      "{projectRoot}/.claude/mods/**/*",
+      "{projectRoot}/.claude/settings.json",
+      "{projectRoot}/tools/**/*",
+      "{projectRoot}/*.ts",
+      "{projectRoot}/package.json",
+      "{projectRoot}/stryker.config.json",
+      "sharedGlobals"
+    ]
+  },
+  "targets": {
+    "typecheck": {
+      "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test"
+    },
+    "lint": {
+      "command": "eslint ."
+    },
+    "test": {
+      "command": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
+      "cache": false
+    },
+    "test-mods": {
+      "command": "claude plugin validate .claude/mods/oracle-scrub && claude plugin test .claude/mods/oracle-scrub",
+      "cache": true,
+      "inputs": ["{projectRoot}/.claude/mods/**/*", { "runtime": "claude --version" }],
+      "outputs": []
+    },
+    "mutate": {
+      "command": "stryker run",
+      "cache": false,
+      "parallelism": false
+    }
+  }
+}

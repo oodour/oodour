@@ -1,0 +1,90 @@
+import { cpSync, globSync, readFileSync, rmSync } from 'node:fs';
+import { dirname, join, posix, sep } from 'node:path';
+import type { CreateNodes, TargetConfiguration } from '@nx/devkit';
+
+function manifestName(workspaceRoot: string, manifest: string): string {
+  const plugin: unknown = JSON.parse(readFileSync(join(workspaceRoot, manifest), 'utf8'));
+  const name = typeof plugin === 'object' && plugin !== null && 'name' in plugin ? plugin.name : undefined;
+
+  if (typeof name !== 'string') {
+    throw new Error(`${manifest} names no plugin`);
+  }
+
+  return name;
+}
+
+export const createNodes: CreateNodes = [
+  'plugins/*/.claude-plugin/plugin.json',
+  (manifests, _options, { workspaceRoot }) =>
+    manifests.map((manifest) => {
+      const root = dirname(dirname(manifest));
+      const name = manifestName(workspaceRoot, manifest);
+      const markdown = globSync('**/*.md', { cwd: join(workspaceRoot, root) })
+        .map((file) => posix.join(root, file.replaceAll(sep, '/')))
+        .sort();
+
+      return [manifest, { projects: { [root]: { name, targets: pluginTargets(root, name, markdown) } } }] as const;
+    }),
+];
+
+export function assemble(plugin: string, evals: string, out: string): void {
+  const results = join(evals, 'results');
+
+  rmSync(out, { recursive: true, force: true });
+  cpSync(plugin, out, { recursive: true });
+  cpSync(evals, join(out, 'evals'), {
+    recursive: true,
+    filter: (source) => source !== results && !source.startsWith(`${results}${sep}`),
+  });
+}
+
+export function pluginTargets(
+  root: string,
+  name: string,
+  markdown: readonly string[],
+): Record<string, TargetConfiguration> {
+  const evals = `evals/${name}`;
+  const assembled = `dist/eval/${name}`;
+
+  return {
+    // `claude plugin eval` reads cases only below the plugin root, and the cases stay out of the distributed plugin.
+    'pre-eval': {
+      command: `node tools/nx/claude-plugin.ts assemble ${root} ${evals} ${assembled}`,
+      cache: true,
+      inputs: [
+        'default',
+        `{workspaceRoot}/${evals}/**/*`,
+        `!{workspaceRoot}/${evals}/results/**/*`,
+        '{workspaceRoot}/tools/nx/claude-plugin.ts',
+      ],
+      outputs: [`{workspaceRoot}/${assembled}`],
+    },
+    eval: {
+      command: `claude plugin eval ${assembled}`,
+      dependsOn: ['pre-eval'],
+      cache: false,
+    },
+    validate: {
+      command: `claude plugin validate --strict ${root}`,
+      cache: true,
+      inputs: ['default', { runtime: 'claude --version' }],
+      outputs: [],
+    },
+    // The store is git-ignored, so Nx cannot hash it: a cached pass could hide a source added since.
+    overlap: {
+      command: ['node tools/source-overlap.ts --min-words 6', ...markdown].join(' '),
+      cache: false,
+    },
+  };
+}
+
+if (import.meta.main) {
+  const [command, plugin, evals, out, ...rest] = process.argv.slice(2);
+
+  if (command !== 'assemble' || plugin === undefined || evals === undefined || out === undefined || rest.length > 0) {
+    console.error('usage: node tools/nx/claude-plugin.ts assemble <plugin> <evals> <out>');
+    process.exitCode = 2;
+  } else {
+    assemble(plugin, evals, out);
+  }
+}

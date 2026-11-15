@@ -4,19 +4,20 @@
   "type": "module",
   "description": "Type-check, lint and test the oracle firewall's hooks, mod and tools.",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test",
-    "lint": "eslint --flag unstable_native_nodejs_ts_config .",
-    "test": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
-    "test:mods": "claude plugin validate .claude/mods/oracle-scrub && claude plugin test .claude/mods/oracle-scrub",
-    "test:stryker": "node --test --test-skip-pattern=\"the real store\" \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
-    "test:mutation": "stryker run",
-    "check": "npm run typecheck && npm run lint && npm test && npm run test:mods"
+    "test:stryker": "node --test --test-skip-pattern=\"the real store\" \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\"",
+    "check": "nx run-many -t typecheck lint test test-mods validate overlap"
+  },
+  "nx": {
+    "includedScripts": []
   },
   "devDependencies": {
+    "@nx/devkit": "24.0.6",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/typescript-checker": "10.1.1",
     "@types/node": "24.19.2",
     "eslint": "10.13.0",
+    "jiti": "2.6.1",
+    "nx": "24.0.6",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1"
   }

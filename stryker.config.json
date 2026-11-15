@@ -9,9 +9,9 @@
     ".claude/hooks/*.ts",
     "!.claude/hooks/*.test.ts",
     ".claude/mods/oracle-scrub/hooks/scrub.ts",
-    "tools/*.ts",
-    "!tools/*.test.ts"
+    "tools/**/*.ts",
+    "!tools/**/*.test.ts"
   ],
-  "ignorePatterns": ["/.oracle", "/plans", "/reports"],
+  "ignorePatterns": ["/.oracle", "/plans", "/reports", "/dist", "/.nx", "/evals"],
   "incrementalFile": "reports/stryker-incremental/lz-oop.json"
 }

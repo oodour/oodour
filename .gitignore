@@ -5,3 +5,6 @@ plans/
 reports/mutation/
 reports/stryker-incremental/
 evals/*/results/
+dist/
+.nx/
+.claude/worktrees/
