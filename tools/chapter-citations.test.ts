@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -21,6 +22,21 @@ test('a chapter number is reported with its line and column', () => {
     { line: 2, column: 14, citation: 'Ch.1' },
     { line: 2, column: 23, citation: 'Ch.2' },
   ]);
+});
+
+test('a chapter number of two digits is reported whole', () => {
+  assert.deepEqual(chapterCitations('See Ch.12.'), [{ line: 1, column: 5, citation: 'Ch.12' }]);
+});
+
+test('run as a script, it checks the files named on the command line and sets the exit code', () => {
+  const [cited] = files({ 'cited.md': 'Two (Ch.3).' });
+  assert.ok(cited);
+  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'chapter-citations.ts'), cited], {
+    encoding: 'utf8',
+  });
+
+  assert.equal(run.status, 1);
+  assert.equal(run.stdout, `${cited}:1:6: Ch.3\n[ERROR] 1 chapter citation(s); name the practice instead\n`);
 });
 
 test('a chapter number written out is reported too, and a chapter without a number is not', () => {
