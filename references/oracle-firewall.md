@@ -47,10 +47,6 @@ procedures (the Flocking Rules, Shameless Green, the Squint Test) are its author
 and the statements it credits to others can be restated and credited to their originators: "Approve
 your recommendation."
 
-An oracle's location for a passage (chapter, section by ordinal, place in the section) is counted in
-the store's Markdown conversion. On 2026-11-15 Lars could not find such locations in his copy of
-the book, so do not hand them to a reader as a way into the book.
-
 ## The overlap check
 
 `tools/source-overlap.ts` reports runs of words shared with every `.md` file in the store except

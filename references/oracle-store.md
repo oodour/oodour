@@ -83,7 +83,8 @@ The curators' fetches left working copies (captions, raw pages, JSON, code) in t
 scratchpad, outside the store; a security review found them. The curator moved them into
 `.oracle/.staging/2026-11-15/`. Asked whether to delete them after checking that every work is
 filed in its entry, Lars answered: "Approve." The curator deleted the 261 files whose work is
-filed, and kept 52 whose work is not, pending Lars: two deliberately skipped scholarship posts and
-the raw blog listing that holds them, one deliberately skipped repository, a few unmatched pages,
-and captions of 19 videos that no entry holds. A curator now writes downloads and transcripts
-inside the store from the start. (same 30 files, same combined SHA-1 of per-file hashes).
+filed, and kept 52 whose work is not: two deliberately skipped scholarship posts and the raw blog
+listing that holds them, one deliberately skipped repository, a few unmatched pages, and captions of
+19 videos that no entry holds (the short third-party clips among them). Asked to skip the clips and
+delete all 52, Lars answered: "Approve." `.staging/` is gone. A curator now writes downloads and
+transcripts inside the store from the start. (same 30 files, same combined SHA-1 of per-file hashes).
