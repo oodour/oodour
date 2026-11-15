@@ -71,6 +71,8 @@ Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`.
 - What to assert for an object's messages, doubles, and tests that are hard to write:
   `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Treat a test that is hard to write as news about the
   design, and say what in the design causes it.
+- Keeping a fake or other player of a role honest with one shared test, and writing that test in Vitest, Jest or
+  `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
 
 ## Explain
 
