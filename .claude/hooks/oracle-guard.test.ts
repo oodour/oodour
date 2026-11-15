@@ -125,7 +125,39 @@ test('the guard lets the permitted routes through', () => {
   assert.equal(call('Write', { file_path: 'AGENTS.md', content: 'keep out of .oracle/' }), undefined);
   assert.equal(call('Grep', { pattern: '\\.oracle', path: 'AGENTS.md' }), undefined);
   assert.equal(call('Read', { file_path: 'tools/source-overlap.test.ts' }), undefined);
-  assert.equal(call('WebFetch', { url: 'https://example.com/.oracle/x' }), undefined);
+});
+
+test('a browser url naming the store is denied', () => {
+  const url = 'file:///D:/projects/github/LayZeeDK-Premium/lz-oop/.oracle/x/index.md';
+
+  assert.match(call('mcp__claude-in-chrome__navigate', { url }) ?? '', /oracle-guard/);
+});
+
+test('a store path nested in an object map is denied', () => {
+  assert.match(call('Artifact', { file_path: 'C:/s/page.html', files: { 'a.md': 'D:\\repo\\.oracle\\x\\index.md' } }) ?? '', /oracle-guard/);
+});
+
+test('a store path in an array is denied', () => {
+  assert.match(call('Artifact', { url: 'u', asset: true, file_paths: ['D:\\repo\\.oracle\\x\\a.pdf'] }) ?? '', /oracle-guard/);
+});
+
+test('a store path used as an object key is denied', () => {
+  assert.match(call('mcp__fs__copy', { map: { '.oracle/x/index.md': 'out.md' } }) ?? '', /oracle-guard/);
+});
+
+test('an Agent prompt carrying an index path, the permitted route, is allowed', () => {
+  assert.equal(call('Agent', { subagent_type: 'oracle', prompt: 'Question: x. Index: .oracle/metz-talks/index.md' }), undefined);
+});
+
+test('only the message tools carry free text past the guard', () => {
+  const text = 'ask the oracle with .oracle/metz-talks/index.md';
+
+  for (const tool of ['SendMessage', 'SubagentHandback', 'TaskCreate', 'TaskUpdate', 'Skill', 'ScheduleWakeup', 'CronCreate', 'PushNotification', 'SendFeedback']) {
+    assert.equal(call(tool, { message: text, prompt: text, args: text }), undefined, tool);
+  }
+
+  assert.match(call('WebFetch', { url: 'https://example.com/.oracle/x', prompt: 'p' }) ?? '', /oracle-guard/);
+  assert.match(call('TodoWrite', { todos: [{ content: text }] }) ?? '', /oracle-guard/);
 });
 
 test('a reader agent gets no tool but Read and Glob on the store', () => {

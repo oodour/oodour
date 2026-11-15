@@ -14,6 +14,19 @@ const oracleAgents: ReadonlySet<string> = new Set([...readers, ...curators]);
 const readerTools: ReadonlySet<string> = new Set(['Read', 'Glob']);
 const shellTools: ReadonlySet<string> = new Set(['Bash', 'PowerShell', 'Monitor']);
 const searchTools: ReadonlySet<string> = new Set(['Glob', 'Grep']);
+// Free text in these carries an index path on the permitted route (a brief to the oracle), so it is not inspected.
+const messageTools: ReadonlySet<string> = new Set([
+  'Agent',
+  'SendMessage',
+  'SubagentHandback',
+  'TaskCreate',
+  'TaskUpdate',
+  'Skill',
+  'ScheduleWakeup',
+  'CronCreate',
+  'PushNotification',
+  'SendFeedback',
+]);
 // Arguments are separated by spaces or tabs only: a newline or a shell operator would start a second command.
 const storeTools = /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
 // An oracle agent's transcript holds the store text it read.
@@ -63,9 +76,19 @@ function targets(input: HookInput): readonly string[] {
     return fields.map((field) => stringField(input.toolInput, field) ?? '');
   }
 
-  return Object.entries(input.toolInput).flatMap(([key, value]) =>
-    /path|file|dir|uri|root/i.test(key) && typeof value === 'string' ? [value] : [],
-  );
+  return messageTools.has(toolName) ? [] : strings(input.toolInput);
+}
+
+function strings(value: unknown): readonly string[] {
+  if (typeof value === 'string') {
+    return [value];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(strings);
+  }
+
+  return isRecord(value) ? Object.entries(value).flatMap(([key, item]) => [key, ...strings(item)]) : [];
 }
 
 function readsOracleTranscript(input: HookInput, agentTypeOf?: (path: string) => string | undefined): boolean {
