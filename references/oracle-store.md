@@ -88,6 +88,25 @@ public podcast feed host (about 88 minutes, January 2013) and transcribed it wit
 `metz-talks/`, which now indexes 22 transcripts. The whisper run was not booked on the machine's
 shared heavy lock; the curator definition now asks for it.
 
+### 2026-11-15: sweep for audio, video and text
+
+Lars's program asked for "oracle curation of Sandi Metz audio (look for podcasts, etc.), video, and
+text sources". In an AFK run the curator searched for public material the store lacked and filed
+items that have captions or a published transcript, at most 25 in the pass.
+
+- **Filed (9)**: in `metz-talks/`, the Deconstruct 2018 talk (publisher transcript), a 2014 New
+  Relic FutureTalk and two deliveries of a 2013 and 2017 talk (auto captions), Radio Free Rabbit
+  episode 126 and Why Are Computers episode 3 (publisher transcripts); in `metz-written/`, a 2013
+  InfoQ interview, a 2013 Hashrocket conversation and a 2020 Superhighway Q&A. The three written
+  files keep the fetched page's navigation text unedited.
+- **Found, not filed, audio only**: Tech Done Right 69, Greater Than Code 8, Code with Jason 28,
+  CodeNewbie 41 and 42, thoughtbot podcast 51, and a Ruby Book Club interview. They need a
+  whisper.cpp run on the heavy lock; several hosts were unreachable.
+- **Found, not filed, other**: further recordings of talks already stored, and the keynotes on
+  careers, persuasion, luck and the future of technology (left out as before).
+
+store-check: `metz-talks` 28 indexed, `metz-written` 27, every entry consistent.
+
 ### 2026-11-15: working copies cleaned up
 
 The curators' fetches left working copies (captions, raw pages, JSON, code) in the session
