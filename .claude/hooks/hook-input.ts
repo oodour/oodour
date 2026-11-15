@@ -7,6 +7,7 @@ export interface HookInput {
   readonly toolName: string | undefined;
   readonly toolInput: Readonly<Record<string, unknown>>;
   readonly agentType: string | undefined;
+  readonly cwd: string | undefined;
   readonly lastAssistantMessage: string | undefined;
   readonly agentTranscriptPath: string | undefined;
   readonly stopHookActive: boolean;
@@ -34,6 +35,7 @@ export function parseHookInput(raw: unknown): HookInput {
     toolName: stringField(raw, 'tool_name'),
     toolInput: isRecord(toolInput) ? toolInput : {},
     agentType: stringField(raw, 'agent_type'),
+    cwd: stringField(raw, 'cwd'),
     lastAssistantMessage: stringField(raw, 'last_assistant_message'),
     agentTranscriptPath: stringField(raw, 'agent_transcript_path'),
     stopHookActive: raw['stop_hook_active'] === true,

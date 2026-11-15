@@ -2,7 +2,7 @@
 // Rules and permitted routes: AGENTS.md, "Oracle firewall".
 
 import { readFileSync } from 'node:fs';
-import { basename, normalize, sep } from 'node:path';
+import { basename, normalize, resolve, sep } from 'node:path';
 import { denyOutput, type HookInput, isRecord, readHookInput, stringField } from './hook-input.ts';
 
 // Same pattern as .claude/mods/oracle-scrub/hooks/scrub.ts; oracle-guard.test.ts guards the copy.
@@ -106,7 +106,19 @@ function readsOracleTranscript(input: HookInput, agentTypeOf?: (path: string) =>
   );
 }
 
-export function decide(input: HookInput, agentTypeOf?: (path: string) => string | undefined): string | undefined {
+// Case-insensitive, as the Windows file systems this project runs on are.
+function isProjectDir(cwd: string | undefined, projectDir: string | undefined): boolean {
+  return cwd !== undefined && projectDir !== undefined && resolve(cwd).toLowerCase() === resolve(projectDir).toLowerCase();
+}
+
+export interface DecideOptions {
+  // Reads the agent type that owns a subagent transcript; undefined when it cannot tell.
+  readonly agentTypeOf?: (path: string) => string | undefined;
+  // The project directory, CLAUDE_PROJECT_DIR in the hook process.
+  readonly projectDir?: string | undefined;
+}
+
+export function decide(input: HookInput, { agentTypeOf, projectDir }: DecideOptions = {}): string | undefined {
   const toolName = input.toolName ?? '';
   const agentType = input.agentType ?? '';
 
@@ -122,7 +134,8 @@ export function decide(input: HookInput, agentTypeOf?: (path: string) => string 
     return undefined;
   }
 
-  if (shellTools.has(toolName) && storeTools.test(stringField(input.toolInput, 'command') ?? '')) {
+  // The tool paths are relative, so the exception holds only where they resolve to this project's tools.
+  if (shellTools.has(toolName) && isProjectDir(input.cwd, projectDir) && storeTools.test(stringField(input.toolInput, 'command') ?? '')) {
     return undefined;
   }
 
@@ -145,7 +158,7 @@ export function run(read: () => HookInput, write: (output: string) => void): voi
   let reason: string | undefined;
 
   try {
-    reason = decide(read(), transcriptOwner);
+    reason = decide(read(), { agentTypeOf: transcriptOwner, projectDir: process.env['CLAUDE_PROJECT_DIR'] });
   } catch (error) {
     reason = `oracle-guard: the guard failed (${error instanceof Error ? error.message : String(error)}), so the call was denied.`;
   }

@@ -9,6 +9,7 @@ test('a hook input object is read into the fields the hooks use', () => {
     tool_input: { file_path: 'a.md' },
     agent_type: 'oracle',
     stop_hook_active: true,
+    cwd: 'D:\\repo',
   });
 
   assert.deepEqual(input, {
@@ -16,6 +17,7 @@ test('a hook input object is read into the fields the hooks use', () => {
     toolName: 'Read',
     toolInput: { file_path: 'a.md' },
     agentType: 'oracle',
+    cwd: 'D:\\repo',
     lastAssistantMessage: undefined,
     agentTranscriptPath: undefined,
     stopHookActive: true,

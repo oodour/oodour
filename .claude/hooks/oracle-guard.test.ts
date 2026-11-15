@@ -7,8 +7,11 @@ import { storePath as scrubStorePath } from '../mods/oracle-scrub/hooks/scrub.ts
 import { parseHookInput } from './hook-input.ts';
 import { decide, run, storePath } from './oracle-guard.ts';
 
+const projectDir = 'D:\\repo';
+
+// A call made from the project directory, as the driver's are.
 const call = (toolName: string, toolInput: Record<string, unknown>, agentType?: string): string | undefined =>
-  decide(parseHookInput({ tool_name: toolName, tool_input: toolInput, agent_type: agentType }));
+  decide(parseHookInput({ tool_name: toolName, tool_input: toolInput, agent_type: agentType, cwd: projectDir }), { projectDir });
 
 test('the guard denies the driver and other agents every route into the store', () => {
   assert.match(call('Read', { file_path: 'D:\\repo\\.oracle\\metz-talks\\index.md' }) ?? '', /oracle-guard/);
@@ -43,7 +46,7 @@ test('a Monitor command naming the store is denied', () => {
 test("a Monitor command naming an oracle agent's transcript is denied", () => {
   const command = 'tail -f C:/Users/u/.claude/projects/D--repo/s1/subagents/agent-a1.jsonl';
 
-  assert.match(decide(parseHookInput({ tool_name: 'Monitor', tool_input: { command } }), () => 'oracle') ?? '', /oracle-guard/);
+  assert.match(decide(parseHookInput({ tool_name: 'Monitor', tool_input: { command } }), { agentTypeOf: () => 'oracle' }) ?? '', /oracle-guard/);
 });
 
 test('a name that only contains the store name is not the store', () => {
@@ -55,20 +58,20 @@ test('a name that only contains the store name is not the store', () => {
 const subagents = 'C:\\Users\\u\\.claude\\projects\\D--repo\\s1\\subagents';
 
 test("a Read of an oracle agent's transcript is denied", () => {
-  const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-a1.jsonl` } }), () => 'oracle');
+  const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-a1.jsonl` } }), { agentTypeOf: () => 'oracle' });
 
   assert.match(verdict ?? '', /oracle-guard/);
 });
 
 test("a Read of another agent's transcript is allowed", () => {
-  const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-b2.jsonl` } }), () => 'general-purpose');
+  const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-b2.jsonl` } }), { agentTypeOf: () => 'general-purpose' });
 
   assert.equal(verdict, undefined);
 });
 
 test("reviewer and curator transcripts are denied like the oracle's", () => {
   for (const agentType of ['oracle-reviewer', 'oracle-curator']) {
-    const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-c3.jsonl` } }), () => agentType);
+    const verdict = decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-c3.jsonl` } }), { agentTypeOf: () => agentType });
 
     assert.match(verdict ?? '', /oracle-guard/, agentType);
   }
@@ -78,14 +81,14 @@ test("a shell command naming an oracle agent's transcript is denied", () => {
   const path = 'C:/Users/u/.claude/projects/D--repo/s1/subagents/agent-a1.jsonl';
   const agentTypeOf = (candidate: string): string | undefined => (candidate === path ? 'oracle' : undefined);
 
-  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: `tail -n 5 ${path} | head` } }), agentTypeOf) ?? '', /oracle-guard/);
-  assert.match(decide(parseHookInput({ tool_name: 'PowerShell', tool_input: { command: `Get-Content '${path}'` } }), agentTypeOf) ?? '', /oracle-guard/);
+  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: `tail -n 5 ${path} | head` } }), { agentTypeOf }) ?? '', /oracle-guard/);
+  assert.match(decide(parseHookInput({ tool_name: 'PowerShell', tool_input: { command: `Get-Content '${path}'` } }), { agentTypeOf }) ?? '', /oracle-guard/);
 });
 
 test('a transcript whose agent type cannot be resolved is denied', () => {
   const unresolved = (): string | undefined => undefined;
 
-  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: 'cat ~/.claude/projects/D--repo/s1/subagents/agent-*.jsonl' } }), unresolved) ?? '', /oracle-guard/);
+  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: 'cat ~/.claude/projects/D--repo/s1/subagents/agent-*.jsonl' } }), { agentTypeOf: unresolved }) ?? '', /oracle-guard/);
   assert.match(decide(parseHookInput({ tool_name: 'Read', tool_input: { file_path: `${subagents}\\agent-a1.jsonl` } })) ?? '', /oracle-guard/);
 });
 
@@ -104,6 +107,54 @@ test('the overlap tool exception admits no second command', () => {
   assert.match(call('Bash', { command: 'node tools/source-overlap.ts x.md; cat .oracle/a.md' }) ?? '', /oracle-guard/);
   assert.match(call('Bash', { command: 'node tools/source-overlap.ts $(cat .oracle/a.md)' }) ?? '', /oracle-guard/);
   assert.match(call('Bash', { command: 'node tools/source-overlap.mjs .oracle/a.md' }) ?? '', /oracle-guard/);
+});
+
+test('the store tools exception holds only in the project directory', () => {
+  const from = (cwd: string): string | undefined =>
+    decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: 'node tools/source-overlap.ts .oracle/a.md' }, cwd }), { projectDir });
+
+  assert.match(from('D:\\elsewhere') ?? '', /oracle-guard/);
+});
+
+test('the project directory matches with a trailing separator or forward slashes', () => {
+  const from = (cwd: string): string | undefined =>
+    decide(parseHookInput({ tool_name: 'Bash', tool_input: { command: 'node tools/source-overlap.ts .oracle/a.md' }, cwd }), { projectDir });
+
+  assert.equal(from('D:\\repo\\'), undefined);
+  assert.equal(from('D:/repo'), undefined);
+});
+
+test('the project directory matches whatever the case of its letters', () => {
+  const command = 'node tools/source-overlap.ts .oracle/a.md';
+
+  assert.equal(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command }, cwd: 'd:\\REPO' }), { projectDir }), undefined);
+});
+
+test('without a working directory or a project directory the store tools exception is off', () => {
+  const command = 'node tools/source-overlap.ts .oracle/a.md';
+
+  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command } }), { projectDir }) ?? '', /oracle-guard/);
+  assert.match(decide(parseHookInput({ tool_name: 'Bash', tool_input: { command }, cwd: projectDir })) ?? '', /oracle-guard/);
+});
+
+test('the hook takes the project directory from CLAUDE_PROJECT_DIR', () => {
+  const saved = process.env['CLAUDE_PROJECT_DIR'];
+  const written: string[] = [];
+  const input = parseHookInput({ tool_name: 'Bash', tool_input: { command: 'node tools/store-check.ts .oracle' }, cwd: projectDir });
+
+  process.env['CLAUDE_PROJECT_DIR'] = projectDir;
+
+  try {
+    run(() => input, (output) => written.push(output));
+  } finally {
+    if (saved === undefined) {
+      delete process.env['CLAUDE_PROJECT_DIR'];
+    } else {
+      process.env['CLAUDE_PROJECT_DIR'] = saved;
+    }
+  }
+
+  assert.deepEqual(written, []);
 });
 
 test('the listing exception covers the listing alone', () => {
