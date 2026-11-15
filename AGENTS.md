@@ -37,7 +37,8 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Sandi Metz talk transcripts (28 talks, interviews, podcasts and Q&A sessions, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
 | Sandi Metz articles, blog posts, and her public example-code repositories | `.oracle/metz-written/` | Sealed |
 | The book's companion code, `sandimetz/99bottles_js`, as a full git clone | `.oracle/99bottles-js/` | Sealed |
-| Katrina Owen talk transcripts (2 talks, 2012 and 2014) | `.oracle/owen-talks/` | Sealed |
+| Katrina Owen talk transcripts (3 talks, 2012, 2014 and 2016) | `.oracle/owen-talks/` | Sealed |
+| Sandi Metz, *Practical Object-Oriented Design*, 2nd edition: the publisher's public table of contents and sample pages | `.oracle/poodr-2e-sample/` | Sealed |
 
 ### What you need, and the permitted route
 

@@ -125,3 +125,22 @@ listing that holds them, one deliberately skipped repository, a few unmatched pa
 19 videos that no entry holds (the short third-party clips among them). Asked to skip the clips and
 delete all 52, Lars answered: "Approve." `.staging/` is gone. A curator now writes downloads and
 transcripts inside the store from the start. (same 30 files, same combined SHA-1 of per-file hashes).
+
+### 2026-11-15: the POODR 2e sample, and a third Owen talk
+
+Asked whether the store covered duck typing, inheritance and composition beyond *99 Bottles*, Lars answered
+"1: Approve" to a gap map and a source search, and pointed to the publisher's sample: "The *Sample Content* tab at
+https://www.informit.com/store/practical-object-oriented-design-an-agile-primer-using-9780134456478 contains POODR
+2e Table of Contents and a link to download sample pages including Chapter 3." The curator fetched them.
+
+- **poodr-2e-sample, new entry**: the table of contents (markdown.new, cut to the contents) and the sample-pages PDF
+  (56 pages: front matter, Chapter 3, end notes, the first index pages), kept beside its text from
+  `pdftotext -layout`. MarkItDown doubled every code line number, so it was not used.
+- **Rights**: the publisher's page footer reserves text-mining and AI-training rights. Told so, Lars answered:
+  "Approve fetching InformIT ToC and POODR 2e sample once for oracle sourcing". The fetch is done and is not
+  repeated; the entry is sealed like the others.
+- **owen-talks, added (1)**: Katrina Owen's RailsConf 2016 talk, a staged refactoring that ends in polymorphism,
+  from YouTube's automatic captions with rolling duplicates collapsed.
+- **Not stored**: two InformIT articles by other authors; six further Owen videos off these topics; event pages
+  that repeat stored talks; posts by other authors; a paid retailer chapter and a pirated copy. Two searches found
+  no public Owen articles on these topics.
