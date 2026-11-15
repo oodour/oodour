@@ -71,13 +71,48 @@ When the conditions hold, recommend keeping the hierarchy and say which properti
 - **Inheritance used to share code** rather than to specialise a concept (Nothing is Something,
   2015). The talk argues this about subclassing, and separately counts Ruby modules as a form of
   inheritance. This plugin extends that to JavaScript mixins copied onto a prototype, which follow
-  the same rules.
+  the same rules. The talk cautions rather than forbids, and the worry is sharpest when the
+  specialised part is small beside the class it extends. It does not condemn a subclass that is a
+  real specialisation: All the Little Things, 2014, moves code the subclasses had duplicated up into
+  a parent and calls that sound when the hierarchy is shallow, narrow, at the edges, and every
+  subclass uses all it inherits. Katrina Owen's Succession, 2016, does the same on a smaller scale:
+  one variant inherits from the other to avoid duplicating what they share and replaces a single
+  step, which she accepts as more structure bought for flexibility. Reading such a subclass as one
+  that reuses its parent through hook methods is this plugin's; neither talk uses that word.
 - **A subclass that refuses part of its parent**, or a tree that has grown deep or wide.
 - **A subclass that overrides only a sliver of its parent**, or one whose name claims an is-a
   relation the behaviour does not support (Nothing is Something, 2015).
 
 Replacing a conditional with subclasses and replacing it with composed objects (Strategy or State)
 are both valid cures; when the choice is close, try both and keep the clearer one (*99 Bottles of OOP*).
+
+## From a conditional to subclasses
+
+Use when one class keeps testing the same value in several methods and the cure chosen is subclasses.
+The steps follow *99 Bottles of OOP*; the wording is this plugin's.
+
+1. Make an empty subclass for one special value the conditionals test. With no reason to prefer one,
+   start with the first. The parent keeps the default case.
+2. Pick any one method that tests that value. Copy it whole into the subclass (copy, do not move) and
+   cut the copy down to the special branch.
+3. If there is no factory yet, add one: first as a plain indirection that still returns the parent,
+   with every caller switched to it, then let it choose the new subclass for its value. Register each
+   later subclass there too.
+4. Cut the parent's version down to the default branch. Without step 3 this edit is the one that turns
+   the tests red, which is why the factory has to exist by now; the book's walkthrough lets that red
+   happen once, for a later value, before it adds the subclass to the factory.
+5. Repeat for every method that tests the value, then for each further special value.
+
+Done when no method in the parent or the subclasses tests the value, each value has its subclass, and
+the factory is the only place that knows the concrete classes and chooses among them. Its own
+conditional stays (the book).
+
+**A hierarchy from one concrete class.** Sandi Metz's public example code for *Practical
+Object-Oriented Design* builds a parent the other way: it moves all the concrete class's code down
+into a new subclass, leaving the parent empty, then promotes into the parent one piece at a time
+only what the subclasses share, until the defaults and hooks live there. The code labels the steps
+without giving reasons; the reading that this keeps the parent from holding anything a subclass
+would refuse is this plugin's.
 
 ## Composing the parts
 

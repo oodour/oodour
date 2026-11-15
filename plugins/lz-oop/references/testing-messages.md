@@ -37,6 +37,29 @@ changes something.
   checks behaviour the types cannot express. How to write that shared test in Vitest, Jest and
   `node:test`: [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
 
+## Testing a hierarchy
+
+Use when someone asks how to test a parent class and its subclasses. The layers below follow Sandi
+Metz's public example code for *Practical Object-Oriented Design*, which shows them as tests with
+little explanation; the reasons given are this plugin's unless credited. In a Defining
+Object-Oriented Design Q&A she says only that her tests check that the parent throws for a step it
+cannot supply and that each subclass supplies it.
+
+1. **One shared test for the parent's interface.** Every subclass runs it, and so does the parent,
+   built with whatever it needs so its throwing default never runs. It is the role test from
+   Doubles, applied to a hierarchy.
+2. **A shared test for the hooks.** Every subclass runs a second shared test that checks it answers
+   each hook the parent calls. Then each subclass gets its own test of the value its hooks supply.
+3. **The parent throws for a required hook.** One test, on the parent.
+4. **The template method, through a subclass made for the test.** A small subclass in the test file
+   supplies fixed hook values, so the parent's template method is tested without any real subclass.
+   That test subclass also runs the hook test from step 2, so it cannot drift from the real ones.
+
+For each subclass, this plugin's reasoning: the shared tests prove it can stand in for the parent,
+its own test proves what it adds, and nothing tests the parent's code twice through every
+subclass. The shared tests in Vitest, Jest and `node:test`:
+[javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
+
 ## When the test is hard to write
 
 Heavy setup, many doubles, or a long chain to build are design feedback: the object knows too many
