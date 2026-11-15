@@ -22,7 +22,7 @@ test('a grader file without a single-quoted input_match is refused', () => {
   assert.throws(() => leafReadPattern('---\ntype: tool_used\ninput_match: "x"\n---\n'), /no single-quoted input_match/);
 });
 
-test('every reference leaf of the plugin has an eval case that asks for it alone', () => {
+test('in the real eval cases, every reference leaf of the plugin has a case that asks for it alone', () => {
   const root = join(import.meta.dirname, '..');
   const leaves = readdirSync(join(root, 'plugins/lz-oop/references'))
     .filter((file) => file.endsWith('.md'))
