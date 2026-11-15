@@ -4,22 +4,60 @@
     "PreToolUse": [
       {
         "matcher": "SubagentHandback",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\""
+          }
+        ]
       }
     ],
     "SubagentStop": [
       {
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/oracle-hand-back.ts\""
+          }
+        ]
       }
     ]
   },
-  "extraKnownMarketplaces": {
-    "lz-oop-dev": {
-      "source": { "source": "directory", "path": ".claude/mods" }
-    }
-  },
   "enabledPlugins": {
     "oracle-scrub@lz-oop-dev": true,
-    "oracle-guard@lz-oop-dev": true
+    "oracle-guard@lz-oop-dev": true,
+    "nx@nx-claude-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "lz-oop-dev": {
+      "source": {
+        "source": "directory",
+        "path": ".claude/mods"
+      }
+    },
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
+  },
+  "sandbox": {
+    "network": {
+      "allowUnixSockets": [
+        "/tmp/.nx",
+        "~/.nx"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "/tmp/.nx",
+        "~/.nx"
+      ],
+      "allowRead": [
+        "/tmp/.nx",
+        "~/.nx"
+      ]
+    }
   }
 }

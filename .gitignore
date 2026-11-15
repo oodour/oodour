@@ -8,3 +8,4 @@ evals/*/results/
 dist/
 .nx/
 .claude/worktrees/
+.claude/settings.local.json
