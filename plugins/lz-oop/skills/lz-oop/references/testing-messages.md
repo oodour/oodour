@@ -50,4 +50,3 @@ This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
   how (Ch.3).
 - Complex private logic may get a temporary test while you work on it, kept apart from the rest and
   deleted the first time it fails (The Magic Tricks of Testing, 2013).
-- For lz-tdd users: choosing the next failing test and making it pass belong to that plugin.

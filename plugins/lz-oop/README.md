@@ -16,8 +16,7 @@ Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 
 ## Scope
 
-JavaScript and TypeScript only. Choosing the next failing test, making a test pass, and named
-refactoring mechanics belong to a test-driven development plugin such as lz-tdd.
+JavaScript and TypeScript only. The plugin stands alone: it needs no other plugin.
 
 All text in this plugin is original writing. Ideas credited to Sandi Metz are cited to the work
 they come from.
