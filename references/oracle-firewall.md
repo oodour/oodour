@@ -41,8 +41,15 @@ and the titles of works. Withheld: prose, the wording of definitions and rules, 
 the bare name, example code and its identifiers, figure captions, memorable lines and anecdotes.
 
 The angular-clean-architecture firewall lets a named principle's defining statement be quoted
-verbatim (Lars's ruling there, 2026-08-14). This repository has no such ruling yet, so that
-exception does not apply here: paraphrase the statement and name it.
+verbatim (Lars's ruling there, 2026-08-14). This repository does not: paraphrase the statement and
+name it. Lars ruled on 2026-11-15, on the recommendation to keep "no" because the book's named
+procedures (the Flocking Rules, Shameless Green, the Squint Test) are its authors' own expression
+and the statements it credits to others can be restated and credited to their originators: "Approve
+your recommendation."
+
+An oracle's location for a passage (chapter, section by ordinal, place in the section) is counted in
+the store's Markdown conversion. On 2026-11-15 Lars could not find such locations in his copy of
+the book, so do not hand them to a reader as a way into the book.
 
 ## The overlap check
 
