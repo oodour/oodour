@@ -14,7 +14,7 @@ code sits (controllers, components, handlers) and where the domain code sits, an
 ## 2. Find the hot spots: churn against complexity
 
 Code that changes often and is hard to understand costs the most; plot each file on those two axes (the talk Polly
-Want a Message, 2018, credits Michael Feathers for this view).
+Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credit Michael Feathers for this view).
 
 - **Churn**: count commits per file over the last year, for example in a POSIX shell
   `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count

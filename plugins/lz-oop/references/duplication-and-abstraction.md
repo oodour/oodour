@@ -13,10 +13,12 @@ against the edits it will save; an extraction with no edits ahead of it is pure 
    show what really varies is another (the book). Code that merely looks repetitive is not.
 2. Ask what waiting costs, and when better information will arrive. If the copies can sit unchanged
    until then, wait (the book).
-3. Look for the concept, not the matching characters. One line that means the same thing in both
-   places (a date format, a rounding rule) can be extracted now and named for what it means, one
-   level above how it is done (the book). This plugin adds a test: two lines that happen to match
-   but would change for different reasons are not one concept.
+3. Look for the concept, not the matching characters. The book abstracts early only when many clear
+   examples give confidence that the concept is understood. This plugin reads one line that means the
+   same thing in both places (a date format, a rounding rule) as such a concept, so it can be extracted
+   now; name it one level above the thing it names, in the domain's words (the book's naming rule).
+   This plugin adds a test: two lines that happen to match but would change for different reasons are
+   not one concept.
 4. Say why the wait is worth it: an abstraction drawn from too few examples tends to be the wrong
    one, and code built on the wrong abstraction costs more to change than the duplication it
    replaced (the book; the article The Wrong Abstraction, 2016).
@@ -30,8 +32,8 @@ look more costly. What remains is one function doing several jobs, picked by fla
 Abstraction, 2016).
 
 1. Recognise it: parameters that only some callers pass, branches that only some callers reach.
-2. Say that the abstraction may be wrong, and that the time already spent on it is no reason to
-   keep it.
+2. Say that the abstraction is wrong and should be undone, and that the time already spent on it is
+   no reason to keep it.
 3. Undo it: inline the shared code at every call site, so each caller holds its own copy; trim each
    copy to the branches its caller takes; then compare the trimmed copies and extract only what they
    still share (The Wrong Abstraction, 2016). This plugin adds three things the article does not say:

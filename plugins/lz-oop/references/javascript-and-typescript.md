@@ -139,8 +139,9 @@ export class Checkout {
 ```
 
 - A default keeps call sites short while tests pass a fake. *99 Bottles of OOP* removes such defaults once callers
-  pass the collaborator, because a default ties the class to its first setting; keeping one is this plugin's choice,
-  and [dependencies-and-messages.md](dependencies-and-messages.md) says when to drop it.
+  pass the collaborator, because a default ties the class to its first setting; her article keeps one (SOLID Design
+  Principles - Dependency Injection, 2009), and so does this plugin where
+  [dependencies-and-messages.md](dependencies-and-messages.md) says, which also says when to drop it.
 - Domain behaviour belongs on instances (the book). In JavaScript and TypeScript the same applies to `static` methods
   and to exported module functions that hold domain rules: a function that takes a record and decides for it cannot
   be replaced by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure
@@ -197,7 +198,9 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   inheritance: the parent is fixed when the classes are built. It also costs typing work (an `any[]` constructor
   signature, anonymous class types). Prefer a collaborator passed in; keep mixins for small behaviour with no state.
   See [inheritance.md](inheritance.md).
-- Wrap built-in types; do not extend them. A subclass of `Array` returns the subclass from `map`, `filter` and
+- Wrap built-in types; do not extend them. Katrina Owen shows trouble from subclassing Ruby's `String` and builds a
+  standalone object there instead (the talk Overkill, 2014); the general rule and the JavaScript details here are
+  this plugin's extension of her example. A subclass of `Array` returns the subclass from `map`, `filter` and
   `slice` through `Symbol.species`, which breaks a constructor with its own signature, and a subclass of `String` is
   an object, not a string (`s === 'x'` is false).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
@@ -219,7 +222,9 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 
 JavaScript runs one thing at a time, but `await` lets calls interleave. Two overlapping calls that each store data
 in an instance field before an `await` both read back the last value written. Keep per-call data in locals,
-parameters or a per-call object.
+parameters or a per-call object. Katrina Owen makes the general point in the talk Overkill (2014): data that
+belongs to one call stays out of fields, or a second caller overwrites it; the `await` case is this plugin's
+JavaScript form of it.
 
 ## Framework code at the edges
 
@@ -233,7 +238,10 @@ enforce.
 To pin the current behaviour of code before restructuring it, a snapshot of its output is the quickest tool:
 `toMatchSnapshot` and `toMatchInlineSnapshot` in Vitest and Jest, `t.assert.snapshot` in `node:test`. Make the output
 deterministic (fake time and randomness), never update a snapshot to make a failing test pass without reading the
-difference, and replace snapshots with assertions that name the behaviour once you understand it.
+difference, and replace snapshots with assertions that name the behaviour once you understand it. The practice of
+pinning legacy behaviour with tests before refactoring is shown in full in Katrina Owen's talk Therapeutic
+Refactoring (2012); the snapshot tools, fixed time and randomness, and replacing the snapshots later are this
+plugin's advice.
 
 ## Measuring complexity
 

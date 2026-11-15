@@ -5,12 +5,12 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
 
 1. Judge the code by what it costs to change, not by how it looks or by a metric alone. Ask what change is likely,
    and what this design would make that change cost. Code that works and will not change can stay as it is, however
-   it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017).
-   A change no requirement asks for yet is a bet that later savings repay its cost now. Some such bets
-   always pay and others are long shots best left alone. Loosening coupling is one that *99 Bottles of OOP*
-   says to make from a code's first version, because nobody can predict where change will land, and the
-   cheapest moment to loosen it is before
-   a second user reuses the code.
+   it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017;
+   *99 Bottles of OOP* makes the same cost argument).
+   The book makes one exception from a code's first version: loosen coupling early, because nobody can
+   predict where change will land, and it costs least before a second user reuses the code. Other
+   improvements that no requirement asks for yet spend time now on a hoped-for saving; judge each on
+   its own odds.
    Weigh also what it costs a reader to follow the code today: every reader pays that, so it always counts.
    An extraction that saves future edits but makes the code harder to follow pays only when the
    saving is larger (the book).
@@ -120,7 +120,9 @@ responsible for. Variation in form that serves no purpose hides a shape the meth
   Fewer lines are not the goal; implement the domain's real concepts (the book).
 - **Leftovers of an origin**: a class that grew beyond the place it was born in still carries that
   place's name, defaults and hard-coded values. Rename it for what it now does, and inject the
-  leftover values as named collaborators or arguments; an object that expects less of its
-  surroundings is easier to reuse, and its tests are the first reuse that shows the problem (the book).
-  The book also drops the injected defaults that tie the class to its origin; where this plugin keeps a
-  default elsewhere, that is its own choice.
+  leftover values as named collaborators or arguments. Each assumption a class makes about where it runs
+  narrows where else it can run, and writing its tests is usually where such an assumption first gets in
+  the way (the book). The book also drops the injected collaborator default that ties the class to its
+  origin, and keeps value defaults only in a form that no longer depends on that origin; where this
+  plugin keeps a collaborator default elsewhere, it follows her 2009 article on dependency injection
+  instead (see Injecting collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)).

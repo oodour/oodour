@@ -22,10 +22,11 @@ A role (a duck type) is an agreement on a set of messages and nothing else; once
 every player to answer, it stops caring which class it holds (Less, 2011; Polly Want a Message,
 2018). These signs say a role exists in the code but was never named or given its own objects:
 
-- A check on what kind of object an argument is. Her talks name a switch on the class and Ruby's
-  `kind_of?`, `is_a?` and `respond_to?` (Less, 2011; POODR with the Toronto Ruby Brigade, 2013; SOLID,
-  2009, which calls it a Liskov smell). The JavaScript and TypeScript equivalents are this plugin's
-  mapping: `instanceof`, `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
+- A check on what kind of object an argument is. Her talks and articles name a switch on the class and
+  Ruby's `kind_of?`, `is_a?` and `respond_to?` (Less, 2011; POODR with the Toronto Ruby Brigade, 2013;
+  the talk SOLID Object-Oriented Design, 2009, which treats a kind check as a Liskov smell; the article
+  Ruby Case Statements and kind_of?, 2009, which reads a switch on the class as procedural code). The
+  JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`, `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
 - A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
 - A check for null or `undefined` before each use (Nothing is Something, 2015).
 - Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom

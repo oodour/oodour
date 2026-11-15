@@ -88,7 +88,8 @@ languages differ.
 ## Sources and attribution
 
 Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
-(credited by title, its practices by name), and from her talks and articles (cited by title, with the year where it
+(credited by title, its practices by name), from the publisher's sample chapter of her *Practical Object-Oriented
+Design*, 2nd edition, and from her talks and articles (cited by title, with the year where it
 is known); ideas credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is
 written in its own words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
 own adaptation and is marked so.

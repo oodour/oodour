@@ -12,8 +12,9 @@ knows how the job is done, and so depends on it.
 
 ## Reaching through other objects (the Law of Demeter)
 
-The rule credited to Lieberherr, Holland and Riel: a method sends messages to itself, its arguments,
-and the objects it holds or creates, not to objects those return (*99 Bottles of OOP*).
+The rule comes from a 1988 paper by Lieberherr, Holland and Riel, which *99 Bottles of OOP* lists among
+its references: a method sends messages to itself, its arguments, and the objects it holds or creates,
+not to objects those return (the book).
 
 1. Do not judge by counting dots. Ask whether each step in the chain hands back an object with a
    different interface. Stepping through several unrelated objects is the problem (the book). By the
@@ -37,8 +38,10 @@ and the objects it holds or creates, not to objects those return (*99 Bottles of
    Its reason: a default chosen for the first caller ties the class to the place it came from,
    suggests that place still matters, and the class has no basis for choosing one, so once every
    test passes the collaborator explicitly, callers always supply it.
-   This plugin differs on purpose: it keeps a default for good where most callers of a public class
-   want the same collaborator and should not have to know it exists, and puts it in an options object.
+   Her article SOLID Design Principles - Dependency Injection (2009) takes the other view and keeps
+   the collaborator default as a lasting part of the design. This plugin follows the article where
+   most callers of a public class want the same collaborator and should not have to know it exists,
+   and puts the default in an options object.
    Drop the default as the book does when the class is reused in a second context, or when the default
    names something from the class's original setting.
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for
@@ -47,7 +50,9 @@ and the objects it holds or creates, not to objects those return (*99 Bottles of
    (the book).
 5. Move object creation outward, toward the code that starts the program, and keep concrete class
    names out of the methods that do the work (the book). Of two possible dependencies, depend on the
-   one less likely to change (the book).
+   one less likely to change. *Practical Object-Oriented Design* develops this rule, weighing how likely
+   each class is to change, whether it is concrete or abstract, and how many classes depend on it;
+   *99 Bottles of OOP* applies it when choosing what a factory's candidates should depend on.
 6. Put domain behaviour on instances, not on static methods or bare class-level functions. Static
    code bets that the concept will never hold varying data, and it is hard to refactor when that bet
    loses; creating an instance costs almost nothing, so the book creates one every time. A static
