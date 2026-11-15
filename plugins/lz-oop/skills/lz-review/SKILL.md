@@ -22,8 +22,8 @@ the top ones first, and say in the report which areas were not read.
 For each changed area, ask:
 
 - **Two jobs in one?** Did the change restructure and add behaviour in the same step? Restructuring with tests green
-  and unchanged, then adding the behaviour, is the safer order (Ch.3). What a restructure may do to tests:
-  `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring.
+  and unchanged, then adding the behaviour, is the safer order (*99 Bottles of OOP*). What a restructure may do to
+  tests: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring.
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next
   kind costs the same edits again: `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - **A new flag or parameter on shared code?** Shared code gaining a boolean or a mode for one caller is the usual
@@ -35,7 +35,7 @@ For each changed area, ask:
 - **A new subclass or a deeper hierarchy?** `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`.
 - **Tests:** do the new or changed tests assert what the code does through its public messages, leave outgoing
   queries unverified, and expect outgoing commands? Did tests change in a commit that claims to only restructure?
-  That points to tests that check how rather than what, or to a behaviour change hidden in the commit (Ch.3):
+  That points to tests that check how rather than what, or to a behaviour change hidden in the commit (the book):
   `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`.
 
 Judge each candidate finding with `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and use
@@ -47,16 +47,16 @@ TypeScript form.
 - A finding is something this change did that makes a change harder: a new branch, flag, hard-coded collaborator,
   chain or subclass, or a test that checks how rather than what. Rank findings by how much each raises that cost,
   most first, and say which change each makes expensive.
-- A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. The book waits
-  for the actual change request, which shows the shape the code needs, and treats an unforced change to working code
-  as a bet (Ch.3, Ch.8). At most, name it in one line as what to reconsider when that request arrives.
+- A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. *99 Bottles of OOP*
+  waits for the actual change request, which shows the shape the code needs, and treats an unforced change to working
+  code as a bet. At most, name it in one line as what to reconsider when that request arrives.
 - The book also counts some unforced changes as bets always worth taking: those that loosen coupling (behaviour on
   instances, collaborators injected as roles, objects created at the edges, no chains through other objects),
-  because change will come where no one can predict (Ch.8). A change of that kind is a strength to name, not a
+  because change will come where no one can predict. A change of that kind is a strength to name, not a
   finding.
 - Indirection the change adds without need is a finding: a layer, wrapper or general method that no current caller
   needs makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one
-  (Ch.1). Name what the simpler form would be.
+  (the book). Name what the simpler form would be.
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the
@@ -68,5 +68,5 @@ TypeScript form.
 
 ## Sources and attribution
 
-As in the `lz-oop` skill: the book is cited `Ch.<n>`, talks and articles by title and year, and every TypeScript
-mapping is this plugin's adaptation.
+As in the `lz-oop` skill: the book is credited by title and its practices by name, talks and articles by title and
+year, and every TypeScript mapping is this plugin's adaptation.

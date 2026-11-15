@@ -5,8 +5,8 @@ boolean or string argument steers what shared code does.
 
 ## Choosing versus doing
 
-Sort each conditional into one of two groups (Ch.5 and Ch.6; the talk Polly Want a Message, 2018).
-Ch.7 draws the contrast directly: a conditional that both recognises each case and holds that case's
+Sort each conditional into one of two groups (*99 Bottles of OOP*; the talk Polly Want a Message, 2018).
+The book draws the contrast directly: a conditional that both recognises each case and holds that case's
 behaviour is procedural, while one that only records which object gets the job, kept in one place
 apart from the behaviour, is the object-oriented form.
 
@@ -40,15 +40,15 @@ role's shared test; see Role tests in [javascript-and-typescript.md](javascript-
 ## Adding a kind when the code switches on kinds
 
 1. Restructure first, with the tests green and unchanged, until adding the kind is easy; the new kind comes after
-   (Ch.3).
+   (*99 Bottles of OOP*).
 2. Give each kind its own object (a class, or a module or object literal where that is the house
    style). Every one of them answers the same messages, so a caller sends the message and never asks
-   which kind it holds (Ch.6).
+   which kind it holds (the book).
 3. Put the choice in one place, a factory: the only code that knows the concrete kinds and how to
    pick one. Move object creation into a single method first; that method becomes the factory. No
-   other code repeats the choice (Ch.6; Polly Want a Message, 2018).
+   other code repeats the choice (the book; Polly Want a Message, 2018).
 4. Move the branches one kind at a time: create the object for one kind, move that kind's branch
-   into it, route that kind through the factory, run the tests, and repeat (Ch.6).
+   into it, route that kind through the factory, run the tests, and repeat (the book).
 5. Then add the new kind test-first, as a new object and one entry in the factory.
 6. A missing or default case is a kind too. Give it an object that answers the same messages and
    does the harmless thing, instead of checking for it at every call site (Nothing is Something,
@@ -56,7 +56,7 @@ role's shared test; see Role tests in [javascript-and-typescript.md](javascript-
 
 ## Factory forms
 
-Pick by what changes and who has to read it (Ch.7; If You Build It, They Will Come, 2022).
+Pick by what changes and who has to read it (*99 Bottles of OOP*; If You Build It, They Will Come, 2022).
 
 | Form | Open to a new kind without editing it | Cost |
 | --- | --- | --- |
@@ -66,14 +66,14 @@ Pick by what changes and who has to read it (Ch.7; If You Build It, They Will Co
 | Candidates register themselves | Yes | Each candidate depends on the registry |
 
 Lookups built from naming conventions (a class name assembled from a string) are open but cannot be
-searched for and fail quietly on a typo (Ch.7).
+searched for and fail quietly on a typo (the book).
 
 - **Where the choosing logic lives.** By default it lives in the factory, which suits a choice that
   is simple and stable. When the test for a kind grows complex and changes whenever that kind
-  changes, Ch.7 moves it into the kind itself, and each candidate reports whether it handles the
+  changes, the book moves it into the kind itself, and each candidate reports whether it handles the
   input (the third row).
-- **Which form to start from.** The book weighs these forms and leaves the choice to the situation
-  (Ch.7). This plugin starts from a `switch` in the one factory while the kinds are few. It moves to
+- **Which form to start from.** The book weighs these forms and leaves the choice to the situation.
+  This plugin starts from a `switch` in the one factory while the kinds are few. It moves to
   a map, typed so the compiler reports a kind with no entry, once new kinds keep arriving or other
   code has to stay in step with the list (see Choosing a variant: the factory map in
   [javascript-and-typescript.md](javascript-and-typescript.md)). Either way, prefer an explicit list
@@ -81,7 +81,7 @@ searched for and fail quietly on a typo (Ch.7).
 - **Name the message, not the receiver.** Keep the receiver's type out of a message's name: the
   sender should not need to know which kind it holds, and a name that repeats the type breaks when
   the type is renamed. A generic factory name (`for`, `create`) lets one factory stand in for another
-  (Ch.6).
+  (the book).
 
 ## Flag arguments
 

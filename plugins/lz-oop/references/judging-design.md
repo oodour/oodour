@@ -7,17 +7,17 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
    and what this design would make that change cost. Code that works and will not change can stay as it is, however
    it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017).
    A change no requirement asks for yet is a bet that later savings repay its cost now. Some such bets
-   always pay and others never do; loosening coupling is one the book argues for from the start,
+   always pay and others never do; loosening coupling is one *99 Bottles of OOP* argues for from the start,
    because nobody can predict where change will land, and the cheapest moment to loosen it is before
-   a second user reuses the code (Ch.8, Ch.9).
+   a second user reuses the code.
    Weigh also what it costs a reader to follow the code today: every reader pays that, so it always counts.
    An extraction that saves future edits but makes the code harder to follow pays only when the
-   saving is larger (Ch.1).
+   saving is larger (the book).
    Then ask whether a quick read shows the domain: how many variants there are, which are alike and
-   how, which stand apart, and what decides the next case (Ch.1, used again Ch.6). Code that answers
-   these at a glance mirrors its problem.
+   how, which stand apart, and what decides the next case (the book, which comes back to this question
+   in a later refactoring). Code that answers these at a glance mirrors its problem.
 2. Name each smell you see in the vocabulary of named smells and refactorings, and pair it with its usual cure
-   (Ch.3; the talk Get a Whiff of This, 2016). Rank them; the easiest well-understood one goes first (Ch.3).
+   (the book; the talk Get a Whiff of This, 2016). Rank them; the easiest well-understood one goes first (the book).
 3. Say plainly when the design is fine. A conditional that only chooses which object to create, an
    inheritance tree that meets all four conditions of the talk All the Little Things (2014) together (shallow,
    narrow, its subclasses at the edges of the object graph, and each subclass using all it inherits), and duplicated
@@ -38,7 +38,7 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
 
 ## Smells and checks this leaf owns
 
-### The Squint Test (Ch.5)
+### The Squint Test (*99 Bottles of OOP*)
 
 Use it on a file or class you have not read yet, to find where to look first.
 
@@ -51,10 +51,10 @@ Use it on a file or class you have not read yet, to find where to look first.
 Done looks like: a short list of methods to read closely (the deep, the many-coloured, and the
 groups that look alike), which the next check takes as input.
 
-### Is a class hiding inside this one? (Ch.5)
+### Is a class hiding inside this one? (*99 Bottles of OOP*)
 
 Use it when a class has several methods of the same shape, or after the Flocking Rules have produced
-a family of alike methods. Ch.5 has a longer set of questions; a few of them, in the plugin's words:
+a family of alike methods. The book has a longer set of questions; a few of them, in the plugin's words:
 
 1. Do several methods share a shape, and take the same argument?
 2. Does that argument, wherever it appears under one name, mean the same concept?
@@ -64,7 +64,7 @@ a family of alike methods. Ch.5 has a longer set of questions; a few of them, in
 Done looks like: the methods fall into two groups. The group that leans on the argument is the
 hidden class; the argument is often a primitive (see the next check).
 
-### Primitive Obsession, cured by Extract Class (Ch.5)
+### Primitive Obsession, cured by Extract Class (*99 Bottles of OOP*)
 
 The smell: a built-in value (a number, string or boolean) stands for a domain idea, so the raw value
 travels around and its behaviour lives elsewhere. Each yes to the questions above adds weight to
@@ -101,7 +101,7 @@ class Destination {
 }
 ```
 
-### Consistency (Ch.4, Ch.5)
+### Consistency (*99 Bottles of OOP*)
 
 Methods that have the same shape are easy to read and easy to change next. When a change would give
 one method a shape unlike its siblings (an extra branch, a guard for a value that cannot occur),
@@ -113,13 +113,13 @@ responsible for. Variation in form that serves no purpose hides a shape the meth
 - **Data Clump**: three or more values that keep travelling together through signatures and fields.
   The clump is usually a concept nobody named, and each place that handles it copies logic that can
   drift. Name it and give it a home: a class for a large clump, one combining method for a small one
-  (Ch.6).
+  (*99 Bottles of OOP*).
 - **A shortcut that relies on its caller**: an override or method that works only because of how one
   caller happens to use it ties the class to that caller and misleads readers about what varies.
-  Fewer lines are not the goal; implement the domain's real concepts (Ch.6).
+  Fewer lines are not the goal; implement the domain's real concepts (the book).
 - **Leftovers of an origin**: a class that grew beyond the place it was born in still carries that
   place's name, defaults and hard-coded values. Rename it for what it now does, and inject the
   leftover values as named collaborators or arguments; an object that expects less of its
-  surroundings is easier to reuse, and its tests are the first reuse that shows the problem (Ch.9).
-  Ch.9 also drops the injected defaults that tie the class to its origin; where this plugin keeps a
+  surroundings is easier to reuse, and its tests are the first reuse that shows the problem (the book).
+  The book also drops the injected defaults that tie the class to its origin; where this plugin keeps a
   default elsewhere, that is its own choice.

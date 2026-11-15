@@ -1,8 +1,8 @@
 # JavaScript and TypeScript forms of the ideas
 
 The book teaches in JavaScript and the talks mostly in Ruby. Where an idea does not carry over to JavaScript or
-TypeScript as stated, this file gives the form to use. **Everything here is this plugin's adaptation** unless a
-chapter or talk is cited: the plugin takes no TypeScript guidance from its sources, and the mappings, tools and
+TypeScript as stated, this file gives the form to use. **Everything here is this plugin's adaptation** unless the
+book or a talk is credited: the plugin takes no TypeScript guidance from its sources, and the mappings, tools and
 examples below are its own, checked against current TypeScript, Node.js, ESLint, Vitest, Jest and `node:test`
 documentation.
 
@@ -43,8 +43,8 @@ JavaScript note: there is no interface; the shared role test is the role's only 
 
 ## Role tests in Vitest, Jest and node:test
 
-The book keeps a fake honest with a role test that every player of the role and the fake run, checking that each
-answers the role's messages (Ch.9). In TypeScript the compiler already checks that; the shared test below asserts
+*99 Bottles of OOP* keeps a fake honest with a role test that every player of the role and the fake run, checking
+that each answers the role's messages. In TypeScript the compiler already checks that; the shared test below asserts
 behaviour instead, which is this plugin's extension. Export one function that registers the role's tests for any
 player, and call it from each player's test file and from the fake's.
 
@@ -73,12 +73,12 @@ describeDiscountRole(() => new PercentDiscount(10));
 
 ## Choosing a variant: the factory map
 
-The book weighs several factory forms in JavaScript, among them building a class name at run time, variants that
-register themselves, and a key/value lookup, and leaves the choice to the situation (Ch.7). This plugin starts, as
-[variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory while the kinds
-are few and change rarely: it is the easiest form to read. Once kinds keep arriving, or other code must stay in step
-with the list, its default in TypeScript is the key/value lookup, built in one place, with the `satisfies` check
-below.
+*99 Bottles of OOP* weighs several factory forms in JavaScript, among them building a class name at run time,
+variants that register themselves, and a key/value lookup, and leaves the choice to the situation. This plugin
+starts, as [variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory while
+the kinds are few and change rarely: it is the easiest form to read. Once kinds keep arriving, or other code must
+stay in step with the list, its default in TypeScript is the key/value lookup, built in one place, with the
+`satisfies` check below.
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -138,10 +138,10 @@ export class Checkout {
 }
 ```
 
-- A default keeps call sites short while tests pass a fake. The book removes such defaults once callers pass the
-  collaborator, because a default ties the class to its first setting (Ch.9); keeping one is this plugin's choice,
+- A default keeps call sites short while tests pass a fake. *99 Bottles of OOP* removes such defaults once callers
+  pass the collaborator, because a default ties the class to its first setting; keeping one is this plugin's choice,
   and [dependencies-and-messages.md](dependencies-and-messages.md) says when to drop it.
-- Domain behaviour belongs on instances (Ch.8). In JavaScript and TypeScript the same applies to `static` methods
+- Domain behaviour belongs on instances (the book). In JavaScript and TypeScript the same applies to `static` methods
   and to exported module functions that hold domain rules: a function that takes a record and decides for it cannot
   be replaced by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure
   calculation with no variants in sight (this plugin's reading).
@@ -205,10 +205,10 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 
 ## Immutable values, caching and the cost of objects
 
-- The book prefers objects that do not change: they are easier to reason about and cheaper to test. It treats
-  creating objects as free in a first version and adds no caching there: storing a result is easy, knowing when it is
-  stale is not, and people guess wrong about speed, so write the plain version, measure, and optimise only the hot
-  spot the profiler shows (Ch.5).
+- *99 Bottles of OOP* prefers objects that do not change: they are easier to reason about and cheaper to test. It
+  treats creating objects as free in a first version and adds no caching there: storing a result is easy, knowing
+  when it is stale is not, and people guess wrong about speed, so write the plain version, measure, and optimise only
+  the hot spot the profiler shows.
 - TypeScript form: `readonly` fields and `ReadonlyArray<T>` (or `readonly T[]`) make the compiler refuse writes;
   `#private` fields with no setter keep the value fixed at run time. Return a new object from a method that would
   change one. `Object.freeze` adds a run-time check, shallow only.

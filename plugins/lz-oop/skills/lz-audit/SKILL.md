@@ -23,9 +23,9 @@ Want a Message, 2018, credits Michael Feathers for this view).
   measure: use what exists and say so in the report.
 - **Complexity**: use what the repository already measures (ESLint `complexity`, `max-lines-per-function`,
   `sonarjs/cognitive-complexity`); otherwise approximate with file length, function length and the number of
-  conditionals. Treat the numbers as fallible facts that start a judgement, not end it (Ch.1). Cyclomatic
-  complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer tests than
-  its score has untested logic; say so in the report (Ch.1).
+  conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
+  Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
+  tests than its score has untested logic; say so in the report (the book).
 - **Read the quadrants**:
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
     time is the worst case (Polly Want a Message, 2018);
@@ -48,11 +48,12 @@ idea needs its JavaScript or TypeScript form.
   cure, and the first small step. Group findings that share one cure. Where the cure changes a signature or type used
   across the package, point to the green steps in `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 - Say what is healthy and should be left alone, and why.
-- Recommend an order of work. Code is opened up for a change that has actually been requested (Ch.3); ranking the
-  rest by the changes the history suggests will come next is this plugin's judgement, and the report says so.
+- Recommend an order of work. Code is opened up for a change that has actually been requested
+  (*99 Bottles of OOP*); ranking the rest by the changes the history suggests will come next is this plugin's
+  judgement, and the report says so.
 - This is a report: change nothing. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.
 
 ## Sources and attribution
 
-As in the `lz-oop` skill: the book is cited `Ch.<n>`, talks and articles by title and year, and every TypeScript
-mapping is this plugin's adaptation.
+As in the `lz-oop` skill: the book is credited by title and its practices by name, talks and articles by title and
+year, and every TypeScript mapping is this plugin's adaptation.

@@ -5,7 +5,7 @@ subclass.
 
 ## Inheritance is allowed
 
-Preferring composition is not a ban on inheritance (Ch.6). Judge a hierarchy by its properties, not
+Preferring composition is not a ban on inheritance (*99 Bottles of OOP*). Judge a hierarchy by its properties, not
 by the keyword `extends`. Sandi Metz says she often starts with a subclass and refactors away from it
 when it stops paying (the 2014 POODR Q&A).
 
@@ -15,8 +15,8 @@ when it stops paying (the 2014 POODR Q&A).
 - **Liskov Substitution.** Any subclass must work wherever its parent is expected, with no sender
   checking which one it got. A sender that tests the class of what it holds is the usual sign that
   this broke (the talk SOLID, 2009). The book applies the same promise to every role player, not only
-  to subclasses: answer the message, and return one kind of thing the sender can trust (Ch.4 to Ch.6;
-  see [dependencies-and-messages.md](dependencies-and-messages.md)).
+  to subclasses: answer the message, and return one kind of thing the sender can trust (see
+  [dependencies-and-messages.md](dependencies-and-messages.md)).
 
 ## When a hierarchy is safe to keep
 
@@ -77,14 +77,14 @@ When the conditions hold, recommend keeping the hierarchy and say which properti
   relation the behaviour does not support (Nothing is Something, 2015).
 
 Replacing a conditional with subclasses and replacing it with composed objects (Strategy or State)
-are both valid cures; when the choice is close, try both and keep the clearer one (Ch.6).
+are both valid cures; when the choice is close, try both and keep the clearer one (*99 Bottles of OOP*).
 
 ## Composing the parts
 
 The steps, from Nothing is Something, 2015: find what varies, give it a name, decide the messages
 of that role, and inject an object that plays it. She calls composition with injection the centre
-of object design: less code, and every combination of players available. Ch.8 (moving a varying
-part out of a class) follows the same steps on its own example: it extracts the part into a new
+of object design: less code, and every combination of players available. *99 Bottles of OOP*, where it
+moves a varying part out of a class, follows the same steps on its own example: it extracts the part into a new
 class, names the role that class plays, injects an instance back, and has the receiving class
 forward messages to it. Each new variant then plugs in at that injection point.
 

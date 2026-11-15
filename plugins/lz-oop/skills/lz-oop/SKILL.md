@@ -39,20 +39,21 @@ Advise on a question; change code only on an explicit request to do so, then sto
    - a raw number, string or boolean that stands for a domain idea and gets passed around:
      `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession.
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
-   the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, Ch.1 and Ch.2).
-4. A change to existing code is two separate jobs (Ch.3; the article Getting It Right By Betting On Wrong, 2014,
-   which credits the idea to Kent Beck). Follow the Open/Closed path (Ch.3) each time a requirement lands:
+   the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
+   *99 Bottles of OOP*).
+4. A change to existing code is two separate jobs (the book; the article Getting It Right By Betting On Wrong, 2014,
+   which credits the idea to Kent Beck). Follow the book's Open/Closed path each time a requirement lands:
    1. Can the change go in without editing the code that is there? Then add it, test-first.
    2. If not, and you can see how to make it open, restructure first, with the tests green and unchanged, until the
       change is easy; then add the change, test-first.
    3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again. A way to
       open the code tends to appear as the smells go; keep an improvement even when the code is still closed
-      (Ch.3, Ch.5). To choose which smell to start on, sketch in a comment the conditional the change would need;
-      the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (Ch.8).
+      (the book). To choose which smell to start on, sketch in a comment the conditional the change would need;
+      the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (the book).
 
    The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never changed.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
-   take a smaller one. Never rewrite the whole class in one go (Ch.3). To change a signature, a parameter or a
+   take a smaller one. Never rewrite the whole class in one go (the book). To change a signature, a parameter or a
    return type across its senders in such steps, use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, the first small step, and the test that drives it. Stop there unless the
@@ -86,7 +87,8 @@ languages differ.
 
 ## Sources and attribution
 
-Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript (cited
-`Ch.<n>`), and from her talks and articles (cited by title, with the year where it is known); ideas credited to Katrina Owen
-come from her talks (cited the same way). Every text in this plugin is written in its own words. This plugin takes no
-TypeScript guidance from its sources: each TypeScript mapping is its own adaptation and is marked so.
+Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
+(credited by title, its practices by name), and from her talks and articles (cited by title, with the year where it
+is known); ideas credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is
+written in its own words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
+own adaptation and is marked so.

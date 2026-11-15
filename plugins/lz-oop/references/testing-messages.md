@@ -30,9 +30,9 @@ changes something.
 - A double has to match the real collaborator's interface, or the test stays green while the code
   breaks (The Magic Tricks of Testing, 2013).
 - A fake (Meszaros's term) is a small real object that plays the collaborator's role, so a test can
-  show what the class does without depending on the real collaborator's output (Ch.9).
+  show what the class does without depending on the real collaborator's output (*99 Bottles of OOP*).
 - Where several objects play one role, fakes included, a shared role test checks that each one
-  answers the role's messages (Ch.9). TypeScript (this plugin's inference): an interface for the role,
+  answers the role's messages (the book). TypeScript (this plugin's inference): an interface for the role,
   with each player typed against it, does part of that check at compile time; a role test still
   checks behaviour the types cannot express. How to write that shared test in Vitest, Jest and
   `node:test`: [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
@@ -40,27 +40,27 @@ changes something.
 ## When the test is hard to write
 
 Heavy setup, many doubles, or a long chain to build are design feedback: the object knows too many
-others or reaches through them. Fix the code rather than the test (Ch.9; the talk Get a Whiff of
+others or reaches through them. Fix the code rather than the test (*99 Bottles of OOP*; the talk Get a Whiff of
 This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
 
 ## Unit tests and integration tests
 
-- They have different jobs (Ch.9). A unit test sends messages to one class's public interface and leaves its
-  collaborators out of the question: it is the programmer's tool, fast, and fails close to the fault. An
+- They have different jobs (*99 Bottles of OOP*). A unit test sends messages to one class's public interface and
+  leaves its collaborators out of the question: it is the programmer's tool, fast, and fails close to the fault. An
   integration test shows that a group of objects works together from end to end; it is slower and points less
   precisely. Do not ask one kind to do the other's job.
 - A test that only restates what the code returns verbatim, such as a method that returns a fixed string, checks
   nothing that could break on its own: it must be edited whenever the code is. Let that method run inside another
-  class's tests instead (Ch.9).
+  class's tests instead (the book).
 - Full coverage means every line runs under the unit tests, not one test per public method. Leaving a class without
   its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
-  (Ch.9).
+  (the book).
 
 ## Other guidance
 
 - Assert hard-coded expected values. A test that computes its expectation with the code under test,
-  or rebuilds its logic, passes when both are wrong (Ch.2).
+  or rebuilds its logic, passes when both are wrong (*99 Bottles of OOP*).
 - Test what the code does, not how: a pure restructuring that turns a test red shows the test checks
-  how (Ch.3).
+  how (the book).
 - Complex private logic may get a temporary test while you work on it, kept apart from the rest and
   deleted the first time it fails (The Magic Tricks of Testing, 2013).

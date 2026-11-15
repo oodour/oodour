@@ -2,15 +2,15 @@
 
 Use when a change would break many places at once: adding or removing a parameter, or changing the kind of value a
 method returns or accepts, in code that has several callers or several implementors. Each practice below turns it
-into small edits that each end on green, so the code could ship after any of them (Ch.3). The numbered steps are this
-plugin's restatement of the book's moves; the TypeScript examples are this plugin's own.
+into small edits that each end on green, so the code could ship after any of them (*99 Bottles of OOP*). The
+numbered steps are this plugin's restatement of the book's moves; the TypeScript examples are this plugin's own.
 
 Contents: The four stages of one edit; Adding a parameter: Gradual Cutover; Removing a parameter; Accepting two kinds
 for a while.
 
 ## The four stages of one edit
 
-Use for every edit while you restructure (Ch.3).
+Use for every edit while you restructure (*99 Bottles of OOP*).
 
 1. Make the new code parse.
 2. Make it run, still unused.
@@ -18,17 +18,17 @@ Use for every edit while you restructure (Ch.3).
 4. Delete the old code.
 
 After each stage run the tests. On red, undo and take a smaller step rather than debug. Change about one line at a
-time; the steps may grow with practice and shrink again after a failure (Ch.3). An editor-wide replace across many
-lines counts as one step when one undo reverses it (Ch.8). Finish the path you are on before you follow a side idea
-(Ch.3).
+time; the steps may grow with practice and shrink again after a failure (the book). An editor-wide replace across
+many lines counts as one step when one undo reverses it (the book). Finish the path you are on before you follow a
+side idea (the book).
 
 Done: the old code is gone, the tests are unchanged and green, and every stage between was green too.
 
 ## Adding a parameter: Gradual Cutover
 
-Joshua Kerievsky's name for moving callers to a new form a few at a time while the code keeps working (Ch.3, Ch.4).
-Use when a method needs a new argument and its callers cannot all change in one step, or when you are building one
-method to replace a special case and the general case.
+Joshua Kerievsky's name for moving callers to a new form a few at a time while the code keeps working
+(*99 Bottles of OOP*). Use when a method needs a new argument and its callers cannot all change in one step, or when
+you are building one method to replace a special case and the general case.
 
 1. Create the new method and have it return what the common case returns today.
 2. Make the common case call it instead of doing the work itself. Green.
@@ -38,7 +38,7 @@ method to replace a special case and the general case.
 6. Delete the code the method replaced, then make the parameter required.
 
 Start from the common case. In JavaScript an omitted argument is `undefined` and falls into the common branch; if you
-start from the special case instead, you need an explicit default value chosen so that case still holds (Ch.4). The
+start from the special case instead, you need an explicit default value chosen so that case still holds (the book). The
 default exists only for the cutover and goes in step 6.
 
 ```ts
@@ -60,7 +60,7 @@ Done: every caller passes the argument, no default is left, and the replaced cod
 ## Removing a parameter
 
 Use when a method's argument now lives somewhere the method can read itself, for example in its own object after
-an Extract Class (Ch.5).
+an Extract Class (*99 Bottles of OOP*).
 
 1. Inside the method, read the value from its new home instead of from the parameter.
 2. Remove the argument from each caller.
@@ -68,7 +68,7 @@ an Extract Class (Ch.5).
    a caller you missed. Fix it.
 4. Once green, delete the check and the parameter.
 
-JavaScript ignores extra arguments without a word, which is why step 3 exists (Ch.5).
+JavaScript ignores extra arguments without a word, which is why step 3 exists (the book).
 
 ```js
 // Step 3 in JavaScript: temporary, deleted in step 4
@@ -90,7 +90,8 @@ Done: no caller passes the argument, the signature has no parameter, and the tem
 ## Accepting two kinds for a while
 
 Use when the kind of value a polymorphic method returns, or a constructor accepts, has to change, and several
-implementors and callers depend on the old kind (Ch.6, for a return value; Ch.8, for a constructor argument).
+implementors and callers depend on the old kind (*99 Bottles of OOP*, once for a return value and once for a
+constructor argument).
 
 1. Put the factory that builds the new kind where every implementor can reach it.
 2. Let the receiving side accept both kinds: convert an old one through the factory, pass a new one through.
