@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: real-isogit-second-transport
+tags: [real, shape, javascript, dependencies]
+context:
+  scaffold_script: checkout.sh
