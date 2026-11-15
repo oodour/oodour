@@ -1,7 +1,7 @@
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules/**', '.oracle/**', '**/.claude-plugin/types/**'] },
+  { ignores: ['node_modules/**', '.oracle/**', '**/.claude-plugin/types/**', '.claude/worktrees/**', '.stryker-tmp/**'] },
   {
     files: ['.claude/hooks/**/*.ts', 'tools/**/*.ts', '.claude/mods/*/hooks/**/*.ts', '.claude/mods/*/.node-test/*.ts', '*.test.ts'],
     extends: [tseslint.configs.strictTypeChecked],
