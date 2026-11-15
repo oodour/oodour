@@ -42,6 +42,6 @@ pass `model` on the Agent call for them (`lars-principle-fit-model-and-effort`).
 
 ## The plugin itself
 
-`lz-oop` will sit beside `lz-tdd`, and the 99 Bottles book teaches through test-driven refactoring,
-so lz-tdd's skills are also subject matter for the plugin. How the two plugins relate is a design
-question for the plugin's own planning, not a rule here.
+`lz-oop` stays independent of `lz-tdd` and every other plugin (c642f84); its test-first practices come
+from its own oracle-sourced references. lz-tdd still drives test-first work on this repository's code.
+Issues and findings about lz-tdd seen along the way go in [`lz-tdd-ledger.md`](lz-tdd-ledger.md).
