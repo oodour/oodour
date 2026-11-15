@@ -8,6 +8,8 @@ import { basename } from 'node:path';
 export interface ArmSummary {
   readonly runs: number;
   readonly passed: number;
+  // Runs that ended in an error (a usage limit, a crash): their zero score says nothing about the plugin.
+  readonly errored: number;
   readonly meanScore: number;
   readonly criteria: Readonly<Record<string, number>>;
   readonly skillFired: number | undefined;
@@ -34,6 +36,7 @@ interface Grader {
 interface Run {
   readonly score: number;
   readonly passed: boolean;
+  readonly errored: boolean;
   readonly graders: readonly Grader[];
 }
 
@@ -87,12 +90,17 @@ function parseGrader(value: unknown, path: string): Grader {
 
 function parseRun(value: unknown, path: string): Run {
   expect(isRecord(value), path);
-  const { score, passed, graders } = value;
+  const { score, passed, error, graders } = value;
   expect(typeof score === 'number', `${path}.score`);
   expect(typeof passed === 'boolean', `${path}.passed`);
   expect(Array.isArray(graders), `${path}.graders`);
 
-  return { score, passed, graders: graders.map((grader, index) => parseGrader(grader, `${path}.graders[${String(index)}]`)) };
+  return {
+    score,
+    passed,
+    errored: error !== undefined && error !== null,
+    graders: graders.map((grader, index) => parseGrader(grader, `${path}.graders[${String(index)}]`)),
+  };
 }
 
 function rate(values: readonly boolean[]): number {
@@ -108,6 +116,7 @@ function summariseArm(runs: readonly Run[]): ArmSummary {
   return {
     runs: runs.length,
     passed: runs.filter((run) => run.passed).length,
+    errored: runs.filter((run) => run.errored).length,
     meanScore: runs.reduce((sum, run) => sum + run.score, 0) / runs.length,
     criteria: Object.fromEntries(
       names.map((name) => [name, rate(scored.filter((grader) => grader.name === name).map((grader) => grader.passed))]),
@@ -154,27 +163,67 @@ function percent(value: number | undefined): string {
   return value === undefined ? '-' : `${String(Math.round(value * 100))}%`;
 }
 
+function mean(values: readonly number[]): number | undefined {
+  return values.length === 0 ? undefined : values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function row(name: string, arm: string, counts: Pick<ArmSummary, 'runs' | 'passed' | 'errored'>, rates: readonly (number | undefined)[], weak: string): string {
+  return `| ${name} | ${arm} | ${String(counts.runs)} | ${String(counts.passed)} | ${String(counts.errored)} | ${rates.map(percent).join(' | ')} | ${weak} |`;
+}
+
 export function formatReport(summary: Summary): string {
   const lines = [
     `Model ${summary.model ?? 'unknown'}, judge ${summary.judge ?? 'unknown'}, cost $${summary.costUsd.toFixed(2)}`,
     '',
-    '| Case | Arm | Runs | Passed | Mean score | Pass@1 | Pass^n | Skill fired | Criteria below 100% |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| Case | Arm | Runs | Passed | Errored | Mean score | Pass@1 | Pass^n | Skill fired | Criteria below 100% |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
   ];
+  const byArm = new Map<string, ArmSummary[]>();
 
   for (const item of summary.cases) {
     for (const [arm, stats] of Object.entries(item.arms)) {
+      const ran = stats.runs > 0;
       const weak = Object.entries(stats.criteria)
         .filter(([, value]) => value < 1)
         .map(([name, value]) => `${name} ${percent(value)}`)
         .join(', ');
 
+      byArm.set(arm, [...(byArm.get(arm) ?? []), stats]);
       lines.push(
-        `| ${item.name} | ${arm} | ${String(stats.runs)} | ${String(stats.passed)} | ${percent(stats.meanScore)} | ` +
-          `${percent(passAtK(stats.runs, stats.passed, 1))} | ${percent(passHatK(stats.runs, stats.passed, stats.runs))} | ` +
-          `${percent(stats.skillFired)} | ${weak === '' ? '-' : weak} |`,
+        row(
+          item.name,
+          arm,
+          stats,
+          [
+            ran ? stats.meanScore : undefined,
+            ran ? passAtK(stats.runs, stats.passed, 1) : undefined,
+            ran ? passHatK(stats.runs, stats.passed, stats.runs) : undefined,
+            stats.skillFired,
+          ],
+          weak === '' ? '-' : weak,
+        ),
       );
     }
+  }
+
+  for (const [arm, arms] of byArm) {
+    const ran = arms.filter((stats) => stats.runs > 0);
+    const total = (key: 'runs' | 'passed' | 'errored'): number => arms.reduce((sum, stats) => sum + stats[key], 0);
+
+    lines.push(
+      row(
+        'overall',
+        arm,
+        { runs: total('runs'), passed: total('passed'), errored: total('errored') },
+        [
+          mean(ran.map((stats) => stats.meanScore)),
+          mean(ran.map((stats) => passAtK(stats.runs, stats.passed, 1))),
+          mean(ran.map((stats) => passHatK(stats.runs, stats.passed, stats.runs))),
+          mean(arms.flatMap((stats) => (stats.skillFired === undefined ? [] : [stats.skillFired]))),
+        ],
+        '-',
+      ),
+    );
   }
 
   return lines.join('\n');

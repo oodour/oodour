@@ -54,8 +54,8 @@ test('a summary gives each arm its score, passes, criterion rates and how often 
     {
       name: 'case-a',
       arms: {
-        with: { runs: 2, passed: 1, meanScore: 0.75, criteria: { c1: 1, c2: 0.5 }, skillFired: 0.5 },
-        without: { runs: 2, passed: 0, meanScore: 0.25, criteria: { c1: 0, c2: 0.5 }, skillFired: undefined },
+        with: { runs: 2, passed: 1, errored: 0, meanScore: 0.75, criteria: { c1: 1, c2: 0.5 }, skillFired: 0.5 },
+        without: { runs: 2, passed: 0, errored: 0, meanScore: 0.25, criteria: { c1: 0, c2: 0.5 }, skillFired: undefined },
       },
     },
   ]);
@@ -65,8 +65,32 @@ test('the report gives a row per case and arm with Pass@1, Pass^n and the criter
   const report = formatReport(summarise(result));
 
   assert.match(report, /^Model claude-opus-5-5, judge claude-sonnet-5-5, cost \$1\.50$/m);
-  assert.match(report, /^\| case-a \| with \| 2 \| 1 \| 75% \| 50% \| 0% \| 50% \| c2 50% \|$/m);
-  assert.match(report, /^\| case-a \| without \| 2 \| 0 \| 25% \| 0% \| 0% \| - \| c1 0%, c2 50% \|$/m);
+  assert.match(report, /^\| case-a \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| c2 50% \|$/m);
+  assert.match(report, /^\| case-a \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| c1 0%, c2 50% \|$/m);
+});
+
+test('a run that ended in an error is counted, so a zero score is not read as a failed criterion', () => {
+  const errored = {
+    suite: {},
+    costUsd: 0,
+    cases: [{ name: 'x', arms: { with: [{ score: 0, passed: false, error: { message: 'limit' }, graders: [] }, { score: 1, passed: true, error: null, graders: [] }] } }],
+  };
+
+  assert.equal(summarise(errored).cases[0]?.arms['with']?.errored, 1);
+  assert.match(formatReport(summarise(errored)), /^\| x \| with \| 2 \| 1 \| 1 \|/m);
+});
+
+test('an arm with no runs is reported with dashes instead of failing the whole report', () => {
+  const empty = { suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [] } }] };
+
+  assert.match(formatReport(summarise(empty)), /^\| x \| with \| 0 \| 0 \| 0 \| - \| - \| - \| - \| - \|$/m);
+});
+
+test('the report ends with an overall row per arm: runs, passes, errors and the mean Pass@1 and Pass^n over cases', () => {
+  const report = formatReport(summarise(result));
+
+  assert.match(report, /^\| overall \| with \| 2 \| 1 \| 0 \| 75% \| 50% \| 0% \| 50% \| - \|$/m);
+  assert.match(report, /^\| overall \| without \| 2 \| 0 \| 0 \| 25% \| 0% \| 0% \| - \| - \|$/m);
 });
 
 test('a result that is not an eval result is refused with the field that is wrong', () => {
