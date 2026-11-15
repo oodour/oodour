@@ -7,9 +7,9 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { storeDir } from './source-overlap.ts';
+import { storeDir, titledEntries } from './source-overlap.ts';
 
-const namedEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', '99bottles-js']);
+const namedEntries: ReadonlySet<string> = new Set([...titledEntries, '99bottles-js']);
 
 export interface EntryReport {
   readonly entry: string;

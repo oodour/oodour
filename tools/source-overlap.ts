@@ -36,7 +36,7 @@ export const permittedPhrases: readonly string[] = [
 
 // A work's title is a name, so the talk and article titles their indexes list are permitted.
 // A book's chapter headings are expression, so the book's index is not read for this.
-const titledEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written']);
+export const titledEntries: ReadonlySet<string> = new Set(['metz-talks', 'metz-written', 'owen-talks']);
 const indexNames: ReadonlySet<string> = new Set(['index.md', 'README.md']);
 const breakToken = '\u0000';
 

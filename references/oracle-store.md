@@ -8,6 +8,7 @@
 | `metz-talks/` | Transcripts of 21 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
 | `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/` | `.oracle/99bottles-js/index.md` |
+| `owen-talks/` | Caption transcripts of 2 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
 
 `.oracle/README.md` lists one line per entry: the title and its index path. It holds nothing else
 (no descriptions, no chapter lists), because every agent may read it.
@@ -40,7 +41,8 @@ Triaged from that repository's `.oracle/videos/index.md` (talk titles and descri
   second delivery at Beyond the Code 2016), the talk on persuading others (RubyConf 2017), and the
   talk on luck (RubyConf 2019). Import them with the same procedure if that changes.
 - **Not imported, related**: two talks by co-author Katrina Owen in the same store (Therapeutic
-  Refactoring, Cascadia Ruby 2012; Overkill, Ancient City Ruby 2014).
+  Refactoring, Cascadia Ruby 2012; Overkill, Ancient City Ruby 2014). Imported later the same day
+  into their own entry, `owen-talks/` (see below).
 - **Already present**: that repository's `99-bottles-2e-js/` is byte-identical to the entry of
   the same name here (renamed from `99-bottles/` on 2026-11-15, at Lars's request)
 
@@ -66,4 +68,22 @@ and its pagination. The `oracle-curator` agent fetched them.
 Lars: "The `sandimetz/99bottles_js` GitHub repo ... should also be sourced as a full clone for the
 oracle. Note that it uses a Yarn Classic (v1.x) lockfile." Cloned in full to
 `.oracle/99bottles-js/repo/` (298 commits, 559 tags). Nothing is installed; install with Yarn 1,
-not npm, if a run ever needs the dependencies. (same 30 files, same combined SHA-1 of per-file hashes).
+not npm, if a run ever needs the dependencies.
+
+### 2026-11-15: Katrina Owen's talks
+
+Asked whether to import Katrina Owen's two talks, Lars answered: "Yes." The curator copied both
+transcripts byte for byte from `lz-engineering-claude-plugins`' store into a new entry,
+`owen-talks/` (verified with `cmp`), since `metz-talks/` holds Sandi Metz's talks. Their titles
+count as permitted names in the overlap check, like the other talk and article titles.
+
+### 2026-11-15: working copies cleaned up
+
+The curators' fetches left working copies (captions, raw pages, JSON, code) in the session
+scratchpad, outside the store; a security review found them. The curator moved them into
+`.oracle/.staging/2026-11-15/`. Asked whether to delete them after checking that every work is
+filed in its entry, Lars answered: "Approve." The curator deleted the 261 files whose work is
+filed, and kept 52 whose work is not, pending Lars: two deliberately skipped scholarship posts and
+the raw blog listing that holds them, one deliberately skipped repository, a few unmatched pages,
+and captions of 19 videos that no entry holds. A curator now writes downloads and transcripts
+inside the store from the start. (same 30 files, same combined SHA-1 of per-file hashes).

@@ -67,6 +67,15 @@ test('a talk title listed in its index is a name, and the words after it still c
   ]);
 });
 
+test('a talk title in the co-author talks index is a name too', () => {
+  const dir = syntheticStore();
+  mkdirSync(join(dir, 'owen-talks'));
+  writeFileSync(join(dir, 'owen-talks', 'k1.md'), '# Patient Gardens Grow Slowly Under Careful Hands\n\nSome other words follow.');
+  writeFileSync(join(dir, 'owen-talks', 'index.md'), '| Talk | File |\n| --- | --- |\n| Patient Gardens Grow Slowly Under Careful Hands | `k1.md` |\n');
+
+  assert.deepEqual(findRuns('Her talk Patient Gardens Grow Slowly Under Careful Hands was good.', loadCorpus(6, dir)), []);
+});
+
 test('curly apostrophes and case do not hide a copy', () => {
   const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
   mkdirSync(join(dir, 'book'));
