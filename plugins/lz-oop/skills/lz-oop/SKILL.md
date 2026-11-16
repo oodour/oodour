@@ -5,7 +5,7 @@ description: Object-oriented design coach for JavaScript and TypeScript, based o
 
 # lz-oop: object-oriented design coach
 
-## Classify the request first
+## Classify each request first
 
 1. **Shape**: code that is about to be written, or existing code that must change for a new
    requirement.
@@ -24,9 +24,10 @@ module of functions or a record of closures can play a role as well as a class c
 
 Advise on a question; change code only on an explicit request to do so, then stop.
 
-This file only routes. Before you answer, Read each reference file the matching section below names for the
-request, and every further reference that file sends you to for the smell or practice at hand: the steps, the
-exceptions and the sources are there, not here. An answer written from this file alone is incomplete.
+This file only routes. Before you answer each request, follow-up questions included, Read each reference file the
+matching section below names for the request, and every further reference that file sends you to for the smell or
+practice at hand: the steps, the exceptions and the sources are there, not here. An answer written from this file
+alone is incomplete.
 
 ## Shape: new code, or code that must change
 
@@ -71,8 +72,9 @@ exceptions and the sources are there, not here. An answer written from this file
    return type across its senders in such steps, or to take a long method or function apart (above all one with no
    tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
-Answer with the recommended structure, the first small step, and the test that drives it. Stop there unless the
-developer asked you to change the code.
+Answer with the recommended structure, the first small step, the test that drives it, and the rules for taking each
+step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward. Stop there
+unless the developer asked you to change the code.
 
 ## Judge: one piece of existing code
 
@@ -90,6 +92,9 @@ smell you report before you recommend a cure.
   design, and say what in the design causes it.
 - Keeping a fake or other player of a role honest with one shared test, and writing that test in Vitest, Jest or
   `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
+
+Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns
+it green; for a question about testing an object, say what each test asserts and which collaborators get a stand-in.
 
 ## Explain
 

@@ -5,6 +5,10 @@ description: Object-oriented design audit of a JavaScript or TypeScript package,
 
 # lz-audit: design audit of a package or repository
 
+This file only routes. Read `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and for each smell you report the
+file its step 4 names, before you write the report; the cures and their steps are there, not here. If those reads
+are no longer in your context when you write the report, Read them again first.
+
 ## 1. Scope and map
 
 Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole
@@ -43,17 +47,16 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
     time is the worst case (Polly Want a Message, 2018);
   - complex but unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that
-    hides behind one message costs nothing until it has to change (the talk Go Ahead, Make a Mess, Rocky Mountain Ruby 2012);
+    hides behind one message costs nothing until it has to change (the talk Go Ahead, Make a Mess, Rocky Mountain
+    Ruby 2012);
   - simple: skip.
 
 ## 3. Judge the hot spots
 
 For the top hot spots, at most about ten, read the code, its callers and its tests, and judge each with
-`${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. This file only routes: Read judging-design.md, and for each
-smell you report the file its step 4 names, before you write the report; the cures and their steps are there, not
-here. Look across files too: the same type switch in several places (including a `switch` on one union's `kind` field),
-the same parameters passed together, and the same collaborator created in many classes are findings about the
-package, not about one file. Use `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's
+`${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. Look across files too: the same type switch in several places
+(including a `switch` on one union's `kind` field), the same parameters passed together, and the same collaborator
+created in many classes are findings about the package, not about one file. Use `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's
 idea needs its JavaScript or TypeScript form.
 
 ## 4. Report

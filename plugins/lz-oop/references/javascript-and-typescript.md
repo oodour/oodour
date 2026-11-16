@@ -176,10 +176,14 @@ the top of a module and used inside a class is a hidden dependency, and tests th
 to replace a whole module.
 
 ```ts
-export class Checkout {
-  #payments: PaymentGateway;
+interface CheckoutOptions {
+  readonly payments?: PaymentGateway;
+}
 
-  constructor(payments: PaymentGateway = new CardGateway()) {
+export class Checkout {
+  readonly #payments: PaymentGateway;
+
+  constructor({ payments = new CardGateway() }: CheckoutOptions = {}) {
     this.#payments = payments;
   }
 
@@ -200,8 +204,9 @@ export class Checkout {
 - Constructor parameter properties (`constructor(private payments: PaymentGateway)`) are not erasable; assign the
   field in the body.
 - In a framework with its own injection (Angular providers and `inject()`, NestJS providers), use it there.
-- When injection must wait, create the collaborator on first use in one private place, so the working methods never
-  name its class: a field `#gateway?: PaymentGateway` read only through
+- When injection must wait, create the collaborator on first use in one method, so the working methods never name
+  its class (*Practical Object-Oriented Design* isolates instance creation this way). The TypeScript form, which
+  also makes that method private, is this plugin's: a field `#gateway?: PaymentGateway` read only through
   `get #payments(): PaymentGateway { return (this.#gateway ??= new CardGateway()); }`.
 - When only the receiver knows what its collaborator needs to be built, inject a factory function typed by what the
   receiver wants back, and call it once: `constructor(quoteFor: (seats: number) => Quote)`. Steps and sources:
@@ -477,6 +482,6 @@ code.
 
 - ESLint core: `complexity` (default 20), `max-depth`, `max-lines-per-function`, `max-params`, `max-statements`.
 - `eslint-plugin-sonarjs`: `sonarjs/cognitive-complexity` (licensed LGPL-3.0).
-- No maintained tool computes the ABC metric for JavaScript or TypeScript; the older escomplex family has been idle
-  since 2022.
+- No maintained tool computed the ABC metric for JavaScript or TypeScript when this was written (2026); the older
+  escomplex family had seen no release since 2022. Check before relying on that.
 - Churn: count how often each file appears in `git log --format= --name-only`.

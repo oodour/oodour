@@ -3,6 +3,8 @@
 Use when you need a smell's name, how to spot it in JavaScript or TypeScript, its usual cure, or the leaf that
 holds that cure. judging-design.md step 2 sends you here.
 
+Contents: Bloaters; Object-oriented tools misused; Change preventers; Dispensables; Couplers; Outside the families.
+
 A smell has a precise meaning, but it only says where to look: it may point at a problem, and it proves none. Nothing
 obliges you to remove every smell, and code that never changes can keep its smells (the talk Get a Whiff of This,
 2016). Martin Fowler's *Refactoring*, 2nd edition, likewise gives no thresholds and leaves the call to the
@@ -18,7 +20,8 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
 
 - **Long Method** (*Refactoring* 2nd edition: Long Function): what matters is the gap between what a function is for
   and how it does it, not its line count (*Refactoring*). Cure and steps: Taking a long method apart in
-  [changing-in-steps.md](changing-in-steps.md); the size limits in the `lz-audit` skill say when to stop and look.
+  [changing-in-steps.md](changing-in-steps.md); the size limits in the `lz-audit` skill
+  ([SKILL.md](../skills/lz-audit/SKILL.md), step 2, Size limits) say when to stop and look.
 - **Large Class**: too many fields or too much code. Callers that each use only part of it show where to split it;
   Extract Class (*Refactoring*). Steps: Does it do one job? in [judging-design.md](judging-design.md).
 - **Primitive Obsession** and **Data Clumps**: [judging-design.md](judging-design.md), Primitive Obsession and More
@@ -75,7 +78,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
 - **Lazy Class** (*Refactoring* 2nd edition: Lazy Element, which covers functions too): a class or function that does
   too little to pay for itself, such as a class around one small function or a function whose name says no more than
   its body. Cure: Inline Class or Inline Function, and Collapse Hierarchy inside a class tree (*Refactoring*). A
-  one-line method that names its callers' goal is not lazy: see the `lz-review` skill, step 4.
+  one-line method that only forwards is not lazy when it names a goal of its callers that differs from the method it
+  calls: callers then need to know only its name, not the other method's arguments and their meaning (*99 Bottles of
+  OOP*).
 - **Speculative Generality**: structure for a need nobody has yet: a type parameter with one use, an optional
   parameter no caller passes, an abstract class with one subclass, code only tests call. Wait for the real requirement
   (Get a Whiff of This, 2016). Cure: Collapse Hierarchy, Inline Class or Inline Function, Change Function Declaration
@@ -102,8 +107,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
 - **Message Chains**: [dependencies-and-messages.md](dependencies-and-messages.md), Reaching through other objects.
 - **Middle Man**: a class whose methods mostly only forward, about half of them in *Refactoring*'s telling. Cure:
   Remove Middle Man, or Inline Function for a few forwarders (*Refactoring*). Forwarding as such is normal, and hiding
-  every link of a chain can create one (*Refactoring*). When a forwarding class still keeps a duty: the `lz-review`
-  skill, step 4.
+  every link of a chain can create one (*Refactoring*). A class that only relays calls stays when it keeps a duty of
+  its own, such as choosing which object to build, and may be unnecessary when it keeps none (the talks All the
+  Little Things, 2014, and Get a Whiff of This, 2016).
 
 ## Outside the families
 

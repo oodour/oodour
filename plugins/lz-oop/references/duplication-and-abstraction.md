@@ -3,6 +3,9 @@
 Use when two or more pieces of code look alike and someone wants to merge them, or when shared code
 keeps gaining parameters and branches as its callers diverge.
 
+Contents: Duplication you are tempted to remove; Shared code that callers keep bending; Making similar code
+identical, step by step; Separating what varies; Once an abstraction exists, use it everywhere; Naming.
+
 ## Duplication you are tempted to remove
 
 Every extraction hands the reader one more name to learn and one more place to look. Weigh that
@@ -52,19 +55,22 @@ first, because following the rules makes it appear.
 2. Locate the tiniest point where they still differ.
 3. Remove only that point, with the least edit you can, in four moves, with the tests run after
    each: add the new code so it parses, run it, use its result, then delete what it replaced.
-4. Keep each edit to about a line, and undo any edit that turns the tests red. A larger step that goes red shows a
-   gap in your understanding: undo it and go on in small steps until the picture clears. Confusion calls for still
-   smaller steps, which the book calls nibbles. An edit that only brings two lines a little closer, using methods
-   that already exist, is progress even before they match (the book).
-5. Repeat from step 1. A copy is removed only once it matches another character for character.
-6. A branch that has come to match the default branch goes in one deletion, and the conditional
+4. Keep each edit to about a line; the book treats that size as a guide, not a hard limit. Two lines need not match
+   after one edit: moving them a little closer with methods that already exist counts (the book).
+5. Undo any edit that turns the tests red, at once, instead of fixing forward, and try a better move. When the move
+   that failed was a big one, make the next one smaller; the book calls working in such small moves nibbling. Let the
+   size of each move follow how well you know the code: a bigger step that fails tells you that you knew less than
+   you thought (the book).
+6. Repeat from step 1. A copy is removed only once it matches another character for character.
+7. A branch that has come to match the default branch goes in one deletion, and the conditional
    stays for the branches that still differ. When the last branches match, collapse the conditional
    in two edits with the tests run after each: put one copy above the conditional, then delete the
    conditional (the book).
 
 Copies in two separate functions are the plugin's adaptation of the same rules. Make the bodies
 identical first: each function reaches its varying parts through calls of the same name, or through
-one object of parts. Then merge in edits of their own, with the tests after each:
+one object of parts. Then merge in edits of their own, with the tests after each and any edit that turns them red
+undone:
 
 1. Extract a shared function from the first copy, taking the varying parts as a parameter.
 2. Make the first function call it with its parts.
@@ -77,7 +83,9 @@ test no longer points at one change.
 
 Give each difference you remove a name one level above the concrete values it hides (the book);
 see Naming below. Done looks like: the copies became identical before any was deleted, the suite
-stayed green after every edit, and the name of each removed difference reads as a domain concept.
+ran after every edit and every edit that turned it red was undone, and the name of each removed difference reads as
+a domain concept. When you advise someone else, give them these working rules too: run the tests after every edit,
+and undo an edit that turns them red.
 
 Example (the plugin's own, in TypeScript). Two branches differ only in a word and a rate; each state
 below is green:

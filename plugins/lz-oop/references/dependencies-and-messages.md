@@ -4,6 +4,9 @@ Use when a class creates or looks up its own collaborators, when a method reache
 to another, when a sender walks a receiver through steps, or when a test needs a lot of setup to build the object
 under test.
 
+Contents: Message first; A public interface on purpose; Reaching through other objects (the Law of Demeter);
+Injecting collaborators; Which way a dependency points; Interfaces you do not own; What a receiver owes its senders.
+
 A class depends on another when a change to the other can force a change to it (*Practical Object-Oriented
 Design*). The book lists what one class can know about another, each one a dependency to keep to what the task
 needs:

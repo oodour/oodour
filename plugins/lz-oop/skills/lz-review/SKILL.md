@@ -5,6 +5,10 @@ description: Object-oriented design review of a change in JavaScript or TypeScri
 
 # lz-review: design review of a change
 
+This file only routes. Before you report a finding, Read the reference its question in step 3 names, and the file
+judging-design.md sends you to for its smell: the cure, its steps and its exceptions are there, not here. A finding
+written from this file alone is incomplete.
+
 ## 1. Scope
 
 Review what the developer names: uncommitted or staged changes, a commit, a branch against its base, or a pull
@@ -46,10 +50,6 @@ For each changed area, ask:
 Judge each candidate finding with `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and use
 `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or
 TypeScript form.
-
-This file only routes. Before you report a finding, Read the reference its question above names, and the file
-judging-design.md sends you to for its smell: the cure, its steps and its exceptions are there, not here. A
-finding written from this file alone is incomplete.
 
 ## 4. Report
 

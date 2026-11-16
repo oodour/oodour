@@ -3,6 +3,9 @@
 Use when someone asks what to assert in a unit test, whether to mock a collaborator, or how to test a
 private method.
 
+Contents: The message grid; Doubles (How far to mock); Testing a hierarchy; When a test resists being written; Unit
+tests and integration tests; Other guidance.
+
 *Practical Object-Oriented Design* judges a test by what it costs against what it saves: writing it, running it,
 and keeping it up to date as the code changes. When tests cost too much, the book's answer is to get better at
 testing, not to give it up; that includes removing duplicate tests and checking each behaviour in one place. The
@@ -70,8 +73,8 @@ Use when deciding whether a collaborator gets a double or the real object.
   cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
   the role. Where the two differ, this plugin follows *99 Bottles of OOP*. So a cheap collaborator that plays a role
   and is injected through the constructor or passed to a method, such as a clock, gets a fake, whether it answers
-  queries or receives commands; the bullet above covers data passed in and hidden command receivers, not injected role players (this
-  plugin's reconciliation).
+  queries or receives commands; the bullet above covers data passed in and hidden command receivers, not role
+  players handed in (this plugin's reconciliation).
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
   checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
   assertions on values for messages received from outside).

@@ -3,6 +3,10 @@
 Use when someone asks whether a class hierarchy should become composition, whether to add a
 subclass, or which relationship (a subclass, a role, or composed parts) fits a new kind.
 
+Contents: Inheritance is allowed; Choosing the relationship; When a hierarchy is safe to keep; When to move toward
+composition; From a conditional to subclasses; A new hierarchy of peers; Composing the parts; From subclasses to
+composed objects; Mixins.
+
 ## Inheritance is allowed
 
 Preferring composition is not a ban on inheritance (*99 Bottles of OOP*). Judge a hierarchy by its properties, not
@@ -133,7 +137,8 @@ an existing hierarchy into composed parts, see From subclasses to composed objec
 ## From a conditional to subclasses
 
 Use when one class keeps testing the same value in several methods and the cure chosen is subclasses.
-The steps follow *99 Bottles of OOP*; the wording is this plugin's.
+The steps follow *99 Bottles of OOP*; the wording is this plugin's. Run the tests after every step, and undo a step
+that turns them red.
 
 1. Make an empty subclass for one special value the conditionals test. With no reason to prefer one,
    start with the first. The parent keeps the default case.

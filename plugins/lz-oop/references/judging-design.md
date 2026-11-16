@@ -3,6 +3,9 @@
 Used by every skill in this plugin: by `lz-oop` for a question about one piece of code, by `lz-review` for each
 change in a change set, and by `lz-audit` for each hot spot in a package.
 
+Contents: steps 1-6; Smells and checks this leaf owns: The Squint Test; Is a class hiding inside this one?; Primitive
+Obsession; Consistency; Does it do one job?; More smells.
+
 1. Judge the code by what it costs to change, not by how it looks or by a metric alone. Ask what change is likely,
    and what this design would make that change cost. Code that works and will not change can stay as it is, however
    it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017;
@@ -34,6 +37,7 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
      through its steps, a return value callers must check: [dependencies-and-messages.md](dependencies-and-messages.md);
    - a class hierarchy: [inheritance.md](inheritance.md);
    - tests that are hard to write, or that mock too much: [testing-messages.md](testing-messages.md);
+   - a long method or function: Taking a long method apart in [changing-in-steps.md](changing-in-steps.md);
    - a class or method that does more than one job: Does it do one job? below;
    - a class you have not read yet, alike methods, a raw value standing for a domain idea, values that
      travel together, or a class carrying traces of where it was born: the checks below.

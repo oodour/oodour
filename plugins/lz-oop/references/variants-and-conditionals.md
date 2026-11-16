@@ -3,6 +3,10 @@
 Use when a conditional switches on a kind, type or status, when a new kind has to be added, or when a
 boolean or string argument steers what shared code does.
 
+Contents: Choosing versus doing; What a conditional's form tells the reader; Signs of a role nobody named; Adding a
+kind when the code switches on kinds; When two unrelated rules apply: make every case the same; Factory forms; Flag
+arguments.
+
 ## Choosing versus doing
 
 Sort each conditional into one of two groups (*99 Bottles of OOP*; the talk Polly Want a Message, 2018).
@@ -134,7 +138,10 @@ role's shared test; see Role tests in [javascript-and-typescript.md](javascript-
    other code repeats the choice (the book; Polly Want a Message, 2018).
 4. Move the branches one kind at a time: create the object for one kind, move that kind's branch
    into it, route that kind through the factory, run the tests, and repeat (the book).
-5. Then add the new kind test-first, as a new object and one entry in the factory.
+5. Then add the new kind test-first, as a new object and one entry in the factory. The new object runs the role's
+   shared test (Role tests in [javascript-and-typescript.md](javascript-and-typescript.md)), and the factory's test
+   gains one case that checks which object it returns for the new key (Unit tests per class in
+   [test-first.md](test-first.md)).
 6. A missing or default case is a kind too. Give it an object that answers the same messages and
    does the harmless thing, instead of checking for it at every call site (Nothing is Something,
    2015; the article The Shape at the Bottom of All Things, 2014).
@@ -148,7 +155,8 @@ changes later.
 ## When two unrelated rules apply: make every case the same
 
 Use when a conditional picks between two rules, and an object per rule would still leave something
-that has to choose between them.
+that has to choose between them. Run the tests after every step, and undo a step that turns them red (this plugin's
+working rule, as for every recipe here).
 
 1. Ask whether the rules are variants of one idea. If they are, give each its own object that plays
    one role and inject the one to use (see Adding a kind above). If they are two separate jobs that
@@ -221,3 +229,7 @@ what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013)
    than adding a flag and an `if` (the article Getting It Right By Betting On Wrong, 2014).
 5. Bundling the flags into an options object hides the count but keeps the branching; it is not the
    cure.
+
+Make each of these changes in green steps: run the tests after every edit, and undo an edit that turns them red.
+Done when the shared code takes no flag for the choice, each caller hands over the collaborator that does its part,
+and adding a caller's variant adds no `if` to the shared code (this plugin's Done line).
