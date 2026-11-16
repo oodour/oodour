@@ -247,3 +247,12 @@ On Lars's "1: OK" to importing `sandimetz/99bottles_ruby` the way `99bottles-js`
 `_milk` repositories left out), the curator cloned it (HEAD eed2603cf9, 2024-04-10; 294 commits on `main`; no
 licence file) and, in a heavy-lock slot, exported its 866 tags into `stages/<tag>/`: 4,330 files and 13,611,643
 bytes, matching `git ls-tree -r -l` per tag with no count mismatch.
+
+### 2026-11-16: a corrected *99 Bottles of OOP* build
+
+The refactoring-oracle session rebuilt the book (its `pandoc-clean.lua`, commit be307ac) to drop a stray trailing
+backslash that GFM rendered literally, and reported it with Lars's approval to propagate it in that session. Under the
+ruling above, the curator compared the build with `99-bottles-2e-js/` first: the same 30 files, three chapter files
+differing in 10 lines (1, 4 and 5), each by the trailing backslash only. It replaced those three files, checked the
+entry against the build with `diff -r`, and added the source and commit to the entry's `index.md`; all 19 indexed
+links resolve.
