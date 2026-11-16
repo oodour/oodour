@@ -105,9 +105,11 @@ shared heavy lock; the curator definition now asks for it.
 Later that day the oracle could not read the file: whisper had written the whole body as one line,
 longer than the Read tool's limit. The curator broke it at sentence ends into lines of at most 200
 characters, with the same 16,700 words before and after, and corrected the entry's intro, which
-still said 22 transcripts, to the 28 it indexes. Read in full after the reflow, the transcript stops
-partway through the panel, with no closing picks, against the 88 minutes its header gives; since the
-reflow kept every word, the cut comes from the transcription. A fresh whisper.cpp run of the tail is open.
+still said 22 transcripts, to the 28 it indexes. An oracle then reported that the transcript stops
+partway through the panel. On 2026-11-16 a fresh whisper.cpp run of the last 27 minutes of the audio
+(from the 60-minute mark) settled it: the stored file already ends with the same closing exchange as the
+audio, and the two runs differ only in wording, spread evenly through the tail. Nothing was appended;
+the earlier report was a misreading.
 
 ### 2026-11-15: sweep for audio, video and text
 
