@@ -292,6 +292,7 @@ test('a corpus folder that does not exist is refused with exit 2, not thrown as 
   t.mock.method(console, 'error', (line: string) => printed.push(line));
 
   assert.equal(main(['--corpus', join(dir, 'missing'), draft]), 2);
+  assert.deepEqual(printed, [`[ERROR] ${join(dir, 'missing')}: not a folder with text files to compare against`]);
 });
 
 test('a corpus folder inside the store is refused, so no file name inside an entry is printed', (t) => {
@@ -305,6 +306,23 @@ test('a corpus folder inside the store is refused, so no file name inside an ent
 
   assert.equal(main(['--corpus', join(store, 'book'), copy], store), 2);
   assert.equal(main(['--corpus', store, copy], store), 2);
+  assert.equal(
+    printed.at(-1),
+    '[ERROR] --corpus names the store or a folder inside it; leave --corpus out to check against the store',
+  );
+});
+
+test('a corpus folder that holds the store is checked, not refused as inside it', (t) => {
+  const parent = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  const store = join(parent, 'store');
+  mkdirSync(store);
+  writeFileSync(join(parent, 'page.md'), 'nothing in common with the draft at all here');
+  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'clean.md');
+  writeFileSync(draft, 'A fox leaps a sleepy hound.');
+  t.mock.method(console, 'log', () => undefined);
+  t.mock.method(console, 'error', () => undefined);
+
+  assert.equal(main(['--corpus', parent, draft], store), 0);
 });
 
 test('with --corpus the command checks against that folder instead of the store', (t) => {
