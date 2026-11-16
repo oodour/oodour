@@ -41,7 +41,10 @@ exceptions and the sources are there, not here. An answer written from this file
      `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`;
    - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
    - a raw number, string or boolean that stands for a domain idea and gets passed around:
-     `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession.
+     `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession;
+   - a requirement that lands on an already oversized class: build it as a new small object that works with that
+     class, not as one more branch inside it (the article Breaking Up the Behemoth, 2017; the talk All the Little
+     Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
    the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
    *99 Bottles of OOP*).

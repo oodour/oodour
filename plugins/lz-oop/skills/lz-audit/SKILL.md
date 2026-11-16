@@ -60,6 +60,11 @@ idea needs its JavaScript or TypeScript form.
 - Recommend an order of work. Code is opened up for a change that has actually been requested
   (*99 Bottles of OOP*); ranking the rest by the changes the history suggests will come next is this plugin's
   judgement, and the report says so.
+- For a class in the often-changed and complex quadrant, recommend that it stop growing: build each new piece of
+  behaviour as small new classes that work with it, even where they look out of place beside it (the article Breaking
+  Up the Behemoth, 2017). Having the big class send messages to them is this plugin's reading, in line with the
+  coordinating class of Polly Want a Message, 2018; the cures are in
+  `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - This is a report: change nothing. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.
 
 ## Sources and attribution
