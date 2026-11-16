@@ -72,8 +72,9 @@ Use when deciding which methods of a class are public, or when a class exposes m
 invitation to other objects, so they carry the class's purpose, change rarely, and are pinned down by tests that
 double as their documentation. Everything else is detail the class may rework whenever it likes; nothing outside
 should depend on it, and the tests can leave it alone, or test it apart from the public ones so that readers of the
-tests do not come to depend on it. This plugin takes the first option: private methods are covered through the
-public ones, and a separate test of private logic is only a temporary one, deleted the first time it fails (The
+tests do not come to depend on it. This plugin keeps private methods out of the lasting tests: they are covered
+through the public ones, and a separate test of private logic is only a temporary one, deleted the first time it
+fails (The
 message grid and Other guidance in [testing-messages.md](testing-messages.md)).
 
 For the public side, the same book asks for names that state the sender's goal rather than the receiver's procedure,
@@ -83,8 +84,7 @@ JavaScript and TypeScript that means everything not public is `#private` or unex
 [javascript-and-typescript.md](javascript-and-typescript.md); this plugin's form). When a sender moves from
 dictating steps to stating its goal (Message first, above), the receiver's step methods lose their outside callers:
 make them private, except a method a subclass overrides as a hook, which stays public or `protected` (Hooks and
-required steps in TypeScript, in
-[javascript-and-typescript.md](javascript-and-typescript.md)).
+required steps in TypeScript, in [javascript-and-typescript.md](javascript-and-typescript.md)).
 
 ## Reaching through other objects (the Law of Demeter)
 

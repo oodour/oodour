@@ -24,8 +24,9 @@ when it stops paying (the 2014 POODR Q&A).
   for an override's types: it may accept more than the parent's version and may return something narrower, never
   the reverse. In TypeScript an override whose result can be something the parent's cannot is an error. The input
   half is caught only in part: a method override with a narrower parameter type compiles, because method
-  parameters are checked bivariantly, while an added required parameter, or a narrower parameter on a hook typed as
-  a function-valued property, is an error under `strict` (measured with TypeScript 6.0.3; this plugin's note). Catch
+  parameters are checked bivariantly. An added required parameter is always an error, and a narrower parameter on a
+  hook typed as a function-valued property is one under `strict` (measured with TypeScript 6.0.3; this plugin's
+  note). Catch
   a narrowed method parameter in review or in the shared role test.
 
 ## Choosing the relationship
@@ -258,7 +259,7 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
     throws for a message every host must answer, a harmless value for an optional one.
   - Let each host supply its own values by answering those messages, so the mixin reads no host field.
   - Pass in any collaborator the mixin needs rather than creating it there. This rule is this plugin's,
-    not the book's; see the next paragraph.
+    not the book's; see the paragraph on the book's role module below.
 
   Those defaults work only when the mixin is a function that returns a subclass, so the host's own
   method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the

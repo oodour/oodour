@@ -61,7 +61,7 @@ Use when deciding whether a collaborator gets a double or the real object.
   everything makes the code fragile (SOLID Object-Oriented Design, 2009). For an outgoing command whose effect is
   cheap and close by, plugging in the real object is fine too; the further and costlier the effect, the more a mock
   at the nearest boundary pays (The Magic Tricks of Testing, 2013). In this plugin that covers a command receiver the
-  class creates itself and keeps hidden; one injected through the constructor follows the next bullet.
+  class creates itself and keeps hidden; one injected or passed to a method follows the next bullet.
 - **Fake an injected collaborator.** *99 Bottles of OOP* replaces a collaborator the class receives from outside
   with a fake, so the test tells the class's own story, and keeps the fake honest with the role test from Doubles.
   A small collaborator the class creates itself and keeps hidden may stay real until it grows. *Practical
@@ -69,8 +69,8 @@ Use when deciding whether a collaborator gets a double or the real object.
   players are costly to run, or when none has been written yet; use the real object when it is the role's only,
   cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
   the role. Where the two differ, this plugin follows *99 Bottles of OOP*. So a cheap collaborator that plays a role
-  and is injected through the constructor, such as a clock, gets a fake, whether it answers queries or receives
-  commands; the bullet above covers data passed in and hidden command receivers, not injected role players (this
+  and is injected through the constructor or passed to a method, such as a clock, gets a fake, whether it answers
+  queries or receives commands; the bullet above covers data passed in and hidden command receivers, not injected role players (this
   plugin's reconciliation).
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
   checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
