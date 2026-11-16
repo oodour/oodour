@@ -80,6 +80,16 @@ output), stop reading it, do not use it, and tell Lars.
   consumers that don't have the oracle or book available.").
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
+- For a JavaScript or TypeScript form, *99 Bottles of OOP* and its companion code decide first, then
+  any other Metz or Owen source written in JS/TS, then Fowler's *Refactoring*, 2nd edition (Lars,
+  2026-11-16: "99 Bottles is *the* authorative source on JS/TS as well as any other Metz/Owen source
+  using JS/TS, with Fowler's Reactoring 2e in a close second."). Every JS/TS choice that does not come
+  straight from Metz or Owen (this plugin's own idiom, a form taken from Fowler, a translation of a
+  Ruby idiom) must still comply with their principles, patterns and practices: gate it with
+  `oracle-reviewer` on a Metz or Owen entry, not only on the entry it came from (Lars, 2026-11-16:
+  "The important point is that any JS/TS choices not directly from Metz/Owens should comply with
+  their principles, patterns, and practices, including JS/TS choices rooted in Fowler's Refactoring
+  2e.").
 - Run `node tools/source-overlap.ts <file>` on any prose you wrote from an oracle answer before you
   commit it.
 
