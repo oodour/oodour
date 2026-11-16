@@ -249,6 +249,10 @@ test('a corpus folder outside the store can be named instead of the store', () =
   assert.equal(parseArgs(['--corpus', 'a.md']), undefined);
 });
 
+test('a --corpus with no folder after it is refused, not read as the store', () => {
+  assert.equal(parseArgs(['a.md', '--corpus']), undefined);
+});
+
 test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   const store = syntheticStore();
   const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
@@ -264,6 +268,43 @@ test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   assert.equal(main(['--min-words', '6', copy], store), 1);
   assert.equal(main([], store), 2);
   assert.ok(printed.every((line) => !line.includes('quick brown')), 'no matched text is printed');
+});
+
+test('a corpus folder with no text files in it is refused with exit 2, not reported clean', (t) => {
+  const empty = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const draft = join(dir, 'draft.md');
+  writeFileSync(draft, 'A fox leaps a sleepy hound.');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--corpus', empty, draft]), 2);
+  assert.ok(!printed.some((line) => line.startsWith('[OK]')), 'no clean verdict is printed');
+});
+
+test('a corpus folder that does not exist is refused with exit 2, not thrown as an overlap', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const draft = join(dir, 'draft.md');
+  writeFileSync(draft, 'A fox leaps a sleepy hound.');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--corpus', join(dir, 'missing'), draft]), 2);
+});
+
+test('a corpus folder inside the store is refused, so no file name inside an entry is printed', (t) => {
+  const store = syntheticStore();
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const copy = join(dir, 'copy.md');
+  writeFileSync(copy, 'the quick brown fox jumps over the lazy dog');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--corpus', join(store, 'book'), copy], store), 2);
+  assert.equal(main(['--corpus', store, copy], store), 2);
 });
 
 test('with --corpus the command checks against that folder instead of the store', (t) => {

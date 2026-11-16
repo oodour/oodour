@@ -12,7 +12,7 @@
 // that cannot be read (the other files are still checked and their runs printed).
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { basename, extname, join, relative, resolve, sep } from 'node:path';
+import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 // Not exported: an imported store path would let a script reach the store without naming it.
 const storeDir = resolve(import.meta.dirname, '..', '.oracle');
@@ -276,13 +276,13 @@ export function parseArgs(args: readonly string[]): Options | undefined {
     if (arg === '--min-words') {
       minWords = Number(rest.shift());
     } else if (arg === '--corpus') {
-      corpus = rest.shift();
+      corpus = rest.shift() ?? '';
     } else {
       files.push(arg);
     }
   }
 
-  if (files.length === 0 || !Number.isInteger(minWords) || minWords < handBackMinWords) {
+  if (files.length === 0 || corpus === '' || !Number.isInteger(minWords) || minWords < handBackMinWords) {
     return undefined;
   }
 
@@ -300,11 +300,37 @@ function readDraft(file: string): string | undefined {
   }
 }
 
+function isWithin(parent: string, folder: string): boolean {
+  const path = relative(resolve(parent), resolve(folder));
+
+  return path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
+}
+
+function hasTextFiles(folder: string): boolean {
+  try {
+    return listTextFiles(folder).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
   if (options === undefined) {
     console.error('usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]');
+
+    return 2;
+  }
+
+  if (options.corpus !== undefined && isWithin(dir, options.corpus)) {
+    console.error('[ERROR] --corpus names the store or a folder inside it; leave --corpus out to check against the store');
+
+    return 2;
+  }
+
+  if (options.corpus !== undefined && !hasTextFiles(options.corpus)) {
+    console.error(`[ERROR] ${options.corpus}: not a folder with text files to compare against`);
 
     return 2;
   }

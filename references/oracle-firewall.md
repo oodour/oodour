@@ -64,6 +64,11 @@ which is why the guard lets any agent run it.
   talks and written indexes are masked too: the cells of the column whose header is `Title` or
   `Talk` (the first column when no header says so), with two or more words and at least one letter,
   never a header row.
+- `--corpus <folder>` compares against an open source outside the store instead, such as the TypeScript
+  Handbook clone (see [agent-workflow.md](agent-workflow.md)), so a check against both is two runs. The
+  tool refuses a folder that is the store or lies inside it, since the entry label would then be a file
+  name from inside an entry, and refuses a folder that is missing or holds no text files, so a typo
+  never reads as a clean result. The `overlap` target checks only the store.
 - It catches verbatim overlap only. A close paraphrase passes it; that judgement stays with you and
   with `oracle-reviewer`.
 - A script that imports it learns no more than the command prints. The corpus `loadCorpus` returns
