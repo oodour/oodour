@@ -75,3 +75,22 @@ node tools/source-overlap.ts --corpus 'D:\projects\github\microsoft\TypeScript-W
 `lz-oop` stays independent of `lz-tdd` and every other plugin (c642f84); its test-first practices come
 from its own oracle-sourced references. lz-tdd still drives test-first work on this repository's code.
 Issues and findings about lz-tdd seen along the way go in [`lz-tdd-ledger.md`](lz-tdd-ledger.md).
+
+## Dogfooding the plugin
+
+Lars, 2026-11-16: "Can you use a slim `claude -p`-ish setup to dogfood lz-review?" Run the plugin on this
+repository's own history the way a user's session would see it, through the slim setup in
+`~/.claude/references/slim-claude-p.md`:
+
+1. Clone this repository under `D:/tmp/slim-claude-p/<run>`. The clone holds no store, since the store is
+   git-ignored.
+2. Delete `CLAUDE.md`, `AGENTS.md` and `.claude/` from the clone's working tree. With them, lz-review did not fire
+   (0 of 5 runs, against 3 of 3 without them), most likely because the firewall rules frame every commit as tooling
+   work (inferred).
+3. Run `run-slim.ts --offline --cwd <clone> --plugin-dir <clone>/plugins/lz-oop --prompt-file <file> --out <json>`
+   with a plain request, such as a design review of one commit or a design audit of one folder. Do not name the
+   skill: whether it fires is part of what the run measures.
+
+Each run cost $0.30 to $0.70 on Opus. Triage the findings before acting on them, and record the round in
+`plans/lz-oop-research/`. Reviews of code that drew on an oracle answer still go through `oracle-reviewer`; a dogfood
+run checks the plugin, not the sources.
