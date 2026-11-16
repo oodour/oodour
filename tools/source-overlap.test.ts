@@ -244,6 +244,11 @@ test('arguments parse into a threshold and files, and bad usage is refused', () 
   assert.equal(parseArgs(['--min-words', 'six', 'a.md']), undefined);
 });
 
+test('a corpus folder outside the store can be named instead of the store', () => {
+  assert.deepEqual(parseArgs(['--corpus', 'D:/handbook', 'a.md']), { minWords: 8, files: ['a.md'], corpus: 'D:/handbook' });
+  assert.equal(parseArgs(['--corpus', 'a.md']), undefined);
+});
+
 test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   const store = syntheticStore();
   const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
@@ -259,6 +264,39 @@ test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   assert.equal(main(['--min-words', '6', copy], store), 1);
   assert.equal(main([], store), 2);
   assert.ok(printed.every((line) => !line.includes('quick brown')), 'no matched text is printed');
+});
+
+test('with --corpus the command checks against that folder instead of the store', (t) => {
+  const other = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  mkdirSync(join(other, 'guide'));
+  writeFileSync(join(other, 'guide', 'page.md'), 'every class should own one reason to change in the code base');
+  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const copy = join(dir, 'copy.md');
+  writeFileSync(copy, 'They said every class should own one reason to change in practice.');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+
+  assert.equal(main(['--corpus', other, copy], syntheticStore()), 1);
+  assert.equal(main([copy], syntheticStore()), 0);
+  assert.ok(printed.includes(`${copy}: words 3-11 (9 words, entry guide)`));
+});
+
+test('with --corpus a clean verdict names the folder it checked, and the usage shows the option', (t) => {
+  const other = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  writeFileSync(join(other, 'page.md'), 'nothing in common with the draft at all here');
+  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'clean.md');
+  writeFileSync(draft, 'A fox leaps a sleepy hound.');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--corpus', other, draft], syntheticStore()), 0);
+  main([], syntheticStore());
+
+  assert.deepEqual(printed, [
+    `[OK] no run of 8+ words shared with ${other}`,
+    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]',
+  ]);
 });
 
 test('a draft that cannot be read is an error, exit 2, not an overlap', (t) => {
@@ -398,7 +436,7 @@ test('the command prints its usage, its verdict and its run count', (t) => {
     '[OK] no run of 8+ words shared with the store',
     `${copy}: words 1-9 (9 words, entry book)`,
     '[ERROR] 1 run(s)',
-    'usage: node tools/source-overlap.ts [--min-words N>=6] <file> [more files]',
+    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]',
   ]);
 });
 

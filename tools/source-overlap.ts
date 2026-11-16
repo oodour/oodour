@@ -1,10 +1,12 @@
-// Reports verbatim word runs shared between a text and the sealed store in `.oracle/`.
+// Reports verbatim word runs shared between a text and the sealed store in `.oracle/`, or with `--corpus`, an open
+// source kept outside the store (such as a clone of the TypeScript Handbook).
 // It never prints matched text: only a location, a run length and the store entry. That is
 // what makes it safe for any agent to run against the sealed store. Keep it that way.
 //
 // Usage:
 //   node tools/source-overlap.ts <file> [more files]
 //   node tools/source-overlap.ts --min-words 6 <file>
+//   node tools/source-overlap.ts --corpus <folder> <file>
 //
 // Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage or a file
 // that cannot be read (the other files are still checked and their runs printed).
@@ -261,22 +263,30 @@ export function describeRuns(runs: readonly Run[]): readonly string[] {
 interface Options {
   readonly minWords: number;
   readonly files: readonly string[];
+  readonly corpus?: string;
 }
 
 export function parseArgs(args: readonly string[]): Options | undefined {
   let minWords = draftMinWords;
+  let corpus: string | undefined;
   const files: string[] = [];
   const rest = [...args];
 
   for (let arg = rest.shift(); arg !== undefined; arg = rest.shift()) {
     if (arg === '--min-words') {
       minWords = Number(rest.shift());
+    } else if (arg === '--corpus') {
+      corpus = rest.shift();
     } else {
       files.push(arg);
     }
   }
 
-  return files.length > 0 && Number.isInteger(minWords) && minWords >= handBackMinWords ? { minWords, files } : undefined;
+  if (files.length === 0 || !Number.isInteger(minWords) || minWords < handBackMinWords) {
+    return undefined;
+  }
+
+  return corpus === undefined ? { minWords, files } : { minWords, files, corpus };
 }
 
 // Undefined, with the reason on stderr, when the file cannot be read.
@@ -294,12 +304,12 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
   if (options === undefined) {
-    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] <file> [more files]');
+    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]');
 
     return 2;
   }
 
-  const corpus = loadCorpus(options.minWords, dir);
+  const corpus = loadCorpus(options.minWords, options.corpus ?? dir);
   let found = 0;
   let unreadable = 0;
 
@@ -323,7 +333,7 @@ export function main(args: readonly string[], dir: string = storeDir): number {
 
   console.log(
     found === 0
-      ? `[OK] no run of ${String(options.minWords)}+ words shared with the store`
+      ? `[OK] no run of ${String(options.minWords)}+ words shared with ${options.corpus ?? 'the store'}`
       : `[ERROR] ${String(found)} run(s)`,
   );
 

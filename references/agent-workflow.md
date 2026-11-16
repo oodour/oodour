@@ -58,6 +58,18 @@ the plugin's wording and examples yourself, and keep the plugin's rules where th
 - A Ruby module shared by several classes becomes composition (an injected object playing a role), not a mixin
   copied onto a prototype.
 
+## The TypeScript Handbook
+
+Lars, 2026-11-16: "Keep the TypeScript Handbook out of the oracle store: Approve." and "Add an option to compare
+against a folder outside the store: Approve." Its docs are under Creative Commons Attribution 4.0, so it is read
+directly from the clone at `D:\projects\github\microsoft\TypeScript-Website` (`packages/documentation/copy/en/`),
+not through an oracle. The plugin restates what it takes in its own words and names the Handbook page. Check every
+plugin file that draws on it against the clone as well as the store:
+
+```sh
+node tools/source-overlap.ts --corpus 'D:\projects\github\microsoft\TypeScript-Website\packages\documentation\copy\en' <file>
+```
+
 ## The plugin itself
 
 `lz-oop` stays independent of `lz-tdd` and every other plugin (c642f84); its test-first practices come
