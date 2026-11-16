@@ -81,6 +81,25 @@ test('each plugin manifest becomes a project named after the plugin, with its Ma
   );
 });
 
+test("the overlap check also covers each of the plugin's eval case folders that exists", async () => {
+  const workspaceRoot = mkdtempSync(join(tmpdir(), 'nodes-'));
+  writeTree(workspaceRoot, {
+    'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
+    'plugins/demo/README.md': 'readme',
+    'evals/demo/case-a/prompt.md': 'prompt',
+  });
+
+  const results = await createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, {
+    workspaceRoot,
+    nxJsonConfiguration: {},
+  });
+
+  assert.equal(
+    results[0]?.[1].projects?.['plugins/demo']?.targets?.['overlap']?.command,
+    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo',
+  );
+});
+
 test('a manifest without a name is refused', () => {
   const workspaceRoot = mkdtempSync(join(tmpdir(), 'nodes-'));
   writeTree(workspaceRoot, { 'plugins/demo/.claude-plugin/plugin.json': '{}' });

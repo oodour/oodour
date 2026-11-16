@@ -312,6 +312,19 @@ test('a corpus folder inside the store is refused, so no file name inside an ent
   );
 });
 
+test('a folder named as a draft checks every text file below it', (t) => {
+  const drafts = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  mkdirSync(join(drafts, 'case'));
+  writeFileSync(join(drafts, 'case', 'prompt.md'), 'the quick brown fox jumps over the lazy dog');
+  writeFileSync(join(drafts, 'clean.md'), 'A fox leaps a sleepy hound.');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main(['--min-words', '6', drafts], syntheticStore()), 1);
+  assert.deepEqual(printed, [`${join(drafts, 'case', 'prompt.md')}: words 1-9 (9 words, entry book)`, '[ERROR] 1 run(s)']);
+});
+
 test('a corpus folder that holds the store is checked, not refused as inside it', (t) => {
   const parent = mkdtempSync(join(tmpdir(), 'open-corpus-'));
   const store = join(parent, 'store');
@@ -354,7 +367,7 @@ test('with --corpus a clean verdict names the folder it checked, and the usage s
 
   assert.deepEqual(printed, [
     `[OK] no run of 8+ words shared with ${other}`,
-    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]',
+    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file or folder> [more]',
   ]);
 });
 
@@ -495,7 +508,7 @@ test('the command prints its usage, its verdict and its run count', (t) => {
     '[OK] no run of 8+ words shared with the store',
     `${copy}: words 1-9 (9 words, entry book)`,
     '[ERROR] 1 run(s)',
-    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]',
+    'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file or folder> [more]',
   ]);
 });
 

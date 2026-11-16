@@ -1,4 +1,4 @@
-import { cpSync, globSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, globSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join, posix, sep } from 'node:path';
 import type { CreateNodes, TargetConfiguration } from '@nx/devkit';
 
@@ -22,8 +22,12 @@ export const createNodes: CreateNodes = [
       const markdown = globSync('**/*.md', { cwd: join(workspaceRoot, root) })
         .map((file) => posix.join(root, file.replaceAll(sep, '/')))
         .sort();
+      const evalFolders = [`evals/${name}`, `evals/${name}-real`].filter((folder) => existsSync(join(workspaceRoot, folder)));
 
-      return [manifest, { projects: { [root]: { name, targets: pluginTargets(root, name, markdown) } } }] as const;
+      return [
+        manifest,
+        { projects: { [root]: { name, targets: pluginTargets(root, name, markdown, evalFolders) } } },
+      ] as const;
     }),
 ];
 
@@ -58,6 +62,7 @@ export function pluginTargets(
   root: string,
   name: string,
   markdown: readonly string[],
+  evalFolders: readonly string[] = [],
 ): Record<string, TargetConfiguration> {
   const evals = `evals/${name}`;
   const assembled = `dist/eval/${name}`;
@@ -83,8 +88,9 @@ export function pluginTargets(
       outputs: [],
     },
     // The store is git-ignored, so Nx cannot hash it: a cached pass could hide a source added since.
+    // Eval folders go in whole: listing their files would pass the Windows command-line limit.
     overlap: {
-      command: ['node tools/source-overlap.ts --min-words 6', ...markdown].join(' '),
+      command: ['node tools/source-overlap.ts --min-words 6', ...markdown, ...evalFolders].join(' '),
       cache: false,
     },
     citations: {

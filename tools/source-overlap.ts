@@ -5,13 +5,14 @@
 //
 // Usage:
 //   node tools/source-overlap.ts <file> [more files]
+//   node tools/source-overlap.ts <folder>   (every text file below it)
 //   node tools/source-overlap.ts --min-words 6 <file>
 //   node tools/source-overlap.ts --corpus <folder> <file>
 //
 // Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage or a file
 // that cannot be read (the other files are still checked and their runs printed).
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 // Not exported: an imported store path would let a script reach the store without naming it.
@@ -300,6 +301,10 @@ function readDraft(file: string): string | undefined {
   }
 }
 
+function draftFiles(path: string): readonly string[] {
+  return statSync(path, { throwIfNoEntry: false })?.isDirectory() === true ? listTextFiles(path) : [path];
+}
+
 function isWithin(parent: string, folder: string): boolean {
   const path = relative(resolve(parent), resolve(folder));
 
@@ -318,7 +323,7 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
   if (options === undefined) {
-    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file> [more files]');
+    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file or folder> [more]');
 
     return 2;
   }
@@ -339,7 +344,7 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   let found = 0;
   let unreadable = 0;
 
-  for (const file of options.files) {
+  for (const file of options.files.flatMap(draftFiles)) {
     const text = readDraft(file);
 
     if (text === undefined) {

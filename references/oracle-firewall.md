@@ -69,6 +69,9 @@ which is why the guard lets any agent run it.
   tool refuses a folder that is the store or lies inside it, since the entry label would then be a file
   name from inside an entry, and refuses a folder that is missing or holds no text files, so a typo
   never reads as a clean result. The `overlap` target checks only the store.
+- A folder given in place of a file checks every text file below it. The `overlap` target uses this to
+  check the plugin's eval cases (`evals/<plugin>/` and `evals/<plugin>-real/`) along with the plugin's
+  Markdown, because listing every case file would pass the Windows command-line limit.
 - It catches verbatim overlap only. A close paraphrase passes it; that judgement stays with you and
   with `oracle-reviewer`.
 - A script that imports it learns no more than the command prints. The corpus `loadCorpus` returns
