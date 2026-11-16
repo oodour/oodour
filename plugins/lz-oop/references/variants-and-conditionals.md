@@ -203,6 +203,13 @@ searched for and fail quietly on a typo (the book).
   For a discriminated union, the map can be keyed on its tag, `Record<Message['kind'], ...>`. The
   example is in Choosing a variant: the factory map, in
   [javascript-and-typescript.md](javascript-and-typescript.md). This form is the plugin's.
+- **Let the branches only pick a class.** Have each branch of a conditional factory choose a class and nothing more,
+  with one construction call after the conditional. The choosing part can then become a `switch`, a map or a
+  candidate list without touching how the object is built (*99 Bottles of OOP* and its companion code; the reason
+  is this plugin's reading).
+- **A catch-all candidate goes last.** In a candidate list, a default that claims every key stays at the end, so it
+  answers only when no other candidate did; registration puts new kinds at the front, ahead of it (*99 Bottles of
+  OOP*).
 - **Name the message, not the receiver.** Keep the receiver's type out of a message's name: the
   sender should not need to know which kind it holds, and a name that repeats the type breaks when
   the type is renamed. A generic factory name (`for`, `create`) lets one factory stand in for another

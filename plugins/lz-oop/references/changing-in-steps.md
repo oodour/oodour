@@ -5,8 +5,8 @@ method returns or accepts, in code that has several callers or several implement
 into small edits that each end on green, so the code could ship after any of them (*99 Bottles of OOP*). The
 numbered steps are this plugin's restatement of the book's moves; the TypeScript examples are this plugin's own.
 
-Contents: The four stages of one edit; Adding a parameter: Gradual Cutover; Removing a parameter; Accepting two kinds
-for a while; Taking a long method apart.
+Contents: The four stages of one edit; Adding a parameter: Gradual Cutover; Removing a parameter; Renaming a field;
+Accepting two kinds for a while; Taking a long method apart.
 
 ## The four stages of one edit
 
@@ -21,6 +21,12 @@ After each stage run the tests. On red, undo and take a smaller step rather than
 time; the steps may grow with practice and shrink again after a failure (the book). An editor-wide replace across
 many lines counts as one step when one undo reverses it (the book). Finish the path you are on before you follow a
 side idea (the book).
+
+A way to reach stage 3 in one edit: put the new code above the old body and return its result early, so the old body
+stays in place but can no longer run, then delete it as stage 4. A conditional can change the same way: write its new
+form above the old one, and let the old one keep deciding until the new form is ready to take over. *99 Bottles of
+OOP* gives the reason: the old path stays a quick way back to green if the new one fails. The book and its companion
+code both do this.
 
 Done: the old code is gone, the tests are unchanged and green, and every stage between was green too.
 
@@ -89,13 +95,33 @@ callers exist.
 
 Done: no caller passes the argument, the signature has no parameter, and the temporary check is gone.
 
+## Renaming a field
+
+Use when a field's name no longer says what it holds. *99 Bottles of OOP* and its companion code take these steps in
+this order; the pace in step 2 and the options-object case in step 4 are this plugin's.
+
+1. Make the constructor fill both the old and the new field from the same argument.
+2. Switch each reader over to the new field separately, running the tests after each switch.
+3. Delete the old field once nothing reads it.
+4. Rename the constructor parameter to match. Where callers pass it by name in an options object, move them over as
+   in Adding a parameter: Gradual Cutover.
+
+TypeScript: once the old field is deleted, `tsc` reports every reader you missed; an editor's rename does steps 1 to
+3 as one undoable edit when every reader is in the project. JavaScript note: nothing lists missed readers; search for
+the old name, bracket access with a string included.
+
+Done: one field under the new name, no reader of the old one, and the tests green after every step.
+
 ## Accepting two kinds for a while
 
 Use when the kind of value a polymorphic method returns, or a constructor accepts, has to change, and several
 implementors and callers depend on the old kind (*99 Bottles of OOP*, once for a return value and once for a
 constructor argument).
 
-1. Put the factory that builds the new kind where every implementor can reach it.
+1. Put the factory that builds the new kind where every implementor can reach it. When it sits in a client and the
+   implementors are subclasses, move it onto the parent as a static method, switching its callers one at a time; a
+   parent method that produces the next instance can then call it and return an object instead of a raw value
+   (*99 Bottles of OOP* and its companion code).
 2. Let the receiving side accept both kinds: convert an old one through the factory, pass a new one through.
 3. Convert the implementors one at a time, green after each.
 4. Convert the callers. Where you are unsure, keep the old line beside the new one until the tests pass, then delete
