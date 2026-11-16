@@ -32,6 +32,17 @@ exhaustiveness checks.
 - **Exhaustiveness does not change that.** A `satisfies never` check, or the
   `@typescript-eslint/switch-exhaustiveness-check` rule, lists every `switch` a new kind must edit. It
   removes none of the edits.
+- **A `switch` a framework or boundary requires is a factory at the edge**: a reducer, a message or event
+  dispatcher, a command-line or HTTP router. Each branch only picks the handler object, and every handler
+  answers one shared message and reads the raw input itself; the branch translates nothing. A typed table
+  (`satisfies Record<Kind, Handler>`) or handlers that each say whether they take an input are the same
+  choice in another form. A reducer branch that computes the next state does the work: the smell above.
+  This plugin's research found no source on reducers, routers or dispatchers, so this is its own
+  application of three things the sources do say: the book builds objects near the edge from raw input
+  and uses them further in; outside input becomes an object as early as possible (The Shape at the
+  Bottom of All Things, 2014); and a switch, a lookup table and a naming-convention lookup are one
+  conditional written three ways (the book), with a name-to-class table counted as configuration rather
+  than logic (All the Little Things, 2014).
 
 ## What a conditional's form tells the reader
 
