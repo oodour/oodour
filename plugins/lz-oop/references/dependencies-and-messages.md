@@ -72,15 +72,18 @@ Use when deciding which methods of a class are public, or when a class exposes m
 invitation to other objects, so they carry the class's purpose, change rarely, and are pinned down by tests that
 double as their documentation. Everything else is detail the class may rework whenever it likes; nothing outside
 should depend on it, and the tests can leave it alone, or test it apart from the public ones so that readers of the
-tests do not come to depend on it.
+tests do not come to depend on it. This plugin takes the first option: private methods are covered through the
+public ones, and a separate test of private logic is only a temporary one, deleted the first time it fails (The
+message grid and Other guidance in [testing-messages.md](testing-messages.md)).
 
 For the public side, the same book asks for names that state the sender's goal rather than the receiver's procedure,
 names you expect to keep, and named arguments (an options object; Parameter lists and options objects in
 [javascript-and-typescript.md](javascript-and-typescript.md)). It also asks that the split be plain to see. In
-JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in the same
-file; this plugin's form). When a sender moves from dictating steps to stating its goal (Message first, above), the
-receiver's step methods lose their outside callers: make them private, except a method a subclass overrides as a
-hook, which stays public or `protected` (Hooks and required steps in TypeScript, in
+JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in
+[javascript-and-typescript.md](javascript-and-typescript.md); this plugin's form). When a sender moves from
+dictating steps to stating its goal (Message first, above), the receiver's step methods lose their outside callers:
+make them private, except a method a subclass overrides as a hook, which stays public or `protected` (Hooks and
+required steps in TypeScript, in
 [javascript-and-typescript.md](javascript-and-typescript.md)).
 
 ## Reaching through other objects (the Law of Demeter)
@@ -180,9 +183,9 @@ Use when code calls a library, a framework or a collaborator whose interface may
    exception to waiting for duplication; keep it for the messages most likely to change (the book).
 3. When you cannot inject a collaborator yet, isolate its creation: build it in the constructor, or on first use in
    a dedicated method that builds it once. Either keeps creation out of the method that does the work and makes
-   the dependency visible, though the class still knows its collaborator's class (the book). The SOLID talk (2009) then turns that
-   creation into a constructor argument whose default is the new instance. TypeScript form (this plugin's): a
-   `#field` set with `??=` in a private getter.
+   the dependency visible, though the class still knows its collaborator's class (the book). The SOLID talk (2009)
+   then turns that creation into a constructor argument whose default is the new instance. TypeScript form (this
+   plugin's): a `#field` set with `??=` in a private getter.
 4. When only the receiver knows an argument needed to build its collaborator, so the caller cannot pass a ready
    instance, inject the class instead and send it one message that asks for the result the receiver wants, with
    creation hidden behind it. Creating an object is a message too, so creating one and then asking it for something

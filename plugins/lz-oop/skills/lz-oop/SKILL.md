@@ -108,8 +108,8 @@ languages differ.
 
 Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
 (credited by title, its practices by name), from her *Practical Object-Oriented Design*, 2nd edition (credited the
-same way; where it and *99 Bottles of OOP* disagree, this plugin follows *99 Bottles of OOP*), and from her talks and
-articles (cited by title, with the year where it is known); ideas credited to Katrina Owen come from her talks (cited
-the same way). Every text in this plugin is
-written in its own words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
+same way; where it and *99 Bottles of OOP* disagree, this plugin follows *99 Bottles of OOP* unless a reference says
+otherwise and why), and from her talks and articles (cited by title, with the year where it is known); ideas
+credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is written in its own
+words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
 own adaptation and is marked so.

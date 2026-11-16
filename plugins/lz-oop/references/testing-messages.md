@@ -57,10 +57,11 @@ Use when deciding whether a collaborator gets a double or the real object.
   behind your own object is in [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not
   own.
 - **Use the real object when it is cheap.** A collaborator with nothing external behind it, that runs fast and only
-  holds data, such as a value object passed in as an argument, goes into the test as itself; trying to mock everything makes the code fragile
-  (SOLID Object-Oriented Design, 2009). For an outgoing command whose effect is cheap and close by, plugging in the
-  real object is fine too; the further and costlier the effect, the more a mock at the nearest boundary pays (The
-  Magic Tricks of Testing, 2013).
+  holds data, such as a value object passed in as an argument, goes into the test as itself; trying to mock
+  everything makes the code fragile (SOLID Object-Oriented Design, 2009). For an outgoing command whose effect is
+  cheap and close by, plugging in the real object is fine too; the further and costlier the effect, the more a mock
+  at the nearest boundary pays (The Magic Tricks of Testing, 2013). In this plugin that covers a command receiver the
+  class creates itself and keeps hidden; one injected through the constructor follows the next bullet.
 - **Fake an injected collaborator.** *99 Bottles of OOP* replaces a collaborator the class receives from outside
   with a fake, so the test tells the class's own story, and keeps the fake honest with the role test from Doubles.
   A small collaborator the class creates itself and keeps hidden may stay real until it grows. *Practical
@@ -68,8 +69,9 @@ Use when deciding whether a collaborator gets a double or the real object.
   players are costly to run, or when none has been written yet; use the real object when it is the role's only,
   cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
   the role. Where the two differ, this plugin follows *99 Bottles of OOP*. So a cheap collaborator that plays a role
-  and is injected through the constructor, such as a clock, gets a fake; the bullet above covers data passed in, not
-  role players (this plugin's reconciliation).
+  and is injected through the constructor, such as a clock, gets a fake, whether it answers queries or receives
+  commands; the bullet above covers data passed in and hidden command receivers, not injected role players (this
+  plugin's reconciliation).
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
   checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
   assertions on values for messages received from outside).
@@ -121,9 +123,9 @@ This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
 - A test that only restates what the code returns verbatim, such as a method that returns a fixed string, checks
   nothing that could break on its own: it must be edited whenever the code is. Let that method run inside another
   class's tests instead (the book).
-- *99 Bottles of OOP*'s default is a test for every public method of every class. It offers, tentatively, a looser reading of
-  full coverage: every line runs under the unit tests, not one test per public method. Leaving a class without
-  its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
+- *99 Bottles of OOP*'s default is a test for every public method of every class. It offers, tentatively, a looser
+  reading of full coverage: every line runs under the unit tests, not one test per public method. Leaving a class
+  without its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
   (the book).
 
 ## Other guidance

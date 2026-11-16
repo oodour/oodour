@@ -157,7 +157,7 @@ small objects; the talk SOLID Object-Oriented Design, 2009, extracts and injects
 methods out is this plugin's reading: when a group of them leans on the same few values. For the steps of
 Extract Class, see Primitive Obsession above. *99 Bottles of OOP* argues for leaving a short method that works alone
 while nothing asks for a change, yet treats the split as a judgment call: an unrequested change is a bet, and one
-that loosens coupling is worth making even then. Weigh the split against step 1 of this leaf.
+that loosens coupling is worth making even then. Weigh the split against the leaf's opening step 1.
 
 When you are already changing the class and the second job is plainly separate, split it now: *Practical
 Object-Oriented Design* warrants a separate class once enough is known, and limiting that to code under change is

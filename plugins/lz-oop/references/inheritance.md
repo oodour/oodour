@@ -22,10 +22,11 @@ when it stops paying (the 2014 POODR Q&A).
   to subclasses: answer the message, and return one kind of thing the sender can trust (see
   [dependencies-and-messages.md](dependencies-and-messages.md)). *Practical Object-Oriented Design* states the rule
   for an override's types: it may accept more than the parent's version and may return something narrower, never
-  the reverse. In TypeScript the compiler enforces the return half only: an override whose result can be something
-  the parent's cannot is an error, while an override that accepts less than the parent's method is allowed, even
-  under `strict` (measured with TypeScript 6.0.3; this plugin's note). Catch the input half in review or in the
-  shared role test.
+  the reverse. In TypeScript an override whose result can be something the parent's cannot is an error. The input
+  half is caught only in part: a method override with a narrower parameter type compiles, because method
+  parameters are checked bivariantly, while an added required parameter, or a narrower parameter on a hook typed as
+  a function-valued property, is an error under `strict` (measured with TypeScript 6.0.3; this plugin's note). Catch
+  a narrowed method parameter in review or in the shared role test.
 
 ## Choosing the relationship
 
@@ -151,17 +152,20 @@ conditional stays (the book).
 
 ## A new hierarchy of peers
 
-Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. When
-one kind is the default and the others are special values, use From a conditional to subclasses instead, where the
-parent stays concrete (*99 Bottles of OOP*). That holds even before any conditional exists, when the new kind is
-plainly a special case of the existing one: the class stays the parent and keeps the default, and the new subclass
-overrides each member whose default is wrong for it, each override pinned by a test (this plugin's reading). The
-steps follow *Practical Object-Oriented Design* and Sandi Metz's
-public example code for it; the numbering and the test runs are this plugin's.
+Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. To tell
+which case you have, ask of each public member of the existing class whether it holds for the new kind as written,
+or with only a different value. When every member does, the new kind only specialises the old: keep the existing
+class as the concrete parent with its defaults, and let the new subclass override each member whose value is
+wrong for it, each override pinned by a test, as From a conditional to subclasses does when one kind is the default
+(*99 Bottles of OOP*). When a member is wrong for the new kind in what it does, or means nothing for it, the kinds
+are peers, and the steps below apply (this plugin's reading).
 
-Do not put the new kind straight under the working class. That class was written for one kind, so the new subclass
-inherits behaviour that is true of the first kind only, and senders soon have to check which kind they hold. The
-book treats this as a mistake.
+For peers, do not put the new kind straight under the working class. That class was written for one kind, so the
+new subclass inherits behaviour that is true of the first kind only, and senders soon have to check which kind they
+hold. *Practical Object-Oriented Design* treats subclassing a working concrete class this way as a mistake and makes
+no exception for special cases; the special-case route above departs from it and follows *99 Bottles of OOP*, as
+this plugin does where the two books differ. The steps follow *Practical Object-Oriented Design* and Sandi Metz's
+public example code for it; the numbering and the test runs are this plugin's.
 
 1. Add a subclass named for the existing kind, and move all of the class's code down into it, leaving the parent
    empty. Point every place that creates the class at the subclass (with a factory, that is one edit). Run the
@@ -253,7 +257,8 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
   - Declare every message the mixin sends to its host. The mixin supplies a default for each: one that
     throws for a message every host must answer, a harmless value for an optional one.
   - Let each host supply its own values by answering those messages, so the mixin reads no host field.
-  - Pass in any collaborator the mixin needs rather than creating it there.
+  - Pass in any collaborator the mixin needs rather than creating it there. This rule is this plugin's,
+    not the book's; see the next paragraph.
 
   Those defaults work only when the mixin is a function that returns a subclass, so the host's own
   method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the
