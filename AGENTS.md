@@ -97,6 +97,13 @@ output), stop reading it, do not use it, and tell Lars.
   "The important point is that any JS/TS choices not directly from Metz/Owens should comply with
   their principles, patterns, and practices, including JS/TS choices rooted in Fowler's Refactoring
   2e.").
+- The plugin may use a language feature or API that is a TC39 proposal TypeScript supports today, Widely Available
+  in Web Platform Baseline, or available in the latest major Node.js LTS version (Lars, 2026-11-16: "lz-oop may use a
+  TC39 proposal that works with TypeScript today or is Widely Available per Web Platform Baseline", then "...or
+  available in the latest major Node.js LTS version"). Claude's reading: TypeScript supports a proposal when it
+  compiles the syntax or ships the API's types; a feature allowed on one ground only still needs a runtime that has
+  it, so say which runtimes lack it. Check status in the `web-platform-dx/web-features` data and the latest LTS line
+  of `https://nodejs.org/dist/index.json`, not from memory.
 - Run `node tools/source-overlap.ts <file>` on any prose you wrote from an oracle answer before you
   commit it.
 
