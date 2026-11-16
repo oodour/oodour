@@ -140,7 +140,8 @@ committed on its own. The steps below restate hers; the TypeScript example is th
 4. When the extractions are done, make a separate pass that removes what she calls code junk: noise that adds nothing
    to understanding, such as comments that repeat or contradict the code, dead code kept for history, imports the
    code never uses, and work the language already does for you. Small pieces of it left in place pile up into the
-   kind of method you started from.
+   kind of method you started from. The pass belongs to this change, not to a later clean-up: make it before you add
+   the new behaviour, in commits of its own so the review stays easy (this ordering is the plugin's).
 
 ```ts
 // Step 1: the method moved into its own class; the old function only delegates
