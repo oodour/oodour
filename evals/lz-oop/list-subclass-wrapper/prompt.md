@@ -4,9 +4,9 @@ max_turns: 8
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-I wrote `class LineItems extends Array<LineItem>` so an order's items can have `total()`. Now `filter` behaves
-oddly in places (we pass the items to its constructor), and a teammate wants `sortByPrice`, `first` and `isEmpty`
-on it too. Where does this end? Don't change any code yet.
+I wrote `class LineItems extends Array<LineItem>` so an order's items can have `total()`. Now `filter` and `map` on
+it throw a `TypeError`, and a teammate wants `sortByPrice`, `first` and `isEmpty` on it too. Where does this end?
+Don't change any code yet.
 
 ```ts
 export class LineItems extends Array<LineItem> {
