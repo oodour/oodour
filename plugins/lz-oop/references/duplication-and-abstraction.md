@@ -52,7 +52,10 @@ first, because following the rules makes it appear.
 2. Locate the tiniest point where they still differ.
 3. Remove only that point, with the least edit you can, in four moves, with the tests run after
    each: add the new code so it parses, run it, use its result, then delete what it replaced.
-4. Keep each edit to about a line, and undo any edit that turns the tests red.
+4. Keep each edit to about a line, and undo any edit that turns the tests red. A larger step that goes red shows a
+   gap in your understanding: undo it and go on in small steps until the picture clears. Confusion calls for still
+   smaller steps, which the book calls nibbles. An edit that only brings two lines a little closer, using methods
+   that already exist, is progress even before they match (the book).
 5. Repeat from step 1. A copy is removed only once it matches another character for character.
 6. A branch that has come to match the default branch goes in one deletion, and the conditional
    stays for the branches that still differ. When the last branches match, collapse the conditional

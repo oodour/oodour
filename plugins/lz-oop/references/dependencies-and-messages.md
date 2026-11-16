@@ -10,6 +10,24 @@ it (the talks Less, the Path to Better Design, 2011, and Go Ahead, Make a Mess, 
 wishful thinking, from *99 Bottles of OOP*). A sender that walks a receiver through the steps of a job
 knows how the job is done, and so depends on it.
 
+To find the objects and messages before writing code, or when you cannot decide what to test first, sketch a
+sequence diagram on a whiteboard: it shows the design at the level that matters and is cheap to change, since there
+is no code yet to grow attached to (the talk Fireside Chat, 2015). Draw it loosely, not as strict UML, and erase it
+afterwards (Less, 2011). In the diagram, a sender that gives a receiver a series of step-by-step instructions knows
+too much; after the fix it sends one message that names its goal (Less, 2011). Go Ahead, Make a Mess (2012) also adds
+markers for what each sender knows, and how stable that knowledge is.
+
+When the receiver does not exist yet, code by wishful thinking, as the book does (it credits the idea to Abelson
+and Sussman's book on programming in Scheme):
+
+1. Write the call the sender would like to make, commented out, since nothing answers it yet.
+2. Build the receiver while nothing calls it. The suite stays green, but that shows only that the new code parses.
+3. Turn the call on, run the tests, then delete the old path.
+
+These steps are larger and riskier than the book's finer-grained recipes, because the new code is not proven until
+it is used. On red, undo, and go back to smaller steps or test-drive the new class. The technique suits pulling out a
+class that needs light edits; one that needs heavy rework is better test-driven from the start (the book).
+
 ## Reaching through other objects (the Law of Demeter)
 
 The rule comes from a 1988 paper by Lieberherr, Holland and Riel, which *99 Bottles of OOP* lists among

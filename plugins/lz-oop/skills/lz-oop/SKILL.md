@@ -52,8 +52,10 @@ exceptions and the sources are there, not here. An answer written from this file
    which credits the idea to Kent Beck). Follow the book's Open/Closed path each time a requirement lands:
    1. Can the change go in without editing the code that is there? Then add it, test-first.
    2. If not, and you can see how to make it open, restructure first, with the tests green and unchanged, until the
-      change is easy; then add the change, test-first.
-   3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again. A way to
+      change is easy; then add the change, test-first. What open code looks like:
+      `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, the Done line of Adding a kind.
+   3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again; the book
+      calls taking smells on one at a time like this nibbling. A way to
       open the code tends to appear as the smells go; keep an improvement even when the code is still closed
       (the book). To choose which smell to start on, sketch in a comment the conditional the change would need;
       the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (the book).

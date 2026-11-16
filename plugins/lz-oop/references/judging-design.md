@@ -38,6 +38,12 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
      travel together, or a class carrying traces of where it was born: the checks below.
 5. Keep each finding concrete: the file and lines, the smell's name, what change it makes expensive, the cure, and
    the first small step toward it.
+6. To decide whether a restructuring can stop, check the code against TRUE, from the talk Less, the Path to Better
+   Design (2011), where she grades each refactoring step by it. Transparent: what an edit affects is easy to see.
+   Reasonable: a change costs in proportion to what it is worth. Usable: the code can serve in a new setting without
+   being copied. Exemplary: the easiest way for the next developer to extend it is also a good way, so imitating it
+   spreads good habits. Code that meets all four is good enough; stop there. She presents the four as the reverse of
+   Robert Martin's symptoms of rotting design.
 
 ## Smells and checks this leaf owns
 
@@ -71,7 +77,9 @@ hidden class; the argument is often a primitive (see the next check).
 
 The smell: a built-in value (a number, string or boolean) stands for a domain idea, so the raw value
 travels around and its behaviour lives elsewhere. Each yes to the questions above adds weight to
-that diagnosis. The cure:
+that diagnosis. The idea need not be a physical thing: an object can stand for a concept with no physical form, such
+as a number with rules of its own, and such concepts often sit in the interactions between the obvious objects (the
+book). The cure:
 
 1. Create a class named for the idea the primitive stands for, holding the value.
 2. Copy every method that leans on the value into it in one change, unedited; nothing calls the

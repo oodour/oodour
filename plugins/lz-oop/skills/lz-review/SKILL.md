@@ -65,7 +65,11 @@ finding written from this file alone is incomplete.
   finding.
 - Indirection the change adds without need is a finding: a layer, wrapper or general method that no current caller
   needs makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one
-  (the book). Name what the simpler form would be.
+  (the book). Name what the simpler form would be. A one-line method that only forwards to another is not such a
+  finding when it names a goal of its callers that differs from the method it calls: callers then need to know only
+  its name, not the other method's arguments and their meaning (the book). A class that now only relays calls
+  is a Middle Man: it stays when it keeps a duty of its own, such as choosing which object to build, and may be
+  unnecessary when it keeps none (the talks All the Little Things, 2014, and Get a Whiff of This, 2016).
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the

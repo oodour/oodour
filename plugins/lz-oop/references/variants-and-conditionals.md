@@ -119,6 +119,12 @@ role's shared test; see Role tests in [javascript-and-typescript.md](javascript-
    does the harmless thing, instead of checking for it at every call site (Nothing is Something,
    2015; the article The Shape at the Bottom of All Things, 2014).
 
+Done, which is what code open to a new kind looks like (the book's summary, in this plugin's words): each kind is its
+own object; one factory, which may be a single conditional, chooses among them; senders and receivers know little
+about each other, usually because the receiver is injected; and the sender treats every kind alike, as a player of
+one role. The book adds that this indirection makes the code harder to follow at first, in return for cheaper
+changes later.
+
 ## When two unrelated rules apply: make every case the same
 
 Use when a conditional picks between two rules, and an object per rule would still leave something

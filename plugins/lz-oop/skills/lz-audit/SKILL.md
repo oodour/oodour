@@ -26,6 +26,13 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
   Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
   tests than its score has untested logic; say so in the report (the book).
+- **Size limits**: Sandi Metz's rules, made up for one team with very large classes (the talks Rules, 2013, and An
+  Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a method of at most 5, at most 4
+  parameters (packing more into one options object does not get round it), and a controller action that knows only
+  one business object and one presenter and hands one object to its view. Any rule may be broken when you win over
+  your pair. She calls the numbers arbitrary: reaching one is the cue to stop and ask whether to split, not a
+  failure, and experienced developers should set their own. Use the team's limits where it has them; report a file
+  over a limit as a place to look, not as a defect (this plugin's reading).
 - **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
   `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that

@@ -256,7 +256,12 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   `slice` through `Symbol.species`, which breaks a constructor with its own signature, and a subclass of `String` is
   an object, not a string (`s === 'x'` is false).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
-  Use a domain object or a plain function.
+  Use a domain object or a plain function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in
+  applications she controls, where she can foresee the other method names in play, and disapproves of it in code
+  released for others to use (POODR with the Toronto Ruby Brigade, 2013; The Bike Shed, 2016). This plugin
+  keeps the stricter rule for JavaScript, its own position: every library loaded into the same page or process shares
+  one prototype, so an application cannot foresee every name added to it, and a name added today can collide with a
+  standard method added later.
 
 ### Hooks and required steps in TypeScript
 
