@@ -26,9 +26,11 @@ Done: the old code is gone, the tests are unchanged and green, and every stage b
 
 ## Adding a parameter: Gradual Cutover
 
-Joshua Kerievsky's name for moving callers to a new form a few at a time while the code keeps working
-(*99 Bottles of OOP*). Use when a method needs a new argument and its callers cannot all change in one step, or when
-you are building one method to replace a special case and the general case.
+*99 Bottles of OOP* credits this name to Joshua Kerievsky and places it in his *Refactoring to Patterns*; this
+plugin's own check of that book did not find it among the refactorings there. The name means moving callers to a new
+form a few at a time while the code keeps working. Use when a method needs a new argument and its callers cannot all
+change in one step, or when you are building one method to replace a special case and the general case. The steps
+follow the walkthrough of adding an argument in *99 Bottles of OOP*, restated in this plugin's words.
 
 1. Create the new method and have it return what the common case returns today.
 2. Make the common case call it instead of doing the work itself. Green.
@@ -38,8 +40,8 @@ you are building one method to replace a special case and the general case.
 6. Delete the code the method replaced, then make the parameter required.
 
 Start from the common case. In JavaScript an omitted argument is `undefined` and falls into the common branch; if you
-start from the special case instead, you need an explicit default value chosen so that case still holds (the book). The
-default exists only for the cutover and goes in step 6.
+start from the special case instead, you need an explicit default value chosen so that case still holds (*99 Bottles
+of OOP*). The default exists only for the cutover and goes in step 6.
 
 ```ts
 // During: optional, so callers not yet moved still get dollars
