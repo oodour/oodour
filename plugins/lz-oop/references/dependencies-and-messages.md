@@ -46,6 +46,11 @@ names are this plugin's):
    can hold a list of collaborators and send each the same message; a new collaborator joins with no edit to the
    sender.
 
+When you move a sender up these stages, say how each side is then tested: the steps are tested on the receiver,
+through its public message; the sender's own unit test gets a stand-in receiver and checks either that the one
+outgoing command was sent, or what the sender returns or throws when the stand-in accepts or refuses. The message
+grid in [testing-messages.md](testing-messages.md) has the rules (this plugin's note).
+
 An object's context is everything it expects of the objects around it, and every use of it, its tests included,
 has to set that context up first (the same book). One way to shrink a sender's context further than injection does:
 pass `this` along with the message, and let the receiver ask back for what it needs. The receiver then depends on

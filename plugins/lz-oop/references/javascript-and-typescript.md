@@ -354,7 +354,10 @@ function toReading(row: ReadingRow): MeterReading {
   Callers get `for...of` and spread; for anything else they spread into an array (`[...shipments].filter(...)`).
   Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit. Write the forwarders
   by hand: a `Proxy` that forwards every message cannot be typed without a cast and cannot reach `#private` members
-  (this plugin's note).
+  (this plugin's note). Moving off a list subclass is a change many callers feel, so make it in green steps: add the
+  wrapper beside the subclass, port its callers singly and test after each, and delete the subclass when its last
+  caller has moved, rather than switching the class in place and fixing whatever the compiler reports
+  ([changing-in-steps.md](changing-in-steps.md); this plugin's note).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in
   applications she controls, where she can foresee the other method names in play, and disapproves of it in code
