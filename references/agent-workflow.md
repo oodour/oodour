@@ -89,7 +89,8 @@ repository's own history the way a user's session would see it, through the slim
    work (inferred).
 3. Run `run-slim.ts --offline --cwd <clone> --plugin-dir <clone>/plugins/lz-oop --prompt-file <file> --out <json>`
    with a plain request, such as a design review of one commit or a design audit of one folder. Do not name the
-   skill: whether it fires is part of what the run measures.
+   skill: whether it fires is part of what the run measures. It fired when the run's output holds a `Skill` tool
+   call naming `lz-review`, `lz-oop` or `lz-audit`.
 
 Each run cost $0.30 to $0.70 on Opus. Triage the findings before acting on them, and record the round in
 `plans/lz-oop-research/`. Reviews of code that drew on an oracle answer still go through `oracle-reviewer`; a dogfood
