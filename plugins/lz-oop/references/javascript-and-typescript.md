@@ -248,6 +248,16 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   enforced in review.
 - Use an options object for optional settings with defaults. When the same few values travel together through
   several calls, make them one value object.
+- Defaults: *Practical Object-Oriented Design* puts a plain default in the signature and has a default that takes code to work out come from a
+  method of the receiver. In JavaScript the first is a destructuring default; the second is
+  `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`
+  (this plugin's note).
+- JavaScript note: nothing reports a missing required key in an options object; destructuring quietly gives
+  `undefined`. Check required keys where the object enters, or keep a required value as a positional parameter.
+  TypeScript reports the missing key at compile time (this plugin's note).
+- Across a class hierarchy, give each class its own options interface, the subclass's extending the parent's
+  (`interface ExpressDeliveryOptions extends DeliveryOptions { readonly insuredValue?: number }`), rather than one
+  open `Record<string, unknown>` that checks nothing (this plugin's form).
 - Adding, removing or retyping a parameter that many callers use, in green steps, with what `tsc` checks and what
   JavaScript leaves to a temporary guard: [changing-in-steps.md](changing-in-steps.md).
 

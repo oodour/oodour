@@ -1,32 +1,85 @@
 # Dependencies and messages
 
 Use when a class creates or looks up its own collaborators, when a method reaches through one object
-to another, or when a test needs a lot of setup to build the object under test.
+to another, when a sender walks a receiver through steps, or when a test needs a lot of setup to build the object
+under test.
+
+A class depends on another when a change to the other can force a change to it (*Practical Object-Oriented
+Design*). The book lists what one class can know about another, each one a dependency to keep to what the task
+needs:
+
+- its class name (Injecting collaborators, below);
+- the name of a message it sends there (Interfaces you do not own, step 2);
+- the arguments that message takes, and their order (Parameter lists and options objects in
+  [javascript-and-typescript.md](javascript-and-typescript.md)).
+
+A chain of calls through other objects (Reaching through other objects, below) and a test that knows too much about
+how the code works ([testing-messages.md](testing-messages.md)) are dependencies too.
 
 ## Message first
 
 Decide first what message the sender wants to send, then find or invent the object that should answer
 it (the talks Less, the Path to Better Design, 2011, and Go Ahead, Make a Mess, 2012; coding by
 wishful thinking, from *99 Bottles of OOP*). A sender that walks a receiver through the steps of a job
-knows how the job is done, and so depends on it.
+knows how the job is done, and so depends on it. Do not start from the obvious nouns of the domain: *Practical
+Object-Oriented Design* warns that they come to mind first and collect behaviour that does not belong to them, while
+the messages passing between them reveal the objects that are missing.
 
-To find the objects and messages before writing code, or when you cannot decide what to test first, sketch a
+To find the objects and messages for a new use case, or when you cannot decide what to test first, sketch a
 sequence diagram on a whiteboard: it shows the design at the level that matters and is cheap to change, since there
-is no code yet to grow attached to (the talk Fireside Chat, 2015). Draw it loosely, not as strict UML, and erase it
-afterwards (Less, 2011). In the diagram, a sender that gives a receiver a series of step-by-step instructions knows
-too much; after the fix it sends one message that names its goal (Less, 2011). Go Ahead, Make a Mess (2012) also adds
-markers for what each sender knows, and how stable that knowledge is.
+is no code yet to grow attached to (the talk Fireside Chat, 2015; *Practical Object-Oriented Design* uses them the
+same way). Draw it loosely, not as strict UML, and erase it afterwards (Less, 2011). In the diagram, a sender that
+gives a receiver a series of step-by-step instructions knows too much; after the fix it sends one message that names
+its goal (Less, 2011). Go Ahead, Make a Mess (2012) also adds markers for what each sender knows, and how stable that
+knowledge is. Keep the sketch small and use it before the first test only: past that, let collaborators come out of
+the tests and of refactoring, as *99 Bottles of OOP* does. *Practical Object-Oriented Design* sketches more up front,
+for the first code of a new application; where the two differ, this plugin follows *99 Bottles of OOP*.
 
-When the receiver does not exist yet, code by wishful thinking, as the book does (it credits the idea to Abelson
-and Sussman's book on programming in Scheme):
+How much a sender knows about its receiver runs in three stages (*Practical Object-Oriented Design*; the stage
+names are this plugin's):
+
+1. **It dictates the steps**, sending each one in turn. It knows how the job is done, the receiver has to expose
+   every step, and each new step changes the sender.
+2. **It asks for the job** in one message. The receiver's public interface shrinks, but the sender still knows what
+   the receiver does, and that it needs one.
+3. **It says what it wants and trusts the receiver**, without checking how the goal is met. At this stage a sender
+   can hold a list of collaborators and send each the same message; a new collaborator joins with no edit to the
+   sender.
+
+An object's context is everything it expects of the objects around it, and every use of it, its tests included,
+has to set that context up first (the same book). One way to shrink a sender's context further than injection does:
+pass `this` along with the message, and let the receiver ask back for what it needs. The receiver then depends on
+the sender answering those few messages; in TypeScript, type that parameter as a small role with only those
+messages, not as the sender's class (this plugin's form).
+
+When the receiver does not exist yet, code by wishful thinking, as *99 Bottles of OOP* does (it credits the idea to
+Abelson and Sussman's book on programming in Scheme):
 
 1. Write the call the sender would like to make, commented out, since nothing answers it yet.
 2. Build the receiver while nothing calls it. The suite stays green, but that shows only that the new code parses.
 3. Turn the call on, run the tests, then delete the old path.
 
-These steps are larger and riskier than the book's finer-grained recipes, because the new code is not proven until
+These steps are larger and riskier than that book's finer-grained recipes, because the new code is not proven until
 it is used. On red, undo, and go back to smaller steps or test-drive the new class. The technique suits pulling out a
-class that needs light edits; one that needs heavy rework is better test-driven from the start (the book).
+class that needs light edits; one that needs heavy rework is better test-driven from the start (*99 Bottles of
+OOP*).
+
+## A public interface on purpose
+
+Use when deciding which methods of a class are public, or when a class exposes many small step methods.
+
+*Practical Object-Oriented Design* splits a class's methods by who may lean on them. The public ones are an
+invitation to other objects, so they carry the class's purpose, change rarely, and are pinned down by tests that
+double as their documentation. Everything else is detail the class may rework whenever it likes; nothing outside
+should depend on it, and the tests can leave it alone, or test it apart from the public ones so that readers of the
+tests do not come to depend on it.
+
+For the public side, the same book asks for names that state the sender's goal rather than the receiver's procedure,
+names you expect to keep, and named arguments (an options object; Parameter lists and options objects in
+[javascript-and-typescript.md](javascript-and-typescript.md)). It also asks that the split be plain to see. In
+JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in the same
+file; this plugin's form). When a sender moves from dictating steps to stating its goal (Message first, above), the
+receiver's step methods lose their outside callers: make them private.
 
 ## Reaching through other objects (the Law of Demeter)
 
@@ -131,6 +184,9 @@ Use when code calls a library, a framework or a collaborator whose interface may
    creation hidden behind it. Creating an object is a message too, so creating one and then asking it for something
    is a chain of the kind the Law of Demeter flags (*99 Bottles of OOP*). TypeScript form (this plugin's): inject a
    factory function typed by the role, or by the result.
+5. Use only a library's public, documented interface. Needing another class's private or internal member is a
+   prompt to rethink the design. When a framework's internal member truly cannot be avoided, treat the use as debt
+   that its next release may break, and reach for it from one wrapper only (*Practical Object-Oriented Design*).
 
 Done: one place in your code knows each foreign interface, and the receiver's working methods name no class they
 create.
