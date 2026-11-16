@@ -7,7 +7,7 @@
 | `99-bottles-2e-js/` | *99 Bottles of OOP*, 2nd edition, JavaScript, converted to Markdown, one file per front-matter part or chapter, plus `images/` | `.oracle/99-bottles-2e-js/index.md` |
 | `metz-talks/` | Transcripts of 28 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
-| `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/` | `.oracle/99bottles-js/index.md` |
+| `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/`, and each of its 559 tags exported as plain files under `stages/<tag>/` | `.oracle/99bottles-js/index.md` |
 | `owen-talks/` | Caption transcripts of 3 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
 | `poodr-2e/` | Sandi Metz, *Practical Object-Oriented Design*, 2nd edition, one file per chapter, plus `images/` | `.oracle/poodr-2e/index.md` |
 | `fowler-refactoring-2e/` | Martin Fowler, *Refactoring*, 2nd edition, one file per chapter, plus `images/` | `.oracle/fowler-refactoring-2e/index.md` |
@@ -78,6 +78,12 @@ Lars: "The `sandimetz/99bottles_js` GitHub repo ... should also be sourced as a 
 oracle. Note that it uses a Yarn Classic (v1.x) lockfile." Cloned in full to
 `.oracle/99bottles-js/repo/` (298 commits, 559 tags). Nothing is installed; install with Yarn 1,
 not npm, if a run ever needs the dependencies.
+
+On 2026-11-16 the curator exported each of the 559 tags, unchanged, into `.oracle/99bottles-js/stages/<tag>/`
+(103 MB) and listed them in a "Stages" section of the entry's `index.md`, because the oracle agents read with
+Read and Glob and cannot run git. Every folder's file count matches `git ls-tree -r <tag>`; the clone's HEAD,
+index and refs are untouched. This closes the "intermediate stages unread" gap of the v0 plan (Lars, 2026-11-16:
+"Audit, triage, and resolve all open/owed/deferred plans/items/runs").
 
 ### 2026-11-15: Katrina Owen's talks
 
