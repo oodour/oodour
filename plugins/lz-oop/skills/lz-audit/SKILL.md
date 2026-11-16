@@ -36,7 +36,8 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   defect.
 - **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
-  `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that
+  `rg -l "from ['\"][^'\"]*/<name>(\.[jt]sx?)?['\"]" <scope>` (this and the command below are Bash syntax), which
+  misses re-exports and path aliases. A file that
   changes often and that many files depend on is the costly corner of *Practical Object-Oriented Design*'s grid of
   likelihood of change against dependents; reading churn as likelihood of change is this plugin's, and it is one
   input beside concreteness: a concrete class with many dependents is suspect even when it has been stable. So

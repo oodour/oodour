@@ -270,14 +270,13 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 - Reading your own state. Where a value's meaning could change or a subclass may redefine it, read it through a
   getter that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class
   reads it, and public when a subclass may redefine it, since it is then a hook (`protected` only where no test
-  reads it; Hooks and required steps in TypeScript, below). *Practical Object-Oriented Design* puts
-  every field behind an accessor and has the class itself read through it, so that one method decides what the
-  value means and a later change to that meaning touches one place. In JavaScript the outside half of that reason
-  mostly falls away: a public field can become a getter later and no caller changes; inside the class it still
-  holds, which is why the class reads such a value through its getter, kept off the public interface unless a
-  subclass redefines it. *99 Bottles
-  of OOP*'s own classes read their fields directly, so treat this as a choice for values like that, not a rule for
-  every field (this plugin's reading of the two books).
+  reads it; Hooks and required steps in TypeScript, below). *Practical Object-Oriented Design* puts every field
+  behind an accessor and has the class itself read through it, so that one method decides what the value means and
+  a later change to that meaning touches one place. In JavaScript the outside half of that reason mostly falls
+  away: a public field can become a getter later and no caller changes; inside the class it still holds, which is
+  why the class reads such a value through its getter, kept off the public interface unless a subclass may
+  redefine it. *99 Bottles of OOP*'s own classes read their fields directly, so treat this as a choice for values
+  like that, not a rule for every field (this plugin's reading of the two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
@@ -500,10 +499,11 @@ it (this plugin's advice).
    pasted value still fails, read that as a part that varies from run to run (this plugin's reading). Where the
    clock or a random source drives that part, fake them in the test without editing the code under test (this
    plugin's step): `vi.useFakeTimers()` with `vi.setSystemTime()` in Vitest, `jest.useFakeTimers()` with
-   `jest.setSystemTime()` in Jest, `mock.timers.enable({ apis: ['Date'] })` in `node:test`; for randomness, a seed
-   the code already accepts, else replace `Math.random` for the test (`vi.spyOn(Math, 'random')`, `jest.spyOn`, or
-   `mock.method` in `node:test`); for any other varying part, loosen that part of the expected value to a pattern,
-   as she does.
+   `jest.setSystemTime()` in Jest, `mock.timers.enable({ apis: ['Date'], now: <a fixed time> })` in `node:test`;
+   for randomness, a seed the code already accepts, else give `Math.random` a fixed result for the test
+   (`vi.spyOn(Math, 'random').mockReturnValue(0.5)`, the same with `jest.spyOn`, or
+   `mock.method(Math, 'random', () => 0.5)` in `node:test`: a spy with no return value still calls the real one);
+   for any other varying part, loosen that part of the expected value to a pattern, as she does.
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
    from each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a

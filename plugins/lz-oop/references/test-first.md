@@ -52,8 +52,9 @@ TypeScript.
 - **Triangulate**: hold several failing tests at once and make them all pass with one change, so together they
   point to the general form. Another copy of a case you already have adds nothing; only a distinct case does.
 
-Triangulate, as steps an agent can follow (steps and the done check are this plugin's reading of *99 Bottles of
-OOP*):
+By default, take Kent Beck's route, after the Triangulate steps below, and switch to Triangulate only as its
+"Use it when" line says (this plugin's advice). Triangulate, as steps an agent can follow (steps and the done check
+are this plugin's reading of *99 Bottles of OOP*):
 
 1. Write two or more failing tests whose cases differ in the way the general rule must handle.
 2. Do not make them pass one by one with a literal each; look for the single change that passes all of them.

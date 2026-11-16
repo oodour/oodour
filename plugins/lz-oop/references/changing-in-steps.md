@@ -153,9 +153,8 @@ list every caller still sending it. JavaScript note: nothing lists them. When st
 in step 2 from converting to throwing on the old kind for a test run: each failing test names a sender left;
 convert it, and repeat until the tests pass. Then switch the check to logging each old kind it converts, run the
 code paths no test covers, and go to step 5 once the log stays empty (this plugin's suggestion). The book's own
-check here only accepts
-and converts, and goes once all is green; it throws to find callers when it removes a parameter, and throwing on
-the old kind is this plugin's use of that move.
+check here only accepts and converts, and goes once all is green; it throws to find callers when it removes a
+parameter, and throwing on the old kind is this plugin's use of that move.
 
 Done: no union, no `instanceof` or `typeof` check for the old kind, and every implementor and caller deals only in
 the new kind.
