@@ -3,6 +3,11 @@
 Use when someone asks what to assert in a unit test, whether to mock a collaborator, or how to test a
 private method.
 
+*Practical Object-Oriented Design* judges a test by what it costs against what it saves: writing it, running it,
+and keeping it up to date as the code changes. When tests cost too much, the book's answer is to get better at
+testing, not to give it up; that includes removing duplicate tests and checking each behaviour in one place. The
+grid below is how to aim them.
+
 ## The message grid
 
 Sort every message the object under test takes part in by where it goes and what it does (the talk
@@ -16,7 +21,8 @@ changes something.
 | Sent to a collaborator | Do not assert it was sent | Expect it to be sent, with its arguments |
 
 - **Received from outside**: test the object through the messages others send it. Assert on the
-  returned value, or on the change a command makes that a caller could observe.
+  returned value, or on the change a command makes that a caller could observe. A public method that nothing
+  sends any more is not tested: delete it, and its tests with it (*Practical Object-Oriented Design*).
 - **Sent to itself**: private methods are covered by the tests of the public messages that use them.
   Do not reach them through casts, bracket access, or by making them public for the test.
 - **An outgoing query**: the collaborator's own tests cover it. Stub it to return a value the test
@@ -36,6 +42,9 @@ changes something.
   with each player typed against it, does part of that check at compile time; a role test still
   checks behaviour the types cannot express. How to write that shared test in Vitest, Jest and
   `node:test`: [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
+- The sending side of a role has its own test: that a sender sends the role's message. Keep it in that sender's
+  test while it is the only sender of its kind, and move it into a shared test only once a second such sender
+  appears (*Practical Object-Oriented Design*).
 
 ### How far to mock
 
@@ -52,6 +61,13 @@ Use when deciding whether a collaborator gets a double or the real object.
   (SOLID Object-Oriented Design, 2009). For an outgoing command whose effect is cheap and close by, plugging in the
   real object is fine too; the further and costlier the effect, the more a mock at the nearest boundary pays (The
   Magic Tricks of Testing, 2013).
+- **Fake an injected collaborator.** *99 Bottles of OOP* replaces a collaborator the class receives from outside
+  with a fake, so the test tells the class's own story, and keeps the fake honest with the role test from Doubles.
+  A small collaborator the class creates itself and keeps hidden may stay real until it grows. *Practical
+  Object-Oriented Design* draws the line by the role instead: fake it when the role has many players, when its
+  players are costly to run, or when none has been written yet; use the real object when it is the role's only,
+  cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
+  the role. Where the two differ, this plugin follows *99 Bottles of OOP*.
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
   checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
   assertions on values for messages received from outside).
@@ -61,9 +77,9 @@ computed or an outgoing command it sent.
 
 ## Testing a hierarchy
 
-Use when someone asks how to test a parent class and its subclasses. The layers below follow Sandi
-Metz's public example code for *Practical Object-Oriented Design*, which shows them as tests with
-little explanation; the reasons given are this plugin's unless credited. In a Defining
+Use when someone asks how to test a parent class and its subclasses. The layers below follow *Practical
+Object-Oriented Design*, which presents each one as a test, and her public example code for the book;
+the reasons are that book's unless marked as this plugin's. In a Defining
 Object-Oriented Design Q&A she says only that her tests check that the parent throws for a step it
 cannot supply and that each subclass supplies it.
 
@@ -83,9 +99,9 @@ the parent cannot be built. Step 3 has no test: the compiler refuses a subclass 
 required hook. Steps 2 and 4 stay as they are. The TypeScript form: Hooks and required steps in
 TypeScript in [javascript-and-typescript.md](javascript-and-typescript.md).
 
-For each subclass, this plugin's reasoning: the shared tests prove it can stand in for the parent,
-its own test proves what it adds, and nothing tests the parent's code twice through every
-subclass. The shared tests in Vitest, Jest and `node:test`:
+For each subclass, the shared tests prove it can stand in for the parent, as Liskov Substitution asks; its own test
+checks only what it adds, and nothing tests the parent's code again through every subclass (*Practical
+Object-Oriented Design*'s reasoning). The shared tests in Vitest, Jest and `node:test`:
 [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
 
 ## When a test resists being written
@@ -103,7 +119,8 @@ This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
 - A test that only restates what the code returns verbatim, such as a method that returns a fixed string, checks
   nothing that could break on its own: it must be edited whenever the code is. Let that method run inside another
   class's tests instead (the book).
-- Full coverage means every line runs under the unit tests, not one test per public method. Leaving a class without
+- The book's default is a test for every public method of every class. It offers, tentatively, a looser reading of
+  full coverage: every line runs under the unit tests, not one test per public method. Leaving a class without
   its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
   (the book).
 

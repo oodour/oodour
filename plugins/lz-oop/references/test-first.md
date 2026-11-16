@@ -18,6 +18,14 @@ TypeScript.
 - Sandi Metz moved away from drawing the target design first and test-driving toward it. Gather concrete examples
   first and let the abstraction come out of them; the next test is often just the next example (the podcast Why Are
   Computers #3, with Katrina Owen, 2016).
+- An experienced designer who cannot yet see what the code should be may spike: explore without tests until the
+  design is clear, then go back to writing it test-first. *Practical Object-Oriented Design* allows this to
+  seasoned designers and steers newcomers to tests first, with a warning not to overrate one's own skill. Keeping the spike out of the commit and
+  rebuilding it test by test is this plugin's reading.
+- The same book names two orders of work. Inside out starts from the domain objects and builds upward, the usual
+  order of TDD. Outside in starts from the behaviour a user sees and works down, the usual order of BDD, and needs
+  doubles for the objects that do not exist yet. Either way, each object is tested from the edge of its public
+  interface.
 
 ## Choosing the next test
 
