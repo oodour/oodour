@@ -17,6 +17,10 @@
 | `metz-cited-articles/` | Public articles and papers the Metz corpus cites, one file per work | `.oracle/metz-cited-articles/index.md` |
 | `beck-writing/` | Kent Beck's essays (`written-content/`) and blog archive (`beck-blog/`) | `.oracle/beck-writing/index.md` |
 | `wirfs-brock-object-design/` | Rebecca Wirfs-Brock and Alan McKean, *Object Design*, one file per chapter, plus `images/` | `.oracle/wirfs-brock-object-design/index.md` |
+| `braithwaite-javascript-allonge-six/` | Reginald Braithwaite, *JavaScript Allongé*, the "Six" edition, one file per chapter or front-matter part | `.oracle/braithwaite-javascript-allonge-six/index.md` |
+| `rauschmayer-javascript/` | Axel Rauschmayer, *Exploring JavaScript*, ES2025 edition, one file per chapter or part divider | `.oracle/rauschmayer-javascript/index.md` |
+| `fowler-js-articles/` | Martin Fowler's two JavaScript refactoring articles on martinfowler.com, one file per article | `.oracle/fowler-js-articles/index.md` |
+| `js-ts-language-reference/` | MDN's JavaScript class reference pages (`mdn/`) and TypeScript Handbook pages (`typescript/`) | `.oracle/js-ts-language-reference/index.md` |
 
 `.oracle/README.md` lists one line per entry: the title and its index path. It holds nothing else
 (no descriptions, no chapter lists), because every agent may read it.
@@ -202,3 +206,33 @@ a recommendation to import it as `poodr-2e/` and drop the sample entry.
   checked with `diff -r`, file counts and byte totals. The index needed no change; `store-check` passes.
 - **poodr-2e-sample, removed**: the full book covers the sample's contents and chapter (inferred from the sample's
   record above).
+
+### 2026-11-16: JavaScript sources
+
+The decision audit asked which sources settle a JavaScript or TypeScript form that Metz and Owen leave open (AGENTS.md,
+"What you write"). Lars named two books he owns: "I own a copy of "JavaScript for impatient programmers" (2019) by
+Dr. Axel Rauschmayer but if the oracle can curate the same edition from GitHub, even better." and "4: I own a copy of
+*JavaScript Allongé: the "Six" Edition* by Reg "raganwald" Braithwaite." Then: "My "Impatient JS Programmer" copy is a
+preview edition so if the oracle can curate a full edition, that's better."
+
+- **braithwaite-javascript-allonge-six, new entry**: the author's GitHub manuscript of the Leanpub "Six" edition at its
+  last commit (2019-07-11; the full hash and URL are in the index), licensed CC BY-SA 3.0 as its README states. The
+  curator followed the manuscript's own chapter manifest: 109 of 109 listed files found, joined into 29 files (631,852
+  bytes). Left out: entries the manifest comments out, the images and code folders, and unlisted leftovers.
+- **rauschmayer-javascript, new entry**: *Exploring JavaScript*, ES2025 edition, the successor of *JavaScript for
+  impatient programmers*, from the author's site repository (`rauschma/exploringjs.com`, `dist/js/book/`, commit
+  9527116bf6, 2025-06-20). The book says every chapter is free to read online, and its table of contents lists exactly
+  the 61 pages fetched (50 chapters, 11 part dividers; 1,513,379 bytes, converted with pandoc). No licence is stated;
+  treated as all rights reserved. Left out: the PDF and EPUB previews, the code archive, flashcards, changelog and
+  images. The ES2019 edition was not taken: its free text lacks at least 4 of its 46 chapters.
+- **fowler-js-articles, new entry**, on Lars's "2: Curate them from lz-tdd's repo, if available. Otherwise, curate as
+  recommended.": lz-tdd's store holds neither, so the curator fetched Refactoring a JavaScript Video Store (2016) and
+  Refactoring Module Dependencies (2015) from martinfowler.com once, through markdown.new; images stay as URLs. They
+  duplicate none of the five martinfowler.com pages in `metz-cited-articles/`, whose scope is works Metz and Owen cite.
+- **js-ts-language-reference, new entry**, on Lars's "3: OK": six MDN pages from `mdn/content` (commit 74f6e26e70,
+  2026-11-16; prose CC BY-SA 2.5, code CC0): the classes reference, `extends` (which holds MDN's mix-ins section),
+  `constructor`, `static`, private elements, and the Using classes guide. Four TypeScript pages copied from the local
+  TypeScript-Website clone (commit 4ec663ac44, 2026-11-13; content CC BY 4.0, code MIT): Handbook Classes, Narrowing
+  and Mixins, and only the `satisfies` section of the 4.9 release notes.
+- **Overlap**: the plugin's 6-word check then found five generic runs (a mixin description, a step phrase, an engine
+  error message and an index loop in two evals); all were reworded.
