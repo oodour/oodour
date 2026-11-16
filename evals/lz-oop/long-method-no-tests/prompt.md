@@ -13,9 +13,8 @@ import { logger } from './logger';
 
 export function invoiceTotal(invoice: any): number {
   // total
-  let t = 0;
-  for (let i = 0; i < invoice.lines.length; i++) {
-    const l = invoice.lines[i];
+  let tot = 0;
+  for (const l of invoice.lines) {
     let p = l.price * l.qty;
     if (l.discount) {
       if (l.discount.type === 'percent') {
@@ -26,19 +25,19 @@ export function invoiceTotal(invoice: any): number {
       }
     }
     // if (l.giftWrap) p += 2.5;
-    t = t + p;
+    tot = tot + p;
   }
   if (invoice.customer && invoice.customer.vip) {
-    t = t * 0.95;
+    tot = tot * 0.95;
   }
   if (invoice.country === 'DK') {
-    t = t * 1.25;
+    tot = tot * 1.25;
   } else if (invoice.country === 'SE' || invoice.country === 'NO') {
-    t = t * 1.25;
+    tot = tot * 1.25;
   } else {
-    t = t * 1.2;
+    tot = tot * 1.2;
   }
-  const rounded = Math.round(t * 100) / 100;
+  const rounded = Math.round(tot * 100) / 100;
   return rounded;
 }
 ```

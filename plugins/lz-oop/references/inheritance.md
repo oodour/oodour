@@ -254,7 +254,7 @@ components.
 
 ## Mixins
 
-JavaScript mixins (a function that returns a subclass, or methods copied onto a prototype) play the
+JavaScript mixins (a subclass factory, or methods copied onto a prototype) play the
 part Ruby modules play in her talks. Method lookup through them works as it does for a parent, so
 every rule above applies to them, Liskov Substitution included (POODR with the Toronto Ruby Brigade,
 2013). The JavaScript mapping is this plugin's.
@@ -278,7 +278,7 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
     not *Practical Object-Oriented Design*'s; see the paragraph on
     *Practical Object-Oriented Design*'s role module below.
 
-  Those defaults work only when the mixin is a function that returns a subclass, so the host's own
+  Those defaults work only when the mixin is a subclass factory (`(Base) => class extends Base`), so the host's own
   method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the
   host's method with the default, and a throwing default then throws on every call (this plugin's
   note).

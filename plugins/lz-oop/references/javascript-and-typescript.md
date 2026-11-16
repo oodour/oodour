@@ -319,7 +319,7 @@ function toReading(row: ReadingRow): MeterReading {
 
 ## Inheritance, mixins and built-in types
 
-- A mixin (a function that takes a class and returns a subclass, or `Object.assign` onto a prototype) is
+- A mixin (a subclass factory such as `(Base) => class extends Base {}`, or `Object.assign` onto a prototype) is
   inheritance: the parent is fixed when the classes are built. It also costs typing work (an `any[]` constructor
   signature, anonymous class types). Prefer a collaborator passed in; keep mixins for small behaviour with no state.
   See [inheritance.md](inheritance.md).

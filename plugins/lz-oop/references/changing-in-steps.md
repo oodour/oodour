@@ -103,7 +103,7 @@ Use when a field's name no longer says what it holds. *99 Bottles of OOP* and it
 this order; the methods that assign the field in step 1, the pace in step 2 and the options-object case in step 4
 are this plugin's.
 
-1. Make the constructor, and every method that assigns the old field, fill both the old and the new field.
+1. Make the constructor, and every method that assigns the old field, fill the old field and the new one.
 2. Switch each reader over to the new field separately, running the tests after each switch.
 3. Once nothing reads the old field, stop assigning it and delete it.
 4. Rename the constructor parameter to match. Where callers pass it by name in an options object, accept both keys
