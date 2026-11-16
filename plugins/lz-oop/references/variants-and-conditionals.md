@@ -105,7 +105,8 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   SOLID Object-Oriented Design, 2009, which treats a kind check as a Liskov smell; the article Ruby Case Statements
   and kind_of?, 2009, which reads a switch on the class as procedural code), and *Practical Object-Oriented Design*
   names the same three checks. The JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`,
-  an `in` check, a switch on a `kind` field, and `typeof` or `Array.isArray` used to pick behaviour per kind of
+  an `in` check (the `#field in obj` brand check of ES2022 included, outside a class comparing itself with another
+  of its kind), a switch on a `kind` field, and `typeof` or `Array.isArray` used to pick behaviour per kind of
   value inside domain code. Her 2009 article goes further: its example, a view rather than a domain object, branches
   on built-in kinds, and the article rejects that too. Checking outside input at a boundary is a different job (this
   plugin's exemption).
@@ -131,7 +132,8 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   of All Things, 2014, reads the repeated part as a missing object).
 - A flag passed in where a smarter object should be (Polly Want a Message, 2018).
 
-A switch on the language's own built-in, stable types is tolerable (Less, 2011), as when a utility formats a
+A switch on the language's own built-in, stable types is tolerable (Less, 2011; *Practical Object-Oriented Design*
+also judges a check against a stable built-in class often not worth a role), as when a utility formats a
 number one way and a string another; the sign above is such a switch in domain code, deciding behaviour that a
 domain object could own (this plugin's line between the two, which departs from the 2009 article: it rejects such
 a switch outside domain objects as well and moves each branch onto the types themselves, a cure that this plugin's

@@ -113,7 +113,11 @@ function planFor(kind: PlanKind, seats: number): Plan {
 ```
 
 `satisfies Record<PlanKind, ...>` makes the compiler demand an entry for every kind, so adding a kind without its
-variant fails the build.
+variant fails the build. A registry open to new keys (`Record<string, ...>`, as self-registration builds) is the
+opposite case: without `noUncheckedIndexedAccess` the compiler types every lookup as found, and an unknown kind
+fails at run time where the object is built. Turn the flag on, so the factory must decide once what an unknown kind
+gets, a default player or a thrown error, and no caller has to (this plugin's note). A `Map`'s `get` already
+includes `undefined`.
 
 The `switch` the plugin starts from gets the same check from a `default` that states the kind is `never`:
 `kind satisfies never` (TypeScript 4.9 and later), or the older forms, assigning it to a `never` variable or passing
@@ -199,8 +203,11 @@ const total = discount.apply(subtotal);
 ## Injecting collaborators
 
 Injection is as cheap in JavaScript as in Ruby, but module imports invite hard-coding: a collaborator imported at
-the top of a module and used inside a class is a hidden dependency, and tests then need `vi.mock` or `jest.mock`
-to replace a whole module.
+the top of a module and used inside a class is a hidden dependency, and tests then need `vi.mock`, `jest.mock` or
+`node:test`'s `mock.module` to replace a whole module. Ambient context hides one the same way: a domain method that
+reads a collaborator or a value from `AsyncLocalStorage`, or from any module-level store, depends on it without
+saying so; read it at the edge and pass it in (this plugin's note, extending the book's guideline to avoid naming
+constants inside instance methods where you can).
 
 ```ts
 export interface PaymentGateway {
@@ -238,6 +245,12 @@ export class Checkout {
   its class (*Practical Object-Oriented Design* isolates instance creation this way). The TypeScript form, which
   also makes that method private, is this plugin's: a field `#gateway?: PaymentGateway` read only through
   `get #payments(): PaymentGateway { return (this.#gateway ??= new CardGateway()); }`.
+- A collaborator that holds a resource (a connection, a file handle, a timer) is disposed of by the code that created
+  it, never by the object it was handed to: knowing when it ends is knowing how it was made. The code that built
+  both disposes of the collaborator after the receiver is done, with `using` (Explicit Resource Management, at
+  stage 4; TypeScript 5.2 and later; Node.js 24 runs it) or `try`/`finally`. An object that creates its own resource
+  on first use, as above, owns it, so it implements `[Symbol.dispose]()` and is itself created with `using` (this
+  plugin's rule).
 - When only the receiver knows what its collaborator needs to be built, inject a factory function typed by what the
   receiver wants back, and call it once: `constructor(quoteFor: (seats: number) => Quote)`. Steps and sources:
   [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not own.
@@ -266,6 +279,10 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 
 - Type a command's return as `void` (or `Promise<void>`) and a query by its value; a query changes nothing. A message
   that deliberately does both (a `pop()`) is allowed; test its returned value and its public effect separately.
+- A query that answers with a collection answers with a copy or a read-only view, so the asker cannot change the
+  object through the answer: `toSorted()`, `toReversed()`, `with()` and `toSpliced()` (ES2023) return a new array
+  where `sort()`, `reverse()` and `splice()` change the one they are called on, and a `readonly` array type stops
+  the rest (this plugin's rule).
 - No lint rule enforces the separation. `@typescript-eslint/no-confusing-void-expression` stops a command's result
   being used as a value, and `@typescript-eslint/no-floating-promises` stops an async command being dropped. A query
   that changes state is caught by a test that calls it twice.
