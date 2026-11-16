@@ -55,8 +55,9 @@ JavaScript note: there is no interface; the shared role test is the role's only 
 
 *99 Bottles of OOP* keeps a fake honest with a role test that every player of the role and the fake run, checking
 that each answers the role's messages. In TypeScript the compiler already checks that; the shared test below asserts
-behaviour instead, which is this plugin's extension. Export one function that registers the role's tests for any
-player, and call it from each player's test file and from the fake's.
+behaviour instead, which is this plugin's extension. In plain JavaScript no compiler checks the messages, so the
+shared test also checks that each one exists (`expect(typeof player.apply).toBe('function')`). Export one function
+that registers the role's tests for any player, and call it from each player's test file and from the fake's.
 
 ```ts
 // discount-role.ts (Vitest; Jest is the same with its globals)
@@ -240,9 +241,11 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   itself read through it, so that one method decides what the value means and a later change to that meaning
   touches one place. In JavaScript the outside half of that reason mostly falls away: a public field can become a
   getter later and no caller changes. Inside the class it still holds, so where a value's meaning could change or a
-  subclass may redefine it, read it through a getter (`this.total`) and let only the getter touch `this.#total`.
-  *99 Bottles of OOP*'s own classes read their fields directly, so treat this as a choice for values like that, not a
-  rule for every field (this plugin's reading of the two books).
+  subclass may redefine it, read it through a getter and let only the getter touch the `#field`. Keep that getter off
+  the public interface: private (`get #total()`, over a field named otherwise) when only the class reads it,
+  `protected` in TypeScript when a subclass may redefine it. *99 Bottles of OOP*'s own classes read their fields
+  directly, so treat this as a choice for values like that, not a rule for every field (this plugin's reading of the
+  two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
@@ -260,8 +263,8 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   several calls, make them one value object.
 - Defaults: *Practical Object-Oriented Design* puts a plain default in the signature and has a default that takes
   code to work out come from a method of the receiver. In JavaScript the first is a destructuring default; the
-  second is `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`
-  (this plugin's note).
+  second is `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''`
+  or `false` (this plugin's note).
 - JavaScript note: nothing reports a missing required key in an options object; destructuring quietly gives
   `undefined`. Check required keys where the object enters, or keep a required value as a positional parameter.
   TypeScript reports the missing key at compile time (this plugin's note).
@@ -276,27 +279,37 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 Data often arrives in a shape the program does not control: CSV rows, arrays of positions from a library, loosely
 typed JSON. *Practical Object-Oriented Design* keeps the knowledge of that shape in one place, a function or method
 that turns each row into an object with named parts, so every other method sends messages to those objects instead
-of indexing into `row[4]`. When the program owns the input, pass real objects in the first place. The example is
+of indexing into `row[3]`. When the program owns the input, pass real objects in the first place. The example is
 this plugin's:
 
 ```ts
-type ExportRow = readonly string[];
+type ReadingRow = readonly string[];
 
-interface Payout {
-  readonly account: string;
-  readonly amount: number;
+interface MeterReading {
+  readonly meter: string;
+  readonly kwh: number;
 }
 
-function toPayout(row: ExportRow): Payout {
-  return { account: row[0] ?? '', amount: Number(row[4]) };
+function toReading(row: ReadingRow): MeterReading {
+  const [meter, , , kwhText] = row;
+  const kwh = Number(kwhText);
+
+  if (meter === undefined || kwhText === undefined || kwhText.trim() === '' || !Number.isFinite(kwh)) {
+    throw new Error(`unreadable meter row: ${row.join(',')}`);
+  }
+
+  return { meter, kwh };
 }
 ```
 
-- `toPayout` is now the only code that knows the column order. When the bank adds a column, it is the only edit.
-- A tuple type such as `[account: string, amount: string]` documents the positions, but every reader still indexes
-  by position, so it is not this conversion (this plugin's note).
-- The `Payout` record is the boundary case that [smells.md](smells.md) excepts from Data Class: data parsed at the
-  edge may be a plain record, as long as nothing past the converter reads the raw row.
+- `toReading` is now the only code that knows the column order. When the supplier adds a column, it is the only
+  edit.
+- The converter is also where each value is checked: `Number('')` is `0` and a missing cell gives `NaN`, so a
+  converter that only maps would pass bad rows on quietly (this plugin's note).
+- A tuple type such as `readonly [meter: string, site: string, date: string, kwh: string]` documents the positions,
+  but every reader still indexes by position, so it is not this conversion (this plugin's note).
+- The `MeterReading` record is the boundary case that [smells.md](smells.md) excepts from Data Class: data parsed at
+  the edge may be a plain record, as long as nothing past the converter reads the raw row.
 
 ## Inheritance, mixins and built-in types
 
@@ -339,7 +352,9 @@ function toPayout(row: ExportRow): Payout {
   ```
 
   Callers get `for...of` and spread; for anything else they spread into an array (`[...shipments].filter(...)`).
-  Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit.
+  Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit. Write the forwarders
+  by hand: a `Proxy` that forwards every message cannot be typed without a cast and cannot reach `#private` members
+  (this plugin's note).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in
   applications she controls, where she can foresee the other method names in play, and disapproves of it in code

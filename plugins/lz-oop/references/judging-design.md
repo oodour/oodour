@@ -30,8 +30,8 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
    - a conditional that switches on a kind, or a flag argument:
      [variants-and-conditionals.md](variants-and-conditionals.md);
    - duplication, or shared code bent by its callers: [duplication-and-abstraction.md](duplication-and-abstraction.md);
-   - a collaborator created inside the class, a chain through other objects, a return value callers must check:
-     [dependencies-and-messages.md](dependencies-and-messages.md);
+   - a collaborator created inside the class, a chain through other objects, a sender that walks a collaborator
+     through its steps, a return value callers must check: [dependencies-and-messages.md](dependencies-and-messages.md);
    - a class hierarchy: [inheritance.md](inheritance.md);
    - tests that are hard to write, or that mock too much: [testing-messages.md](testing-messages.md);
    - a class or method that does more than one job: Does it do one job? below;
@@ -142,8 +142,8 @@ not share, or copy the part they need.
    - a method that relies on only some of the class's fields, and may belong with those fields in a new class (her
      public example-code repositories, poodr and poodr2);
    - a method that loops over a collection and also does the work for each item; split it into one method that only
-     loops and one that handles a single item (the same repositories; *99 Bottles of OOP* and *Practical Object-Oriented Design* both argue for the
-     looping-only form).
+     loops and one that handles a single item (the same repositories; *99 Bottles of OOP* and *Practical
+     Object-Oriented Design* both argue for the looping-only form).
 4. Ask whether its parts change at one pace. Parts that change at different rates belong apart (the talk SOLID
    Object-Oriented Design, 2009). The 2013 Toronto talk loosens this: one reason to change, and parts that change
    at the same moment, are rules of thumb for cohesion, not strict conditions.
@@ -159,7 +159,9 @@ Extract Class, see Primitive Obsession above. *99 Bottles of OOP* argues for lea
 while nothing asks for a change, yet treats the split as a judgment call: an unrequested change is a bet, and one
 that loosens coupling is worth making even then. Weigh the split against step 1 of this leaf.
 
-When the second job is plainly separate, split it now. When you are in doubt and nothing yet asks for it to move,
+When you are already changing the class and the second job is plainly separate, split it now: *Practical
+Object-Oriented Design* warrants a separate class once enough is known, and limiting that to code under change is
+this plugin's reading, which follows *99 Bottles of OOP*. When you are in doubt and nothing yet asks for it to move,
 contain it rather than extract it: give it its own methods inside the class, or a small class in the same module
 that nothing outside imports, so that moving it out is cheap once a change request supplies the missing facts
 (*Practical Object-Oriented Design*). The same book weighs the wait: postponing is right while it costs no more than

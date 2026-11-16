@@ -79,7 +79,9 @@ names you expect to keep, and named arguments (an options object; Parameter list
 [javascript-and-typescript.md](javascript-and-typescript.md)). It also asks that the split be plain to see. In
 JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in the same
 file; this plugin's form). When a sender moves from dictating steps to stating its goal (Message first, above), the
-receiver's step methods lose their outside callers: make them private.
+receiver's step methods lose their outside callers: make them private, except a method a subclass overrides as a
+hook, which stays public or `protected` (Hooks and required steps in TypeScript, in
+[javascript-and-typescript.md](javascript-and-typescript.md)).
 
 ## Reaching through other objects (the Law of Demeter)
 
@@ -97,8 +99,9 @@ not to objects those return (the book).
 3. Cure it by asking the nearest collaborator for what the sender actually wants, through a message
    named for that intention (Hide Delegate; Get a Whiff of This, 2016). Name it for the goal, not by
    gluing together the names in the chain (the book).
-4. Reports and other code whose job is to gather data from many places are a reasonable exception
-   (the book).
+4. Reports and other code whose job is to gather data from many places are a reasonable exception, and a rare one
+   (the book). The exception covers a chain that only reads; never one that changes the object at its end
+   (*Practical Object-Oriented Design* draws that line too).
 
 ## Injecting collaborators
 
@@ -110,7 +113,8 @@ not to objects those return (the book).
    suggests that place still matters, and the class has no basis for choosing one, so once every
    test passes the collaborator explicitly, callers always supply it.
    Her article SOLID Design Principles - Dependency Injection (2009) takes the other view and keeps
-   the collaborator default as a lasting part of the design. This plugin follows the article where
+   the collaborator default as a lasting part of the design, and so does *Practical Object-Oriented Design*, whose
+   finished code keeps such defaults. This plugin follows the article where
    most callers of a public class want the same collaborator and should not have to know it exists,
    and puts the default in an options object.
    Drop the default as the book does when the class is reused in a second context, or when the default

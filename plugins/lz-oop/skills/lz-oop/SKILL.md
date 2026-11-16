@@ -37,7 +37,8 @@ exceptions and the sources are there, not here. An answer written from this file
    - shared code that callers keep bending with parameters, or duplication you are tempted to remove:
      `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md` (also for naming a new concept, section
      Naming);
-   - a collaborator created or reached for inside the class, or a chain of calls through other objects:
+   - a collaborator created or reached for inside the class, a chain of calls through other objects, a sender that
+     walks a collaborator through its steps, or deciding which methods should be public:
      `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`;
    - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
    - a raw number, string or boolean that stands for a domain idea and gets passed around:
@@ -108,7 +109,7 @@ languages differ.
 Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
 (credited by title, its practices by name), from her *Practical Object-Oriented Design*, 2nd edition (credited the
 same way; where it and *99 Bottles of OOP* disagree, this plugin follows *99 Bottles of OOP*), and from her talks and
-articles (cited by title, with the year where it
-is known); ideas credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is
+articles (cited by title, with the year where it is known); ideas credited to Katrina Owen come from her talks (cited
+the same way). Every text in this plugin is
 written in its own words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
 own adaptation and is marked so.

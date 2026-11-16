@@ -153,7 +153,10 @@ conditional stays (the book).
 
 Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. When
 one kind is the default and the others are special values, use From a conditional to subclasses instead, where the
-parent stays concrete (*99 Bottles of OOP*). The steps follow *Practical Object-Oriented Design* and Sandi Metz's
+parent stays concrete (*99 Bottles of OOP*). That holds even before any conditional exists, when the new kind is
+plainly a special case of the existing one: the class stays the parent and keeps the default, and the new subclass
+overrides each member whose default is wrong for it, each override pinned by a test (this plugin's reading). The
+steps follow *Practical Object-Oriented Design* and Sandi Metz's
 public example code for it; the numbering and the test runs are this plugin's.
 
 Do not put the new kind straight under the working class. That class was written for one kind, so the new subclass
@@ -164,9 +167,9 @@ book treats this as a mistake.
    empty. Point every place that creates the class at the subclass (with a factory, that is one edit). Run the
    tests.
 2. Add the new kind as a second, empty subclass, and drive its behaviour with tests.
-3. Lift into the parent, one method at a time, only what both kinds need, with a green test run between lifts. Split a
-   method that mixes shared work with work for one kind before you lift it: the kind-specific part becomes a hook
-   (Hooks instead of `super`, above), and the shared part goes up.
+3. Lift into the parent, one method at a time, only what both kinds need, with a green test run between lifts.
+   Split a method that mixes shared work with work for one kind before you lift it: the kind-specific part becomes
+   a hook (Hooks instead of `super`, above), and the shared part goes up.
 4. Where the shared code needs a value or a step that differs by kind, have the parent ask for it through a hook.
    A hook every subclass must supply throws in the parent, or is `abstract`; an optional one returns a harmless
    default.
@@ -176,8 +179,9 @@ refuses anything it inherits.
 
 The book's reason for moving everything down first: a method left in a subclass that should have gone up shows as
 duplication and costs little to fix later, while a method left in the parent that fits only one kind is wrong for
-the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind it holds. Under either recipe, a parent holds nothing true of only one kind beyond the
-default that the special kinds override (this plugin's reconciliation of the two books).
+the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind it holds.
+Under either recipe, a parent holds nothing true of only one kind beyond the default that the special kinds override
+(this plugin's reconciliation of the two books).
 
 ## Composing the parts
 
@@ -221,7 +225,8 @@ Run the tests after every step.
 5. The hand assembly spreads knowledge of every kind to the callers. Describe each kind as configuration instead,
    build each kind's holder of components through one factory that reads it, and pass that holder to the whole
    (Parts from configuration, above).
-6. Delete the defaults the factory now supplies. A component left with no behaviour can become a plain value.
+6. Delete the default values the components still carry for themselves, now that the configuration supplies them.
+   A component left with no behaviour can become a plain value.
 
 Done when no subclass remains, each former kind is a few lines of configuration, and the whole only coordinates its
 components.
@@ -250,7 +255,14 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
   - Let each host supply its own values by answering those messages, so the mixin reads no host field.
   - Pass in any collaborator the mixin needs rather than creating it there.
 
+  Those defaults work only when the mixin is a function that returns a subclass, so the host's own
+  method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the
+  host's method with the default, and a throwing default then throws on every call (this plugin's
+  note).
+
   The book's role module keeps state of its own and gives its collaborator a default. This plugin keeps
-  mixins stateless (above) and drops a default that ties the code to its first setting (Injecting
-  collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)); a role whose shared
-  code needs state is better served by an injected object.
+  mixins stateless (Inheritance, mixins and built-in types in
+  [javascript-and-typescript.md](javascript-and-typescript.md)) and drops a default that ties the code
+  to its first setting (Injecting collaborators in
+  [dependencies-and-messages.md](dependencies-and-messages.md)); a role whose shared code needs state
+  is better served by an injected object.
