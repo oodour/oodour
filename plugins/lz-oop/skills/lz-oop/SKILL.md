@@ -61,7 +61,8 @@ exceptions and the sources are there, not here. An answer written from this file
    The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never changed.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
    take a smaller one. Never rewrite the whole class in one go (the book). To change a signature, a parameter or a
-   return type across its senders in such steps, use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+   return type across its senders in such steps, or to take a long method or function apart (above all one with no
+   tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, the first small step, and the test that drives it. Stop there unless the
 developer asked you to change the code.
