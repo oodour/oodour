@@ -76,6 +76,12 @@ node tools/source-overlap.ts --corpus 'D:\projects\github\microsoft\TypeScript-W
 from its own oracle-sourced references. lz-tdd still drives test-first work on this repository's code.
 Issues and findings about lz-tdd seen along the way go in [`lz-tdd-ledger.md`](lz-tdd-ledger.md).
 
+Both Opus 5.5 and Sonnet 5.5 run the plugin's skills and read its references, whatever model writes them. Before
+writing or revising plugin text, read `~/.claude/references/prompting-opus-5-5.md` and `prompting-sonnet-5-5.md`, not
+only the guide for the session's model. Sonnet needs a step stated where it acts: in eval round 21 it skipped steps
+the plugin gave only in another reference (Lars, 2026-11-16: "The lz-oop plugin should comply with Sonnet 5.5 and Opus
+5.5 guidelines as per ~/.claude/research/ and @claude-code-guide.").
+
 ## Dogfooding the plugin
 
 Lars, 2026-11-16: "Can you use a slim `claude -p`-ish setup to dogfood lz-review?" Run the plugin on this
