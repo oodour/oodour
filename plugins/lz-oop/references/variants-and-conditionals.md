@@ -96,12 +96,19 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
 2018). These signs say a role exists in the code but was never named or given its own objects:
 
 - A check on what kind of object an argument is. Her talks and articles name a switch on the class and
-  Ruby's `kind_of?`, `is_a?` and `respond_to?` (Less, 2011; POODR with the Toronto Ruby Brigade, 2013;
+  Ruby's `kind_of?`, `is_a?` and `respond_to?`, as does *Practical Object-Oriented Design* (Less, 2011; POODR with
+  the Toronto Ruby Brigade, 2013;
   the talk SOLID Object-Oriented Design, 2009, which treats a kind check as a Liskov smell; the article
   Ruby Case Statements and kind_of?, 2009, which reads a switch on the class as procedural code). The
   JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`, `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
   A factory's one `switch` on a `kind` field that only chooses an object is not this sign (this
   plugin's reading; see Choosing versus doing).
+  In TypeScript, a type predicate (`isOrder(x): x is Order`) or a `this is` method is the same check in typed form,
+  not a cure for it. A method that answers a domain question about its own object and returns a `boolean`
+  (`order.isPaid()`) is not this sign (this plugin's note).
+- A function or class that answers a question about another object (`refundRules.isRefundable(order)`) rather than
+  sending the question to it. *Practical Object-Oriented Design* wants objects to describe themselves: give each
+  kind the method and send it the message (`order.isRefundable()`), a role every such kind plays.
 - A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
 - A check for null or `undefined` before each use (Nothing is Something, 2015).
 - Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom

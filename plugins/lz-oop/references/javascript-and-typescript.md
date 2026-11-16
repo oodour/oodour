@@ -22,7 +22,9 @@ A role is the set of messages a collaborator must answer. Ruby leaves roles impl
 
 - Name each role as a small `interface`, named for what it does, and type each dependency as the narrowest role the
   receiver uses. Structural typing accepts any object with those members; `implements` on a class or `satisfies` on
-  a literal makes the compiler check a player where it is defined.
+  a literal makes the compiler check a player where it is defined. A dependency typed as a concrete class instead
+  refuses every other player as soon as that class has a `#private` or `private` member: an object literal or a fake
+  with the same public methods no longer fits (measured with TypeScript 6.0.3).
 - `Pick<Concrete, 'a' | 'b'>` suits a one-off test double; once a second player is plausible, a named role
   interface is clearer.
 - Types check the shape, not the behaviour. Keep a shared role test (below) that every player runs.
@@ -31,6 +33,14 @@ A role is the set of messages a collaborator must answer. Ruby leaves roles impl
   the classes again (Less, the Path to Better Design, 2011); in her view a dynamic language repays its looseness only
   when objects are reliable enough to be trusted without such checks (AMA, 2018). Checking the type of data at a
   boundary (JSON, user input) is a different job and stays (this plugin's note).
+- Static typing. *Practical Object-Oriented Design* weighs static against dynamic typing for Ruby, before gradual
+  typing such as TypeScript's was common. It doubts that compile-time checks catch much: a cast lets a wrong type
+  through, and well-designed object code seldom meets type errors at run time. It treats a shared role test as the
+  price a dynamic language pays for leaving the role unchecked. This plugin's adaptation for TypeScript: a role
+  typed as an interface lets the compiler check every player's messages, so the shared role test is left to check
+  behaviour; and a cast or a kind check on a collaborator gives up what both the role and the compiler offer.
+  Under `strictNullChecks` the compiler also reports an unhandled `undefined`, which the book's Ruby-era remark
+  about nil errors does not cover.
 
 ```ts
 export interface Discount {
@@ -248,9 +258,9 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   enforced in review.
 - Use an options object for optional settings with defaults. When the same few values travel together through
   several calls, make them one value object.
-- Defaults: *Practical Object-Oriented Design* puts a plain default in the signature and has a default that takes code to work out come from a
-  method of the receiver. In JavaScript the first is a destructuring default; the second is
-  `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`
+- Defaults: *Practical Object-Oriented Design* puts a plain default in the signature and has a default that takes
+  code to work out come from a method of the receiver. In JavaScript the first is a destructuring default; the
+  second is `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`
   (this plugin's note).
 - JavaScript note: nothing reports a missing required key in an options object; destructuring quietly gives
   `undefined`. Check required keys where the object enters, or keep a required value as a positional parameter.
@@ -333,7 +343,8 @@ function toPayout(row: ExportRow): Payout {
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in
   applications she controls, where she can foresee the other method names in play, and disapproves of it in code
-  released for others to use (POODR with the Toronto Ruby Brigade, 2013; The Bike Shed, 2016). This plugin
+  released for others to use (POODR with the Toronto Ruby Brigade, 2013; The Bike Shed, 2016), and *Practical
+  Object-Oriented Design* allows it given a persuasive reason. This plugin
   keeps the stricter rule for JavaScript, its own position: every library loaded into the same page or process shares
   one prototype, so an application cannot foresee every name added to it, and a name added today can collide with a
   standard method added later.
