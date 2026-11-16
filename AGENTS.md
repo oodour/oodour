@@ -46,7 +46,7 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Public articles and papers the Metz corpus cites: Robert C. Martin (2000), five martinfowler.com pages, Feathers (2011) | `.oracle/metz-cited-articles/` | Sealed |
 | Kent Beck's essays and blog archive (the two book files are short summaries, not the books) | `.oracle/beck-writing/` | Sealed |
 | Rebecca Wirfs-Brock and Alan McKean, *Object Design* (2002) | `.oracle/wirfs-brock-object-design/` | Sealed |
-| Reginald Braithwaite, *JavaScript Allongé*, the "Six" edition (2019 manuscript) | `.oracle/braithwaite-javascript-allonge-six/` | Sealed |
+| Reginald Braithwaite, *JavaScript Allongé*, the "Six" edition | `.oracle/braithwaite-javascript-allonge-six/` | Sealed |
 | Axel Rauschmayer, *Exploring JavaScript*, ES2025 edition (2025) | `.oracle/rauschmayer-javascript/` | Sealed |
 | Martin Fowler's JavaScript refactoring articles (2015, 2016) | `.oracle/fowler-js-articles/` | Sealed |
 | MDN JavaScript class pages and TypeScript Handbook pages (classes, mixins, narrowing, `satisfies`) | `.oracle/js-ts-language-reference/` | Sealed |

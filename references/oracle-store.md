@@ -216,10 +216,13 @@ Dr. Axel Rauschmayer but if the oracle can curate the same edition from GitHub, 
 *JavaScript Allongé: the "Six" Edition* by Reg "raganwald" Braithwaite." Then: "My "Impatient JS Programmer" copy is a
 preview edition so if the oracle can curate a full edition, that's better."
 
-- **braithwaite-javascript-allonge-six, new entry**: the author's GitHub manuscript of the Leanpub "Six" edition at its
-  last commit (2019-07-11; the full hash and URL are in the index), licensed CC BY-SA 3.0 as its README states. The
-  curator followed the manuscript's own chapter manifest: 109 of 109 listed files found, joined into 29 files (631,852
-  bytes). Left out: entries the manifest comments out, the images and code folders, and unlisted leftovers.
+- **braithwaite-javascript-allonge-six, new entry**: first the author's GitHub manuscript of the Leanpub "Six" edition
+  at its last commit (2019-07-11), licensed CC BY-SA 3.0 as its README states (109 of 109 manifest files, joined into
+  29). The same day the refactoring-oracle session built Markdown from Lars's purchased EPUB of that edition (build
+  commit 9cf712a; 851 code listings checked against the EPUB; endnotes as footnotes per chapter), and the curator
+  replaced the manuscript files with that build, per the ruling above that shared sources come from
+  refactoring-oracle: 25 chapter files, an index and 50 images, 76 files and 21,864,625 bytes, checked with `diff -r`.
+  Known conversion leftovers: an empty contents heading on the title page and a doubled cover image.
 - **rauschmayer-javascript, new entry**: *Exploring JavaScript*, ES2025 edition, the successor of *JavaScript for
   impatient programmers*, from the author's site repository (`rauschma/exploringjs.com`, `dist/js/book/`, commit
   9527116bf6, 2025-06-20). The book says every chapter is free to read online, and its table of contents lists exactly
