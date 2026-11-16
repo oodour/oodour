@@ -74,6 +74,8 @@ alone is incomplete.
 
 Answer with the recommended structure, the first small step, the test that drives it, and the rules for each
 restructuring step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward.
+When the red shows that a test checks how the code works rather than what it does, fix that test first (*99 Bottles
+of OOP*).
 A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
 asked you to change the code.
 

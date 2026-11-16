@@ -162,12 +162,12 @@ conditional stays (the book).
 ## A new hierarchy of peers
 
 Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. To tell
-which case you have, ask of each public member of the existing class whether it holds for the new kind as written,
-or with only a different value. When every member does, the new kind only specialises the old: keep the existing
-class as the concrete parent with its defaults, and let the new subclass override each member whose value is
-wrong for it, each override pinned by a test, as From a conditional to subclasses does when one kind is the default
-(*99 Bottles of OOP*). When a member is wrong for the new kind in what it does, or means nothing for it, the kinds
-are peers, and the steps below apply (this plugin's reading).
+which case you have, ask whether the existing class's behaviour is the general rule that most kinds follow, with the
+new kind an exception to some of it. When it is, keep the existing class as the concrete parent with its general
+rules, and let the new subclass override each member that is wrong for it, each override pinned by a test, as From
+a conditional to subclasses does when one kind is the default (*99 Bottles of OOP*). An override may differ in what
+it does, not only in a value: the book's own special kinds replace whole methods. When the new kind shares little of
+the existing class's behaviour, the kinds are peers, and the steps below apply (this plugin's reading).
 
 For peers, do not put the new kind straight under the working class. That class was written for one kind, so the
 new subclass inherits behaviour that is true of the first kind only, and senders soon have to check which kind they
@@ -198,8 +198,8 @@ refuses anything it inherits.
 have gone up shows as duplication and costs little to fix later, while a method left in the parent that fits only one
 kind is wrong for the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind
 it holds.
-Under either recipe, a parent holds nothing true of only one kind beyond the default that the special kinds override
-(this plugin's reconciliation of the two books).
+Under either recipe, a parent holds nothing true of only one kind beyond the general rules that the special kinds
+override (this plugin's reconciliation of the two books).
 
 ## Composing the parts
 

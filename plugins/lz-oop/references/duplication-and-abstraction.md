@@ -17,9 +17,13 @@ against the edits it will save; an extraction with no edits ahead of it is pure 
 2. Ask what waiting costs, and when better information will arrive. If the copies can sit unchanged
    until then, wait (the book).
 3. Look for the concept, not the matching characters. The book abstracts early only when many clear
-   examples give confidence that the concept is understood. This plugin reads one line that means the
-   same thing in both places (a date format, a rounding rule) as such a concept, so it can be extracted
-   now; name it one level above the thing it names, in the domain's words (the book's naming rule).
+   examples give confidence that the concept is understood, and shows an idea that looked obvious from
+   two examples turning out wrong. A single line that means the same thing in both places (a date
+   format, a rounding rule) may be extracted now only when three things hold: the concept is
+   unambiguous in the domain's words, extracting makes both places easier to read, and waiting would
+   cost something (this plugin's reading of the book's test). Otherwise wait for a change request or
+   more examples. Name it one level above the thing it names, in the domain's words (the book's naming
+   rule).
    This plugin adds a test: two lines that happen to match but would change for different reasons are
    not one concept.
 4. Say why the wait is worth it: an abstraction drawn from too few examples tends to be the wrong

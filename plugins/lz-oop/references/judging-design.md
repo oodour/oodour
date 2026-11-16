@@ -181,7 +181,9 @@ this plugin's.
 Done looks like: each class and method passes the one-sentence test without an "and" and can be tested alone
 with little setup (*99 Bottles of OOP*, which reads heavy test setup as a sign of tight coupling) and read alone (this
 plugin's criterion), and its parts share one pace of change (the 2009 SOLID talk, which repeats its
-questions at each green step until nothing is left to extract).
+questions at each green step until nothing is left to extract). Reading alone is necessary, not enough: parts that
+each read well can still fail to add up, so check that the class as a whole still tells its domain's story, with
+names one level above their implementation (*99 Bottles of OOP* shows both failures).
 
 ### More smells
 

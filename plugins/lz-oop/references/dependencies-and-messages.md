@@ -34,9 +34,11 @@ is no code yet to grow attached to (the talk Fireside Chat, 2015; *Practical Obj
 same way). Draw it loosely, not as strict UML, and erase it afterwards (Less, 2011). In the diagram, a sender that
 gives a receiver a series of step-by-step instructions knows too much; after the fix it sends one message that names
 its goal (Less, 2011). Go Ahead, Make a Mess (2012) also adds markers for what each sender knows, and how stable that
-knowledge is. Keep the sketch small and use it before the first test only: past that, let collaborators come out of
-the tests and of refactoring, as *99 Bottles of OOP* does. *Practical Object-Oriented Design* sketches more up front,
-for the first code of a new application; where the two differ, this plugin follows *99 Bottles of OOP*.
+knowledge is. Keep the sketch small before the first test: past that, let collaborators come out of the tests and of
+refactoring, as *99 Bottles of OOP* does. A throwaway sketch later on (pseudocode, or the call you wish you could
+make) is fine whenever the next step is unclear, provided you discard it and the tests then drive the code; the book
+uses both. *Practical Object-Oriented Design* sketches more up front, for the first code of a new application; where
+the two differ, this plugin follows *99 Bottles of OOP*.
 
 How much a sender knows about its receiver runs in three stages (*Practical Object-Oriented Design*; the stage
 names are this plugin's):
@@ -107,9 +109,9 @@ its references: a method sends messages to itself, its arguments, and the object
 not to objects those return (the book).
 
 1. Do not judge by counting dots. Ask whether each step in the chain hands back an object with a
-   different interface. Stepping through several unrelated objects is the problem (the book). By the
-   same test, this plugin reads a pipeline whose steps each return the same kind of value (array
-   methods, a builder, a fluent query) as no violation.
+   different interface. Stepping through several unrelated objects is the problem (the book). The book
+   itself counts a chain whose steps keep one interface as no violation, so a pipeline whose steps each
+   return the same kind of value (array methods, a builder, a fluent query) is none either.
 2. Say what the chain costs: the sender breaks when any object along the way changes, it is hard to
    reuse elsewhere, its tests have to build the whole chain, and the intention behind it has no name
    (the book; the talk Get a Whiff of This, 2016).
@@ -180,8 +182,9 @@ keeps changing.
 Dependency Inversion is the name for the end state: neither the higher-level class nor its collaborator depends on
 the other's concrete class; both depend on a role (*99 Bottles of OOP*; the SOLID talk, 2009, reads it as favouring
 abstractions over concrete classes). Done (this plugin's test, drawn from the book's advice to keep concrete class
-names out of instance methods): the receiver's methods name no concrete collaborator class, only the role it plays,
-and the concrete class is chosen where objects are created.
+names out of instance methods, which the book treats as a guideline): the receiver's methods name no concrete player
+of an injected role, any class they still need is reached through a factory, and the concrete choice is made where
+objects are assembled.
 
 ## Interfaces you do not own
 
@@ -205,7 +208,8 @@ Use when code calls a library, a framework or a collaborator whose interface may
    instance, inject the class instead and send it one message that asks for the result the receiver wants, with
    creation hidden behind it. Creating an object is a message too, so creating one and then asking it for something
    is a chain of the kind the Law of Demeter flags (*99 Bottles of OOP*). TypeScript form (this plugin's): inject a
-   factory function typed by the role, or by the result.
+   factory function that takes the receiver's data and returns the result the receiver needs, typed by that result.
+   A factory typed to return an object the receiver then queries rebuilds the chain.
 5. Use only a library's public, documented interface. Needing another class's private or internal member is a
    prompt to rethink the design. When a framework's internal member truly cannot be avoided, treat the use as debt
    that its next release may break, and reach for it from one wrapper only (*Practical Object-Oriented Design*).
@@ -227,11 +231,14 @@ enough.
 Use it when a sender branches on what it got back, or on what it was given. Steps (this plugin's restatement):
 
 1. Find the check in the sender: `instanceof`, `typeof`, an `in` test, a comparison with `null` or `undefined`, or a
-   `kind` field read before deciding what to do.
+   `kind` field read before deciding what to do. A conversion the sender applies to every result, with no check
+   (`String(...)`, `Number(...)`), is the same distrust and counts too (*99 Bottles of OOP*).
 2. Name the message the sender wants to send whatever came back.
 3. Make every kind the receiver can return, or every player of the role, answer that message. The empty case gets a
    player too (below).
-4. Change the receiver to return only those, then delete the check in the sender.
+4. Change the receiver to return only those, then delete the check in the sender. When several receivers or senders
+   are involved, take this step through Accepting two kinds for a while in
+   [changing-in-steps.md](changing-in-steps.md), as the book does.
 
 Done: the sender sends one message with no check before it, and every kind it can receive answers that message.
 

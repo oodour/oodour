@@ -162,7 +162,9 @@ what its test shows.
 - **The first red differs by tool.** A runner that strips types without checking them (Node.js `node --test`,
   Vitest, Jest with a transpile-only transform) runs the test and fails with a `ReferenceError` or `TypeError` for a
   missing class or method, as plain JavaScript does. `tsc --noEmit` reports the same gap before any test runs. Count
-  either as the first red, and keep `tsc` in the loop so type errors do not hide behind green tests.
+  either as the first red, and keep `tsc` in the loop so type errors do not hide behind green tests. Answer each
+  such error with the least change that moves it along, until the test fails on its assertion; only then write the
+  code that passes (*99 Bottles of OOP* takes its first reds this way).
 - **Fake It in TypeScript**: a literal return still has to satisfy the declared return type, which is fine; avoid
   `as` casts to fake a value the type does not allow.
 - **Literal expectations**: a template literal holds multi-line expected output as it will print.

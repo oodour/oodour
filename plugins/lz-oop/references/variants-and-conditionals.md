@@ -192,14 +192,19 @@ searched for and fail quietly on a typo (the book).
   is simple and stable. When the test for a kind grows complex and changes whenever that kind
   changes, the book moves it into the kind itself, and each candidate reports whether it handles the
   input (the third row).
-- **Which form to start from.** The book weighs these forms and leaves the choice to the situation.
-  This plugin starts from a `switch` in the one factory while the kinds are few. It moves to
-  a map, typed so the compiler reports a kind with no entry, once new kinds keep arriving or other
-  code has to stay in step with the list (see Choosing a variant: the factory map in
-  [javascript-and-typescript.md](javascript-and-typescript.md)). Either way, prefer an explicit list
-  over a name-built lookup. These defaults are the plugin's, not the book's.
-- **A `switch` the compiler checks.** In TypeScript, a `default` with `kind satisfies never` fails
-  the build when a kind has no `case`: the same check the map gets from `satisfies Record<Kind, ...>`.
+- **Which form to start from.** The book weighs these forms by cost and leaves the choice to the
+  situation; it rates the `switch` easiest to read and keeps one in its finished code. Start from a
+  `switch` in the one factory. Move to a map when the mapping is better kept as data: other code has to
+  stay in step with the list, or it comes from configuration (see Choosing a variant: the factory map
+  in [javascript-and-typescript.md](javascript-and-typescript.md)). When kinds arrive so often that
+  editing the factory is itself the cost, weigh an open form from the table. Prefer an explicit list
+  over a name-built lookup, which is a last resort. The order is this plugin's reading of the book's
+  costs.
+- **A `switch` the compiler checks.** When the kinds are a closed set with no ordinary case, a
+  TypeScript `default` with `kind satisfies never` (and a throw) fails the build when a kind has no
+  `case`: the same check the map gets from `satisfies Record<Kind, ...>`. When the domain has an
+  ordinary case, the `default`, or the map's fallback, returns that player instead, as the book's
+  factories do, and this check does not apply.
   For a discriminated union, the map can be keyed on its tag, `Record<Message['kind'], ...>`. The
   example is in Choosing a variant: the factory map, in
   [javascript-and-typescript.md](javascript-and-typescript.md). This form is the plugin's.

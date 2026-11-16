@@ -86,10 +86,11 @@ describeDiscountRole(() => new PercentDiscount(10));
 
 *99 Bottles of OOP* weighs several factory forms in JavaScript, among them building a class name at run time,
 variants that register themselves, and a key/value lookup, and leaves the choice to the situation. This plugin
-starts, as [variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory while
-the kinds are few and change rarely: it is the easiest form to read. Once kinds keep arriving, or other code must
-stay in step with the list, its default in TypeScript is the key/value lookup, built in one place, with the
-`satisfies` check below.
+starts, as [variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory: the
+book also rates it the easiest form to read and keeps one in its finished code. When the mapping is better kept as
+data, because other code must stay in step with the list or it comes from configuration, this plugin's form in
+TypeScript is the key/value lookup, built in one place, with the `satisfies` check below. The compiler check is a
+bonus of that form, not a reason to move to it.
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -144,7 +145,10 @@ function onPlanRequest(request: PlanRequest): Plan {
 
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
-  when the package declares `"sideEffects": false`. Keep it for plugins added by other packages.
+  when the package declares `"sideEffects": false`. Use it only when kinds arrive so often that editing the factory is
+  the main cost, and only where every variant module is reliably loaded; plugins added by other packages are the
+  usual case (*99 Bottles of OOP* weighs it by how often classes are added; the module-loading limits are this
+  plugin's).
 - JavaScript note: no `satisfies` or `never`; freeze the map and test that every kind in a `kinds` list has an entry,
   and give a `switch` a `default` that throws.
 
