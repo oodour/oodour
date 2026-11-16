@@ -88,7 +88,7 @@ its own test proves what it adds, and nothing tests the parent's code twice thro
 subclass. The shared tests in Vitest, Jest and `node:test`:
 [javascript-and-typescript.md](javascript-and-typescript.md), Role tests.
 
-## When the test is hard to write
+## When a test resists being written
 
 Heavy setup, many doubles, or a long chain to build are design feedback: the object knows too many
 others or reaches through them. Fix the code rather than the test (*99 Bottles of OOP*; the talk Get a Whiff of

@@ -9,7 +9,7 @@
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
 | `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/` | `.oracle/99bottles-js/index.md` |
 | `owen-talks/` | Caption transcripts of 3 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
-| `poodr-2e-sample/` | The publisher's public table of contents and sample pages of *Practical Object-Oriented Design*, 2nd edition | `.oracle/poodr-2e-sample/index.md` |
+| `poodr-2e/` | Sandi Metz, *Practical Object-Oriented Design*, 2nd edition, one file per chapter, plus `images/` | `.oracle/poodr-2e/index.md` |
 | `fowler-refactoring-2e/` | Martin Fowler, *Refactoring*, 2nd edition, one file per chapter, plus `images/` | `.oracle/fowler-refactoring-2e/index.md` |
 | `meszaros-xunit-test-patterns/` | Gerard Meszaros, *xUnit Test Patterns*, one file per chapter, plus `images/` | `.oracle/meszaros-xunit-test-patterns/index.md` |
 | `kerievsky-refactoring-to-patterns/` | Joshua Kerievsky, *Refactoring to Patterns*, one file per chapter, plus `images/` | `.oracle/kerievsky-refactoring-to-patterns/index.md` |
@@ -183,3 +183,14 @@ them from refactoring-oracle."
   that session, into a new entry, `wirfs-brock-object-design/`.
 - **Overlap**: the plugin's 6-word check then found two runs against the new books, a book title with its author and
   a common phrase in `lz-audit`. The titles and author names joined `permittedPhrases`, and the phrase was reworded.
+
+### 2026-11-16: *Practical Object-Oriented Design*, 2nd edition
+
+Lars's purchased copy, converted to Markdown by the refactoring-oracle repository and delivered to an intake folder on
+his "1: Approve" in that session (as it relayed it). In this repository Lars answered "2 POODR 2e import: Approve." to
+a recommendation to import it as `poodr-2e/` and drop the sample entry.
+
+- **poodr-2e, new entry**: 22 chapter files, `index.md` and `images/`, 65 files and 7,141,949 bytes, copied whole and
+  checked with `diff -r`, file counts and byte totals. The index needed no change; `store-check` passes.
+- **poodr-2e-sample, removed**: the full book covers the sample's contents and chapter (inferred from the sample's
+  record above).

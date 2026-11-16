@@ -38,7 +38,7 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Sandi Metz articles, blog posts, and her public example-code repositories | `.oracle/metz-written/` | Sealed |
 | The book's companion code, `sandimetz/99bottles_js`, as a full git clone | `.oracle/99bottles-js/` | Sealed |
 | Katrina Owen talk transcripts (3 talks, 2012, 2014 and 2016) | `.oracle/owen-talks/` | Sealed |
-| Sandi Metz, *Practical Object-Oriented Design*, 2nd edition: the publisher's public table of contents and sample pages | `.oracle/poodr-2e-sample/` | Sealed |
+| Sandi Metz, *Practical Object-Oriented Design*, 2nd edition (2018) | `.oracle/poodr-2e/` | Sealed |
 | Martin Fowler, *Refactoring*, 2nd edition (2018) | `.oracle/fowler-refactoring-2e/` | Sealed |
 | Gerard Meszaros, *xUnit Test Patterns* (2007) | `.oracle/meszaros-xunit-test-patterns/` | Sealed |
 | Joshua Kerievsky, *Refactoring to Patterns* (2004) | `.oracle/kerievsky-refactoring-to-patterns/` | Sealed |
