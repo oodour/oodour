@@ -130,7 +130,7 @@ just one of them. Whoever needs one purpose must take the whole class, along wit
 not share, or copy the part they need.
 
 1. Describe it in one sentence. A sentence that needs "and" suggests two jobs; one that needs "or" suggests two
-   jobs that are not even related (the talk SOLID Object-Oriented Design, 2009, and *Practical Object-Oriented
+   unrelated jobs (the talk SOLID Object-Oriented Design, 2009, and *Practical Object-Oriented
    Design*; *99 Bottles of OOP* raises the same suspicion when describing a method takes an "and"). Treat the
    sentence as a guide, not a law: in her POODR talk with the Toronto Ruby Brigade (2013) a class is good enough when
    one sentence covers everything in it.
@@ -142,7 +142,8 @@ not share, or copy the part they need.
    - a method that relies on only some of the class's fields, and may belong with those fields in a new class (her
      public example-code repositories, poodr and poodr2);
    - a method that loops over a collection and also does the work for each item; split it into one method that only
-     loops and one that handles a single item (the same repositories; the book argues for the looping-only form).
+     loops and one that handles a single item (the same repositories; *99 Bottles of OOP* and *Practical Object-Oriented Design* both argue for the
+     looping-only form).
 4. Ask whether its parts change at one pace. Parts that change at different rates belong apart (the talk SOLID
    Object-Oriented Design, 2009). The 2013 Toronto talk loosens this: one reason to change, and parts that change
    at the same moment, are rules of thumb for cohesion, not strict conditions.
@@ -165,8 +166,9 @@ that nothing outside imports, so that moving it out is cheap once a change reque
 deciding now, but code left holding two jobs reads as intended and gets copied. Keeping the contained job easy to see
 for that reason, and the unexported class as the JavaScript form, are this plugin's.
 
-Done looks like: each class and method passes the one-sentence test without an "and" and can be read and tested
-alone with little setup (the book), and its parts share one pace of change (the 2009 SOLID talk, which repeats its
+Done looks like: each class and method passes the one-sentence test without an "and" and can be tested alone
+with little setup (*99 Bottles of OOP*, which reads heavy test setup as a sign of tight coupling) and read alone (this
+plugin's criterion), and its parts share one pace of change (the 2009 SOLID talk, which repeats its
 questions at each green step until nothing is left to extract).
 
 ### More smells
