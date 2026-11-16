@@ -172,7 +172,8 @@ new subclass inherits behaviour that is true of the first kind only, and senders
 hold. *Practical Object-Oriented Design* treats subclassing a working concrete class this way as a mistake and makes
 no exception for special cases; the special-case route above departs from it and follows *99 Bottles of OOP*, as
 this plugin does where the two books differ. The steps follow *Practical Object-Oriented Design* and Sandi Metz's
-public example-code repositories for it, poodr and poodr2; the numbering and the test runs are this plugin's.
+public example-code repositories for it, poodr and poodr2; the numbering, the test runs, the repointing of creation
+sites in step 1 and the test-driven second kind in step 2 are this plugin's.
 
 1. Add a subclass named for the existing kind, and move all of the class's code down into it, leaving the parent
    empty. Point every place that creates the class at the subclass (with a factory, that is one edit). Run the
@@ -180,10 +181,14 @@ public example-code repositories for it, poodr and poodr2; the numbering and the
 2. Add the new kind as a second, empty subclass, and drive its behaviour with tests.
 3. Lift into the parent, one method at a time, only what both kinds need, with a green test run between lifts.
    Split a method that mixes shared work with work for one kind before you lift it: the kind-specific part becomes
-   a hook (Hooks instead of `super`, above), and the shared part goes up.
+   a hook (Hooks instead of `super`, above), and the shared part goes up. *Practical Object-Oriented Design* first
+   lifts the shared code with subclasses that call up to the parent, shows a later subclass that forgets that call
+   and silently gets empty values, and only then replaces the calls with hooks: calling up makes every subclass know
+   the parent's algorithm and repeat the call. This plugin goes straight to hooks.
 4. Where the shared code needs a value or a step that differs by kind, have the parent ask for it through a hook.
-   A hook every subclass must supply throws in the parent, or is `abstract`; an optional one returns a harmless
-   default.
+   A hook every subclass must supply throws in the parent, or is `abstract`; make its error name the subclass that
+   left it out, so the failure is clear wherever it shows. An optional hook either does nothing or returns a real
+   default that every kind shares and one kind overrides (*Practical Object-Oriented Design* shows both).
 
 Done when the parent holds only what every subclass uses, nothing creates the parent itself, and no subclass
 refuses anything it inherits.
@@ -215,7 +220,8 @@ forward messages to it. Each new variant then plugs in at that injection point.
   Object-Oriented Design* describes each valid combination as short data and builds the parts with a
   factory that reads it, so a new kind needs new configuration and no new class (her public example
   code shows the same). Two rules from *Practical Object-Oriented Design* keep it safe: no code but the
-  factory reads how the data is laid out, and nothing builds those objects except through the factory.
+  factory reads how the data is laid out, and nothing builds those objects except through the factory. The same
+  book's factory takes the classes it builds as arguments with defaults, so a test or a new use can hand it others.
 
 ## From subclasses to composed objects
 
@@ -237,8 +243,9 @@ Run the tests after every step.
 5. The hand assembly spreads knowledge of every kind to the callers. Describe each kind as configuration instead,
    build each kind's holder of components through one factory that reads it, and pass that holder to the whole
    (Parts from configuration, above).
-6. Delete the default values the components still carry for themselves, now that the configuration supplies them.
-   A component left with no behaviour can become a plain value.
+6. Move each default value the components still carry for themselves into the factory, which fills it in when a
+   configuration entry leaves it out; the factory is then its one home. A component left with no behaviour can
+   become a plain value.
 
 Done when no subclass remains, each former kind is a few lines of configuration, and the whole only coordinates its
 components.

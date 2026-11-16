@@ -43,7 +43,9 @@ changes something.
   mock or spy when the test checks a command it received, and a fake when it is a lighter working version of the
   collaborator.
 - A double has to match the real collaborator's interface, or the test stays green while the code
-  breaks (The Magic Tricks of Testing, 2013).
+  breaks (The Magic Tricks of Testing, 2013). *Practical Object-Oriented Design* shows the trap: after a role
+  message is renamed, a hand-written double that still answers the old name keeps the sender's test green while the
+  program is broken, until the shared role test (below) runs against the double as well.
 - A fake is a small real object that plays the collaborator's role, so a test can show what the class does
   without depending on the real collaborator's output (*99 Bottles of OOP*, which files its fake under Meszaros's
   definition). This plugin reads that use as wider than Meszaros's: his fake is a lighter working stand-in for a

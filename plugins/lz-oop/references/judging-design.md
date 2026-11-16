@@ -148,8 +148,8 @@ not share, or copy the part they need.
    - a blank line inside a method that marks a change of topic (*99 Bottles of OOP* names it as a smell);
    - a calculation buried inside a longer method with no name of its own; extract it into a method named for what
      it computes (*Practical Object-Oriented Design*);
-   - a method that relies on only some of the class's fields, and may belong with those fields in a new class (her
-     public example-code repositories, poodr and poodr2);
+   - a method that relies on only some of the class's fields, and may belong with those fields in a new class
+     (*Practical Object-Oriented Design*, and her public example-code repositories for it, poodr and poodr2);
    - a method that loops over a collection and also does the work for each item; split it into one method that only
      loops and one that handles a single item (the same repositories; *99 Bottles of OOP* and *Practical
      Object-Oriented Design* both argue for the looping-only form).
