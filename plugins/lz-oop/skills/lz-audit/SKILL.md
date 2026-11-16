@@ -13,7 +13,9 @@ here. If those reads are no longer in your context when you write the report, Re
 
 Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole
 repository. Read the README, the package manifest, the entry points and the test setup. Note where the framework
-code sits (controllers, components, handlers) and where the domain code sits, and the style of the existing tests.
+code sits (controllers, components, handlers) and where the domain code sits, the style of the existing tests, and
+whether classes are the house style: where they are not, a cure can use a module of functions or a record of
+closures to play a role.
 
 ## 2. Find the hot spots: churn against complexity
 
@@ -74,8 +76,11 @@ TypeScript form.
 - Lead with the hot-spot table: file, commits in the period, dependents where counted, the complexity measure
   used, and the quadrant.
 - Then the findings, ranked by cost: the files and lines, the smell's name, what change it makes expensive, the
-  cure, and the first small step. Group findings that share one cure. Where the cure changes a signature or type used
-  across the package, point to the green steps in `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+  cure, and the first small step. For a hot spot whose logic no test reaches, that first step is characterisation
+  tests (`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Characterisation tests), before any cure.
+  Group findings that share one cure. Leave formatting, lint and naming nits out unless a name hides a concept.
+  Where the cure changes a signature or type used across the package, point to the green steps in
+  `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 - Say what is healthy and should be left alone, and why.
 - Recommend an order of work. Code is opened up for a specific change only once that change has been requested
   (*99 Bottles of OOP*). Without a request, use churn and complexity only to rank where general work that loosens

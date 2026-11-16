@@ -20,7 +20,9 @@ request. When nothing is named, review the uncommitted changes, or the last comm
 Read the diff, then the code around it: the callers of each changed function or class, the collaborators it now
 uses, and the tests that cover it. A change can raise the cost of code it does not touch, such as every other place
 that switches on the same kind. For a large change, rank the changed areas by how many places depend on them, read
-the top ones first, and say in the report which areas were not read.
+the top ones first, and say in the report which areas were not read. Note how the codebase writes its objects and
+tests, so each cure and sketch fits that style: where classes are not the house style, a module of functions or a
+record of closures can play a role as well as a class can.
 
 ## 3. Look for what the change does to the next change
 
@@ -28,13 +30,16 @@ For each changed area, ask:
 
 - **Two jobs in one?** Did the change restructure and add behaviour in the same step? Restructuring with tests green
   and unchanged, then adding the behaviour, is the safer order (*99 Bottles of OOP*). What a restructure may do to
-  tests: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring.
+  tests: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring. Did it restructure code
+  that no test covered? Then pinning that code first was the missing step: Characterisation tests in
+  `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`.
 - **A second responsibility for a class or method?** Did the change give a class or method a job beyond the one it
   had: a new topic after a blank line, a loop now also doing the work for each item, a method that uses only some
   fields? Not the same as the question above, which is about the steps of the change, not what the code now does:
   `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job? A class that changes often and is
   already large should stop growing even when the new job looks like its own: the next requirement lands as a small
-  new object beside it (the article Breaking Up the Behemoth, 2017).
+  new object beside it (the article Breaking Up the Behemoth, 2017). A class or method the change took past a size
+  limit is a place to look, not a finding by itself: Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`.
 - **Restyling mixed in?** Restyling neighbouring code inside a behaviour change hides what changed, and restyling
   stable code that has no other reason to change seldom repays its cost; she restyles old code only when real work
   opens it anyway (the article Why We Argue: Style, 2017). Asking for any restyling in a commit of its own is this
@@ -58,7 +63,9 @@ For each changed area, ask:
 - **Tests:** do the new or changed tests assert what the code does through its public messages, leave outgoing
   queries unverified, and expect outgoing commands? Did tests change in a commit that claims to only restructure?
   That points to tests that check how rather than what, or to a behaviour change hidden in the commit (the book):
-  `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`.
+  `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Does every branch the change added have a test that
+  reaches it, and does a new player of a role run the role's shared test (Role tests in
+  `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`)?
 
 Judge each candidate finding with `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and use
 `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or

@@ -94,7 +94,8 @@ asked you to change the code.
 
 Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. It gives the verdict and names each smell, and its step 4
 names the reference file that holds each smell's cure; it does not hold those cures itself. Open that file for every
-smell you report before you recommend a cure.
+smell you report before you recommend a cure. Read the code's callers too, and look for other places that switch on
+the same kind or create the same collaborator: a cost this code imposes may show only there.
 
 ## Tests
 
