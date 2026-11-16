@@ -46,7 +46,7 @@ when it stops paying (the 2014 POODR Q&A).
 - **Has-a, composition**: a whole built from parts that can vary independently. Each part plays a role, and the
   whole talks to its parts only through that role's messages.
 
-The same book weighs what each costs:
+*Practical Object-Oriented Design* also weighs what each costs:
 
 - A hierarchy concentrates risk. An edit to the parent reaches every subclass, kinds that have to mix cannot be
   expressed, and whoever extends a poor tree later tends to copy code or check classes rather than fix the tree.
@@ -56,11 +56,12 @@ The same book weighs what each costs:
   a glance, forwarding to the parts is written by hand, and kinds that differ in one small detail are served worse
   than by a subclass each.
 
-That book makes composition its default and asks inheritance to prove its fit: a fixed and obvious family, kept
-shallow and narrow; many variants of one stable idea; code inside your own application, in a domain you know well.
-This plugin follows *99 Bottles of OOP* instead and sets no default: choose the relationship that suits the change
-at hand, and when you cannot tell, try both cures and keep the clearer one (When to move toward composition, below).
-Treat the conditions above as questions to ask, not as a verdict.
+Choose the relationship that suits the change at hand, with no default between them, and when you cannot tell, try
+both cures and keep the clearer one (When to move toward composition, below). *Practical Object-Oriented Design*
+makes composition its default and asks inheritance to prove its fit: a fixed and obvious family, kept shallow and
+narrow; many variants of one stable idea; code inside your own application, in a domain you know well. This plugin
+follows *99 Bottles of OOP* instead and sets no default. Treat the conditions above as questions to ask, not as a
+verdict.
 
 ## When a hierarchy is safe to keep
 
@@ -187,9 +188,10 @@ public example code for it; the numbering and the test runs are this plugin's.
 Done when the parent holds only what every subclass uses, nothing creates the parent itself, and no subclass
 refuses anything it inherits.
 
-The book's reason for moving everything down first: a method left in a subclass that should have gone up shows as
-duplication and costs little to fix later, while a method left in the parent that fits only one kind is wrong for
-the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind it holds.
+*Practical Object-Oriented Design*'s reason for moving everything down first: a method left in a subclass that should
+have gone up shows as duplication and costs little to fix later, while a method left in the parent that fits only one
+kind is wrong for the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind
+it holds.
 Under either recipe, a parent holds nothing true of only one kind beyond the default that the special kinds override
 (this plugin's reconciliation of the two books).
 
@@ -212,8 +214,8 @@ forward messages to it. Each new variant then plugs in at that injection point.
 - **Parts from configuration.** For kinds that differ only in which parts they hold, *Practical
   Object-Oriented Design* describes each valid combination as short data and builds the parts with a
   factory that reads it, so a new kind needs new configuration and no new class (her public example
-  code shows the same). Two rules from the book keep it safe: no code but the factory reads how the
-  data is laid out, and nothing builds those objects except through the factory.
+  code shows the same). Two rules from *Practical Object-Oriented Design* keep it safe: no code but the
+  factory reads how the data is laid out, and nothing builds those objects except through the factory.
 
 ## From subclasses to composed objects
 
@@ -225,8 +227,8 @@ Run the tests after every step.
 1. Decide what the whole is made of. Keep in it only what is truly its own, and have it forward everything that
    varies to one new object that holds the components.
 2. Move the hierarchy into that holder nearly unchanged: the holder's own subclasses now carry the kinds, and the
-   tests stay green while nothing is redesigned yet. The book points out what this step shows: how little of the
-   code belonged to the whole.
+   tests stay green while nothing is redesigned yet. *Practical Object-Oriented Design* points out what this step
+   shows: how little of the code belonged to the whole.
 3. Give a single component a small class of its own, so the holder keeps a list of components and asks them,
    instead of computing per kind. The holder's subclasses go away here; for now, the code that creates a whole
    assembles each kind's components by hand.
@@ -264,15 +266,16 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
     throws for a message every host must answer, a harmless value for an optional one.
   - Let each host supply its own values by answering those messages, so the mixin reads no host field.
   - Pass in any collaborator the mixin needs rather than creating it there. This rule is this plugin's,
-    not the book's; see the paragraph on the book's role module below.
+    not *Practical Object-Oriented Design*'s; see the paragraph on
+    *Practical Object-Oriented Design*'s role module below.
 
   Those defaults work only when the mixin is a function that returns a subclass, so the host's own
   method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the
   host's method with the default, and a throwing default then throws on every call (this plugin's
   note).
 
-  The book's role module keeps state of its own and gives its collaborator a default. This plugin keeps
-  mixins stateless (Inheritance, mixins and built-in types in
+  *Practical Object-Oriented Design*'s role module keeps state of its own and gives its collaborator a
+  default. This plugin keeps mixins stateless (Inheritance, mixins and built-in types in
   [javascript-and-typescript.md](javascript-and-typescript.md)) and drops a default that ties the code
   to its first setting (Injecting collaborators in
   [dependencies-and-messages.md](dependencies-and-messages.md)); a role whose shared code needs state

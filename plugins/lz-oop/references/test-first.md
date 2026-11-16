@@ -24,10 +24,10 @@ TypeScript.
   design is clear, then go back to writing it test-first. *Practical Object-Oriented Design* allows this to
   seasoned designers and steers newcomers to tests first, with a warning not to overrate one's own skill. Keeping
   the spike out of the commit and rebuilding it test by test is this plugin's reading.
-- The same book names two orders of work. Inside out starts from the domain objects and builds upward, the usual
-  order of TDD. Outside in starts from the behaviour a user sees and works down, the usual order of BDD, and needs
-  doubles for the objects that do not exist yet. Either way, each object is tested from the edge of its public
-  interface.
+- *Practical Object-Oriented Design* names two orders of work. Inside out starts from the domain objects and builds
+  upward, the usual order of TDD. Outside in starts from the behaviour a user sees and works down, the usual order of
+  BDD, and needs doubles for the objects that do not exist yet. Either way, each object is tested from the edge of
+  its public interface.
 
 ## Choosing the next test
 
@@ -50,7 +50,8 @@ TypeScript.
 - **Triangulate**: hold several failing tests at once and make them all pass with one change, so together they
   point to the general form. Another copy of a case you already have adds nothing; only a distinct case does.
 
-Triangulate, as steps an agent can follow (steps and the done check are this plugin's reading of the book):
+Triangulate, as steps an agent can follow (steps and the done check are this plugin's reading of *99 Bottles of
+OOP*):
 
 1. Write two or more failing tests whose cases differ in the way the general rule must handle.
 2. Do not make them pass one by one with a literal each; look for the single change that passes all of them.

@@ -7,9 +7,9 @@ Contents: The message grid; Doubles (How far to mock); Testing a hierarchy; When
 tests and integration tests; Other guidance.
 
 *Practical Object-Oriented Design* judges a test by what it costs against what it saves: writing it, running it,
-and keeping it up to date as the code changes. When tests cost too much, the book's answer is to get better at
-testing, not to give it up; that includes removing duplicate tests and checking each behaviour in one place. The
-grid below is how to aim them.
+and keeping it up to date as the code changes. When tests cost too much, *Practical Object-Oriented Design*'s
+answer is to get better at testing, not to give it up; that includes removing duplicate tests and checking each
+behaviour in one place. The grid below is how to aim them.
 
 ## The message grid
 
@@ -65,16 +65,16 @@ Use when deciding whether a collaborator gets a double or the real object.
   cheap and close by, plugging in the real object is fine too; the further and costlier the effect, the more a mock
   at the nearest boundary pays (The Magic Tricks of Testing, 2013). In this plugin that covers a command receiver the
   class creates itself and keeps hidden; one injected or passed to a method follows the next bullet.
-- **Fake an injected collaborator.** *99 Bottles of OOP* replaces a collaborator the class receives from outside
+- **Fake an injected collaborator.** A cheap collaborator that plays a role and is injected through the constructor
+  or passed to a method, such as a clock, gets a fake, whether it answers queries or receives commands; the bullet
+  above covers data passed in and hidden command receivers, not role players handed in (this plugin's
+  reconciliation; the sources follow). *99 Bottles of OOP* replaces a collaborator the class receives from outside
   with a fake, so the test tells the class's own story, and keeps the fake honest with the role test from Doubles.
   A small collaborator the class creates itself and keeps hidden may stay real until it grows. *Practical
   Object-Oriented Design* draws the line by the role instead: fake it when the role has many players, when its
   players are costly to run, or when none has been written yet; use the real object when it is the role's only,
   cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
-  the role. Where the two differ, this plugin follows *99 Bottles of OOP*. So a cheap collaborator that plays a role
-  and is injected through the constructor or passed to a method, such as a clock, gets a fake, whether it answers
-  queries or receives commands; the bullet above covers data passed in and hidden command receivers, not role
-  players handed in (this plugin's reconciliation).
+  the role. Where the two differ, this plugin follows *99 Bottles of OOP*.
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
   checks; asserting on that value checks the stub (this plugin's reading of the message grid above, which keeps
   assertions on values for messages received from outside).
@@ -85,8 +85,8 @@ computed or an outgoing command it sent.
 ## Testing a hierarchy
 
 Use when someone asks how to test a parent class and its subclasses. The layers below follow *Practical
-Object-Oriented Design*, which presents each one as a test, and her public example code for the book;
-the reasons are that book's unless marked as this plugin's. In a Defining
+Object-Oriented Design*, which presents each one as a test, and her public example code for it;
+the reasons are *Practical Object-Oriented Design*'s unless marked as this plugin's. In a Defining
 Object-Oriented Design Q&A she says only that her tests check that the parent throws for a step it
 cannot supply and that each subclass supplies it.
 

@@ -49,7 +49,7 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   Special Case for the state where it has no value (*Refactoring*; the Null Object in
   [javascript-and-typescript.md](javascript-and-typescript.md) is one form). Get a Whiff of This (2016) describes it
   closer to a temporary variable that would be better as a method; mapping that to Replace Temp with Query is this
-  plugin's, and this plugin follows the book's sense.
+  plugin's, and this plugin follows *Refactoring*'s sense.
 - **Alternative Classes with Different Interfaces**: two classes that do the same job under different method names, so
   a caller cannot swap one for the other. Cure: give them the same signatures (Change Function Declaration), move
   behaviour until they match (Move Function), and pull up what is then shared (Extract Superclass) (*Refactoring*).
@@ -65,7 +65,7 @@ The talk leaves this family unnamed; the name here is this plugin's.
   after the other, otherwise Extract Function and Move Function, or Extract Class (*Refactoring*). Steps: Does it do
   one job? in [judging-design.md](judging-design.md).
 - **Shotgun Surgery**: the reverse, one change that needs small edits in many files (*Refactoring*). Gather the pieces
-  with Move Function and Move Field, or Combine Functions into Class; the book also allows inlining the scattered
+  with Move Function and Move Field, or Combine Functions into Class; *Refactoring* also allows inlining the scattered
   pieces into one place first and splitting them again along better lines. The same `switch` on one union's `kind` in
   several files is a common source: [variants-and-conditionals.md](variants-and-conditionals.md).
 - **Parallel Inheritance Hierarchies**: adding a subclass to one hierarchy forces a matching subclass in another
@@ -88,7 +88,7 @@ The talk leaves this family unnamed; the name here is this plugin's.
   *Refactoring* credits.
 - **Data Class**: a class or type with only fields, while the logic about those fields lives in other modules. Cure:
   Encapsulate Record, Remove Setting Method for values that should not change, and Move Function to bring the
-  behaviour in (*Refactoring*). The book excepts a record that only carries one step's result to the next (Split
+  behaviour in (*Refactoring*). *Refactoring* excepts a record that only carries one step's result to the next (Split
   Phase); this plugin reads data parsed at a boundary, such as a JSON payload, the same way.
 - **Duplicated Code**: [duplication-and-abstraction.md](duplication-and-abstraction.md). Judge it there before
   removing it; a wrong abstraction costs more than the copies.

@@ -39,8 +39,8 @@ A role is the set of messages a collaborator must answer. Ruby leaves roles impl
   price a dynamic language pays for leaving the role unchecked. This plugin's adaptation for TypeScript: a role
   typed as an interface lets the compiler check every player's messages, so the shared role test is left to check
   behaviour; and a cast or a kind check on a collaborator gives up what both the role and the compiler offer.
-  Under `strictNullChecks` the compiler also reports an unhandled `undefined`, which the book's Ruby-era remark
-  about nil errors does not cover.
+  Under `strictNullChecks` the compiler also reports an unhandled `undefined`, which *Practical Object-Oriented
+  Design*'s Ruby-era remark about nil errors does not cover.
 
 ```ts
 export interface Discount {
@@ -242,15 +242,15 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 - The public messages are the stable surface; `#private` fields and unexported functions are free to change. A test
   that needs to reach a private field shows a collaborator waiting to be extracted.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
-- Reading your own state. *Practical Object-Oriented Design* puts every field behind an accessor and has the class
-  itself read through it, so that one method decides what the value means and a later change to that meaning
-  touches one place. In JavaScript the outside half of that reason mostly falls away: a public field can become a
-  getter later and no caller changes. Inside the class it still holds, so where a value's meaning could change or a
-  subclass may redefine it, read it through a getter and let only the getter touch the `#field`. Keep that getter off
-  the public interface: private (`get #total()`, over a field named otherwise) when only the class reads it,
-  `protected` in TypeScript when a subclass may redefine it. *99 Bottles of OOP*'s own classes read their fields
-  directly, so treat this as a choice for values like that, not a rule for every field (this plugin's reading of the
-  two books).
+- Reading your own state. Where a value's meaning could change or a subclass may redefine it, read it through a
+  getter that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class
+  reads it and `protected` in TypeScript when a subclass may redefine it. *Practical Object-Oriented Design* puts
+  every field behind an accessor and has the class itself read through it, so that one method decides what the
+  value means and a later change to that meaning touches one place. In JavaScript the outside half of that reason
+  mostly falls away: a public field can become a getter later and no caller changes; inside the class it still
+  holds, which is why the class reads such a value through its getter, kept off the public interface. *99 Bottles
+  of OOP*'s own classes read their fields directly, so treat this as a choice for values like that, not a rule for
+  every field (this plugin's reading of the two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
@@ -329,10 +329,10 @@ function toReading(row: ReadingRow): MeterReading {
   an object, not a string (`s === 'x'` is false).
 - A domain object that holds a list. *Practical Object-Oriented Design* weighs the options: a subclass of the
   built-in list hands callers every list method; a plain wrapper leaves callers stumbling over the list operations it
-  lacks, and adding those one at a time never ends. The book settles on a wrapper that forwards a few list messages
-  and gets the rest from Ruby's iteration module. JavaScript has no module that builds a list interface from one
-  iteration method, so this plugin's form keeps the array private, makes the wrapper iterable, and forwards only the
-  messages the domain uses:
+  lacks, and adding those one at a time never ends. *Practical Object-Oriented Design* settles on a wrapper that
+  forwards a few list messages and gets the rest from Ruby's iteration module. JavaScript has no module that builds
+  a list interface from one iteration method, so this plugin's form keeps the array private, makes the wrapper
+  iterable, and forwards only the messages the domain uses:
 
   ```ts
   class Shipments implements Iterable<Shipment> {

@@ -8,8 +8,8 @@ Contents: Message first; A public interface on purpose; Reaching through other o
 Injecting collaborators; Which way a dependency points; Interfaces you do not own; What a receiver owes its senders.
 
 A class depends on another when a change to the other can force a change to it (*Practical Object-Oriented
-Design*). The book lists what one class can know about another, each one a dependency to keep to what the task
-needs:
+Design*). *Practical Object-Oriented Design* lists what one class can know about another, each one a dependency to
+keep to what the task needs:
 
 - its class name (Injecting collaborators, below);
 - the name of a message it sends there (Interfaces you do not own, step 2);
@@ -55,9 +55,10 @@ outgoing command was sent, or what the sender returns or throws when the stand-i
 grid in [testing-messages.md](testing-messages.md) has the rules (this plugin's note).
 
 An object's context is everything it expects of the objects around it, and every use of it, its tests included,
-has to set that context up first (the same book). One way to shrink a sender's context further than injection does:
-pass `this` along with the message, and let the receiver ask back for what it needs. The receiver then depends on
-the sender answering those few messages; in TypeScript, type that parameter as a small role with only those
+has to set that context up first (*Practical Object-Oriented Design*; *99 Bottles of OOP* says the same of tightly
+coupled objects). One way to shrink a sender's context further than injection does: pass `this` along with the
+message, and let the receiver ask back for what it needs (*Practical Object-Oriented Design*). The receiver then
+depends on the sender answering those few messages; in TypeScript, type that parameter as a small role with only those
 messages, not as the sender's class (this plugin's form).
 
 When the receiver does not exist yet, code by wishful thinking, as *99 Bottles of OOP* does (it credits the idea to
@@ -67,10 +68,10 @@ Abelson and Sussman's book on programming in Scheme):
 2. Build the receiver while nothing calls it. The suite stays green, but that shows only that the new code parses.
 3. Turn the call on, run the tests, then delete the old path.
 
-These steps are larger and riskier than that book's finer-grained recipes, because the new code is not proven until
-it is used. On red, undo, and go back to smaller steps or test-drive the new class. The technique suits pulling out a
-class that needs light edits; one that needs heavy rework is better test-driven from the start (*99 Bottles of
-OOP*).
+These steps are larger and riskier than *99 Bottles of OOP*'s finer-grained recipes, because the new code is not
+proven until it is used. On red, undo, and go back to smaller steps or test-drive the new class. The technique suits
+pulling out a class that needs light edits; one that needs heavy rework is better test-driven from the start (*99
+Bottles of OOP*).
 
 ## A public interface on purpose
 
@@ -85,9 +86,10 @@ through the public ones, and a separate test of private logic is only a temporar
 fails (The
 message grid and Other guidance in [testing-messages.md](testing-messages.md)).
 
-For the public side, the same book asks for names that state the sender's goal rather than the receiver's procedure,
-names you expect to keep, and named arguments (an options object; Parameter lists and options objects in
-[javascript-and-typescript.md](javascript-and-typescript.md)). It also asks that the split be plain to see. In
+For the public side, *Practical Object-Oriented Design* asks for names that state the sender's goal rather than the
+receiver's procedure, names you expect to keep, and named arguments (an options object; Parameter lists and
+options objects in [javascript-and-typescript.md](javascript-and-typescript.md)). It also asks that the split be
+plain to see. In
 JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in
 [javascript-and-typescript.md](javascript-and-typescript.md); this plugin's form). When a sender moves from
 dictating steps to stating its goal (Message first, above), the receiver's step methods lose their outside callers:
@@ -118,18 +120,17 @@ not to objects those return (the book).
 
 1. Treat creating an object as a message too: a class that creates its collaborators is coupled to
    their concrete classes (*99 Bottles of OOP*).
-2. Pass the collaborator in. A default parameter value keeps existing callers unchanged while you
-   make the move; the book treats that default as a step in the refactoring and later removes it.
-   Its reason: a default chosen for the first caller ties the class to the place it came from,
-   suggests that place still matters, and the class has no basis for choosing one, so once every
-   test passes the collaborator explicitly, callers always supply it.
-   Her article SOLID Design Principles - Dependency Injection (2009) takes the other view and keeps
-   the collaborator default as a lasting part of the design, and so does *Practical Object-Oriented Design*, whose
-   finished code keeps such defaults. This plugin follows the article where
-   most callers of a public class want the same collaborator and should not have to know it exists,
-   and puts the default in an options object.
-   Drop the default as the book does when the class is reused in a second context, or when the default
-   names something from the class's original setting.
+2. Pass the collaborator in, and keep a lasting default for it only where most callers of a public class want the
+   same collaborator, in an options object (this plugin's rule; the sources follow). A default parameter value keeps
+   existing callers unchanged while you make the move; *99 Bottles of OOP* treats that default as a step in the
+   refactoring and later removes it. Its reason: a default chosen for the first caller ties the class to the place
+   it came from, suggests that place still matters, and the class has no basis for choosing one, so once every test
+   passes the collaborator explicitly, callers always supply it. Her article SOLID Design Principles - Dependency
+   Injection (2009) takes the other view and keeps the collaborator default as a lasting part of the design, and so
+   does *Practical Object-Oriented Design*, whose finished code keeps such defaults. This plugin follows the article
+   where most callers of a public class want the same collaborator and should not have to know it exists, and puts
+   the default in an options object. Drop the default as *99 Bottles of OOP* does when the class is reused in a
+   second context, or when the default names something from the class's original setting.
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for
    the class that plays it today (the book).
 4. Where you can, pass in a ready instance rather than a class for the receiver to instantiate
@@ -161,11 +162,11 @@ keeps changing.
 2. Weigh three facts about the candidate (*Practical Object-Oriented Design*): how often its requirements are likely
    to change, whether it is concrete or abstract (abstractions change less than the concrete classes they came from),
    and how many others depend on it (each change reaches every dependent).
-3. Place it on the book's grid of likelihood of change against number of dependents. Steady with many dependents
-   is usually an abstraction, and fine; changeable with few dependents is usually concrete code, and fine because
-   little relies on it; steady with few dependents hardly matters. The costly corner is changeable with many
-   dependents: each edit spreads to them all. Suspect a concrete class with many dependents of sitting there even
-   when it looks stable (the book).
+3. Place it on *Practical Object-Oriented Design*'s grid of likelihood of change against number of dependents.
+   Steady with many dependents is usually an abstraction, and fine; changeable with few dependents is usually
+   concrete code, and fine because little relies on it; steady with few dependents hardly matters. The costly
+   corner is changeable with many dependents: each edit spreads to them all. Suspect a concrete class with many
+   dependents of sitting there even when it looks stable (*Practical Object-Oriented Design*).
 4. Prefer depending on a message to depending on a class: a sender that knows only what it wants to ask, not which
    class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). Saying that message names
    are steadier than class names is this plugin's summary of those talks, not a sentence from them.
@@ -184,14 +185,16 @@ Use when code calls a library, a framework or a collaborator whose interface may
 
 1. Wrap creation of a third-party object behind one method or module of your own, so only that place knows its
    constructor's shape, such as a fixed argument order; the rest of the code calls your wrapper with named options
-   (*Practical Object-Oriented Design*, and her example code for the book). The book calls an object made only to
-   build others a factory, and wants application code to depend on what the application owns.
+   (*Practical Object-Oriented Design*, and her example code for it). *Practical Object-Oriented Design* calls an
+   object made only to build others a factory, and wants application code to depend on what the application owns.
 2. Wrap a risky outgoing message to a collaborator in a method of the sender's own, even before any duplication
    exists: if the collaborator renames the message or changes its arguments, one method changes. This is the
-   exception to waiting for duplication; keep it for the messages most likely to change (the book).
+   exception to waiting for duplication; keep it for the messages most likely to change (*Practical Object-Oriented
+   Design*).
 3. When you cannot inject a collaborator yet, isolate its creation: build it in the constructor, or on first use in
    a dedicated method that builds it once. Either keeps creation out of the method that does the work and makes
-   the dependency visible, though the class still knows its collaborator's class (the book). The SOLID talk (2009)
+   the dependency visible, though the class still knows its collaborator's class (*Practical Object-Oriented
+   Design*). The SOLID talk (2009)
    then turns that creation into a constructor argument whose default is the new instance. TypeScript form (this
    plugin's): a `#field` set with `??=` in a private getter.
 4. When only the receiver knows an argument needed to build its collaborator, so the caller cannot pass a ready
