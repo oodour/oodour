@@ -32,6 +32,7 @@ test('assemble copies the plugin, puts its eval cases under evals/ without past 
 });
 
 const cli = join(import.meta.dirname, 'claude-plugin.ts');
+const noFolders = (): boolean => false;
 
 test('the assemble command assembles the folders it is given', () => {
   const workspace = mkdtempSync(join(tmpdir(), 'assemble-cli-'));
@@ -87,6 +88,7 @@ test("the overlap check also covers each of the plugin's eval case folders that 
     'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
     'plugins/demo/README.md': 'readme',
     'evals/demo/case-a/prompt.md': 'prompt',
+    'evals/demo-real/case-b/prompt.md': 'prompt',
   });
 
   const results = await createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, {
@@ -96,8 +98,14 @@ test("the overlap check also covers each of the plugin's eval case folders that 
 
   assert.equal(
     results[0]?.[1].projects?.['plugins/demo']?.targets?.['overlap']?.command,
-    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo',
+    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo evals/demo-real',
   );
+});
+
+test('an eval case folder that does not exist is left out of the overlap check', () => {
+  const { overlap } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md'], (folder) => folder === 'evals/demo-real');
+
+  assert.equal(overlap?.command, 'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo-real');
 });
 
 test('a manifest without a name is refused', () => {
@@ -111,7 +119,7 @@ test('a manifest without a name is refused', () => {
 });
 
 test('a plugin validates strictly with the Claude Code CLI', () => {
-  const { validate } = pluginTargets('plugins/demo', 'demo', []);
+  const { validate } = pluginTargets('plugins/demo', 'demo', [], noFolders);
 
   assert.equal(validate?.command, 'claude plugin validate --strict plugins/demo');
   assert.equal(validate.cache, true);
@@ -120,7 +128,7 @@ test('a plugin validates strictly with the Claude Code CLI', () => {
 });
 
 test('every Markdown file of a plugin is checked against the store at the six-word floor, never from cache', () => {
-  const { overlap } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/skills/a/SKILL.md']);
+  const { overlap } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/skills/a/SKILL.md'], noFolders);
 
   assert.equal(
     overlap?.command,
@@ -130,7 +138,7 @@ test('every Markdown file of a plugin is checked against the store at the six-wo
 });
 
 test('every Markdown file of a plugin is checked for chapter numbers, cached on the files and the checker', () => {
-  const { citations } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/z.md']);
+  const { citations } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/z.md'], noFolders);
 
   assert.equal(citations?.command, 'node tools/chapter-citations.ts plugins/demo/README.md plugins/demo/z.md');
   assert.equal(citations.cache, true);
@@ -139,7 +147,7 @@ test('every Markdown file of a plugin is checked for chapter numbers, cached on 
 });
 
 test('pre-eval assembles the plugin and its eval cases outside the distributed plugin, cached on both', () => {
-  const preEval = pluginTargets('plugins/demo', 'demo', [])['pre-eval'];
+  const preEval = pluginTargets('plugins/demo', 'demo', [], noFolders)['pre-eval'];
 
   assert.equal(preEval?.command, 'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo dist/eval/demo');
   assert.equal(preEval.cache, true);
@@ -153,7 +161,7 @@ test('pre-eval assembles the plugin and its eval cases outside the distributed p
 });
 
 test('eval runs the assembled copy after pre-eval and is never cached', () => {
-  const { eval: evaluate } = pluginTargets('plugins/demo', 'demo', []);
+  const { eval: evaluate } = pluginTargets('plugins/demo', 'demo', [], noFolders);
 
   assert.equal(evaluate?.command, 'claude plugin eval dist/eval/demo');
   assert.deepEqual(evaluate.dependsOn, ['pre-eval']);
@@ -161,7 +169,7 @@ test('eval runs the assembled copy after pre-eval and is never cached', () => {
 });
 
 test('pre-eval-real assembles the plugin with its real-repository cases beside the synthetic suite, cached on both', () => {
-  const preEvalReal = pluginTargets('plugins/demo', 'demo', [])['pre-eval-real'];
+  const preEvalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)['pre-eval-real'];
 
   assert.equal(preEvalReal?.command, 'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo-real dist/eval/demo-real');
   assert.equal(preEvalReal.cache, true);
@@ -175,7 +183,7 @@ test('pre-eval-real assembles the plugin with its real-repository cases beside t
 });
 
 test('eval-real runs the real-repository suite with its scaffold scripts after pre-eval-real, never cached', () => {
-  const evalReal = pluginTargets('plugins/demo', 'demo', [])['eval-real'];
+  const evalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)['eval-real'];
 
   assert.equal(evalReal?.command, 'claude plugin eval dist/eval/demo-real --scaffold');
   assert.deepEqual(evalReal.dependsOn, ['pre-eval-real']);
