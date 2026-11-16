@@ -60,7 +60,7 @@ Choose the relationship that suits the change at hand, with no default between t
 both cures and keep the clearer one (When to move toward composition, below). *Practical Object-Oriented Design*
 makes composition its default and asks inheritance to prove its fit: a fixed and obvious family, kept shallow and
 narrow; many variants of one stable idea; code inside your own application, in a domain you know well. This plugin
-follows *99 Bottles of OOP* instead and sets no default. Treat the conditions above as questions to ask, not as a
+follows *99 Bottles of OOP* instead. Treat the conditions above as questions to ask, not as a
 verdict.
 
 ## When a hierarchy is safe to keep

@@ -159,7 +159,7 @@ changes later.
 
 Use when a conditional picks between two rules, and an object per rule would still leave something
 that has to choose between them. Run the tests after every step, and undo a step that turns them red (this plugin's
-working rule, as for every recipe here).
+working rule for every restructuring recipe here; a test written first for new behaviour is red until its step).
 
 1. Ask whether the rules are variants of one idea. If they are, give each its own object that plays
    one role and inject the one to use (see Adding a kind above). If they are two separate jobs that
@@ -234,5 +234,6 @@ what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013)
    cure.
 
 Make each of these changes in green steps: run the tests after every edit, and undo an edit that turns them red.
-Done when the shared code takes no flag for the choice, each caller hands over the collaborator that does its part,
-and adding a caller's variant adds no `if` to the shared code (this plugin's Done line).
+Done when the shared code takes no flag for the choice; each caller hands over the collaborator that does its part,
+relies on the default collaborator (step 4), or, where the abstraction was wrong, holds its own copy of what it
+needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line).

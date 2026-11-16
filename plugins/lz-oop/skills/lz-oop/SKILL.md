@@ -72,9 +72,10 @@ alone is incomplete.
    return type across its senders in such steps, or to take a long method or function apart (above all one with no
    tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
-Answer with the recommended structure, the first small step, the test that drives it, and the rules for taking each
-step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward. Stop there
-unless the developer asked you to change the code.
+Answer with the recommended structure, the first small step, the test that drives it, and the rules for each
+restructuring step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward.
+A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
+asked you to change the code.
 
 ## Judge: one piece of existing code
 
@@ -94,7 +95,9 @@ smell you report before you recommend a cure.
   `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
 
 Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns
-it green; for a question about testing an object, say what each test asserts and which collaborators get a stand-in.
+it green; for a question about testing an object, say what each test asserts and which collaborators get a stand-in;
+for tests that break on restructuring, name each test that checks how rather than what, and say what it should assert
+instead.
 
 ## Explain
 
