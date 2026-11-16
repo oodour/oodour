@@ -14,7 +14,9 @@ TypeScript.
   problem best, usually the simplest single case (*99 Bottles of OOP*).
 - Do not agonise over the first test. You know least at the start; some early tests exist only to show that an idea
   was wrong (the book).
-- Choose plain, unsurprising example values, so a reader does not hunt for meaning in them (the book).
+- Choose plain, unsurprising example values, so a reader does not hunt for meaning in them (the book). Katrina Owen
+  prefers data built for the test over realistic data: the fewest, simplest values that exercise only the rule under
+  test (the talk Succession, 2016).
 - Sandi Metz moved away from drawing the target design first and test-driving toward it. Gather concrete examples
   first and let the abstraction come out of them; the next test is often just the next example (the podcast Why Are
   Computers #3, with Katrina Owen, 2016). A small sketch of the messages for a new use case still helps before the
@@ -60,6 +62,12 @@ OOP*):
 
 Use it when you cannot yet see the general form and Fake It would only give you a pile of literals. It is done when
 one piece of code, with no branch per test, passes every case, and a new distinct case passes without editing it.
+
+Kent Beck's later essays take another route to the same done line. Keep one failing test at a time (Canon TDD,
+2023). Pass the second case even with a specific branch, then replace the literals and branches with the general
+form in small steps while every test is green (his essay on generalising, 28 April 2025). Several red tests at once
+are one fallback when he is stuck (TDD is Not Hill Climbing, 2024). Either route fits; an agent that tends to write
+all its tests first does better with his (this plugin's advice).
 
 ```ts
 // Before: one literal per test, each faked on its own

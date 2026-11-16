@@ -38,7 +38,9 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
   `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that
   changes often and that many files depend on is the costly corner of *Practical Object-Oriented Design*'s grid of
-  likelihood of change against dependents; reading churn as likelihood of change is this plugin's. Its cures are in
+  likelihood of change against dependents; reading churn as likelihood of change is this plugin's, and it is one
+  input beside concreteness: a concrete class with many dependents is suspect even when it has been stable. Its
+  cures are in
   `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
 - **Read the quadrants**:
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
@@ -65,13 +67,15 @@ TypeScript form.
   cure, and the first small step. Group findings that share one cure. Where the cure changes a signature or type used
   across the package, point to the green steps in `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 - Say what is healthy and should be left alone, and why.
-- Recommend an order of work. Code is opened up for a change that has actually been requested
-  (*99 Bottles of OOP*); ranking the rest by the changes the history suggests will come next is this plugin's
-  judgement, and the report says so.
+- Recommend an order of work. Code is opened up for a specific change only once that change has been requested
+  (*99 Bottles of OOP*). Without a request, use churn and complexity only to rank where general work that loosens
+  coupling pays first, not to guess the next feature; that ranking is this plugin's judgement, and the report says
+  so.
 - For a class in the often-changed and complex quadrant, recommend that it stop growing: build each new piece of
   behaviour as small new classes that work with it, even where they look out of place beside it (the article Breaking
-  Up the Behemoth, 2017). Having the big class send messages to them is this plugin's reading, in line with the
-  coordinating class of Polly Want a Message, 2018; the cures are in
+  Up the Behemoth, 2017). The big class sends messages to them, but receives them injected or built by a factory,
+  so it learns roles rather than more class names (the articles What Does OO Afford?, 2018, and The Half-Life of
+  Code, 2017; the coordinating class of Polly Want a Message, 2018); the cures are in
   `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - This is a report: change nothing. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.
 

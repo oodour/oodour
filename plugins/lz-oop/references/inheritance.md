@@ -71,14 +71,17 @@ Check these against the code and cite the ones that hold. From the talk All the 
 - **Narrow**: few subclasses.
 - **Nothing refused**: every subclass uses all of what it inherits. A subclass that overrides an
   inherited method to throw has refused part of its parent, the smell Refused Bequest (Get a Whiff
-  of This, 2016). This plugin reads an override that does nothing the same way.
+  of This, 2016). An override that does nothing because doing nothing is a valid form of the varying
+  behaviour is not this smell, though moving that behaviour into an injected role with a do-nothing
+  player is worth weighing (All the Little Things, 2014; Nothing is Something, 2015). One that cancels an
+  effect the parent promises is the same smell as throwing (this plugin's reading).
 - **At the edges**: picture the application's objects as a web of who talks to whom. The subclasses
   should sit at its outer edge, as objects that answer messages from their own data and talk to
   nothing else. The talks POODR with the Toronto Ruby Brigade, 2013, and the 2014 POODR Q&A give
   the reason: objects at the edge change least, so a hierarchy there is cheap to keep and cheap to
-  undo, while a hierarchy around a core domain object tends to go badly. Why it goes badly is this
-  plugin's inference: such an object is used by many others and uses many in turn, so a change to the
-  parent reaches all of them.
+  undo, while a hierarchy around a core domain object tends to go badly. Her reason is uncertainty: the
+  core is the part least understood and most likely to change, while the edge changes little and a wrong
+  hierarchy there costs little to undo (the Toronto talk and a Triangle.rb Q&A, both 2013; the 2014 Q&A).
 
 From Nothing is Something, 2015:
 
@@ -104,8 +107,14 @@ From All the Little Things, 2014, and the talk Defining OOD:
 This plugin adds, as its own guidance:
 
 - **Template Method**: *Practical Object-Oriented Design* names the technique and builds its hierarchies with it.
-  That a hierarchy meeting these conditions is usually one is this plugin's inference, as is the link to Go Ahead,
-  Make a Mess, 2012, which says inheritance of that kind suits variants that are nearly alike.
+  Call a kept hierarchy a Template Method only when the parent has one public method that fixes the order of the
+  steps and calls the ones subclasses supply; say which steps every subclass must supply and which are optional
+  hooks with a harmless default, and keep the required ones few (*Design Patterns*). That a hierarchy meeting these
+  conditions is usually one is this plugin's inference, as is the link to Go Ahead, Make a Mess, 2012, which says
+  inheritance of that kind suits variants that are nearly alike. The shallow, narrow, edge and specialisation
+  conditions above come from the talks, not the pattern; *Design Patterns* does also split required steps from
+  hooks and prefer a hook the parent calls over an override that must call the parent's version. It presents the
+  pattern as a way to reuse code, not only to specialise.
 - **In TypeScript**: hooks are public or `protected` methods, and a required step can be `abstract`
   instead of throwing. See Hooks and required steps in TypeScript in
   [javascript-and-typescript.md](javascript-and-typescript.md).
@@ -126,9 +135,10 @@ When the conditions hold, recommend keeping the hierarchy and say which properti
   real specialisation: All the Little Things, 2014, moves code the subclasses had duplicated up into
   a parent and calls that sound when the hierarchy is shallow, narrow, at the edges, and every
   subclass uses all it inherits. Katrina Owen's Succession, 2016, does the same on a smaller scale:
-  one variant inherits from the other to avoid duplicating what they share and replaces a single
-  step, which she accepts as more structure bought for flexibility. Reading such a subclass as one
-  that reuses its parent through hook methods is this plugin's; neither talk uses that word.
+  one variant inherits from a working concrete class that holds the shared behaviour and the default
+  step, overrides the one step that the parent's public method calls, and adds what that step alone
+  needs; she names avoiding duplication as her reason, and accepts more structure bought for
+  flexibility. Calling that overridden step a hook is this plugin's word; neither talk uses it.
 - **A subclass that refuses part of its parent**, or a tree that has grown deep or wide.
 - **A subclass that overrides only a sliver of its parent**, or one whose name claims an is-a
   relation the behaviour does not support (Nothing is Something, 2015).
@@ -222,7 +232,8 @@ forward messages to it. Each new variant then plugs in at that injection point.
   factory that reads it, so a new kind needs new configuration and no new class (her public example
   code shows the same). Two rules from *Practical Object-Oriented Design* keep it safe: no code but the
   factory reads how the data is laid out, and nothing builds those objects except through the factory. The book's
-  first such factory takes the classes it builds as parameters with defaults. Give the factory those parameters, so
+  first such factory takes the classes it builds as parameters with defaults; its final version still takes the
+  collection class and drops only the parameter for the part class. Give the factory those parameters, so
   a test or a new use can pass other classes (this plugin's advice and reason).
 
 ## From subclasses to composed objects
@@ -284,8 +295,8 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
   note).
 
   *Practical Object-Oriented Design*'s role module keeps state of its own and gives its collaborator a
-  default. This plugin keeps mixins stateless (Inheritance, mixins and built-in types in
-  [javascript-and-typescript.md](javascript-and-typescript.md)) and drops a default that ties the code
-  to its first setting (Injecting collaborators in
-  [dependencies-and-messages.md](dependencies-and-messages.md)); a role whose shared code needs state
-  is better served by an injected object.
+  default, and a mixin may do the same when that state belongs to the role in every host, such as an
+  injectable collaborator with a default created on first use. This plugin prefers stateless mixins,
+  handed their collaborators; that is stricter than the book and costs some wiring at each host
+  (Inheritance, mixins and built-in types in [javascript-and-typescript.md](javascript-and-typescript.md);
+  Injecting collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)).

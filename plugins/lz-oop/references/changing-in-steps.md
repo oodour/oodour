@@ -104,7 +104,8 @@ this order; the methods that assign the field in step 1, the pace in step 2 and 
 are this plugin's.
 
 1. Make the constructor, and every method that assigns the old field, fill the old field and the new one.
-2. Switch each reader over to the new field separately, running the tests after each switch.
+2. Move the readers to the new field method by method, every use inside a method at once, with a test run after
+   each method.
 3. Once nothing reads the old field, stop assigning it and delete it.
 4. Rename the constructor parameter to match. Where callers pass it by name in an options object, accept both keys
    for a while (Accepting two kinds for a while, below), move the callers to the new key, then drop the old one.
@@ -148,8 +149,10 @@ stock(product: Product): void {
 ```
 
 TypeScript: the union states the transition in the signature; removing the old kind from it in step 5 makes `tsc`
-list every caller still sending it. JavaScript note: nothing lists them; this plugin suggests letting the check in
-step 2 log the old kind while you convert, so the log shows who is left. It must be gone at the end.
+list every caller still sending it. JavaScript note: nothing lists them. First let the tests find them, as the book
+does: a temporary check that throws on the old kind makes a test fail at each sender left. For senders no test
+reaches, this plugin suggests letting the check in step 2 log the old kind while you convert. Both must be gone at
+the end.
 
 Done: no union, no `instanceof` or `typeof` check for the old kind, and every implementor and caller deals only in
 the new kind.
@@ -165,17 +168,20 @@ committed on its own. The steps below restate hers; the TypeScript example is th
    which she credits to Martin Fowler's *Refactoring*): the constructor takes the method's argument, the body becomes
    a method with no parameter, and the old method only builds the object and calls it. Green. She notes that the
    usual reason for this move is a method with many temporaries you would otherwise pass around; hers had only its
-   one argument, so only that became the object's state.
+   one argument, so only that became the object's state. She gave the class a file of its own at once, and credits
+   that kind of isolation with fast tests. Starting with the class private to the module and moving it out once its
+   pieces deserve tests of their own is this plugin's sequence.
 2. Extract one piece: add an empty method named for what the piece is, not how it is computed; copy the lines in.
    Where a local variable is built up across those lines, she prefers making the new method a query that returns its
    part over passing the variable in or storing it in a field. In the original, use the query's result and delete the
    temporaries nothing reads any more. Run the tests.
 3. Choose the next piece. Her order was her own pick: the largest chunk first, then whichever line is now longest.
-4. When the extractions are done, make a separate pass that removes what she calls code junk: noise that adds nothing
-   to understanding, such as comments that repeat or contradict the code, dead code kept for history, imports the
-   code never uses, and work the language already does for you. Small pieces of it left in place pile up into the
-   kind of method you started from. The pass belongs to this change, not to a later clean-up: make it before you add
-   the new behaviour, in commits of its own so the review stays easy (this ordering is the plugin's).
+4. Remove what she calls code junk whenever you meet it, and sweep for the rest when the extractions are done: noise
+   that adds nothing to understanding, such as comments that repeat or contradict the code (a misleading comment can
+   go first), dead code kept for history, imports the code never uses, and work the language already does for you.
+   Small pieces of it left in place pile up into the kind of method you started from. She commits every step on its
+   own. Doing all of it in this change, before you add the new behaviour, so the review stays easy, is this
+   plugin's advice.
 
 ```ts
 // Step 1: the method moved into its own class; the old function only delegates

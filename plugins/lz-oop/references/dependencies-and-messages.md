@@ -126,17 +126,18 @@ not to objects those return (the book).
 
 1. Treat creating an object as a message too: a class that creates its collaborators is coupled to
    their concrete classes (*99 Bottles of OOP*).
-2. Pass the collaborator in, and keep a lasting default for it only where most callers of a public class want the
-   same collaborator, in an options object (this plugin's rule; the sources follow). A default parameter value keeps
+2. Pass the collaborator in, and keep a lasting default for it only when the class itself can justify that player
+   without reference to where the class came from; how many callers want it is not the test (*99 Bottles of OOP*'s
+   test, as this plugin reads it; the sources follow). A default parameter value keeps
    existing callers unchanged while you make the move; *99 Bottles of OOP* treats that default as a step in the
    refactoring and later removes it. Its reason: a default chosen for the first caller ties the class to the place
    it came from, suggests that place still matters, and the class has no basis for choosing one, so once every test
    passes the collaborator explicitly, callers always supply it. Her article SOLID Design Principles - Dependency
    Injection (2009) takes the other view and keeps the collaborator default as a lasting part of the design, and so
-   does *Practical Object-Oriented Design*, whose finished code keeps such defaults. This plugin follows the article
-   where most callers of a public class want the same collaborator and should not have to know it exists, and puts
-   the default in an options object. Drop the default as *99 Bottles of OOP* does when the class is reused in a
-   second context, or when the default names something from the class's original setting.
+   does *Practical Object-Oriented Design*, whose finished code keeps such defaults. Where the two views differ, this
+   plugin follows *99 Bottles of OOP*: drop the default when it names something from the class's original setting,
+   or exists only so the tests can run, and keep one the class can justify on its own, such as a system clock. A
+   kept default goes in an options object when the constructor has several optional settings (this plugin's form).
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for
    the class that plays it today (*99 Bottles of OOP*).
 4. Where you can, pass in a ready instance rather than a class for the receiver to instantiate
@@ -174,8 +175,8 @@ keeps changing.
    corner is changeable with many dependents: each edit spreads to them all. Suspect a concrete class with many
    dependents of sitting there even when it looks stable (*Practical Object-Oriented Design*).
 4. Prefer depending on a message to depending on a class: a sender that knows only what it wants to ask, not which
-   class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). Saying that message names
-   are steadier than class names is this plugin's summary of those talks, not a sentence from them.
+   class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). That messages change less
+   than classes she says outright in a 2013 Triangle.rb Q&A and in the talk The Design of Tests.
 5. When neither side is clearly steadier, do not guess a direction: cut what each side knows of the other to the
    least, with each side expecting a role rather than a class (Less, 2011).
 

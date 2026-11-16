@@ -51,7 +51,10 @@ alone is incomplete.
      Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
    the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
-   *99 Bottles of OOP*).
+   *99 Bottles of OOP*). Say so when a short procedure with no conditionals is the better answer, and recommend
+   objects once conditionals start to accumulate (Polly Want a Message, 2018). When restructuring, it is often wise
+   to stop one refactoring short of where you could go, until that last one pays (the Q&A after Go Ahead, Make a
+   Mess at Triangle.rb, 2013).
 4. A change to existing code is two separate jobs (the book; the article Getting It Right By Betting On Wrong, 2014,
    which credits the idea to Kent Beck). Follow the book's Open/Closed path each time a requirement lands:
    1. Can the change go in without editing the code that is there? Then add it, test-first.

@@ -95,7 +95,8 @@ A name such as `isOverseasDelay` would describe only one branch.
 
 ## Signs of a role nobody named
 
-A role (a duck type) is an agreement on a set of messages and nothing else; once the sender trusts
+A role (a duck type) is an agreement on a set of messages that says nothing about which class answers; once the
+sender trusts
 every player to answer, it stops caring which class it holds (Less, 2011; Polly Want a Message,
 2018). These signs say a role exists in the code but was never named or given its own objects:
 
@@ -104,27 +105,34 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   SOLID Object-Oriented Design, 2009, which treats a kind check as a Liskov smell; the article Ruby Case Statements
   and kind_of?, 2009, which reads a switch on the class as procedural code), and *Practical Object-Oriented Design*
   names the same three checks. The JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`,
-  `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
+  an `in` check, a switch on a `kind` field, and `typeof` or `Array.isArray` used to pick behaviour per kind of
+  value inside domain code (her 2009 article's example branches on built-in kinds). Checking outside input at a
+  boundary is a different job (this plugin's exemption).
   A factory's one `switch` on a `kind` field that only chooses an object is not this sign (this
   plugin's reading; see Choosing versus doing).
   In TypeScript, a type predicate (`isInvoice(x): x is Invoice`) or a `this is` method is the same check in typed
   form, not a cure for it. A method that answers a domain question about its own object and returns a `boolean`
-  (`invoice.isPaid()`) is not this sign (this plugin's note).
+  (`invoice.isPaid()`) is not this sign (this plugin's note), but a sender that branches on that boolean to supply
+  the object's behaviour itself is the same sign in another form.
 - A function or class that answers a question about another object (`shippingRules.isFragile(item)`) rather than
   sending the question to it. *Practical Object-Oriented Design* wants objects to describe themselves: give each
   kind the method and send it the message (`item.isFragile()`), a role every such kind plays. A policy object chosen
-  per case (a Strategy) that decides from what it is given, without checking which kind it holds, is not this sign
-  (this plugin's note). Move such a question one kind at a time: add the method to one kind, make the old function
-  call it for that kind, and check the step by running the old function's tests unchanged, plus a new test of the
-  method on that kind; repeat for each kind, then delete the old function once no branch is left (this plugin's
-  note).
+  per case (a Strategy) escapes the sign only when the decision is a varying rule of its own, decided from what it
+  is given; when it answers a question about the nature of the object it is handed, move that answer onto the
+  object, whether or not the policy checks kinds (*Practical Object-Oriented Design*; *Design Patterns* feeds a
+  Strategy its inputs the same way). Move such a question one kind at a time: add the method to one kind, make the
+  old function call it for that kind, and check the step by running the old function's tests unchanged, plus a new
+  test of the method on that kind; repeat for each kind, then delete the old function once no branch is left (this
+  plugin's note).
 - A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
 - A check for null or `undefined` before each use (Nothing is Something, 2015).
 - Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom
   of All Things, 2014, reads the repeated part as a missing object).
 - A flag passed in where a smarter object should be (Polly Want a Message, 2018).
 
-A switch on the language's own built-in, stable types is tolerable (Less, 2011). Elsewhere, one class
+A switch on the language's own built-in, stable types is tolerable (Less, 2011), as when a utility formats a
+number one way and a string another; the sign above is such a switch in domain code, deciding behaviour that a
+domain object could own (this plugin's line between the two). Elsewhere, one class
 check undoes the trust the role gives (Less, 2011): send the message, and let a factory pick the player
 so the sender stays unaware of the choice (Devs for Ukraine, 2022). Each new player of a role gets the
 role's shared test; see Role tests in [javascript-and-typescript.md](javascript-and-typescript.md).
@@ -248,4 +256,6 @@ what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013)
 Make each of these changes in green steps: run the tests after every edit, and undo an edit that turns them red.
 Done when the shared code takes no flag for the choice; each caller hands over the collaborator that does its part,
 relies on the default collaborator (step 4), or, where the abstraction was wrong, holds its own copy of what it
-needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line).
+needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line). Polly Want
+a Message (2018) adds three marks: the do-nothing case is an object of its own, the collaborator is chosen in a
+factory as far up as the facts allow, and a new variant adds one object and one factory entry.

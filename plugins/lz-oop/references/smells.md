@@ -60,7 +60,9 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   a caller cannot swap one for the other. Cure: give them the same signatures (Change Function Declaration), move
   behaviour until they match (Move Function), and pull up what is then shared (Extract Superclass) (*Refactoring*).
   In TypeScript this plugin prefers having both implement one role over a shared parent: Roles in
-  [javascript-and-typescript.md](javascript-and-typescript.md).
+  [javascript-and-typescript.md](javascript-and-typescript.md). When matching their messages leaves duplicated
+  behaviour, give it one home all the same, in a shared parent or an extracted class both delegate to; do not leave
+  the copies (*Refactoring*).
 
 ## Change preventers: one change, many edits
 
@@ -76,8 +78,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
   several files is a common source: [variants-and-conditionals.md](variants-and-conditionals.md).
 - **Parallel Inheritance Hierarchies**: adding a subclass to one hierarchy forces a matching subclass in another
   (Get a Whiff of This, 2016). *Refactoring*, 2nd edition, drops it from its catalogue. The cure here is this plugin's
-  reading: let one side hold the other as a collaborator instead of mirroring it, so only one hierarchy remains; see
-  When to move toward composition in [inheritance.md](inheritance.md).
+  reading: move the varying side behind a delegate the other side holds (*Refactoring*'s Replace Subclass with
+  Delegate), so the two variations change independently; the delegate may keep a hierarchy of its own. See When to
+  move toward composition in [inheritance.md](inheritance.md).
 
 ## Dispensables: code that does not earn its place
 
@@ -95,7 +98,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
 - **Data Class**: a class or type with only fields, while the logic about those fields lives in other modules. Cure:
   Encapsulate Record, Remove Setting Method for values that should not change, and Move Function to bring the
   behaviour in (*Refactoring*). *Refactoring* excepts a record that only carries one step's result to the next (Split
-  Phase); this plugin reads data parsed at a boundary, such as a JSON payload, the same way.
+  Phase); this plugin reads data parsed at a boundary, such as a JSON payload, the same way, but only while nothing
+  changes it and it simply feeds the next step. Once it spreads, gets modified, or logic about it gathers in other
+  modules, it is a Data Class again: Encapsulate Record (*Refactoring*).
 - **Duplicated Code**: [duplication-and-abstraction.md](duplication-and-abstraction.md). Judge it there before
   removing it; a wrong abstraction costs more than the copies.
 
@@ -107,7 +112,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
   purpose and are not this smell (*Refactoring*).
 - **Inappropriate Intimacy** (*Refactoring* 2nd edition: Insider Trading): reaching into another object's private parts
   (Get a Whiff of This, 2016); in TypeScript, a bracket access or a cast that gets past `private`, or two modules that
-  read each other's internal state. Cure: Move Function and Move Field to cut the traffic, a third module for what both
+  read each other's internal state. Those are its most visible forms: heavy data traffic both ways between two
+  modules through public getters, and a subclass that relies on its parent's internals, are the same smell
+  (*Refactoring*). Cure: Move Function and Move Field to cut the traffic, a third module for what both
   need, or Hide Delegate; a subclass that knows too much of its parent moves to delegation (*Refactoring*). Private
   state in JavaScript: [javascript-and-typescript.md](javascript-and-typescript.md), Private state.
 - **Message Chains**: [dependencies-and-messages.md](dependencies-and-messages.md), Reaching through other objects.
@@ -121,7 +128,8 @@ The talk leaves this family unnamed; the name here is this plugin's.
 
 - **Comments**: not named in the talk. A comment that explains what unclear code does is the smell, not comments as
   such. Cure: Extract Function or a rename (Change Function Declaration), and Introduce Assertion for an assumption
-  about state (*Refactoring*).
+  about state (*Refactoring*). *99 Bottles of OOP* prefers signals carried in the code itself, under a style the team
+  agrees on, to comments that go stale.
 - *Refactoring*, 2nd edition, also adds Mysterious Name, Global Data, Mutable Data and Loops. For names, see Naming in
   [duplication-and-abstraction.md](duplication-and-abstraction.md).
 

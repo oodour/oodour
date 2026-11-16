@@ -44,8 +44,10 @@ Abstraction, 2016).
 3. Undo it: inline the shared code at every call site, so each caller holds its own copy; trim each
    copy to the branches its caller takes; then compare the trimmed copies and extract only what they
    still share (The Wrong Abstraction, 2016). This plugin adds three things the article does not say:
-   a copy may go into a function or object per purpose instead of into the caller, the work goes in
-   small steps that keep every caller's output the same, and the tests run after each step.
+   a copy may go into a function or object of its own instead of into the caller, provided it serves one
+   caller's purpose and takes no parameter that selects behaviour; the work goes in small steps that keep
+   every caller's output the same; and the tests run after each step. Merge such homes only after the
+   comparison shows what the copies really share.
 4. Often what each caller actually needs is a collaborator that knows its own part: see Flag
    arguments in [variants-and-conditionals.md](variants-and-conditionals.md).
 
@@ -155,6 +157,9 @@ Flocking Rules just removed.
    best so far; use a deliberately meaningless placeholder that is sure to be replaced; or ask the
    teammate who names things best. Name from the responsibility as you understand it now, and rename
    when that changes (the book).
+6. Name from the domain, not from how the code works or how it is laid out: Katrina Owen compares the
+   three and finds only domain names help. Keep the names of one class at one level of abstraction,
+   told from one consistent point of view (the talks Succession, 2016, and Overkill, 2014).
 
 Done looks like: the name fits every row of the table and the next one you can imagine, and a domain
 expert would recognise it.
