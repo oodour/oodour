@@ -36,6 +36,10 @@ exhaustiveness checks.
 - **Exhaustiveness does not change that.** A `satisfies never` check, or the
   `@typescript-eslint/switch-exhaustiveness-check` rule, lists every `switch` a new kind must edit. It
   removes none of the edits.
+- **Nicer syntax is still the doing kind.** Asked about Ruby's pattern matching, Sandi Metz wondered whether easier
+  conditionals would tempt people away from new objects, while granting that it suits some problems and expecting
+  people to learn its limits by overusing it (the Superhighway Q&A, 2020). This plugin applies Choosing versus doing
+  to the JavaScript forms: a `ts-pattern` match or a `switch (true)` that does each kind's work is the same smell.
 - **A `switch` a framework or boundary requires is a factory at the edge**: a reducer, a message or event
   dispatcher, a command-line or HTTP router. Each branch only picks the handler object, and every handler
   answers one shared message and reads the raw input itself; the branch translates nothing. A typed table
@@ -92,6 +96,14 @@ function leadTimeDays(region: string): number {
 ```
 
 A name such as `isOverseasDelay` would describe only one branch.
+
+**Gather one decision into one conditional before judging it.** The parts of a single decision often lie apart: a
+flag set in one method, a check of it in another, and a value filled in lazily somewhere else that is in fact the
+decision's other branch. Bring the parts into one explicit conditional first; only then can you see the decision
+whole and judge whether it should become objects (the article The Shape at the Bottom of All Things, 2014, and
+comments in her ood_examples code). Creating a collaborator on first use with `??=` (Injecting collaborators in
+[javascript-and-typescript.md](javascript-and-typescript.md)) is not such a branch: it builds the same object either
+way (this plugin's line).
 
 ## Signs of a role nobody named
 
@@ -225,6 +237,12 @@ searched for and fail quietly on a typo (the book).
   with one construction call after the conditional. The choosing part can then become a `switch`, a map or a
   candidate list without touching how the object is built (*99 Bottles of OOP* and its companion code; the reason
   is this plugin's reading).
+- **Keep a role's players and their factory together.** Put the small classes that play one role, and the factory
+  that chooses among them, in one module named for the concept, so a reader sees the whole set and where the next
+  one goes; a one-class-per-file habit should not stop you making small objects (The Shape at the Bottom of All
+  Things, 2014; her interview on the Maintainable podcast; Go Ahead, Make a Mess, hafentalks 2017). In TypeScript the
+  module exports the role type and the factory, and a player only where a test or another module needs it (this
+  plugin's form).
 - **A catch-all candidate goes last.** In a candidate list, a default that claims every key stays at the end, so it
   answers only when no other candidate did; registration puts new kinds at the front, ahead of it (*99 Bottles of
   OOP*).

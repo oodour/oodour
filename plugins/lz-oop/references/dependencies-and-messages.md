@@ -102,6 +102,13 @@ dictating steps to stating its goal (Message first, above), the receiver's step 
 make them private, except a method a subclass overrides as a hook, which stays public (`protected` only where no
 test sends it; Hooks and required steps in TypeScript, in [javascript-and-typescript.md](javascript-and-typescript.md)).
 
+To decide what a class shows, hides or gives away, sort each thing it knows by two questions: is it this class's
+own responsibility or another's, and is it steady or likely to change (the talk Go Ahead, Make a Mess, 2012, and
+its later versions at Triangle.rb, 2013, and hafentalks, 2017; the talks give this sorting no name). Its own and
+steady: public. Its own and changeable: private. Another's and steady: a dependency it may keep, and few of them.
+Another's and changeable: the costly kind, which should leave the class, often for a factory; a switch on a type
+symbol usually holds several such facts.
+
 ## Reaching through other objects (the Law of Demeter)
 
 The rule comes from a 1988 paper by Lieberherr, Holland and Riel, which *99 Bottles of OOP* lists among
@@ -180,6 +187,11 @@ keeps changing.
    of Tests, Hashrocket, year not known).
 5. When neither side is clearly steadier, do not guess a direction: cut what each side knows of the other to the
    least, with each side expecting a role rather than a class (Less, 2011).
+6. Spend loose coupling where it pays: the more central an object is, and the less sure anyone is of its
+   requirements, the looser its ties should be. Where you are only a little unsure, a direct dependency can stay;
+   where an object has proved steady, the indirection can come back out. A pair that keeps stalling, or a
+   requirement nobody can state clearly, marks the code to keep easy to change (POODR with the Toronto Ruby Brigade,
+   2013; Less, 2011; the talk Defining Object-Oriented Design).
 
 Dependency Inversion is the name for the end state: neither the higher-level class nor its collaborator depends on
 the other's concrete class; both depend on a role (*99 Bottles of OOP*; the SOLID talk, 2009, reads it as favouring
@@ -199,7 +211,9 @@ Use when code calls a library, a framework or a collaborator whose interface may
 2. Wrap a risky outgoing message to a collaborator in a method of the sender's own, even before any duplication
    exists: if the collaborator renames the message or changes its arguments, one method changes. This is the
    exception to waiting for duplication; keep it for the messages most likely to change (*Practical Object-Oriented
-   Design*).
+   Design*). A query that callers keep composing from a library's query builder is such a message: give the intention
+   a name in one method on the object that owns the data, so only that method knows the library's query syntax (The
+   Bike Shed, 2016).
 3. When you cannot inject a collaborator yet, isolate its creation: build it in the constructor, or on first use in
    a dedicated method that builds it once. Either keeps creation out of the method that does the work and makes
    the dependency visible, though the class still knows its collaborator's class (*Practical Object-Oriented

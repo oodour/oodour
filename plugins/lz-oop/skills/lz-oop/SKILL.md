@@ -48,7 +48,9 @@ alone is incomplete.
      `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Raw structures from outside;
    - a requirement that lands on an already oversized class: build it as a new small object that works with that
      class, not as one more branch inside it (the article Breaking Up the Behemoth, 2017; the talk All the Little
-     Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
+     Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`. Start this while a
+     central, often-changed class is still of moderate size: in her experience such classes usually convert to
+     objects well, while attempts on very large ones often fail (Breaking Up the Behemoth, 2017).
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
    the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
    *99 Bottles of OOP*). Say so when a short procedure with no conditionals is the better answer, and recommend
@@ -78,8 +80,10 @@ alone is incomplete.
    use, or to take a long method or function apart (above all one with no tests), use
    `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
-Answer with the recommended structure, the first small step, the test that drives it, and the rules for each
-restructuring step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward.
+Answer with the recommended structure, what it makes easy, what it costs, and which future request would change it
+(as the comments in Sandi Metz's own example code weigh a design), the first small step, the test that drives it,
+and the rules for each restructuring step: run the tests after every edit, and undo an edit that turns them red
+instead of fixing forward.
 When the red shows that a test checks how the code works rather than what it does, undo the edit, rewrite that test
 to check what the code does while the suite is green, then make the edit again (*99 Bottles of OOP*). That rewrite
 keeps the behaviour the test pins, so it does not count as changing the tests in step 4.

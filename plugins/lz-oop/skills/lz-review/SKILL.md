@@ -32,7 +32,13 @@ For each changed area, ask:
 - **A second responsibility for a class or method?** Did the change give a class or method a job beyond the one it
   had: a new topic after a blank line, a loop now also doing the work for each item, a method that uses only some
   fields? Not the same as the question above, which is about the steps of the change, not what the code now does:
-  `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job?
+  `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job? A class that changes often and is
+  already large should stop growing even when the new job looks like its own: the next requirement lands as a small
+  new object beside it (the article Breaking Up the Behemoth, 2017).
+- **Restyling mixed in?** Restyling neighbouring code inside a behaviour change hides what changed, and restyling
+  stable code that has no other reason to change seldom repays its cost; she restyles old code only when real work
+  opens it anyway (the article Why We Argue: Style, 2017). Asking for any restyling in a commit of its own is this
+  plugin's rule.
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next
   kind costs the same edits again, even when an exhaustiveness check lists them:
   `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, Choosing versus doing.
@@ -43,6 +49,12 @@ For each changed area, ask:
 - **A collaborator created inside the class, or a new chain through other objects?**
   `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`.
 - **A new subclass or a deeper hierarchy?** `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`.
+- **Work hidden in a framework hook?** A new ORM lifecycle hook, subscriber or middleware that runs follow-up work
+  after a save: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Framework code at the edges.
+- **Does it read as a story, and is it a good example?** Read the new names and test descriptions as a newcomer
+  would: do they say what the code does, and what would someone copy when adding one more case? (POODR with the
+  Toronto Ruby Brigade, 2013; the talk Defining Object-Oriented Design; she makes the same pass over her own diff
+  before committing, Ruby Rogues 87, 2013.)
 - **Tests:** do the new or changed tests assert what the code does through its public messages, leave outgoing
   queries unverified, and expect outgoing commands? Did tests change in a commit that claims to only restructure?
   That points to tests that check how rather than what, or to a behaviour change hidden in the commit (the book):

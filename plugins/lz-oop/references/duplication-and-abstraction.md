@@ -15,7 +15,9 @@ against the edits it will save; an extraction with no edits ahead of it is pure 
    this plugin reads that as a change request that would touch every copy. Enough clear examples to
    show what really varies is another (the book). Code that merely looks repetitive is not.
 2. Ask what waiting costs, and when better information will arrive. If the copies can sit unchanged
-   until then, wait (the book).
+   until then, wait (the book). While you wait, mark every copy you keep with the same short comment carrying a
+   shared number, so that when the change arrives each copy can be found and none is missed (the talks All the
+   Little Things, 2014, and Fireside Chat, 2015).
 3. Look for the concept, not the matching characters. The book abstracts early only when many clear
    examples give confidence that the concept is understood, and shows an idea that looked obvious from
    two examples turning out wrong. A single line that means the same thing in both places (a date
@@ -70,7 +72,11 @@ first, because following the rules makes it appear.
    the result is used that it drops once the method returns one type; that route is optional (this plugin's reading).
 5. Undo any edit that turns the tests red, at once, instead of fixing forward, and try a better move. When the move
    that failed was a big one, make the next one smaller. Let the size of each move follow how well you know the code:
-   a bigger step that fails tells you that you knew less than you thought (the book).
+   a bigger step that fails tells you that you knew less than you thought (the book). The rules promise a safe way
+   back, not the right direction (Katrina Owen and Sandi Metz on the podcast Why Are Computers, 2016). Owen also
+   warns that duplication squeezed out too eagerly, merging pieces that only looked alike, can leave you stuck; then
+   put the duplication back and look again (the talk Overkill, 2014). Reading that as a retreat open at any point of
+   the Flocking Rules is this plugin's.
 6. Repeat from step 1. A copy is removed only once it matches another character for character.
 7. A branch that has come to match the default branch goes in one deletion, and the conditional
    stays for the branches that still differ. When the last branches match, collapse the conditional
@@ -130,6 +136,8 @@ return `${labelFor(tier)} members earn ${points * multiplierFor(tier)} points`;
 - When two examples of one idea differ, give the differing part a name. That part is a concept of
   its own, nested in the larger one, and finding it is why you compare the examples. Look for it on
   purpose, because what matches catches the eye first (the book).
+- Before naming anything, put a placeholder in each copy wherever the copies' values differ, so they read as one
+  template with gaps; the gaps show what varies, and naming them comes after (Katrina Owen, Succession, 2016).
 
 ## Once an abstraction exists, use it everywhere
 

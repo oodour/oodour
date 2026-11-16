@@ -48,6 +48,10 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   the files in scope import to the hot-spot table as a finding, whatever its churn (the ranking and the numbers are
   this plugin's). The cures for both are in
   `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
+- **Concrete names in churning files**: for each file high on churn, list the concrete classes it names (its
+  imports and `new` calls). The code that changes most should be the easiest to replace, and each concrete class it
+  names makes that harder (the article The Half-Life of Code, 2017; counting the names as an audit signal is this
+  plugin's reading).
 - **Read the quadrants**:
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
     time is the worst case (Polly Want a Message, 2018);

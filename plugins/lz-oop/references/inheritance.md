@@ -96,7 +96,9 @@ From All the Little Things, 2014, and the talk Defining OOD:
   loudly; for an optional step, it returns a harmless default, so a subclass with nothing to add
   writes nothing. *Practical Object-Oriented Design* adds two details: the thrown error names the subclass that
   left the step out (in JavaScript, `this.constructor.name`), so the failure is clear wherever it shows; and an
-  optional step's default may also be a real value that every kind shares and one kind overrides.
+  optional step's default may also be a real value that every kind shares and one kind overrides. A subclass whose
+  steps have all come to match the parent's defaults has nothing left to say: delete it, and have the factory map
+  its key to the parent (All the Little Things, 2014).
 - **Hooks instead of `super`**: the parent calls small hook methods that subclasses override, rather
   than subclasses overriding a whole method and calling `super`. A subclass that has to remember to
   call `super` is a sign the hierarchy is drifting; one level with hooks avoids it (the 2014 POODR

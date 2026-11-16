@@ -37,7 +37,8 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   classes (the talks Rules, 2013, and An Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a
   method of at most 5, at most 4 parameters (packing more into one options object does not get round it), and a
   controller action that knows only one business object and one presenter and hands one object to its view. Any
-  rule may be broken when you win over your pair. She calls the numbers arbitrary: reaching one is the cue to stop
+  rule may be broken when you win over your pair. Lines a mixin brings into a class count toward the class's size
+  (the 2014 POODR Q&A). She calls the numbers arbitrary: reaching one is the cue to stop
   and ask whether to split, not a failure, and experienced developers should set their own. Use the team's limits
   where it has them; report a file over a limit as a place to look, not as a defect (this plugin's reading).
 
@@ -91,7 +92,9 @@ The talk leaves this family unnamed; the name here is this plugin's.
   its body. Cure: Inline Class or Inline Function, and Collapse Hierarchy inside a class tree (*Refactoring*). A
   one-line method that only forwards is not lazy when it names a goal of its callers that differs from the method it
   calls: callers then need to know only its name, not the other method's arguments and their meaning (*99 Bottles of
-  OOP*).
+  OOP*). Katrina Owen goes further: following Kent Beck's advice, which she credits, she hides even a one-line
+  detail behind a method named for its intention, and keeps a class's sibling predicates at one level of
+  abstraction (the talk Overkill, 2014).
 - **Speculative Generality**: structure for a need nobody has yet: a type parameter with one use, an optional
   parameter no caller passes, an abstract class with one subclass, code only tests call. Wait for the real requirement
   (Get a Whiff of This, 2016). Cure: Collapse Hierarchy, Inline Class or Inline Function, Change Function Declaration

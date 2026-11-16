@@ -151,6 +151,11 @@ This, 2016). See [dependencies-and-messages.md](dependencies-and-messages.md).
   reading of full coverage: every line runs under the unit tests, not one test per public method. Leaving a class
   without its own tests is the exception and needs a reason: the class is small, simple and hidden from outside callers
   (the book).
+- Sandi Metz describes her own habit as unit tests plus tests that drive the whole application from its edge, with
+  nothing in between: framework handlers stay thin enough to need no unit test of their own, and declining to unit-
+  test them pushes the logic into plain objects that the unit tests reach (the podcast Ruby Rogues 87, 2013; her
+  interview on the Maintainable podcast). It is her practice, not the book's default above; a handler that holds
+  logic of its own still gets tests (this plugin's note).
 
 ## Other guidance
 

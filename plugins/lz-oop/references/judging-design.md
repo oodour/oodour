@@ -9,7 +9,10 @@ Obsession; Consistency; Does it do one job?; More smells.
 1. Judge the code by what it costs to change, not by how it looks or by a metric alone. Ask what change is likely,
    and what this design would make that change cost. Code that works and will not change can stay as it is, however
    it looks; polishing it costs time and buys nothing (the talk Go Ahead, Make a Mess, hafentalks 2017;
-   *99 Bottles of OOP* makes the same cost argument).
+   *99 Bottles of OOP* makes the same cost argument). A design is good enough while each change costs about what the
+   one before it did; changes that keep getting dearer are the sign to restructure (the talk Defining
+   Object-Oriented Design). Judge a restructuring by where it is heading, not halfway: its intermediate states often
+   read and score worse than both its start and its end (the talk All the Little Things, 2014).
    The book makes one exception from a code's first version: loosen coupling early, because nobody can
    predict where change will land, and it costs least before a second user reuses the code. Other
    improvements that no requirement asks for yet spend time now on a hoped-for saving; judge each on
@@ -152,13 +155,22 @@ not share, or copy the part they need.
      (*Practical Object-Oriented Design*, and her public example-code repositories for it, poodr and poodr2);
    - a method that loops over a collection and also does the work for each item; split it into one method that only
      loops and one that handles a single item (the same repositories; *99 Bottles of OOP* and *Practical
-     Object-Oriented Design* both argue for the looping-only form).
+     Object-Oriented Design* both argue for the looping-only form);
+   - the facts it knows: list them for each class involved and compare; the class that knows the most is where the
+     complexity sits (Katrina Owen, the talk Succession, 2016). A list that spans several topics also hints at a
+     second job (this plugin's addition).
 4. Ask whether its parts change at one pace. Parts that change at different rates belong apart (the talk SOLID
    Object-Oriented Design, 2009). The 2013 Toronto talk loosens this: one reason to change, and parts that change
    at the same moment, are rules of thumb for cohesion, not strict conditions.
 5. Ask whether it could be two things, and what each would be. A believable answer means it may hold too much, and
    the split is worth trying; inline it again if the result reads worse (Katrina Owen, the talks Overkill, 2014, and
-   Succession, 2016). Length is not the test: a method of a few lines can still serve unrelated ends.
+   Succession, 2016). Length is not the test: a method of a few lines can still serve unrelated ends. When the
+   choice is close, lean toward the smaller pieces: if that proves wrong, joining two small parts again is cheap,
+   while prying one large part apart is not, and code tends to grow too big rather than too small, which is why her
+   size limits cap it from above (the talks Defining Object-Oriented Design, Fireside Chat, 2015, The Bike Shed,
+   2016, and Ruby Rogues 87, 2013). This plugin reads it as a tie-breaker inside the split-or-contain choice below,
+   where containing a job in its own methods already gives smaller pieces, and never as licence for indirection
+   nothing asks for.
 
 The cure, one job at a time, with the tests green after each step: break the code into small methods, then, once a
 group of them leans on the same few values, move that job into a new class and inject an instance of it. The talk

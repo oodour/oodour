@@ -95,7 +95,9 @@ forms in JavaScript).
 When that points to a map, this plugin's form in TypeScript is the key/value lookup, built in one place, with the
 `satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it. Each entry, like
 each `case` below, only picks a class, and the object is built once after the choice, as in the book's companion
-code; build inside the branch only when a kind needs other constructor arguments (this plugin's exception).
+code. Give every kind the same constructor parameters, even where a kind ignores some of them, so the factory never
+needs to know how the kinds differ (the talk Polly Want a Message, 2018); build inside a branch only when a kind
+cannot take the shared parameters at all (this plugin's exception).
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -494,6 +496,9 @@ abstract class Invoice {
   enforcement): `readonly` fields and `ReadonlyArray<T>` (or `readonly T[]`) make the compiler refuse writes;
   `#private` fields with no setter keep the value fixed at run time. `Object.freeze` adds a run-time check, shallow
   only.
+- A domain value such as an amount of money or a date range gets its own small type rather than a broad library
+  type, so it answers only the domain's messages. `===` compares two objects by identity, so give such a value an
+  `equals` method that compares its parts (this plugin's note).
 - Measure in Node.js with `--cpu-prof` or `node --prof`, or the browser's performance panel, before caching anything.
 - JavaScript note: no `readonly`; `Object.freeze` in the constructor, and `#private` fields, give the run-time half.
 
@@ -514,6 +519,25 @@ domain files import nothing from the framework, which ESLint `no-restricted-impo
 enforce. The import rule is the target; during a migration, a domain class may for a while default a collaborator
 to one built on the framework, until its callers pass that collaborator in. Type a framework object the domain must
 receive by a role the domain owns (the POODR panel, 2021).
+
+Right after the handler, one object stands for the whole request: it runs the steps in order, calls the
+collaborators and gathers the outcome, and keeps little of the domain logic itself (The Bike Shed, 2016; the POODR
+panel, 2021).
+
+Persistence follows the same rule. A class an ORM maps (a TypeORM entity, a Sequelize or Mongoose model) is a record
+that knows how to store itself. Domain rules go in plain objects that receive the record and treat it as stored data,
+and their tests pass a hand-written stand-in for it instead of a database (POODR with the Toronto Ruby Brigade, 2013;
+the POODR panel, 2021; her interview on the Maintainable podcast; the ORM names are this plugin's). In existing code,
+take the next change to a rule that lives in a record class as the cue to put a plain object around that record
+(the POODR panel, 2021).
+Logic that decides how two records interact, such as a transfer between two accounts, is an idea of its own and gets
+its own object, with both records passed in (the Changelog podcast, 2016; the Maintainable podcast; the example is
+this plugin's).
+
+Lifecycle hooks (TypeORM's `@BeforeInsert` or a subscriber, Mongoose middleware) hide follow-up work behind a save.
+A hook or two is fine; once several run, put the save and its follow-up steps in one object that runs them in order
+and owns the transaction, so one file shows the whole collaboration (the Maintainable podcast; the POODR panel, 2021;
+the hook names are this plugin's).
 
 ## Characterisation tests
 

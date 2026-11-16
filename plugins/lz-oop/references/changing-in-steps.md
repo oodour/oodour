@@ -19,7 +19,9 @@ Use for every edit while you restructure (*99 Bottles of OOP*).
 4. Delete the old code.
 
 After each stage run the tests. On red, undo and take a smaller step rather than debug. Change about one line at a
-time; the steps may grow with practice and shrink again after a failure (the book). An editor-wide replace across
+time; the steps may grow with practice and shrink again after a failure (the book). Once back on green, ask why the
+step failed: a swap that should have been safe and was not often shows a rule of the code you had not understood
+(Katrina Owen, the talk Succession, 2016). An editor-wide replace across
 many lines counts as one step when one undo reverses it (the book). Finish the path you are on before you follow a
 side idea (the book).
 
@@ -209,6 +211,11 @@ When a conditional is too tangled to extract from at all, Sandi Metz rebuilds it
 Things (2014): add a branch at the top that sends one category of input to a new, empty method; check that exactly
 the tests for that category now fail; write new code until each of those tests is green in turn, then tidy that
 method; repeat for each category; then delete the old conditional, never having had to understand it.
+
+When one opaque block serves many cases at once and you cannot see where one case's part ends, Katrina Owen first
+adds a temporary structure with one slot per case, so each case's part can be read and changed alone; it is
+scaffolding, and goes once objects carry the cases (Succession, 2016). While its removal is planned, a review should
+not report it as needless indirection (this plugin's note).
 
 Done: each piece is a method named for what it does, the original reads as a few calls at one level of detail, no
 unused temporaries or code junk remain, and every step between was green.
