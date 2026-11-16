@@ -89,13 +89,10 @@ describeDiscountRole(() => new PercentDiscount(10));
 
 ## Choosing a variant: the factory map
 
-*99 Bottles of OOP* weighs several factory forms in JavaScript, among them building a class name at run time,
-variants that register themselves, and a key/value lookup, and leaves the choice to the situation. This plugin
-starts, as [variants-and-conditionals.md](variants-and-conditionals.md) does, from a `switch` in one factory: the
-book also rates it the easiest form to read and keeps one in its finished code. When the mapping is better kept as
-data, because other code must stay in step with the list or it comes from configuration, this plugin's form in
-TypeScript is the key/value lookup, built in one place, with the `satisfies` check below. The compiler check is a
-bonus of that form, not a reason to move to it.
+Which form to start from, and when to move from a `switch` to a map, is in Which form to start from in
+[variants-and-conditionals.md](variants-and-conditionals.md) (*99 Bottles of OOP* weighs the forms in JavaScript).
+When that points to a map, this plugin's form in TypeScript is the key/value lookup, built in one place, with the
+`satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it.
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -150,10 +147,9 @@ function onPlanRequest(request: PlanRequest): Plan {
 
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
-  when the package declares `"sideEffects": false`. Use it only when kinds arrive so often that editing the factory is
-  the main cost, and only where every variant module is reliably loaded; plugins added by other packages are the
-  usual case (*99 Bottles of OOP* weighs it by how often classes are added; the module-loading limits are this
-  plugin's).
+  when the package declares `"sideEffects": false`. When Which form to start from points to an open form, use
+  self-registration only where every variant module is reliably loaded; plugins added by other packages are the
+  usual case (the module-loading limits are this plugin's).
 - JavaScript note: no `satisfies` or `never`; freeze the map and test that every kind in a `kinds` list has an entry,
   and give a `switch` a `default` that throws.
 
@@ -162,11 +158,14 @@ function onPlanRequest(request: PlanRequest): Plan {
 - With `strictNullChecks`, every `T | undefined` must be handled, so each `?.` and `??` is a visible decision. One
   check at a boundary (a lookup that can miss, optional configuration) is fine when it drops the missing value or
   picks the stand-in object.
-- A `??` that fills in a value or behaviour inline already calls for a Null Object, even once (the talk Nothing is
-  Something, 2015). So does the same absence check repeated at several callers, each supplying the same fallback,
-  and a shorter spelling of the check (`?.`) is still the check (the article Suspicions of nil, 2014). Decide once at
-  the boundary and give callers a Null Object: a stand-in for the role whose methods do nothing or return a neutral
-  value (Nothing is Something, 2015).
+- A `??` that supplies, inline, the behaviour of a missing collaborator already calls for a Null Object, even once
+  (the talk Nothing is Something, 2015). So does the same absence check repeated at several callers, each supplying
+  the same fallback, and a shorter spelling of the check (`?.`) is still the check (the article Suspicions of nil,
+  2014). Decide once at the boundary and give callers a Null Object: a stand-in for the role whose methods do nothing
+  or return a neutral value (Nothing is Something, 2015).
+- A plain value default for optional configuration (`options.timeout ?? 5000`) is the boundary check above, and
+  creating a collaborator on first use (`??=`, in Injecting collaborators) is creation, not absence handling; neither
+  calls for a Null Object (this plugin's reading).
 
 ```ts
 const noDiscount: Discount = { apply: (amount) => amount };
@@ -188,14 +187,10 @@ the top of a module and used inside a class is a hidden dependency, and tests th
 to replace a whole module.
 
 ```ts
-interface CheckoutOptions {
-  readonly payments: PaymentGateway;
-}
-
 export class Checkout {
   readonly #payments: PaymentGateway;
 
-  constructor({ payments }: CheckoutOptions) {
+  constructor(payments: PaymentGateway) {
     this.#payments = payments;
   }
 
@@ -209,8 +204,9 @@ export class Checkout {
   default keeps call sites short while tests pass a double. *99 Bottles of OOP* removes such defaults once callers
   pass the collaborator, because a default ties the class to its first setting; her article keeps one (SOLID Design
   Principles - Dependency Injection, 2009). This plugin keeps one only when the class can justify that player on its
-  own, as [dependencies-and-messages.md](dependencies-and-messages.md) says. The options object is this plugin's
-  form for a constructor with several optional settings; the book's own default is a positional parameter.
+  own, as [dependencies-and-messages.md](dependencies-and-messages.md) says. Take a collaborator as a positional
+  parameter, as the book does; switch to an options object once a constructor has several optional settings (this
+  plugin's form).
 - Domain behaviour belongs on instances (the book). In JavaScript and TypeScript the same applies to `static` methods
   and to exported module functions that hold domain rules: a function that takes a record and decides for it cannot
   be replaced by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure
@@ -235,7 +231,7 @@ exception is code with no seam yet: there a test may replace one of the object's
 verifying (*xUnit Test Patterns*, Test-Specific Subclass). Treating that as temporary, until the step moves into a
 collaborator, is this plugin's condition.
 
-- Vitest: `const charge = vi.fn<PaymentGateway['charge']>(); new Checkout({ payments: { charge } }).pay(10);
+- Vitest: `const charge = vi.fn<PaymentGateway['charge']>(); new Checkout({ charge }).pay(10);
   expect(charge).toHaveBeenCalledWith(10);`
 - Jest: `const charge = jest.fn(); ... expect(charge).toHaveBeenCalledWith(10);`
 - `node:test`: `const charge = mock.fn(); ... assert.deepStrictEqual(charge.mock.calls[0].arguments, [10]);`
@@ -380,8 +376,8 @@ function toReading(row: ReadingRow): MeterReading {
 
   Callers get `for...of` and spread; for anything else they spread into an array (`[...shipments].filter(...)`).
   When someone asks the wrapper for general list operations (sorting, the first item, an emptiness check), point
-  the callers to iteration or spread first. A general message such as a count may be forwarded when callers really
-  need it and it is one of very few; stop when the next is asked for convenience only, since each such method
+  the callers to iteration or spread first. Forward at most one or two general messages (a count, say), each used by
+  several callers; forward any other only when it names an idea of the domain, since each convenience method
   invites the next. Every message the wrapper answers must behave as callers of a list expect (this plugin's rule,
   checked with *Practical Object-Oriented Design*). The iterator helpers of ES2025 (`shipments.values().filter(...)`
   on an array, `Iterator.from(shipments)` on the wrapper) cover part of what Ruby's iteration module gave.
@@ -415,9 +411,9 @@ abstract class Invoice {
     return this.subtotal() + this.fee();
   }
 
-  protected abstract subtotal(): number;
+  abstract subtotal(): number;
 
-  protected fee(): number {
+  fee(): number {
     return 0;
   }
 }
@@ -468,15 +464,17 @@ JavaScript runs one thing at a time, but `await` lets calls interleave. Two over
 in an instance field before an `await` both read back the last value written. Keep per-call data in locals,
 parameters or a per-call object. Katrina Owen makes the general point in the talk Overkill (2014): data that
 belongs to one call stays out of fields, or a second caller overwrites it; the `await` case is this plugin's
-JavaScript form of it. She keeps the rule even where an overlap is unlikely, so it does not depend on an `await`.
+JavaScript form of it. Keep the rule even where an overlap is unlikely, as she does, so it does not depend on an
+`await`.
 
 ## Framework code at the edges
 
 Keep framework code (Express or Fastify handlers, Angular components, NestJS controllers, React components) at the
 edges, translating requests and calling plain objects or functions that hold the domain rules. Check it by imports:
 domain files import nothing from the framework, which ESLint `no-restricted-imports` or dependency-cruiser can
-enforce. The import rule is the target; during a migration a temporary default that reaches the framework is
-acceptable. Type a framework object the domain must receive by a role the domain owns (the POODR panel, 2021).
+enforce. The import rule is the target; during a migration, a domain class may for a while default a collaborator
+to one built on the framework, until its callers pass that collaborator in. Type a framework object the domain must
+receive by a role the domain owns (the POODR panel, 2021).
 
 ## Characterisation tests
 
@@ -491,8 +489,8 @@ it (this plugin's advice).
 2. While the failure is a missing input (the stand-in lacks something the code asks for), read the code at that line,
    learn what kind of value it wants, add it, and run again.
 3. Once the failure is a plain mismatch, paste the actual value it reports in as the expected value. Green. When the
-   pasted value still fails, she loosens that part to a pattern; reading the cause as a part that varies from run
-   to run, and fixing the time and randomness behind it instead, is this plugin's.
+   pasted value still fails, a part of it varies from run to run: fix the time and randomness behind that part (this
+   plugin's step; she loosens that part of the expected value to a pattern instead).
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
    from each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a

@@ -163,10 +163,10 @@ not share, or copy the part they need.
 The cure, one job at a time, with the tests green after each step: break the code into small methods, then, once a
 group of them leans on the same few values, move that job into a new class and inject an instance of it. The talk
 All the Little Things (2014) goes from small methods to small objects; the talk SOLID Object-Oriented Design (2009)
-extracts and injects one duty at a time. The talks give the moment to move methods out: names that share a prefix
-or suffix when a new requirement arrives, an "and" in the description of what the class does, parts that change at
-different rates, or a duty a test cannot fake. Waiting for a group of methods to lean on the same few values is
-this plugin's own cue. For the steps of
+extracts and injects one duty at a time. Move a job into a new class when any of these shows: names that share a
+prefix or suffix when a new requirement arrives, an "and" in the description of what the class does, parts that
+change at different rates, or a duty a test cannot fake (the talks); or a group of methods that leans on the same
+few values (this plugin's own cue). For the steps of
 Extract Class, see Primitive Obsession above. *99 Bottles of OOP* argues for leaving a short method that works alone
 while nothing asks for a change, yet treats the split as a judgment call: an unrequested change is a bet, and one
 that loosens coupling is worth making even then. Weigh the split against the leaf's opening step 1.

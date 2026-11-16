@@ -61,8 +61,9 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   behaviour until they match (Move Function), and pull up what is then shared (Extract Superclass) (*Refactoring*).
   In TypeScript this plugin prefers having both implement one role over a shared parent: Roles in
   [javascript-and-typescript.md](javascript-and-typescript.md). When matching their messages leaves duplicated
-  behaviour, give it one home all the same, in a shared parent or an extracted class both delegate to; do not leave
-  the copies (*Refactoring*).
+  behaviour, give it one home in a shared parent or an extracted class both delegate to (*Refactoring*), once the
+  tests in [duplication-and-abstraction.md](duplication-and-abstraction.md) show it is one concept (this plugin's
+  check, as for Duplicated Code below).
 
 ## Change preventers: one change, many edits
 
@@ -128,8 +129,8 @@ The talk leaves this family unnamed; the name here is this plugin's.
 
 - **Comments**: not named in the talk. A comment that explains what unclear code does is the smell, not comments as
   such. Cure: Extract Function or a rename (Change Function Declaration), and Introduce Assertion for an assumption
-  about state (*Refactoring*). *99 Bottles of OOP* prefers signals carried in the code itself, under a style the team
-  agrees on, to comments that go stale.
+  about state (*Refactoring*). Prefer names and structure that carry the signal, under a style the team agrees on,
+  to comments that go stale (*99 Bottles of OOP*).
 - *Refactoring*, 2nd edition, also adds Mysterious Name, Global Data, Mutable Data and Loops. For names, see Naming in
   [duplication-and-abstraction.md](duplication-and-abstraction.md).
 

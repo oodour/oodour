@@ -52,9 +52,7 @@ alone is incomplete.
 3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
    the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
    *99 Bottles of OOP*). Say so when a short procedure with no conditionals is the better answer, and recommend
-   objects once conditionals start to accumulate (Polly Want a Message, 2018). When restructuring, it is often wise
-   to stop one refactoring short of where you could go, until that last one pays (the Q&A after Go Ahead, Make a
-   Mess at Triangle.rb, 2013).
+   objects once conditionals start to accumulate (Polly Want a Message, 2018).
 4. A change to existing code is two separate jobs (the book; the article Getting It Right By Betting On Wrong, 2014,
    which credits the idea to Kent Beck). Follow the book's Open/Closed path each time a requirement lands:
    1. Can the change go in without editing the code that is there? Then add it, test-first.
@@ -71,14 +69,17 @@ alone is incomplete.
    changed. To decide whether a restructuring can stop, or whether more structure is worth adding when no change is
    waiting, also check `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, step 6.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
-   take a smaller one. Never rewrite the whole class in one go (the book). To change a signature, a parameter or a
-   return type across its senders in such steps, to rename a field that several methods use, or to take a long
-   method or function apart (above all one with no tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+   take a smaller one. Never rewrite the whole class in one go (the book). Stop one refactoring short of where you
+   could go, and take that last one once there is evidence it will pay (the Q&A after Go Ahead, Make a Mess at
+   Triangle.rb, 2013); a requested change that needs it is such evidence (this plugin's reading). To change a
+   signature, a parameter or a return type across its senders in such steps, to rename a field that several methods
+   use, or to take a long method or function apart (above all one with no tests), use
+   `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, the first small step, the test that drives it, and the rules for each
 restructuring step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward.
-When the red shows that a test checks how the code works rather than what it does, fix that test first (*99 Bottles
-of OOP*).
+When the red shows that a test checks how the code works rather than what it does, undo the edit, rewrite that test
+to check what the code does while the suite is green, then make the edit again (*99 Bottles of OOP*).
 A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
 asked you to change the code.
 

@@ -92,8 +92,8 @@ Use when deciding whether a collaborator gets a double or the real object.
   cheap player, so that renaming it or its messages breaks the test as it should, at the price of a test that hides
   the role. Where the two differ, this plugin follows *99 Bottles of OOP*.
 - **Do not assert on what a double supplied.** A value a stub was told to return only feeds the result the test
-  checks; asserting on that value checks the stub (the talk The Design of Tests says the same; the message grid above
-  keeps assertions on values for messages received from outside).
+  checks; asserting on that value checks the stub (the talk The Design of Tests, Hashrocket, year not known, says
+  the same; the message grid above keeps assertions on values for messages received from outside).
 - **Prefer a hand-written role player in new code.** One plain object that plays the role, written once and reused
   across tests, beats repeating mock-library stubs and expectations, and needing many of them reads as a sign about
   the design, not about the test (the POODR panel, 2021; Get a Whiff of This, 2016). For an outgoing command, let that

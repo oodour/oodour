@@ -149,10 +149,12 @@ stock(product: Product): void {
 ```
 
 TypeScript: the union states the transition in the signature; removing the old kind from it in step 5 makes `tsc`
-list every caller still sending it. JavaScript note: nothing lists them. First let the tests find them, as the book
-does: a temporary check that throws on the old kind makes a test fail at each sender left. For senders no test
-reaches, this plugin suggests letting the check in step 2 log the old kind while you convert. Both must be gone at
-the end.
+list every caller still sending it. JavaScript note: nothing lists them, so let the tests find them. Once you
+believe step 4 is done, switch the check in step 2 from converting to throwing on the old kind: each failing test
+names a sender left; convert it, and when the tests pass, go to step 5. The book's own check here only accepts and
+converts, and goes once all is green; it throws to find callers when it removes a parameter, and throwing on the old
+kind is this plugin's use of that move. For senders no test reaches, let the check in step 2 log the old kind while
+you convert (this plugin's suggestion). Both must be gone at the end.
 
 Done: no union, no `instanceof` or `typeof` check for the old kind, and every implementor and caller deals only in
 the new kind.
@@ -168,9 +170,9 @@ committed on its own. The steps below restate hers; the TypeScript example is th
    which she credits to Martin Fowler's *Refactoring*): the constructor takes the method's argument, the body becomes
    a method with no parameter, and the old method only builds the object and calls it. Green. She notes that the
    usual reason for this move is a method with many temporaries you would otherwise pass around; hers had only its
-   one argument, so only that became the object's state. She gave the class a file of its own at once, and credits
-   that kind of isolation with fast tests. Starting with the class private to the module and moving it out once its
-   pieces deserve tests of their own is this plugin's sequence.
+   one argument, so only that became the object's state. Start the class private to the module, and give it a
+   separate file once its pieces deserve tests of their own (this plugin's sequence; she gave the class a file of
+   its own at once, and credits that kind of isolation with fast tests).
 2. Extract one piece: add an empty method named for what the piece is, not how it is computed; copy the lines in.
    Where a local variable is built up across those lines, she prefers making the new method a query that returns its
    part over passing the variable in or storing it in a field. In the original, use the query's result and delete the
@@ -179,9 +181,9 @@ committed on its own. The steps below restate hers; the TypeScript example is th
 4. Remove what she calls code junk whenever you meet it, and sweep for the rest when the extractions are done: noise
    that adds nothing to understanding, such as comments that repeat or contradict the code (a misleading comment can
    go first), dead code kept for history, imports the code never uses, and work the language already does for you.
-   Small pieces of it left in place pile up into the kind of method you started from. She commits every step on its
-   own. Doing all of it in this change, before you add the new behaviour, so the review stays easy, is this
-   plugin's advice.
+   Small pieces of it left in place pile up into the kind of method you started from. Do all of it in this change,
+   before you add the new behaviour, so the review stays easy (this plugin's advice; she commits every step on its
+   own).
 
 ```ts
 // Step 1: the method moved into its own class; the old function only delegates

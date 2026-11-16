@@ -248,14 +248,16 @@ what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013)
    that purpose) instead of a flag the callee has to translate. Translate a token into an object as
    early, and as far up the call chain, as possible (the article The Shape at the Bottom of All
    Things, 2014).
-4. Where an option has a usual value, inject the collaborator with that value as the default rather
-   than adding a flag and an `if` (the article Getting It Right By Betting On Wrong, 2014).
+4. Where an option has a usual value, inject the collaborator rather than adding a flag and an `if` (the article
+   Getting It Right By Betting On Wrong, 2014). Give it that value as a default only when the class can justify
+   that player on its own (Injecting collaborators in
+   [dependencies-and-messages.md](dependencies-and-messages.md)).
 5. Bundling the flags into an options object hides the count but keeps the branching; it is not the
    cure.
 
 Make each of these changes in green steps: run the tests after every edit, and undo an edit that turns them red.
 Done when the shared code takes no flag for the choice; each caller hands over the collaborator that does its part,
 relies on the default collaborator (step 4), or, where the abstraction was wrong, holds its own copy of what it
-needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line). Polly Want
-a Message (2018) adds three marks: the do-nothing case is an object of its own, the collaborator is chosen in a
-factory as far up as the facts allow, and a new variant adds one object and one factory entry.
+needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line). Also
+check three marks from Polly Want a Message (2018): the do-nothing case is an object of its own, the collaborator is
+chosen in a factory as far up as the facts allow, and a new variant adds one object and one factory entry.

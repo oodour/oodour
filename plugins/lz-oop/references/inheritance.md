@@ -81,7 +81,8 @@ Check these against the code and cite the ones that hold. From the talk All the 
   the reason: objects at the edge change least, so a hierarchy there is cheap to keep and cheap to
   undo, while a hierarchy around a core domain object tends to go badly. Her reason is uncertainty: the
   core is the part least understood and most likely to change, while the edge changes little and a wrong
-  hierarchy there costs little to undo (the Toronto talk and a Triangle.rb Q&A, both 2013; the 2014 Q&A).
+  hierarchy there costs little to undo (the Toronto talk and the Q&A after Go Ahead, Make a Mess at
+  Triangle.rb, both 2013; the 2014 Q&A).
 
 From Nothing is Something, 2015:
 
@@ -115,8 +116,8 @@ This plugin adds, as its own guidance:
   conditions above come from the talks, not the pattern; *Design Patterns* does also split required steps from
   hooks and prefer a hook the parent calls over an override that must call the parent's version. It presents the
   pattern as a way to reuse code, not only to specialise.
-- **In TypeScript**: hooks are public or `protected` methods, and a required step can be `abstract`
-  instead of throwing. See Hooks and required steps in TypeScript in
+- **In TypeScript**: hooks are public methods by default, `protected` only where no test sends them, and a
+  required step can be `abstract` instead of throwing. See Hooks and required steps in TypeScript in
   [javascript-and-typescript.md](javascript-and-typescript.md).
 
 When the conditions hold, recommend keeping the hierarchy and say which properties support that.
@@ -172,12 +173,13 @@ conditional stays (the book).
 ## A new hierarchy of peers
 
 Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. To tell
-which case you have, ask whether the existing class's behaviour is the general rule that most kinds follow, with the
-new kind an exception to some of it. When it is, keep the existing class as the concrete parent with its general
+which case you have, list the existing class's public members and mark each one that holds for the new kind as
+written and each one the new kind must replace. When most hold as written, the existing class is the general rule
+and the new kind an exception to some of it: keep the existing class as the concrete parent with its general
 rules, and let the new subclass override each member that is wrong for it, each override pinned by a test, as From
 a conditional to subclasses does when one kind is the default (*99 Bottles of OOP*). An override may differ in what
-it does, not only in a value: the book's own special kinds replace whole methods. When the new kind shares little of
-the existing class's behaviour, the kinds are peers, and the steps below apply (this plugin's reading).
+it does, not only in a value: the book's own special kinds replace whole methods. When most must be replaced or mean
+nothing for the new kind, the kinds are peers, and the steps below apply (the count is this plugin's reading).
 
 For peers, do not put the new kind straight under the working class. That class was written for one kind, so the
 new subclass inherits behaviour that is true of the first kind only, and senders soon have to check which kind they
@@ -198,8 +200,8 @@ sites in step 1 and the test-driven second kind in step 2 are this plugin's.
    and silently gets empty values, and only then replaces the calls with hooks: calling up makes every subclass know
    the parent's algorithm and repeat the call. This plugin goes straight to hooks.
 4. Where the shared code needs a value or a step that differs by kind, have the parent ask for it through a hook.
-   Write each hook as The parent plays the role too, above, says: a required hook throws in the parent (or is
-   `abstract` in TypeScript), and an optional one returns a default.
+   Write each hook as the bullet The parent plays the role too, above, says: a required hook throws in the parent
+   (or is `abstract` in TypeScript), and an optional one returns a default.
 
 Done when the parent holds only what every subclass uses, nothing creates the parent itself, and no subclass
 refuses anything it inherits.
@@ -297,6 +299,6 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
   *Practical Object-Oriented Design*'s role module keeps state of its own and gives its collaborator a
   default, and a mixin may do the same when that state belongs to the role in every host, such as an
   injectable collaborator with a default created on first use. This plugin prefers stateless mixins,
-  handed their collaborators; that is stricter than the book and costs some wiring at each host
+  handed their collaborators; that is stricter than the book and costs passing the collaborator in at each host
   (Inheritance, mixins and built-in types in [javascript-and-typescript.md](javascript-and-typescript.md);
   Injecting collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)).

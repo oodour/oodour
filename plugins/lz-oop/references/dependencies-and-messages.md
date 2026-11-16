@@ -99,8 +99,8 @@ plain to see. In
 JavaScript and TypeScript that means everything not public is `#private` or unexported (Private state in
 [javascript-and-typescript.md](javascript-and-typescript.md); this plugin's form). When a sender moves from
 dictating steps to stating its goal (Message first, above), the receiver's step methods lose their outside callers:
-make them private, except a method a subclass overrides as a hook, which stays public or `protected` (Hooks and
-required steps in TypeScript, in [javascript-and-typescript.md](javascript-and-typescript.md)).
+make them private, except a method a subclass overrides as a hook, which stays public (`protected` only where no
+test sends it; Hooks and required steps in TypeScript, in [javascript-and-typescript.md](javascript-and-typescript.md)).
 
 ## Reaching through other objects (the Law of Demeter)
 
@@ -175,8 +175,9 @@ keeps changing.
    corner is changeable with many dependents: each edit spreads to them all. Suspect a concrete class with many
    dependents of sitting there even when it looks stable (*Practical Object-Oriented Design*).
 4. Prefer depending on a message to depending on a class: a sender that knows only what it wants to ask, not which
-   class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). That messages change less
-   than classes she says outright in a 2013 Triangle.rb Q&A and in the talk The Design of Tests.
+   class answers, survives a change of class (Less, 2011; Go Ahead, Make a Mess, 2012). She says outright that
+   messages change less than classes (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013; the talk The Design
+   of Tests, Hashrocket, year not known).
 5. When neither side is clearly steadier, do not guess a direction: cut what each side knows of the other to the
    least, with each side expecting a role rather than a class (Less, 2011).
 
