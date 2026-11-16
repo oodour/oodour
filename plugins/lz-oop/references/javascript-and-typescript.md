@@ -299,6 +299,37 @@ function toPayout(row: ExportRow): Payout {
   this plugin's extension of her example. A subclass of `Array` returns the subclass from `map`, `filter` and
   `slice` through `Symbol.species`, which breaks a constructor with its own signature, and a subclass of `String` is
   an object, not a string (`s === 'x'` is false).
+- A domain object that holds a list. *Practical Object-Oriented Design* weighs the options: a subclass of the
+  built-in list hands callers every list method; a plain wrapper leaves callers stumbling over the list operations it
+  lacks, and adding those one at a time never ends. The book settles on a wrapper that forwards a few list messages
+  and gets the rest from Ruby's iteration module. JavaScript has no module that builds a list interface from one
+  iteration method, so this plugin's form keeps the array private, makes the wrapper iterable, and forwards only the
+  messages the domain uses:
+
+  ```ts
+  class Shipments implements Iterable<Shipment> {
+    readonly #items: readonly Shipment[];
+
+    constructor(items: Iterable<Shipment>) {
+      this.#items = [...items];
+    }
+
+    *[Symbol.iterator](): Iterator<Shipment> {
+      yield* this.#items;
+    }
+
+    get size(): number {
+      return this.#items.length;
+    }
+
+    totalWeight(): number {
+      return this.#items.reduce((sum, shipment) => sum + shipment.weightKg, 0);
+    }
+  }
+  ```
+
+  Callers get `for...of` and spread; for anything else they spread into an array (`[...shipments].filter(...)`).
+  Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit.
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in
   applications she controls, where she can foresee the other method names in play, and disapproves of it in code

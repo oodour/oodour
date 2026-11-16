@@ -195,10 +195,11 @@ forward messages to it. Each new variant then plugs in at that injection point.
   logic of its own (Polly Want a Message, 2018).
 - **Choose early.** Pick each player at the earliest point in the program that knows enough to
   pick it, and pass it down from there (Polly Want a Message, 2018).
-- **Parts from configuration.** Her public example code for POODR's composition chapter builds the
-  parts with a factory that reads a configuration, so a new kind needs new configuration and no new
-  class. The code shows this without prose rules; the plugin's reading is that it suits kinds that
-  differ only in which parts they hold.
+- **Parts from configuration.** For kinds that differ only in which parts they hold, *Practical
+  Object-Oriented Design* describes each valid combination as short data and builds the parts with a
+  factory that reads it, so a new kind needs new configuration and no new class (her public example
+  code shows the same). Two rules from the book keep it safe: no code but the factory reads how the
+  data is laid out, and nothing builds those objects except through the factory.
 
 ## From subclasses to composed objects
 
@@ -218,7 +219,8 @@ Run the tests after every step.
 4. Let the holder answer the few list messages its callers use (see Inheritance, mixins and built-in types in
    [javascript-and-typescript.md](javascript-and-typescript.md)).
 5. The hand assembly spreads knowledge of every kind to the callers. Describe each kind as configuration instead,
-   and build every whole through one factory that reads it (Parts from configuration, above).
+   build each kind's holder of components through one factory that reads it, and pass that holder to the whole
+   (Parts from configuration, above).
 6. Delete the defaults the factory now supplies. A component left with no behaviour can become a plain value.
 
 Done when no subclass remains, each former kind is a few lines of configuration, and the whole only coordinates its
@@ -240,3 +242,15 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
   collaborator would do the job (The Bike Shed, 2016). For the TypeScript cost of mixins, see
   Inheritance, mixins and built-in types in
   [javascript-and-typescript.md](javascript-and-typescript.md).
+- **Writing one**, when a mixin is still the choice. *Practical Object-Oriented Design* puts code that
+  the players of a role share in a module and gives it the rules of a parent class. Restated for a
+  mixin:
+  - Declare every message the mixin sends to its host. The mixin supplies a default for each: one that
+    throws for a message every host must answer, a harmless value for an optional one.
+  - Let each host supply its own values by answering those messages, so the mixin reads no host field.
+  - Pass in any collaborator the mixin needs rather than creating it there.
+
+  The book's role module keeps state of its own and gives its collaborator a default. This plugin keeps
+  mixins stateless (above) and drops a default that ties the code to its first setting (Injecting
+  collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)); a role whose shared
+  code needs state is better served by an injected object.
