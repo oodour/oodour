@@ -136,8 +136,8 @@ that tell a reader the wrong story (*99 Bottles of OOP*).
 2. Delete outer tests that now check the same thing as another test, such as one written only to combine cases that
    have their own tests (the book).
 3. Rewrite the outer class's remaining tests so they no longer depend on its collaborator's real output; a double
-   playing the collaborator's role does this (the book, which calls it a fake; which kind to name in an answer:
-   [testing-messages.md](testing-messages.md), Doubles).
+   playing the collaborator's role does this (the book calls it a fake). Which kind to name in an answer:
+   [testing-messages.md](testing-messages.md), Doubles.
 4. Rename tests whose names were chosen before the domain was understood, so the names state the rule the tests now
    show; rename a test group in the same small green steps when its class is renamed. An out-of-date name can wait
    until other tests make the right one clear (the book).

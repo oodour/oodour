@@ -90,7 +90,9 @@ From All the Little Things, 2014, and the talk Defining OOD:
 - **The parent plays the role too**: it answers every message its subclasses must answer. For a step
   every subclass must supply, the parent's version throws, so a subclass that forgot it fails
   loudly; for an optional step, it returns a harmless default, so a subclass with nothing to add
-  writes nothing.
+  writes nothing. *Practical Object-Oriented Design* adds two details: the thrown error names the subclass that
+  left the step out (in JavaScript, `this.constructor.name`), so the failure is clear wherever it shows; and an
+  optional step's default may also be a real value that every kind shares and one kind overrides.
 - **Hooks instead of `super`**: the parent calls small hook methods that subclasses override, rather
   than subclasses overriding a whole method and calling `super`. A subclass that has to remember to
   call `super` is a sign the hierarchy is drifting; one level with hooks avoids it (the 2014 POODR
@@ -186,9 +188,8 @@ sites in step 1 and the test-driven second kind in step 2 are this plugin's.
    and silently gets empty values, and only then replaces the calls with hooks: calling up makes every subclass know
    the parent's algorithm and repeat the call. This plugin goes straight to hooks.
 4. Where the shared code needs a value or a step that differs by kind, have the parent ask for it through a hook.
-   A hook every subclass must supply throws in the parent, or is `abstract`; make its error name the subclass that
-   left it out, so the failure is clear wherever it shows. An optional hook either does nothing or returns a real
-   default that every kind shares and one kind overrides (*Practical Object-Oriented Design* shows both).
+   Write each hook as The parent plays the role too, above, says: a required hook throws in the parent (or is
+   `abstract` in TypeScript), and an optional one returns a default.
 
 Done when the parent holds only what every subclass uses, nothing creates the parent itself, and no subclass
 refuses anything it inherits.
@@ -220,8 +221,9 @@ forward messages to it. Each new variant then plugs in at that injection point.
   Object-Oriented Design* describes each valid combination as short data and builds the parts with a
   factory that reads it, so a new kind needs new configuration and no new class (her public example
   code shows the same). Two rules from *Practical Object-Oriented Design* keep it safe: no code but the
-  factory reads how the data is laid out, and nothing builds those objects except through the factory. The same
-  book's factory takes the classes it builds as arguments with defaults, so a test or a new use can hand it others.
+  factory reads how the data is laid out, and nothing builds those objects except through the factory. The book's
+  first such factory takes the classes it builds as parameters with defaults. Give the factory those parameters, so
+  a test or a new use can pass other classes (this plugin's advice and reason).
 
 ## From subclasses to composed objects
 

@@ -50,10 +50,11 @@ changes something.
   without depending on the real collaborator's output (*99 Bottles of OOP*, which files its fake under Meszaros's
   definition). This plugin reads that use as wider than Meszaros's: his fake is a lighter working stand-in for a
   slow or missing collaborator, and a stand-in that feeds the class under test canned answers is his stub.
-- A fake can echo its input in its output, so the tests of the class that uses it show which inputs it asked for
-  and in what order (*99 Bottles of OOP* and its companion code). Bounds such as the start and end of a range can
-  come in as constructor arguments, so a test of the whole run can use a tiny range instead of the real one (the
-  same book).
+- A double can echo its input in its output, so the tests of the class that uses it show which inputs it asked for
+  and in what order (*99 Bottles of OOP* and its companion code, which call it a fake). In answers, name it a stub:
+  it only answers, with values made from what it was asked (this plugin's naming). Bounds such as the start and end
+  of a range can come in as constructor arguments, so a test of the whole run can use a tiny range instead of the
+  real one (the same book).
 - Where several objects play one role, fakes included, a shared role test checks that each one
   answers the role's messages (the book). TypeScript (this plugin's inference): an interface for the role,
   with each player typed against it, does part of that check at compile time; a role test still

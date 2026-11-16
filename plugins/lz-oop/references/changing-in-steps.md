@@ -1,7 +1,8 @@
 # Changing code in steps
 
-Use when a change would break many places at once: adding or removing a parameter, or changing the kind of value a
-method returns or accepts, in code that has several callers or several implementors. Each practice below turns it
+Use when a change would break many places at once: adding or removing a parameter, renaming a field that several
+methods use, or changing the kind of value a method returns or accepts, in code that has several callers or several
+implementors. Each practice below turns it
 into small edits that each end on green, so the code could ship after any of them (*99 Bottles of OOP*). The
 numbered steps are this plugin's restatement of the book's moves; the TypeScript examples are this plugin's own.
 
@@ -23,10 +24,11 @@ many lines counts as one step when one undo reverses it (the book). Finish the p
 side idea (the book).
 
 A way to reach stage 3 in one edit: put the new code above the old body and return its result early, so the old body
-stays in place but can no longer run, then delete it as stage 4. A conditional can change the same way: write its new
-form above the old one, and let the old one keep deciding until the new form is ready to take over. *99 Bottles of
-OOP* gives the reason: the old path stays a quick way back to green if the new one fails. The book and its companion
-code both do this.
+stays in place but can no longer run, then delete it as stage 4. A new form of a conditional goes in the same way:
+above the old conditional, returning first, so it serves every case from that edit on. *99 Bottles of OOP* gives the
+reason: the unreachable old code stays a quick way back to green if the new form fails, and it goes once the suite
+is green. The book does both; its companion code does the first at several stages. ESLint's `no-unreachable` flags
+the old code for that one step (this plugin's note).
 
 Done: the old code is gone, the tests are unchanged and green, and every stage between was green too.
 
@@ -98,19 +100,21 @@ Done: no caller passes the argument, the signature has no parameter, and the tem
 ## Renaming a field
 
 Use when a field's name no longer says what it holds. *99 Bottles of OOP* and its companion code take these steps in
-this order; the pace in step 2 and the options-object case in step 4 are this plugin's.
+this order; the methods that assign the field in step 1, the pace in step 2 and the options-object case in step 4
+are this plugin's.
 
-1. Make the constructor fill both the old and the new field from the same argument.
+1. Make the constructor, and every method that assigns the old field, fill both the old and the new field.
 2. Switch each reader over to the new field separately, running the tests after each switch.
-3. Delete the old field once nothing reads it.
-4. Rename the constructor parameter to match. Where callers pass it by name in an options object, move them over as
-   in Adding a parameter: Gradual Cutover.
+3. Once nothing reads the old field, stop assigning it and delete it.
+4. Rename the constructor parameter to match. Where callers pass it by name in an options object, accept both keys
+   for a while (Accepting two kinds for a while, below), move the callers to the new key, then drop the old one.
 
-TypeScript: once the old field is deleted, `tsc` reports every reader you missed; an editor's rename does steps 1 to
-3 as one undoable edit when every reader is in the project. JavaScript note: nothing lists missed readers; search for
-the old name, bracket access with a string included.
+TypeScript: when every reader and writer is in the project, make it one editor rename, which does steps 1 to 3 as one
+undoable edit; take the steps when some sit outside it (a published API, JavaScript callers, access by a string key).
+Once the old field is deleted, `tsc` reports every use you missed. JavaScript note: nothing lists missed uses; search
+for the old name, bracket access with a string included.
 
-Done: one field under the new name, no reader of the old one, and the tests green after every step.
+Done: one field under the new name, no reader or writer of the old one, and the tests green after every step.
 
 ## Accepting two kinds for a while
 
@@ -120,8 +124,10 @@ constructor argument).
 
 1. Put the factory that builds the new kind where every implementor can reach it. When it sits in a client and the
    implementors are subclasses, move it onto the parent as a static method, switching its callers one at a time; a
-   parent method that produces the next instance can then call it and return an object instead of a raw value
-   (*99 Bottles of OOP* and its companion code).
+   parent method that now returns a raw value can then call it and return the new kind instead (*99 Bottles of OOP*
+   and its companion code). Keep the parent and its subclasses in one module while the parent's factory names them:
+   split across files, the parent and each subclass import each other, and depending on which module loads first, a
+   subclass can try to extend the parent before it exists and fail with a `ReferenceError` (this plugin's note).
 2. Let the receiving side accept both kinds: convert an old one through the factory, pass a new one through.
 3. Convert the implementors one at a time, green after each.
 4. Convert the callers. Where you are unsure, keep the old line beside the new one until the tests pass, then delete

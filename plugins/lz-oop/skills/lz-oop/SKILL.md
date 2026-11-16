@@ -69,8 +69,8 @@ alone is incomplete.
    waiting, also check `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, step 6.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
    take a smaller one. Never rewrite the whole class in one go (the book). To change a signature, a parameter or a
-   return type across its senders in such steps, or to take a long method or function apart (above all one with no
-   tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+   return type across its senders in such steps, to rename a field that several methods use, or to take a long
+   method or function apart (above all one with no tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, the first small step, the test that drives it, and the rules for each
 restructuring step: run the tests after every edit, and undo an edit that turns them red instead of fixing forward.
@@ -96,7 +96,8 @@ smell you report before you recommend a cure.
 
 Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns
 it green; for a question about testing an object, say what each test asserts and which collaborators get a double,
-naming its kind as `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles, says (stub, mock or spy, fake);
+and name its kind: a stub when it only answers, a mock or spy when the test checks a command it received, a fake
+when it is a lighter working version (`${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles);
 for tests that break on restructuring, name each test that checks how rather than what, and say what it should assert
 instead.
 

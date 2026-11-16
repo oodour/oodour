@@ -188,12 +188,12 @@ questions at each green step until nothing is left to extract).
 - **Data Clump**: three or more values that keep travelling together through signatures and fields.
   The clump is usually a concept nobody named, and each place that handles it copies logic that can
   drift. Name it and give it a home: a class for a large clump, one combining method for a small one
-  (*99 Bottles of OOP*). For a small clump, one JavaScript form of the combining method is the object's string
-  conversion (`toString()`), so senders can drop the object into a template string. The book uses it and then names
-  its weakness: the conversion is bent to one caller's need, and if a broader conversion turns out to be needed, a
-  separately named method sent explicitly is the way. This plugin goes further and prefers the named method from the
-  start, for its own reasons: the call is implicit, hard to search for, and `tsc` does not check that a template
-  gets the text you meant.
+  (*99 Bottles of OOP*). Give that combining method its own name and have senders call it (this plugin's choice).
+  The book instead uses the object's string conversion (`toString()`), so senders can drop the object into a
+  template string, and names its weakness: the conversion is bent to one caller's need, and if a broader conversion
+  turns out to be needed, a separately named method sent explicitly is the way. This plugin takes the named method
+  from the start because a string conversion is called implicitly, is hard to search for, and `tsc` does not check
+  that a template gets the text you meant.
 - **A shortcut that relies on its caller**: an override or method that works only because of how one
   caller happens to use it ties the class to that caller and misleads readers about what varies.
   Fewer lines are not the goal; implement the domain's real concepts (*99 Bottles of OOP*).

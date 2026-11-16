@@ -56,11 +56,12 @@ first, because following the rules makes it appear.
 3. Remove only that point, with the least edit you can, in four moves, with the tests run after
    each: add the new code so it parses, run it, use its result, then delete what it replaced.
 4. Keep each edit to about a line; the book treats that size as a guide, not a hard limit. Two lines need not match
-   after one edit: moving them a little closer with methods that already exist counts (the book). When the shared
-   expression calls a method whose own branches return values of different types, *99 Bottles of OOP* and its
-   companion code unify that type as a step of its own: it puts the expression into one branch of the conditional being
-   flocked, with a conversion where the result is used, copies it to the other branch, makes every branch of the
-   called method return one type, and then removes the conversion.
+   after one edit: moving them a little closer with methods that already exist counts (the book).
+
+   When the shared expression calls a method whose own branches return values of different types, make every branch
+   of that method return one type, as a pass of its own (*99 Bottles of OOP*: a sender should be able to trust the
+   kind of value a message returns). The companion code reaches that point while flocking, with a conversion where
+   the result is used that it drops once the method returns one type; that route is optional (this plugin's reading).
 5. Undo any edit that turns the tests red, at once, instead of fixing forward, and try a better move. When the move
    that failed was a big one, make the next one smaller. Let the size of each move follow how well you know the code:
    a bigger step that fails tells you that you knew less than you thought (the book).

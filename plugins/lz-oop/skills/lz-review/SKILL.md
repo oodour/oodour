@@ -68,8 +68,9 @@ TypeScript form.
   needs makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one
   (the book). Name what the simpler form would be. When the change adds a one-line method that only forwards, or
   leaves a class that only relays calls, Read Lazy Class and Middle Man in
-  `${CLAUDE_PLUGIN_ROOT}/references/smells.md` before you judge it: each says when such code is not a finding, and
-  the report gives that reason either way.
+  `${CLAUDE_PLUGIN_ROOT}/references/smells.md` before you judge it: each says when such code is not a finding. In the
+  report, give the reason for your verdict: for a finding, why neither exception holds; for code that is fine, the
+  caller goal the method names or the duty the class keeps, under what the change did well.
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the
