@@ -108,9 +108,9 @@ From All the Little Things, 2014, and the talk Defining OOD:
 This plugin adds, as its own guidance:
 
 - **Template Method**: *Practical Object-Oriented Design* names the technique and builds its hierarchies with it.
-  Call a kept hierarchy a Template Method only when the parent has one public method that fixes the order of the
-  steps and calls the ones subclasses supply; say which steps every subclass must supply and which are optional
-  hooks with a harmless default, and keep the required ones few (*Design Patterns*). That a hierarchy meeting these
+  Call a kept hierarchy a Template Method only when a public method of the parent fixes the order of the steps and
+  calls the ones subclasses supply; say which steps every subclass must supply and which are optional hooks with a
+  harmless default, and keep the required ones few (*Design Patterns*). That a hierarchy meeting these
   conditions is usually one is this plugin's inference, as is the link to Go Ahead, Make a Mess, 2012, which says
   inheritance of that kind suits variants that are nearly alike. The shallow, narrow, edge and specialisation
   conditions above come from the talks, not the pattern; *Design Patterns* does also split required steps from
@@ -173,13 +173,14 @@ conditional stays (the book).
 ## A new hierarchy of peers
 
 Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. To tell
-which case you have, list the existing class's public members and mark each one that holds for the new kind as
-written and each one the new kind must replace. When most hold as written, the existing class is the general rule
-and the new kind an exception to some of it: keep the existing class as the concrete parent with its general
+which case you have, list the existing class's public members (for a class with one public method, the private
+steps it calls) and mark each one: holds for the new kind as written, must be replaced, or means nothing for the new
+kind. When more hold as written than not, the existing class is the general rule and the new kind an exception to
+some of it: keep the existing class as the concrete parent with its general
 rules, and let the new subclass override each member that is wrong for it, each override pinned by a test, as From
 a conditional to subclasses does when one kind is the default (*99 Bottles of OOP*). An override may differ in what
-it does, not only in a value: the book's own special kinds replace whole methods. When most must be replaced or mean
-nothing for the new kind, the kinds are peers, and the steps below apply (the count is this plugin's reading).
+it does, not only in a value: the book's own special kinds replace whole methods. Otherwise, a tie included, the
+kinds are peers, and the steps below apply (the count is this plugin's reading).
 
 For peers, do not put the new kind straight under the working class. That class was written for one kind, so the
 new subclass inherits behaviour that is true of the first kind only, and senders soon have to check which kind they

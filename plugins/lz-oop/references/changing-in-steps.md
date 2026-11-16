@@ -149,12 +149,12 @@ stock(product: Product): void {
 ```
 
 TypeScript: the union states the transition in the signature; removing the old kind from it in step 5 makes `tsc`
-list every caller still sending it. JavaScript note: nothing lists them, so let the tests find them. Once you
-believe step 4 is done, switch the check in step 2 from converting to throwing on the old kind: each failing test
-names a sender left; convert it, and when the tests pass, go to step 5. The book's own check here only accepts and
-converts, and goes once all is green; it throws to find callers when it removes a parameter, and throwing on the old
-kind is this plugin's use of that move. For senders no test reaches, let the check in step 2 log the old kind while
-you convert (this plugin's suggestion). Both must be gone at the end.
+list every caller still sending it. JavaScript note: nothing lists them. During steps 3 and 4, have the check in
+step 2 log each old kind it converts, and run the code paths no test covers (this plugin's suggestion). When the
+log stays empty and step 4 seems done, switch the check from converting to throwing on the old kind: each failing
+test names a sender left; convert it, and when the tests pass, go to step 5. The book's own check here only accepts
+and converts, and goes once all is green; it throws to find callers when it removes a parameter, and throwing on
+the old kind is this plugin's use of that move.
 
 Done: no union, no `instanceof` or `typeof` check for the old kind, and every implementor and caller deals only in
 the new kind.
@@ -171,8 +171,8 @@ committed on its own. The steps below restate hers; the TypeScript example is th
    a method with no parameter, and the old method only builds the object and calls it. Green. She notes that the
    usual reason for this move is a method with many temporaries you would otherwise pass around; hers had only its
    one argument, so only that became the object's state. Start the class private to the module, and give it a
-   separate file once its pieces deserve tests of their own (this plugin's sequence; she gave the class a file of
-   its own at once, and credits that kind of isolation with fast tests).
+   separate file once you want to test one of its extracted methods directly (this plugin's sequence; she gave the
+   class a file of its own at once, and credits that kind of isolation with fast tests).
 2. Extract one piece: add an empty method named for what the piece is, not how it is computed; copy the lines in.
    Where a local variable is built up across those lines, she prefers making the new method a query that returns its
    part over passing the variable in or storing it in a field. In the original, use the query's result and delete the

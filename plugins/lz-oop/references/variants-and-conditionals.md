@@ -260,4 +260,5 @@ Done when the shared code takes no flag for the choice; each caller hands over t
 relies on the default collaborator (step 4), or, where the abstraction was wrong, holds its own copy of what it
 needed (step 2); and adding a caller's variant adds no `if` to the shared code (this plugin's Done line). Also
 check three marks from Polly Want a Message (2018): the do-nothing case is an object of its own, the collaborator is
-chosen in a factory as far up as the facts allow, and a new variant adds one object and one factory entry.
+chosen in a factory as far up as the facts allow, and a new variant adds one object and one factory entry. Name
+each mark that fails as the next step; it does not hold back the Done line.

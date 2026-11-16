@@ -89,8 +89,9 @@ describeDiscountRole(() => new PercentDiscount(10));
 
 ## Choosing a variant: the factory map
 
-Which form to start from, and when to move from a `switch` to a map, is in Which form to start from in
-[variants-and-conditionals.md](variants-and-conditionals.md) (*99 Bottles of OOP* weighs the forms in JavaScript).
+Which form to start from, and when to move from a `switch` to a map, is in the bullet Which form to start from,
+under Factory forms in [variants-and-conditionals.md](variants-and-conditionals.md) (*99 Bottles of OOP* weighs the
+forms in JavaScript).
 When that points to a map, this plugin's form in TypeScript is the key/value lookup, built in one place, with the
 `satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it.
 
@@ -147,7 +148,8 @@ function onPlanRequest(request: PlanRequest): Plan {
 
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
-  when the package declares `"sideEffects": false`. When Which form to start from points to an open form, use
+  when the package declares `"sideEffects": false`. When kinds arrive so often that editing the factory is itself the
+  cost (the bullet Which form to start from, in [variants-and-conditionals.md](variants-and-conditionals.md)), use
   self-registration only where every variant module is reliably loaded; plugins added by other packages are the
   usual case (the module-loading limits are this plugin's).
 - JavaScript note: no `satisfies` or `never`; freeze the map and test that every kind in a `kinds` list has an entry,
@@ -156,8 +158,8 @@ function onPlanRequest(request: PlanRequest): Plan {
 ## Absence: Null Object, `?.` and `??`
 
 - With `strictNullChecks`, every `T | undefined` must be handled, so each `?.` and `??` is a visible decision. One
-  check at a boundary (a lookup that can miss, optional configuration) is fine when it drops the missing value or
-  picks the stand-in object.
+  check at a boundary (a lookup that can miss, optional configuration) is fine when it drops the missing value,
+  supplies a plain default value, or picks the stand-in object.
 - A `??` that supplies, inline, the behaviour of a missing collaborator already calls for a Null Object, even once
   (the talk Nothing is Something, 2015). So does the same absence check repeated at several callers, each supplying
   the same fallback, and a shorter spelling of the check (`?.`) is still the check (the article Suspicions of nil,
@@ -187,6 +189,10 @@ the top of a module and used inside a class is a hidden dependency, and tests th
 to replace a whole module.
 
 ```ts
+interface PaymentGateway {
+  charge(amount: number): void;
+}
+
 export class Checkout {
   readonly #payments: PaymentGateway;
 
@@ -263,7 +269,8 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
 - Reading your own state. Where a value's meaning could change or a subclass may redefine it, read it through a
   getter that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class
-  reads it and `protected` in TypeScript when a subclass may redefine it. *Practical Object-Oriented Design* puts
+  reads it, and public when a subclass may redefine it, since it is then a hook (`protected` only where no test
+  reads it; Hooks and required steps in TypeScript, below). *Practical Object-Oriented Design* puts
   every field behind an accessor and has the class itself read through it, so that one method decides what the
   value means and a later change to that meaning touches one place. In JavaScript the outside half of that reason
   mostly falls away: a public field can become a getter later and no caller changes; inside the class it still
@@ -489,8 +496,10 @@ it (this plugin's advice).
 2. While the failure is a missing input (the stand-in lacks something the code asks for), read the code at that line,
    learn what kind of value it wants, add it, and run again.
 3. Once the failure is a plain mismatch, paste the actual value it reports in as the expected value. Green. When the
-   pasted value still fails, a part of it varies from run to run: fix the time and randomness behind that part (this
-   plugin's step; she loosens that part of the expected value to a pattern instead).
+   pasted value still fails, read that as a part that varies from run to run (this plugin's reading). Where the
+   clock or a random source drives that part, fake them in the test (`vi.useFakeTimers()` with
+   `vi.setSystemTime()`, or a seed the code already accepts) without editing the code under test (this plugin's
+   step); for any other varying part, loosen that part of the expected value to a pattern, as she does.
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
    from each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a

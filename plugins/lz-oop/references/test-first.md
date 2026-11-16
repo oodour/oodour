@@ -63,8 +63,9 @@ OOP*):
 Use it when you cannot yet see the general form and Fake It would only give you a pile of literals. It is done when
 one piece of code, with no branch per test, passes every case, and a new distinct case passes without editing it.
 
-Kent Beck's later essays take another route to the same done line, and an agent that tends to write all its tests
-first should take it (this plugin's advice). Keep one failing test at a time (Canon TDD, 2023). Pass the second case
+Kent Beck's later essays take another route to the same done line. Take it by default, and use Triangulate, above,
+when the second case passed with a branch still leaves the general form unclear (this plugin's advice). Keep one
+failing test at a time (Canon TDD, 2023). Pass the second case
 even with a specific branch, then replace the literals and branches with the general form in small steps while every
 test is green (his essay on generalising, 28 April 2025). Write several red tests at once only as a fallback when
 stuck (this plugin's limit; TDD is Not Hill Climbing, 2024, offers it as one option there).
