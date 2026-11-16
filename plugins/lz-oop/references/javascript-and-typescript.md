@@ -189,7 +189,7 @@ the top of a module and used inside a class is a hidden dependency, and tests th
 to replace a whole module.
 
 ```ts
-interface PaymentGateway {
+export interface PaymentGateway {
   charge(amount: number): void;
 }
 
@@ -274,7 +274,8 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   every field behind an accessor and has the class itself read through it, so that one method decides what the
   value means and a later change to that meaning touches one place. In JavaScript the outside half of that reason
   mostly falls away: a public field can become a getter later and no caller changes; inside the class it still
-  holds, which is why the class reads such a value through its getter, kept off the public interface. *99 Bottles
+  holds, which is why the class reads such a value through its getter, kept off the public interface unless a
+  subclass redefines it. *99 Bottles
   of OOP*'s own classes read their fields directly, so treat this as a choice for values like that, not a rule for
   every field (this plugin's reading of the two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
@@ -497,9 +498,12 @@ it (this plugin's advice).
    learn what kind of value it wants, add it, and run again.
 3. Once the failure is a plain mismatch, paste the actual value it reports in as the expected value. Green. When the
    pasted value still fails, read that as a part that varies from run to run (this plugin's reading). Where the
-   clock or a random source drives that part, fake them in the test (`vi.useFakeTimers()` with
-   `vi.setSystemTime()`, or a seed the code already accepts) without editing the code under test (this plugin's
-   step); for any other varying part, loosen that part of the expected value to a pattern, as she does.
+   clock or a random source drives that part, fake them in the test without editing the code under test (this
+   plugin's step): `vi.useFakeTimers()` with `vi.setSystemTime()` in Vitest, `jest.useFakeTimers()` with
+   `jest.setSystemTime()` in Jest, `mock.timers.enable({ apis: ['Date'] })` in `node:test`; for randomness, a seed
+   the code already accepts, else replace `Math.random` for the test (`vi.spyOn(Math, 'random')`, `jest.spyOn`, or
+   `mock.method` in `node:test`); for any other varying part, loosen that part of the expected value to a pattern,
+   as she does.
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
    from each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a

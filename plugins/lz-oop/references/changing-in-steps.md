@@ -149,10 +149,11 @@ stock(product: Product): void {
 ```
 
 TypeScript: the union states the transition in the signature; removing the old kind from it in step 5 makes `tsc`
-list every caller still sending it. JavaScript note: nothing lists them. During steps 3 and 4, have the check in
-step 2 log each old kind it converts, and run the code paths no test covers (this plugin's suggestion). When the
-log stays empty and step 4 seems done, switch the check from converting to throwing on the old kind: each failing
-test names a sender left; convert it, and when the tests pass, go to step 5. The book's own check here only accepts
+list every caller still sending it. JavaScript note: nothing lists them. When step 4 seems done, switch the check
+in step 2 from converting to throwing on the old kind for a test run: each failing test names a sender left;
+convert it, and repeat until the tests pass. Then switch the check to logging each old kind it converts, run the
+code paths no test covers, and go to step 5 once the log stays empty (this plugin's suggestion). The book's own
+check here only accepts
 and converts, and goes once all is green; it throws to find callers when it removes a parameter, and throwing on
 the old kind is this plugin's use of that move.
 

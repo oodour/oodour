@@ -60,15 +60,16 @@ OOP*):
 3. Make that change and run the tests. If one still fails, the general form is wrong or a case is missing: drop
    back to the last green and add the distinct case that tells the forms apart.
 
-Use it when you cannot yet see the general form and Fake It would only give you a pile of literals. It is done when
-one piece of code, with no branch per test, passes every case, and a new distinct case passes without editing it.
+Use it when Kent Beck's route, below, has passed the second case with a branch and the general form is still
+unclear, and Fake It would only give you a pile of literals: write the next distinct cases as failing tests, then
+take step 2. It is done when one piece of code, with no branch per test, passes every case, and a new distinct case
+passes without editing it.
 
-Kent Beck's later essays take another route to the same done line. Take it by default, and use Triangulate, above,
-when the second case passed with a branch still leaves the general form unclear (this plugin's advice). Keep one
-failing test at a time (Canon TDD, 2023). Pass the second case
-even with a specific branch, then replace the literals and branches with the general form in small steps while every
-test is green (his essay on generalising, 28 April 2025). Write several red tests at once only as a fallback when
-stuck (this plugin's limit; TDD is Not Hill Climbing, 2024, offers it as one option there).
+Kent Beck's later essays take another route to the same done line. Take it by default, and switch to Triangulate,
+above, only as it says (this plugin's advice). Keep one failing test at a time (Canon TDD, 2023). Pass the second
+case even with a specific branch, then replace the literals and branches with the general form in small steps while
+every test is green (his essay on generalising, 28 April 2025). That switch is the one time to hold several red
+tests (this plugin's limit; TDD is Not Hill Climbing, 2024, offers it as one option when stuck).
 
 ```ts
 // Before: one literal per test, each faked on its own

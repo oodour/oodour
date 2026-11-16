@@ -61,9 +61,10 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   behaviour until they match (Move Function), and pull up what is then shared (Extract Superclass) (*Refactoring*).
   In TypeScript this plugin prefers having both implement one role over a shared parent: Roles in
   [javascript-and-typescript.md](javascript-and-typescript.md). When matching their messages leaves duplicated
-  behaviour, give it one home in a shared parent or an extracted class both delegate to (*Refactoring*), once
-  Duplication you are tempted to remove, in [duplication-and-abstraction.md](duplication-and-abstraction.md), shows
-  it is one concept; until then leave the copies (this plugin's check, as for Duplicated Code below).
+  behaviour, give it one home in a shared parent or an extracted class both delegate to (*Refactoring*), once the
+  steps of Duplication you are tempted to remove, in
+  [duplication-and-abstraction.md](duplication-and-abstraction.md), say to merge (a trigger, the cost of waiting,
+  one concept); until then leave the copies (this plugin's check, as for Duplicated Code below).
 
 ## Change preventers: one change, many edits
 

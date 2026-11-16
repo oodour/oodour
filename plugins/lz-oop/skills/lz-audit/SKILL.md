@@ -40,10 +40,12 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   changes often and that many files depend on is the costly corner of *Practical Object-Oriented Design*'s grid of
   likelihood of change against dependents; reading churn as likelihood of change is this plugin's, and it is one
   input beside concreteness: a concrete class with many dependents is suspect even when it has been stable. So
-  also rank import targets by importer count, with the tools above or
-  `rg -o --no-filename "from ['\"][^'\"]+['\"]" <scope> | sort | uniq -c | sort -rn`, take the top five that resolve
-  to a concrete class, and add each one that a tenth or more of the files in scope import to the hot-spot table as
-  a finding, whatever its churn (the ranking and the numbers are this plugin's). The cures for both are in
+  also find the most-imported modules with the tools above, or list candidates by file name with
+  `rg -o --no-filename -r '$1' "from ['\"]\.[^'\"]*?([^/'\"]+?)(\.[jt]sx?)?['\"]" <scope> | sort | uniq -c | sort -rn`
+  (relative imports only; files that share a name, such as `index`, share a line). Take the top five that hold a
+  concrete class, count each one's importers with the `rg -l` command above, and add each that a tenth or more of
+  the files in scope import to the hot-spot table as a finding, whatever its churn (the ranking and the numbers are
+  this plugin's). The cures for both are in
   `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
 - **Read the quadrants**:
   - often changed and complex: audit these first; a large central class full of conditionals that changes all the
