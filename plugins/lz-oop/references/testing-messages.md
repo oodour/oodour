@@ -36,10 +36,16 @@ changes something.
 
 ## Doubles
 
+- A plain object that answers the role's messages is usually enough to stand in for a collaborator, and a mock is
+  for proving that an outgoing command was sent (*Practical Object-Oriented Design*, which keeps the word mock for
+  that use alone). This plugin uses Meszaros's wider words: a double is any stand-in, and stubs, fakes and mocks
+  are kinds of double.
 - A double has to match the real collaborator's interface, or the test stays green while the code
   breaks (The Magic Tricks of Testing, 2013).
-- A fake (Meszaros's term) is a small real object that plays the collaborator's role, so a test can
-  show what the class does without depending on the real collaborator's output (*99 Bottles of OOP*).
+- A fake is a small real object that plays the collaborator's role, so a test can show what the class does
+  without depending on the real collaborator's output (*99 Bottles of OOP*, which files its fake under Meszaros's
+  definition). This plugin reads that use as wider than Meszaros's: his fake is a lighter working stand-in for a
+  slow or missing collaborator, and a stand-in that feeds the class under test canned answers is his stub.
 - Where several objects play one role, fakes included, a shared role test checks that each one
   answers the role's messages (the book). TypeScript (this plugin's inference): an interface for the role,
   with each player typed against it, does part of that check at compile time; a role test still
@@ -85,7 +91,8 @@ computed or an outgoing command it sent.
 ## Testing a hierarchy
 
 Use when someone asks how to test a parent class and its subclasses. The layers below follow *Practical
-Object-Oriented Design*, which presents each one as a test, and her public example code for it;
+Object-Oriented Design*, which presents each one as a test, and her public example-code repositories for it, poodr
+and poodr2;
 the reasons are *Practical Object-Oriented Design*'s unless marked as this plugin's. In a Defining
 Object-Oriented Design Q&A she says only that her tests check that the parent throws for a step it
 cannot supply and that each subclass supplies it.

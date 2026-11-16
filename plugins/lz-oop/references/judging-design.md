@@ -48,7 +48,8 @@ Obsession; Consistency; Does it do one job?; More smells.
    Reasonable: a change costs in proportion to what it is worth. Usable: the code can serve in a new setting without
    being copied. Exemplary: the easiest way for the next developer to extend it is also a good way, so imitating it
    spreads good habits. Code that meets all four is good enough; stop there. She presents the four as the reverse of
-   Robert Martin's symptoms of rotting design.
+   Robert Martin's symptoms of rotting design. *Practical Object-Oriented Design* names the same four qualities as
+   the aim of design and reaches them through classes that each have one job (Does it do one job?, below).
 
 ## Smells and checks this leaf owns
 
@@ -84,7 +85,9 @@ The smell: a built-in value (a number, string or boolean) stands for a domain id
 travels around and its behaviour lives elsewhere. Each yes to the questions above adds weight to
 that diagnosis. The idea need not be a physical thing: an object can stand for a concept with no physical form, such
 as a number with rules of its own, and such concepts often sit in the interactions between the obvious objects (the
-book). Rows that arrive from outside as arrays of positions or loose records are the same problem at the edge of the
+book). A domain noun does not earn a class on its own: give an idea a class once it holds both data and the
+behaviour that uses that data (*Practical Object-Oriented Design*). Rows that arrive from outside as arrays of
+positions or loose records are the same problem at the edge of the
 program: see Raw structures from outside in [javascript-and-typescript.md](javascript-and-typescript.md). The cure:
 
 1. Create a class named for the idea the primitive stands for, holding the value.
@@ -143,6 +146,8 @@ not share, or copy the part they need.
    points to a method that belongs elsewhere (*Practical Object-Oriented Design*; the example is this plugin's).
 3. Look for cues in the code:
    - a blank line inside a method that marks a change of topic (*99 Bottles of OOP* names it as a smell);
+   - a calculation buried inside a longer method with no name of its own; extract it into a method named for what
+     it computes (*Practical Object-Oriented Design*);
    - a method that relies on only some of the class's fields, and may belong with those fields in a new class (her
      public example-code repositories, poodr and poodr2);
    - a method that loops over a collection and also does the work for each item; split it into one method that only

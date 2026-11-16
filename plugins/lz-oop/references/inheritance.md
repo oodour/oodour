@@ -172,7 +172,7 @@ new subclass inherits behaviour that is true of the first kind only, and senders
 hold. *Practical Object-Oriented Design* treats subclassing a working concrete class this way as a mistake and makes
 no exception for special cases; the special-case route above departs from it and follows *99 Bottles of OOP*, as
 this plugin does where the two books differ. The steps follow *Practical Object-Oriented Design* and Sandi Metz's
-public example code for it; the numbering and the test runs are this plugin's.
+public example-code repositories for it, poodr and poodr2; the numbering and the test runs are this plugin's.
 
 1. Add a subclass named for the existing kind, and move all of the class's code down into it, leaving the parent
    empty. Point every place that creates the class at the subclass (with a factory, that is one edit). Run the
