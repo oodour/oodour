@@ -1,10 +1,10 @@
 # JavaScript and TypeScript forms of the ideas
 
-The book teaches in JavaScript and the talks mostly in Ruby. Where an idea does not carry over to JavaScript or
-TypeScript as stated, this file gives the form to use. **Everything here is this plugin's adaptation** unless the
-book or a talk is credited: the plugin takes no TypeScript guidance from its sources, and the mappings, tools and
-examples below are its own, checked against current TypeScript, Node.js, ESLint, Vitest, Jest and `node:test`
-documentation.
+*99 Bottles of OOP* teaches in JavaScript, *Practical Object-Oriented Design* in Ruby, and the talks mostly in Ruby.
+Where an idea does not carry over to JavaScript or TypeScript as stated, this file gives the form to use.
+**Everything here is this plugin's adaptation** unless a book or a talk is credited: the plugin takes no TypeScript
+guidance from its sources, and the mappings, tools and examples below are its own, checked against current
+TypeScript, Node.js, ESLint, Vitest, Jest and `node:test` documentation.
 
 Contents: Roles; Role tests in Vitest, Jest and node:test; Choosing a variant: the factory map; Absence: Null
 Object, `?.` and `??`; Injecting collaborators; Testing outgoing messages; Commands and queries; Private state;
@@ -193,7 +193,7 @@ export class Checkout {
 }
 ```
 
-- A default keeps call sites short while tests pass a fake. *99 Bottles of OOP* removes such defaults once callers
+- A default keeps call sites short while tests pass a double. *99 Bottles of OOP* removes such defaults once callers
   pass the collaborator, because a default ties the class to its first setting; her article keeps one (SOLID Design
   Principles - Dependency Injection, 2009), and so does this plugin where
   [dependencies-and-messages.md](dependencies-and-messages.md) says, which also says when to drop it.
@@ -215,10 +215,10 @@ export class Checkout {
 
 ## Testing outgoing messages
 
-Build the fake in the test, pass it in, and assert on the message it received. A mock function inside an injected
-fake is fine; spying on a method of the object under test checks how it works rather than what it does.
+Build the double in the test, pass it in, and assert on the message it received. A mock function inside an injected
+double is fine; spying on a method of the object under test checks how it works rather than what it does.
 
-- Vitest: `const charge = vi.fn<PaymentGateway['charge']>(); new Checkout({ charge }).pay(10);
+- Vitest: `const charge = vi.fn<PaymentGateway['charge']>(); new Checkout({ payments: { charge } }).pay(10);
   expect(charge).toHaveBeenCalledWith(10);`
 - Jest: `const charge = jest.fn(); ... expect(charge).toHaveBeenCalledWith(10);`
 - `node:test`: `const charge = mock.fn(); ... assert.deepStrictEqual(charge.mock.calls[0].arguments, [10]);`

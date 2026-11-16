@@ -39,7 +39,9 @@ changes something.
 - A plain object that answers the role's messages is usually enough to stand in for a collaborator, and a mock is
   for proving that an outgoing command was sent (*Practical Object-Oriented Design*, which keeps the word mock for
   that use alone). This plugin uses Meszaros's wider words: a double is any stand-in, and stubs, fakes and mocks
-  are kinds of double.
+  are kinds of double. In answers, call a stand-in a double; name it a stub when it only returns canned answers, a
+  mock or spy when the test checks a command it received, and a fake when it is a lighter working version of the
+  collaborator.
 - A double has to match the real collaborator's interface, or the test stays green while the code
   breaks (The Magic Tricks of Testing, 2013).
 - A fake is a small real object that plays the collaborator's role, so a test can show what the class does
@@ -71,8 +73,9 @@ Use when deciding whether a collaborator gets a double or the real object.
   cheap and close by, plugging in the real object is fine too; the further and costlier the effect, the more a mock
   at the nearest boundary pays (The Magic Tricks of Testing, 2013). In this plugin that covers a command receiver the
   class creates itself and keeps hidden; one injected or passed to a method follows the next bullet.
-- **Fake an injected collaborator.** A cheap collaborator that plays a role and is injected through the constructor
-  or passed to a method, such as a clock, gets a fake, whether it answers queries or receives commands; the bullet
+- **Double an injected collaborator.** A cheap collaborator that plays a role and is injected through the
+  constructor or passed to a method, such as a clock, gets a double: a stub when the class only asks it questions, a
+  mock or spy when the test checks a command it receives; the bullet
   above covers data passed in and hidden command receivers, not role players handed in (this plugin's
   reconciliation; the sources follow). *99 Bottles of OOP* replaces a collaborator the class receives from outside
   with a fake, so the test tells the class's own story, and keeps the fake honest with the role test from Doubles.
