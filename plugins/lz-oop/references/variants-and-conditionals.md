@@ -114,7 +114,10 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   sending the question to it. *Practical Object-Oriented Design* wants objects to describe themselves: give each
   kind the method and send it the message (`item.isFragile()`), a role every such kind plays. A policy object chosen
   per case (a Strategy) that decides from what it is given, without checking which kind it holds, is not this sign
-  (this plugin's note).
+  (this plugin's note). Move such a question one kind at a time: add the method to one kind, make the old function
+  call it for that kind, and check the step by running the old function's tests unchanged, plus a new test of the
+  method on that kind; repeat for each kind, then delete the old function once no branch is left (this plugin's
+  note).
 - A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
 - A check for null or `undefined` before each use (Nothing is Something, 2015).
 - Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom
