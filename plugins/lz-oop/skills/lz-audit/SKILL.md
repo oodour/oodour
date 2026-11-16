@@ -6,8 +6,8 @@ description: Object-oriented design audit of a JavaScript or TypeScript package,
 # lz-audit: design audit of a package or repository
 
 This file only routes. Read `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and for each smell you report the
-file its step 4 names, before you write the report; the cures and their steps are there, not here. If those reads
-are no longer in your context when you write the report, Read them again first.
+file that judging-design.md's step 4 names, before you write the report; the cures and their steps are there, not
+here. If those reads are no longer in your context when you write the report, Read them again first.
 
 ## 1. Scope and map
 
@@ -30,13 +30,8 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
   Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
   tests than its score has untested logic; say so in the report (the book).
-- **Size limits**: Sandi Metz's rules, made up for one team with very large classes (the talks Rules, 2013, and An
-  Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a method of at most 5, at most 4
-  parameters (packing more into one options object does not get round it), and a controller action that knows only
-  one business object and one presenter and hands one object to its view. Any rule may be broken when you win over
-  your pair. She calls the numbers arbitrary: reaching one is the cue to stop and ask whether to split, not a
-  failure, and experienced developers should set their own. Use the team's limits where it has them; report a file
-  over a limit as a place to look, not as a defect (this plugin's reading).
+- **Size limits**: Read Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, apply the team's limits or
+  those, and report a file over a limit as a place to look, not as a defect.
 - **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
   `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that
@@ -80,5 +75,5 @@ TypeScript form.
 
 ## Sources and attribution
 
-As in the `lz-oop` skill: the book is credited by title and its practices by name, talks and articles by title and
+As in the `lz-oop` skill: the books are credited by title and their practices by name, talks and articles by title and
 year, and every TypeScript mapping is this plugin's adaptation.

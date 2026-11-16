@@ -20,8 +20,7 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
 
 - **Long Method** (*Refactoring* 2nd edition: Long Function): what matters is the gap between what a function is for
   and how it does it, not its line count (*Refactoring*). Cure and steps: Taking a long method apart in
-  [changing-in-steps.md](changing-in-steps.md); the size limits in the `lz-audit` skill
-  ([SKILL.md](../skills/lz-audit/SKILL.md), step 2, Size limits) say when to stop and look.
+  [changing-in-steps.md](changing-in-steps.md); Size limits, at the end of this family, say when to stop and look.
 - **Large Class**: too many fields or too much code. Callers that each use only part of it show where to split it;
   Extract Class (*Refactoring*). Steps: Does it do one job? in [judging-design.md](judging-design.md).
 - **Primitive Obsession** and **Data Clumps**: [judging-design.md](judging-design.md), Primitive Obsession and More
@@ -34,6 +33,13 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   [javascript-and-typescript.md](javascript-and-typescript.md); flag arguments:
   [variants-and-conditionals.md](variants-and-conditionals.md); changing the signature in green steps:
   [changing-in-steps.md](changing-in-steps.md).
+- **Size limits**: Sandi Metz's rules, made up for one team with very large classes (the talks Rules, 2013, and An
+  Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a method of at most 5, at most 4
+  parameters (packing more into one options object does not get round it), and a controller action that knows only
+  one business object and one presenter and hands one object to its view. Any rule may be broken when you win over
+  your pair. She calls the numbers arbitrary: reaching one is the cue to stop and ask whether to split, not a
+  failure, and experienced developers should set their own. Use the team's limits where it has them; report a file
+  over a limit as a place to look, not as a defect (this plugin's reading).
 
 ## Object-oriented tools misused
 
