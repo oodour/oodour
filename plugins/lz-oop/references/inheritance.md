@@ -271,9 +271,11 @@ components.
 ## Mixins
 
 JavaScript mixins (a subclass factory, or methods copied onto a prototype) play the
-part Ruby modules play in her talks. Method lookup through them works as it does for a parent, so
-every rule above applies to them, Liskov Substitution included (POODR with the Toronto Ruby Brigade,
-2013). The JavaScript mapping is this plugin's.
+part Ruby modules play in her talks. A subclass factory puts the mixin in the prototype chain, so lookup works as it
+does for a parent; copied methods become the host's own methods, fixed when copied, so a later change to the mixin
+object does not reach the host. Either way the host takes on the mixin's messages, so every rule above applies to
+them, Liskov Substitution included (POODR with the Toronto Ruby Brigade, 2013). The JavaScript mapping is this
+plugin's.
 
 - **When one fits**: a behaviour that unrelated classes share, which each object has without being
   that thing, such as persistence, printing or logging (same talk). The host there framed it
@@ -294,10 +296,11 @@ every rule above applies to them, Liskov Substitution included (POODR with the T
     not *Practical Object-Oriented Design*'s; see the paragraph on
     *Practical Object-Oriented Design*'s role module below.
 
-  Those defaults work only when the mixin is a subclass factory (`(Base) => class extends Base`), so the host's own
-  method overrides the mixin's. Copying methods onto a prototype (`Object.assign`) overwrites the
-  host's method with the default, and a throwing default then throws on every call (this plugin's
-  note).
+  Those defaults work when the mixin is a subclass factory (`(Base) => class extends Base`), so the host's own
+  method overrides the mixin's, or when the copy skips every member the host already defines. A plain
+  `Object.assign` onto a prototype overwrites the host's method with the default, and a throwing default then
+  throws on every call; it also copies nothing from a mixin written as a class, whose methods are not enumerable
+  (this plugin's note).
 
   *Practical Object-Oriented Design*'s role module keeps state of its own and gives its collaborator a
   default, and a mixin may do the same when that state belongs to the role in every host, such as an
