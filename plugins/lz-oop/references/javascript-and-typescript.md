@@ -93,15 +93,23 @@ Which form to start from, and when to move from a `switch` to a map, is in the b
 under Factory forms in [variants-and-conditionals.md](variants-and-conditionals.md) (*99 Bottles of OOP* weighs the
 forms in JavaScript).
 When that points to a map, this plugin's form in TypeScript is the key/value lookup, built in one place, with the
-`satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it.
+`satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it. Each entry, like
+each `case` below, only picks a class, and the object is built once after the choice, as in the book's companion
+code; build inside the branch only when a kind needs other constructor arguments (this plugin's exception).
 
 ```ts
 type PlanKind = 'basic' | 'pro';
 
-const planFor = {
-  basic: (seats: number) => new BasicPlan(seats),
-  pro: (seats: number) => new ProPlan(seats),
-} satisfies Record<PlanKind, (seats: number) => Plan>;
+const planClasses = {
+  basic: BasicPlan,
+  pro: ProPlan,
+} satisfies Record<PlanKind, new (seats: number) => Plan>;
+
+function planFor(kind: PlanKind, seats: number): Plan {
+  const PlanClass = planClasses[kind];
+
+  return new PlanClass(seats);
+}
 ```
 
 `satisfies Record<PlanKind, ...>` makes the compiler demand an entry for every kind, so adding a kind without its
@@ -115,16 +123,22 @@ Handbook, Narrowing). Keep the `throw`: a value from outside the program, such a
 with a kind the type does not list.
 
 ```ts
-function planFor(kind: PlanKind, seats: number): Plan {
+function planClassFor(kind: PlanKind): new (seats: number) => Plan {
   switch (kind) {
     case 'basic':
-      return new BasicPlan(seats);
+      return BasicPlan;
     case 'pro':
-      return new ProPlan(seats);
+      return ProPlan;
     default:
       kind satisfies never;
       throw new Error(`No plan for ${String(kind)}`);
   }
+}
+
+function planFor(kind: PlanKind, seats: number): Plan {
+  const PlanClass = planClassFor(kind);
+
+  return new PlanClass(seats);
 }
 ```
 
@@ -275,7 +289,8 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   a later change to that meaning touches one place. In JavaScript the outside half of that reason mostly falls
   away: a public field can become a getter later and no caller changes; inside the class it still holds, which is
   why the class reads such a value through its getter, kept off the public interface unless a subclass may
-  redefine it. *99 Bottles of OOP*'s own classes read their fields directly, so treat this as a choice for values
+  redefine it. *99 Bottles of OOP*'s JavaScript classes read their fields directly (its Ruby code reads through
+  reader methods, which a public field read in JavaScript already resembles), so treat this as a choice for values
   like that, not a rule for every field (this plugin's reading of the two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 

@@ -119,8 +119,8 @@ not to objects those return (the book).
    named for that intention (Hide Delegate; Get a Whiff of This, 2016). Name it for the goal, not by
    gluing together the names in the chain (the book).
 4. Reports and other code whose job is to gather data from many places are a reasonable exception, and a rare one
-   (the book). The exception covers a chain that only reads; never one that changes the object at its end
-   (*Practical Object-Oriented Design* draws that line too).
+   (the book). The exception covers a chain that only reads, never one that changes the object at its end
+   (*Practical Object-Oriented Design* draws that line; the book's own example only reads).
 
 ## Injecting collaborators
 

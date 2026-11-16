@@ -106,8 +106,9 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   and kind_of?, 2009, which reads a switch on the class as procedural code), and *Practical Object-Oriented Design*
   names the same three checks. The JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`,
   an `in` check, a switch on a `kind` field, and `typeof` or `Array.isArray` used to pick behaviour per kind of
-  value inside domain code (her 2009 article's example branches on built-in kinds). Checking outside input at a
-  boundary is a different job (this plugin's exemption).
+  value inside domain code. Her 2009 article goes further: its example, a view rather than a domain object, branches
+  on built-in kinds, and the article rejects that too. Checking outside input at a boundary is a different job (this
+  plugin's exemption).
   A factory's one `switch` on a `kind` field that only chooses an object is not this sign (this
   plugin's reading; see Choosing versus doing).
   In TypeScript, a type predicate (`isInvoice(x): x is Invoice`) or a `this is` method is the same check in typed
@@ -132,7 +133,9 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
 
 A switch on the language's own built-in, stable types is tolerable (Less, 2011), as when a utility formats a
 number one way and a string another; the sign above is such a switch in domain code, deciding behaviour that a
-domain object could own (this plugin's line between the two). Elsewhere, one class
+domain object could own (this plugin's line between the two, which departs from the 2009 article: it rejects such
+a switch outside domain objects as well and moves each branch onto the types themselves, a cure that this plugin's
+rule against changing built-in prototypes rules out in JavaScript). Elsewhere, one class
 check undoes the trust the role gives (Less, 2011): send the message, and let a factory pick the player
 so the sender stays unaware of the choice (Devs for Ukraine, 2022). Each new player of a role gets the
 role's shared test; see Role tests in [javascript-and-typescript.md](javascript-and-typescript.md).
@@ -251,7 +254,8 @@ what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013)
 4. Where an option has a usual value, inject the collaborator rather than adding a flag and an `if` (the article
    Getting It Right By Betting On Wrong, 2014). Give it that value as a default only when the class can justify
    that player on its own (Injecting collaborators in
-   [dependencies-and-messages.md](dependencies-and-messages.md)).
+   [dependencies-and-messages.md](dependencies-and-messages.md)); the article keeps such a default, so this limit
+   is this plugin's.
 5. Bundling the flags into an options object hides the count but keeps the branching; it is not the
    cure.
 
