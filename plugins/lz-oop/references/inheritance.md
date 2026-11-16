@@ -1,7 +1,7 @@
 # Inheritance
 
-Use when someone asks whether a class hierarchy should become composition, or whether to add a
-subclass.
+Use when someone asks whether a class hierarchy should become composition, whether to add a
+subclass, or which relationship (a subclass, a role, or composed parts) fits a new kind.
 
 ## Inheritance is allowed
 
@@ -9,14 +9,52 @@ Preferring composition is not a ban on inheritance (*99 Bottles of OOP*). Judge 
 by the keyword `extends`. Sandi Metz says she often starts with a subclass and refactors away from it
 when it stops paying (the 2014 POODR Q&A).
 
-- **Wait for examples.** Build a parent only once enough concrete subclasses exist to show what is
-  shared; she has said to wait for the third (Fireside Chat, 2015; the transcript is unclear there,
-  so treat it as a rule of thumb).
+- **Wait for a clear abstraction.** *99 Bottles of OOP* sets no count: generalise once the examples make the shared
+  shape plain, and keep the duplication while they leave it murky. A hierarchy there starts from a change request
+  and a smell, and its first subclass may stand for a single special value. *Practical Object-Oriented Design* adds
+  a number for one case only, a new parent over peers (see A new hierarchy of peers, below): three subclasses are
+  the safe point, two can be defended, and one is nearly always too early. Weigh how soon the next kind will arrive
+  against what the copies cost until then. She has also said in a talk to wait for the third (Fireside Chat, 2015;
+  the transcript is unclear there).
 - **Liskov Substitution.** Any subclass must work wherever its parent is expected, with no sender
   checking which one it got. A sender that tests the class of what it holds is the usual sign that
-  this broke (the talk SOLID, 2009). The book applies the same promise to every role player, not only
+  this broke (the talk SOLID, 2009). *99 Bottles of OOP* applies the same promise to every role player, not only
   to subclasses: answer the message, and return one kind of thing the sender can trust (see
-  [dependencies-and-messages.md](dependencies-and-messages.md)).
+  [dependencies-and-messages.md](dependencies-and-messages.md)). *Practical Object-Oriented Design* states the rule
+  for an override's types: it may accept more than the parent's version and may return something narrower, never
+  the reverse. In TypeScript the compiler enforces the return half only: an override whose result can be something
+  the parent's cannot is an error, while an override that accepts less than the parent's method is allowed, even
+  under `strict` (measured with TypeScript 6.0.3; this plugin's note). Catch the input half in review or in the
+  shared role test.
+
+## Choosing the relationship
+
+*Practical Object-Oriented Design* names three relationships, each with its own fit:
+
+- **Is-a, a subclass**: a small, settled set of kinds, each a more specific version of one stable idea. A new kind
+  is then one new subclass and no edit elsewhere, and subclasses receive the parent's behaviour without writing any
+  forwarding.
+- **Behaves-like-a, a role**: a behaviour that many unrelated objects need beside their main job. Each object plays
+  the role with its own methods; shared code comes in only where the players would otherwise copy it (see Mixins,
+  below).
+- **Has-a, composition**: a whole built from parts that can vary independently. Each part plays a role, and the
+  whole talks to its parts only through that role's messages.
+
+The same book weighs what each costs:
+
+- A hierarchy concentrates risk. An edit to the parent reaches every subclass, kinds that have to mix cannot be
+  expressed, and whoever extends a poor tree later tends to copy code or check classes rather than fix the tree.
+  Who will extend the code matters too: a class that others can use only by subclassing it ties their code to its
+  internals.
+- Composition keeps the parts independent and makes every combination available, but the whole is harder to see at
+  a glance, forwarding to the parts is written by hand, and kinds that differ in one small detail are served worse
+  than by a subclass each.
+
+That book makes composition its default and asks inheritance to prove its fit: a fixed and obvious family, kept
+shallow and narrow; many variants of one stable idea; code inside your own application, in a domain you know well.
+This plugin follows *99 Bottles of OOP* instead and sets no default: choose the relationship that suits the change
+at hand, and when you cannot tell, try both cures and keep the clearer one (When to move toward composition, below).
+Treat the conditions above as questions to ask, not as a verdict.
 
 ## When a hierarchy is safe to keep
 
@@ -56,9 +94,9 @@ From All the Little Things, 2014, and the talk Defining OOD:
 
 This plugin adds, as its own guidance:
 
-- **Template Method**: a hierarchy that meets these conditions is usually a Template Method. Go
-  Ahead, Make a Mess, 2012, says inheritance of that kind suits variants that are nearly alike; the
-  link between that and the conditions above is this plugin's inference.
+- **Template Method**: *Practical Object-Oriented Design* names the technique and builds its hierarchies with it.
+  That a hierarchy meeting these conditions is usually one is this plugin's inference, as is the link to Go Ahead,
+  Make a Mess, 2012, which says inheritance of that kind suits variants that are nearly alike.
 - **In TypeScript**: hooks are public or `protected` methods, and a required step can be `abstract`
   instead of throwing. See Hooks and required steps in TypeScript in
   [javascript-and-typescript.md](javascript-and-typescript.md).
@@ -87,7 +125,8 @@ When the conditions hold, recommend keeping the hierarchy and say which properti
   relation the behaviour does not support (Nothing is Something, 2015).
 
 Replacing a conditional with subclasses and replacing it with composed objects (Strategy or State)
-are both valid cures; when the choice is close, try both and keep the clearer one (*99 Bottles of OOP*).
+are both valid cures; when the choice is close, try both and keep the clearer one (*99 Bottles of OOP*). To turn
+an existing hierarchy into composed parts, see From subclasses to composed objects, below.
 
 ## From a conditional to subclasses
 
@@ -110,12 +149,35 @@ Done when no method in the parent or the subclasses tests the value, each value 
 the factory is the only place that knows the concrete classes and chooses among them. Its own
 conditional stays (the book).
 
-**A hierarchy from one concrete class.** Sandi Metz's public example code for *Practical
-Object-Oriented Design* builds a parent the other way: it moves all the concrete class's code down
-into a new subclass, leaving the parent empty, then promotes into the parent one piece at a time
-only what the subclasses share, until the defaults and hooks live there. The code labels the steps
-without giving reasons; the reading that this keeps the parent from holding anything a subclass
-would refuse is this plugin's.
+## A new hierarchy of peers
+
+Use when a working class gets a second kind and neither kind is the ordinary case that the other overrides. When
+one kind is the default and the others are special values, use From a conditional to subclasses instead, where the
+parent stays concrete (*99 Bottles of OOP*). The steps follow *Practical Object-Oriented Design* and Sandi Metz's
+public example code for it; the numbering and the test runs are this plugin's.
+
+Do not put the new kind straight under the working class. That class was written for one kind, so the new subclass
+inherits behaviour that is true of the first kind only, and senders soon have to check which kind they hold. The
+book treats this as a mistake.
+
+1. Add a subclass named for the existing kind, and move all of the class's code down into it, leaving the parent
+   empty. Point every place that creates the class at the subclass (with a factory, that is one edit). Run the
+   tests.
+2. Add the new kind as a second, empty subclass, and drive its behaviour with tests.
+3. Lift into the parent, one method at a time, only what both kinds need, with a green test run between lifts. Split a
+   method that mixes shared work with work for one kind before you lift it: the kind-specific part becomes a hook
+   (Hooks instead of `super`, above), and the shared part goes up.
+4. Where the shared code needs a value or a step that differs by kind, have the parent ask for it through a hook.
+   A hook every subclass must supply throws in the parent, or is `abstract`; an optional one returns a harmless
+   default.
+
+Done when the parent holds only what every subclass uses, nothing creates the parent itself, and no subclass
+refuses anything it inherits.
+
+The book's reason for moving everything down first: a method left in a subclass that should have gone up shows as
+duplication and costs little to fix later, while a method left in the parent that fits only one kind is wrong for
+the others, and the harm spreads to the code that uses the hierarchy, which starts checking which kind it holds. Under either recipe, a parent holds nothing true of only one kind beyond the
+default that the special kinds override (this plugin's reconciliation of the two books).
 
 ## Composing the parts
 
@@ -137,6 +199,30 @@ forward messages to it. Each new variant then plugs in at that injection point.
   parts with a factory that reads a configuration, so a new kind needs new configuration and no new
   class. The code shows this without prose rules; the plugin's reading is that it suits kinds that
   differ only in which parts they hold.
+
+## From subclasses to composed objects
+
+Use when an existing hierarchy has to give way to composition and its subclasses differ mainly in what they are
+made of: which components, settings or values they hold. The order follows the way *Practical Object-Oriented
+Design* rebuilds one of its own hierarchies; the general wording, the test runs and the Done line are this plugin's.
+Run the tests after every step.
+
+1. Decide what the whole is made of. Keep in it only what is truly its own, and have it forward everything that
+   varies to one new object that holds the components.
+2. Move the hierarchy into that holder nearly unchanged: the holder's own subclasses now carry the kinds, and the
+   tests stay green while nothing is redesigned yet. The book points out what this step shows: how little of the
+   code belonged to the whole.
+3. Give a single component a small class of its own, so the holder keeps a list of components and asks them,
+   instead of computing per kind. The holder's subclasses go away here; for now, the code that creates a whole
+   assembles each kind's components by hand.
+4. Let the holder answer the few list messages its callers use (see Inheritance, mixins and built-in types in
+   [javascript-and-typescript.md](javascript-and-typescript.md)).
+5. The hand assembly spreads knowledge of every kind to the callers. Describe each kind as configuration instead,
+   and build every whole through one factory that reads it (Parts from configuration, above).
+6. Delete the defaults the factory now supplies. A component left with no behaviour can become a plain value.
+
+Done when no subclass remains, each former kind is a few lines of configuration, and the whole only coordinates its
+components.
 
 ## Mixins
 

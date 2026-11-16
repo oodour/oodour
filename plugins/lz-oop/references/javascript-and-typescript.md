@@ -323,8 +323,20 @@ abstract class Invoice {
 - Mark a required step `abstract` in an `abstract` parent. The compiler then refuses a subclass that leaves it out
   and refuses `new Invoice()`. Both modifiers are erased, so the class runs under Node.js type stripping. In plain
   JavaScript, keep the parent method that throws.
-- Do not call a hook from the parent's constructor. It runs before the subclass's own fields are set, so a hook that
-  reads one gets `undefined`, and the compiler does not warn.
+- Mark each hook a subclass supplies `override`, and turn on `noImplicitOverride`. Renaming a hook in the parent
+  then breaks the build instead of leaving the subclass's method silently uncalled (TypeScript 4.3 release notes).
+- *Practical Object-Oriented Design* has the parent's constructor ask its subclasses for defaults and for extra
+  setup through hooks. In JavaScript and TypeScript the parent's constructor runs before the subclass's own fields
+  exist, which splits that in two (measured with Node.js 24; the forms are this plugin's):
+  - A hook that returns a value and reads nothing the subclass sets works from the parent's constructor:
+    `this.#rate = options.rate ?? this.defaultRate();`, with each subclass's `defaultRate()` returning its own
+    constant. Use `??`, not `||`, which would also replace a deliberate `0`.
+  - A hook that stores state for the subclass breaks, and the compiler does not warn: a write to a subclass
+    `#field` throws a `TypeError`, and a write to a plain declared field is reset to `undefined` once `super()`
+    returns. Give such a subclass its own constructor that calls `super(options)` and then sets its fields. That
+    brings back a `super` call, but only in a constructor, where both languages refuse to touch `this` before
+    `super()` has run, so the forgotten `super` that hooks avoid cannot happen there (this plugin's reasoning).
+    Subclasses that only supply hooks declare no constructor.
 - Do not write a hook as an arrow-function property (`fee = () => 0`). It lives on each instance, not on the
   prototype, so `super.fee()` cannot reach it, and the parent's property hides a subclass method of the same name.
 
