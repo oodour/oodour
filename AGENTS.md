@@ -85,8 +85,9 @@ output), stop reading it, do not use it, and tell Lars.
   consumers that don't have the oracle or book available.").
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
-- For a JavaScript or TypeScript form, *99 Bottles of OOP* and its companion code decide first, then
-  any other Metz or Owen source written in JS/TS, then Fowler's *Refactoring*, 2nd edition (Lars,
+- For a JavaScript or TypeScript form, *99 Bottles of OOP* and its JavaScript companion code decide first, then
+  any other Metz or Owen source written in JS/TS, then Fowler's *Refactoring*, 2nd edition, then the other
+  JavaScript and TypeScript entries in the tier table (Lars,
   2026-11-16: "99 Bottles is *the* authorative source on JS/TS as well as any other Metz/Owen source
   using JS/TS, with Fowler's Reactoring 2e in a close second."). Every JS/TS choice that does not come
   straight from Metz or Owen (this plugin's own idiom, a form taken from Fowler, a translation of a

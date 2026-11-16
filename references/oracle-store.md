@@ -238,7 +238,7 @@ preview edition so if the oracle can curate a full edition, that's better."
   `constructor`, `static`, private elements, and the Using classes guide. Four TypeScript pages copied from the local
   TypeScript-Website clone (commit 4ec663ac44, 2026-11-13; content CC BY 4.0, code MIT): Handbook Classes, Narrowing
   and Mixins, and only the `satisfies` section of the 4.9 release notes.
-- **Overlap**: the plugin's 6-word check then found five generic runs (a mixin description, a step phrase, an engine
+- **Overlap**: the plugin's 6-word check then found five generic runs (two mixin descriptions, a step phrase, an engine
   error message and an index loop in two evals); all were reworded.
 
 ### 2026-11-16: the Ruby companion code
