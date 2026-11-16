@@ -4,4 +4,4 @@ max_turns: 3
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-What is the difference between a conditional that picks which object to use and a conditional that decides what the code does? When is each one fine in a JavaScript codebase?
+How does an `if` that chooses an object to call differ from an `if` that does the work itself, branch by branch? When is each one fine in a JavaScript codebase?

@@ -4,7 +4,7 @@ max_turns: 6
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-Finance just told us the VAT rate goes from 25% to 22% on the first of next month. What's the best way to make that change in this class?
+Finance just told us the VAT rate goes from 25% to 22% on the first of next month. How should I update this class for it?
 
 ```js
 export class Basket {
