@@ -59,6 +59,9 @@ This plugin adds, as its own guidance:
 - **Template Method**: a hierarchy that meets these conditions is usually a Template Method. Go
   Ahead, Make a Mess, 2012, says inheritance of that kind suits variants that are nearly alike; the
   link between that and the conditions above is this plugin's inference.
+- **In TypeScript**: hooks are public or `protected` methods, and a required step can be `abstract`
+  instead of throwing. See Hooks and required steps in TypeScript in
+  [javascript-and-typescript.md](javascript-and-typescript.md).
 
 When the conditions hold, recommend keeping the hierarchy and say which properties support that.
 

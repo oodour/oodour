@@ -142,6 +142,10 @@ searched for and fail quietly on a typo (the book).
   code has to stay in step with the list (see Choosing a variant: the factory map in
   [javascript-and-typescript.md](javascript-and-typescript.md)). Either way, prefer an explicit list
   over a name-built lookup. These defaults are the plugin's, not the book's.
+- **A `switch` the compiler checks.** In TypeScript, a `default` that assigns the kind to a `never`
+  variable fails the build when a kind has no `case`: the same check the map gets from
+  `satisfies Record<Kind, ...>`. The example is in Choosing a variant: the factory map, in
+  [javascript-and-typescript.md](javascript-and-typescript.md). This form is the plugin's.
 - **Name the message, not the receiver.** Keep the receiver's type out of a message's name: the
   sender should not need to know which kind it holds, and a name that repeats the type breaks when
   the type is renamed. A generic factory name (`for`, `create`) lets one factory stand in for another

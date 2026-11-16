@@ -77,6 +77,12 @@ cannot supply and that each subclass supplies it.
    supplies fixed hook values, so the parent's template method is tested without any real subclass.
    That test subclass also runs the hook test from step 2, so it cannot drift from the real ones.
 
+With an `abstract` parent in TypeScript, two steps change (this plugin's adjustment, not part of
+the example code). Step 1 runs on every subclass and on the test subclass from step 4, since
+the parent cannot be built. Step 3 has no test: the compiler refuses a subclass that leaves out a
+required hook. Steps 2 and 4 stay as they are. The TypeScript form: Hooks and required steps in
+TypeScript in [javascript-and-typescript.md](javascript-and-typescript.md).
+
 For each subclass, this plugin's reasoning: the shared tests prove it can stand in for the parent,
 its own test proves what it adds, and nothing tests the parent's code twice through every
 subclass. The shared tests in Vitest, Jest and `node:test`:

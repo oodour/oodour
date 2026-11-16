@@ -92,10 +92,32 @@ const planFor = {
 `satisfies Record<PlanKind, ...>` makes the compiler demand an entry for every kind, so adding a kind without its
 variant fails the build.
 
+The `switch` the plugin starts from gets the same check from a `default` that assigns the kind to a `never` variable
+(or passes it to a function whose parameter is `never`). While every kind has a `case`, nothing reaches the
+`default`; a kind added to the union without a `case` makes that assignment a compile error (TypeScript Handbook,
+Narrowing).
+
+```ts
+function planFor(kind: PlanKind, seats: number): Plan {
+  switch (kind) {
+    case 'basic':
+      return new BasicPlan(seats);
+    case 'pro':
+      return new ProPlan(seats);
+    default: {
+      const unhandled: never = kind;
+
+      throw new Error(`No plan for ${String(unhandled)}`);
+    }
+  }
+}
+```
+
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
   when the package declares `"sideEffects": false`. Keep it for plugins added by other packages.
-- JavaScript note: no `satisfies`; freeze the map and test that every kind in a `kinds` list has an entry.
+- JavaScript note: no `satisfies` or `never`; freeze the map and test that every kind in a `kinds` list has an entry,
+  and give a `switch` a `default` that throws.
 
 ## Absence: Null Object, `?.` and `??`
 
@@ -217,6 +239,37 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   an object, not a string (`s === 'x'` is false).
 - Never add methods to built-in prototypes: they are shared by all code and can clash with future standard methods.
   Use a domain object or a plain function.
+
+### Hooks and required steps in TypeScript
+
+Use when writing a parent class whose template method calls hooks (the conditions and the throwing parent:
+[inheritance.md](inheritance.md), When a hierarchy is safe to keep). These forms are this plugin's; the mechanics
+are from the TypeScript Handbook, Classes.
+
+```ts
+abstract class Invoice {
+  total(): number {
+    return this.subtotal() + this.fee();
+  }
+
+  protected abstract subtotal(): number;
+
+  protected fee(): number {
+    return 0;
+  }
+}
+```
+
+- Make a hook a method, public or `protected`, never `#private`. Were the hook `#fee`, a subclass's own `#fee`
+  would be a second, separate member, and the parent would keep calling its own. The `#private` default in Private
+  state is for state, not for hooks.
+- Mark a required step `abstract` in an `abstract` parent. The compiler then refuses a subclass that leaves it out
+  and refuses `new Invoice()`. Both modifiers are erased, so the class runs under Node.js type stripping. In plain
+  JavaScript, keep the parent method that throws.
+- Do not call a hook from the parent's constructor. It runs before the subclass's own fields are set, so a hook that
+  reads one gets `undefined`, and the compiler does not warn.
+- Do not write a hook as an arrow-function property (`fee = () => 0`). It lives on each instance, not on the
+  prototype, so `super.fee()` cannot reach it, and the parent's property hides a subclass method of the same name.
 
 ## Immutable values, caching and the cost of objects
 
