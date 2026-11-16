@@ -224,7 +224,8 @@ fake is fine; spying on a method of the object under test checks how it works ra
 - `node:test`: `const charge = mock.fn(); ... assert.deepStrictEqual(charge.mock.calls[0].arguments, [10]);`
 
 Neither Vitest nor Jest documents a preference between fakes and spies; the preference for injecting a double that
-plays the role, rather than stubbing a concrete class, is Sandi Metz's (the talk Get a Whiff of This, 2016). What to assert for each kind of message: [testing-messages.md](testing-messages.md).
+plays the role, rather than stubbing a concrete class, is Sandi Metz's (the talk Get a Whiff of This, 2016). What to
+assert for each kind of message: [testing-messages.md](testing-messages.md).
 
 ## Commands and queries
 

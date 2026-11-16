@@ -90,7 +90,8 @@ is plain, and do not chase DRY before every example is in (the book).
 - Expected values are written out literally. A test that computes its expectation with logic like the production
   code's, or asserts that one method returns what another returns, is tied to how the code works and breaks when
   the code is restructured (*99 Bottles of OOP*).
-- Tests can repeat themselves more than production code; readability wins there (the talk The Design of Tests, Hashrocket, year not known).
+- Tests can repeat themselves more than production code; readability wins there (the talk The Design of Tests,
+  Hashrocket, year not known).
 - Keep one arrange, act, assert shape in every test (the book).
 - Signal arbitrary data: a prime number, or an absurdly large one, tells the reader that the exact value does not
   matter (the Prime Number Signal, from the book).
@@ -107,7 +108,8 @@ is plain, and do not chase DRY before every example is in (the book).
 - Restructuring changes the code's shape but not what it does, so the tests stay unchanged and green after every
   step. Run them after each small edit; undo a step that turns them red and take a smaller one (*99 Bottles of OOP*).
 - If tests fail while the behaviour has not changed, they check how the code works rather than what it does. Stop,
-  fix those tests on their own, then restart the restructuring. While a restructuring is under way, the tests stay as they are (the book).
+  fix those tests on their own, then restart the restructuring. While a restructuring is under way, the tests stay as
+  they are (the book).
 - Green tests do not prove an abstraction right: wrong code can pass them (the book).
 - When you extract a class, the outer tests protect the move; copy the code unchanged and put it to use before
   editing it. The new class then needs its own unit tests (the book).
