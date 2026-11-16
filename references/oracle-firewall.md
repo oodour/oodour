@@ -72,8 +72,10 @@ which is why the guard lets any agent run it.
 - A folder given in place of a file checks every text file below it. The `overlap` target uses this to
   check the plugin's eval cases (`evals/<plugin>/` and `evals/<plugin>-real/`) along with the plugin's
   Markdown, because listing every case file would pass the Windows command-line limit. The tool refuses
-  a draft folder that is the store, lies inside it or holds it, directly or through a junction or
-  symlink, since expanding it would print the names of the store's files, and refuses a draft folder with no text files, as it does for `--corpus`.
+  a draft folder that is the store, lies inside it or holds it, directly, through a junction or
+  symlink, or by a short 8.3 name, since expanding it would print the names of the store's files. It does not follow a link
+  inside a draft folder, so a linked file there goes unchecked. It refuses a draft folder with no text
+  files, as it does for `--corpus`.
 - It catches verbatim overlap only. A close paraphrase passes it; that judgement stays with you and
   with `oracle-reviewer`.
 - A script that imports it learns no more than the command prints. The corpus `loadCorpus` returns

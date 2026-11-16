@@ -309,9 +309,9 @@ function draftFiles(path: string): readonly string[] {
   return isFolder(path) ? listTextFiles(path) : [path];
 }
 
-// A link to the store must count as the store: statSync and readdirSync follow it.
+// A link or a short 8.3 name for the store must count as the store: statSync and readdirSync follow both.
 function realPath(path: string): string {
-  return existsSync(path) ? realpathSync(path) : resolve(path);
+  return existsSync(path) ? realpathSync.native(path) : resolve(path);
 }
 
 function isWithin(parent: string, folder: string): boolean {

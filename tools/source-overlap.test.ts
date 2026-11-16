@@ -7,6 +7,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -342,9 +343,14 @@ test('a draft folder inside the store or holding it is refused, so no file name 
   t.mock.method(console, 'log', (line: string) => printed.push(line));
   t.mock.method(console, 'error', (line: string) => printed.push(line));
 
+  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-draft-')), 'draft.md');
+  writeFileSync(draft, 'a plain draft');
+
   assert.equal(main([join(store, 'book')], store), 2);
   assert.equal(main([parent], store), 2);
+  assert.equal(main([draft, parent], store), 2);
   assert.deepEqual(printed, [
+    '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
     '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
     '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
   ]);
@@ -363,7 +369,30 @@ test('a draft folder that is a link to the store or to a folder holding it is re
 
   assert.equal(main([join(links, 'to-store')], store), 2);
   assert.equal(main([join(links, 'to-parent')], store), 2);
-  assert.ok(printed.every((line) => line.startsWith('[ERROR] a draft folder names the store')), printed.join('\n'));
+  assert.deepEqual(printed, [
+    '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
+    '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
+  ]);
+});
+
+test('a draft folder named by its short 8.3 path is refused like its long path', (t) => {
+  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const longParent = realpathSync.native(parent);
+
+  if (longParent.toLowerCase() === parent.toLowerCase()) {
+    t.skip('the temporary folder has no short 8.3 name on this machine');
+
+    return;
+  }
+
+  const store = join(longParent, 'store');
+  cpSync(syntheticStore(), store, { recursive: true });
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main([parent], store), 2);
+  assert.deepEqual(printed, ['[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it']);
 });
 
 test('a draft folder with no text files in it is an error, exit 2, not reported clean', (t) => {
