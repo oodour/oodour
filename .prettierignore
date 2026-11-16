@@ -1,0 +1,12 @@
+# Add files here to ignore them from prettier formatting
+/dist
+/coverage
+/.nx/cache
+/.nx/workspace-data
+package-lock.json
+
+# For now Prettier formats only the distributed plugin's Markdown; the rest of the repository keeps its current style.
+/*
+!/plugins/
+/plugins/**/*.*
+!/plugins/**/*.md

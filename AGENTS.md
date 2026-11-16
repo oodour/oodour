@@ -140,8 +140,13 @@ The repository is an Nx workspace with two projects: `tooling` (the hooks, the m
 `project.json`) and `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest). Run Nx as
 `npm exec -- nx`.
 
-- `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`. `citations`
-  fails when the distributed plugin cites a chapter number (see "What you write").
+- `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then
+  `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number (see "What you write").
+- Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
+  it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
+  `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and
+  `.prettierignore` follow what Nx 24.0.6 generates for a new workspace (Lars, 2026-11-16: "align EditorConfig and
+  Prettier configs with Nx defaults"; "~3.6.2 it is").
 - `npm exec -- nx run lz-oop:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
   the plugin and `evals/lz-oop/` into `dist/eval/lz-oop/`, because `claude plugin eval` reads cases only below a
   plugin root and the cases stay out of the distributed plugin. `nx run lz-oop:eval-real` does the same for the

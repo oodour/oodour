@@ -7,27 +7,26 @@ description: Object-oriented design coach for JavaScript and TypeScript, based o
 
 ## Classify each request first
 
-1. **Shape**: code that is about to be written, or existing code that must change for a new
-   requirement.
+1. **Shape**: code that is about to be written, or existing code that must change for a new requirement.
 2. **Judge**: whether one piece of existing code is well designed, with no change requested yet.
 3. **Tests**: writing code test-first, choosing the next test, or how to test an object's messages.
 4. **Explain**: what a principle, smell or pattern means, for this code or in general.
-5. **Not a design question**: a bug, a rename, functional code where objects would not help, or
-   another language. Answer it directly without this skill's procedures.
+5. **Not a design question**: a bug, a rename, functional code where objects would not help, or another language. Answer
+   it directly without this skill's procedures.
 
-A review of a whole change set (a diff, a branch, a pull request) belongs to the `lz-review` skill, and an audit of
-a package or repository to the `lz-audit` skill.
+A review of a whole change set (a diff, a branch, a pull request) belongs to the `lz-review` skill, and an audit of a
+package or repository to the `lz-audit` skill.
 
-Inspect the project before advising: its language and module style, framework conventions, and how its existing code
-and tests are written. Advice must fit the codebase, including codebases where classes are not the house style: a
-module of functions or a record of closures can play a role as well as a class can.
+Inspect the project before advising: its language and module style, framework conventions, and how its existing code and
+tests are written. Advice must fit the codebase, including codebases where classes are not the house style: a module of
+functions or a record of closures can play a role as well as a class can.
 
 Advise on a question; change code only on an explicit request to do so, then stop.
 
 This file only routes. Before you answer each request, follow-up questions included, Read each reference file the
 matching section below names for the request, and every further reference that file sends you to for the smell or
-practice at hand: the steps, the exceptions and the sources are there, not here. An answer written from this file
-alone is incomplete.
+practice at hand: the steps, the exceptions and the sources are there, not here. An answer written from this file alone
+is incomplete.
 
 ## Shape: new code, or code that must change
 
@@ -36,25 +35,24 @@ alone is incomplete.
    - a new kind of thing that a conditional switches on, or a flag argument that steers shared code:
      `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`;
    - shared code that callers keep bending with parameters, or duplication you are tempted to remove:
-     `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md` (also for naming a new concept, section
-     Naming);
-   - a collaborator created or reached for inside the class, a chain of calls through other objects, a sender that
-     walks a collaborator through its steps, or deciding which methods should be public:
+     `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md` (also for naming a new concept, section Naming);
+   - a collaborator created or reached for inside the class, a chain of calls through other objects, a sender that walks
+     a collaborator through its steps, or deciding which methods should be public:
      `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`;
    - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
    - a raw number, string or boolean that stands for a domain idea and gets passed around:
      `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession;
    - outside data (CSV rows, arrays, loose JSON) read by position or key in many places:
      `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Raw structures from outside;
-   - a requirement that lands on an already oversized class: build it as a new small object that works with that
-     class, not as one more branch inside it (the article Breaking Up the Behemoth, 2017; the talk All the Little
-     Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`. Start this while a
-     central, often-changed class is still of moderate size: in her experience such classes usually convert to
-     objects well, while attempts on very large ones often fail (Breaking Up the Behemoth, 2017).
-3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until
-   the abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from
-   *99 Bottles of OOP*). Say so when a short procedure with no conditionals is the better answer, and recommend
-   objects once conditionals start to accumulate (Polly Want a Message, 2018).
+   - a requirement that lands on an already oversized class: build it as a new small object that works with that class,
+     not as one more branch inside it (the article Breaking Up the Behemoth, 2017; the talk All the Little Things,
+     2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`. Start this while a central,
+     often-changed class is still of moderate size: in her experience such classes usually convert to objects well,
+     while attempts on very large ones often fail (Breaking Up the Behemoth, 2017).
+3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until the
+   abstraction is plain to see. Stop there if nothing is going to change (Shameless Green, from _99 Bottles of OOP_).
+   Say so when a short procedure with no conditionals is the better answer, and recommend objects once conditionals
+   start to accumulate (Polly Want a Message, 2018).
 4. A change to existing code is two separate jobs (the book; the article Getting It Right By Betting On Wrong, 2014,
    which credits the idea to Kent Beck). Follow the book's Open/Closed path each time a requirement lands:
    1. Can the change go in without editing the code that is there? Then add it, test-first.
@@ -62,58 +60,56 @@ alone is incomplete.
       change is easy; then add the change, test-first. What open code looks like:
       `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, the Done line of Adding a kind.
    3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again; the book
-      calls taking smells on one at a time like this nibbling. A way to open the code tends to appear as the smells
-      go; keep an improvement even when the code is still closed
-      (the book). To choose which smell to start on, sketch in a comment the conditional the change would need;
-      the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (the book).
+      calls taking smells on one at a time like this nibbling. A way to open the code tends to appear as the smells go;
+      keep an improvement even when the code is still closed (the book). To choose which smell to start on, sketch in a
+      comment the conditional the change would need; the smells it would create (Switch Statement, Long Function) point
+      at the cure, then delete the sketch (the book).
 
    The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never
    changed. To decide whether a restructuring can stop, or whether more structure is worth adding when no change is
    waiting, also check `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, step 6.
-5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
-   take a smaller one. Never rewrite the whole class in one go (the book). Stop once the code passes the TRUE
-   check in judging-design step 6, one refactoring short of where you could go (the last one would make the code
-   more general than any current requirement needs, as this plugin reads it), and take that last one once there is
-   evidence it will pay (the Q&A after Go Ahead, Make a Mess at
-   Triangle.rb, 2013); a requested change that needs it is such evidence (this plugin's reading). To change a
-   signature, a parameter or a return type across its senders in such steps, to rename a field that several methods
-   use, or to take a long method or function apart (above all one with no tests), use
-   `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
-Answer with the recommended structure, what it makes easy, what it costs, and which future request would change it
-(as the comments in Sandi Metz's own example code weigh a design), the first small step, the test that drives it,
-and the rules for each restructuring step: run the tests after every edit, and undo an edit that turns them red
-instead of fixing forward.
-When the red shows that a test checks how the code works rather than what it does, undo the edit, rewrite that test
-to check what the code does while the suite is green, then make the edit again (*99 Bottles of OOP*). That rewrite
-keeps the behaviour the test pins, so it does not count as changing the tests in step 4.
-A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
-asked you to change the code.
+5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and take
+   a smaller one. Never rewrite the whole class in one go (the book). Stop once the code passes the TRUE check in
+   judging-design step 6, one refactoring short of where you could go (the last one would make the code more general
+   than any current requirement needs, as this plugin reads it), and take that last one once there is evidence it will
+   pay (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013); a requested change that needs it is such evidence
+   (this plugin's reading). To change a signature, a parameter or a return type across its senders in such steps, to
+   rename a field that several methods use, or to take a long method or function apart (above all one with no tests),
+   use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+
+Answer with the recommended structure, what it makes easy, what it costs, and which future request would change it (as
+the comments in Sandi Metz's own example code weigh a design), the first small step, the test that drives it, and the
+rules for each restructuring step: run the tests after every edit, and undo an edit that turns them red instead of
+fixing forward. When the red shows that a test checks how the code works rather than what it does, undo the edit,
+rewrite that test to check what the code does while the suite is green, then make the edit again (_99 Bottles of OOP_).
+That rewrite keeps the behaviour the test pins, so it does not count as changing the tests in step 4. A test written
+first for the change is red on purpose until the change goes in. Stop there unless the developer asked you to change the
+code.
 
 ## Judge: one piece of existing code
 
 Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. It gives the verdict and names each smell, and its step 4
 names the reference file that holds each smell's cure; it does not hold those cures itself. Open that file for every
-smell you report before you recommend a cure. Read the code's callers too, and look for other places that switch on
-the same kind or create the same collaborator: a cost this code imposes may show only there.
+smell you report before you recommend a cure. Read the code's callers too, and look for other places that switch on the
+same kind or create the same collaborator: a cost this code imposes may show only there.
 
 ## Tests
 
 - Writing code test-first, or choosing the next test: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`.
-- Tests that break whenever the code is restructured: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section
-  Tests while restructuring, and `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md` (next bullet).
+- Tests that break whenever the code is restructured: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests
+  while restructuring, and `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md` (next bullet).
 - What to assert for an object's messages, doubles, and tests that are hard to write:
-  `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Treat a test that is hard to write as news about the
-  design, and say what in the design causes it.
+  `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Treat a test that is hard to write as news about the design,
+  and say what in the design causes it.
 - Keeping a fake or other player of a role honest with one shared test, and writing that test in Vitest, Jest or
   `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
 
-Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns
-it green; for a question about testing an object, say what each test asserts and which collaborators get a double,
-and name its kind: a stub when it only answers, a mock or spy when the test checks a command it received, a fake
-when it is a lighter working version (`${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles);
-for tests that break on restructuring, name each test that checks how rather than what, and say what it should assert
-instead.
+Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns it
+green; for a question about testing an object, say what each test asserts and which collaborators get a double, and name
+its kind: a stub when it only answers, a mock or spy when the test checks a command it received, a fake when it is a
+lighter working version (`${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles); for tests that break on
+restructuring, name each test that checks how rather than what, and say what it should assert instead.
 
 ## Explain
 
@@ -124,16 +120,15 @@ general terms, and credit nothing to Sandi Metz or Katrina Owen.
 ## JavaScript and TypeScript
 
 Where an idea from the sources does not carry over to JavaScript or TypeScript as stated, use the equivalent in
-`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`. Write TypeScript by default, in syntax that Node.js
-can strip (no `enum`, `namespace` or constructor parameter properties), and add a JavaScript note where the
-languages differ.
+`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`. Write TypeScript by default, in syntax that Node.js can
+strip (no `enum`, `namespace` or constructor parameter properties), and add a JavaScript note where the languages
+differ.
 
 ## Sources and attribution
 
-Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
-(credited by title, its practices by name), from her *Practical Object-Oriented Design*, 2nd edition (credited the
-same way; where it and *99 Bottles of OOP* disagree, this plugin follows *99 Bottles of OOP* unless a reference says
-otherwise and why), and from her talks and articles (cited by title, with the year where it is known); ideas
-credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is written in its own
-words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
-own adaptation and is marked so.
+Ideas credited to Sandi Metz come from Metz, Owen and Stankus, _99 Bottles of OOP_, 2nd edition, JavaScript (credited by
+title, its practices by name), from her _Practical Object-Oriented Design_, 2nd edition (credited the same way; where it
+and _99 Bottles of OOP_ disagree, this plugin follows _99 Bottles of OOP_ unless a reference says otherwise and why),
+and from her talks and articles (cited by title, with the year where it is known); ideas credited to Katrina Owen come
+from her talks (cited the same way). Every text in this plugin is written in its own words. This plugin takes no
+TypeScript guidance from its sources: each TypeScript mapping is its own adaptation and is marked so.

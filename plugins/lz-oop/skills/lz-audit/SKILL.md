@@ -5,61 +5,57 @@ description: Object-oriented design audit of a JavaScript or TypeScript package,
 
 # lz-audit: design audit of a package or repository
 
-This file only routes. Read `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and for each smell you report the
-file that judging-design.md's step 4 names, before you write the report; the cures and their steps are there, not
-here. If those reads are no longer in your context when you write the report, Read them again first.
+This file only routes. Read `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and for each smell you report the file
+that judging-design.md's step 4 names, before you write the report; the cures and their steps are there, not here. If
+those reads are no longer in your context when you write the report, Read them again first.
 
 ## 1. Scope and map
 
-Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole
-repository. Read the README, the package manifest, the entry points and the test setup. Note where the framework
-code sits (controllers, components, handlers) and where the domain code sits, the style of the existing tests, and
-whether classes are the house style: where they are not, a cure can use a module of functions or a record of
-closures to play a role.
+Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole repository.
+Read the README, the package manifest, the entry points and the test setup. Note where the framework code sits
+(controllers, components, handlers) and where the domain code sits, the style of the existing tests, and whether classes
+are the house style: where they are not, a cure can use a module of functions or a record of closures to play a role.
 
 ## 2. Find the hot spots: churn against complexity
 
-Code that changes often and is hard to understand costs the most; plot each file on those two axes (the talk Polly
-Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credit Michael Feathers for this view).
+Code that changes often and is hard to understand costs the most; plot each file on those two axes (the talk Polly Want
+a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credit Michael Feathers for this view).
 
 - **Churn**: count commits per file over the last year, for example in a POSIX shell
-  `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count
-  the paths that `git log --format= --name-only` prints in another way. A shallow clone
+  `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count the
+  paths that `git log --format= --name-only` prints in another way. A shallow clone
   (`git rev-parse --is-shallow-repository` prints `true`), a short history, or no Git history at all limits this
   measure: use what exists and say so in the report.
 - **Complexity**: use what the repository already measures (ESLint `complexity`, `max-lines-per-function`,
   `sonarjs/cognitive-complexity`); otherwise approximate with file length, function length and the number of
-  conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
-  Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
-  tests than its score has untested logic; say so in the report (the book).
+  conditionals. Treat the numbers as fallible facts that start a judgement, not end it (_99 Bottles of OOP_). Cyclomatic
+  complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer tests than its
+  score has untested logic; say so in the report (the book).
 - **Size limits**: Read the Size limits entry under Bloaters in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, which
-  gives Sandi Metz's limits for class length, method length, parameter count and controller actions. Apply the
-  team's own limits where it has them, else those, and report a file over a limit as a place to look, not as a
-  defect.
+  gives Sandi Metz's limits for class length, method length, parameter count and controller actions. Apply the team's
+  own limits where it has them, else those, and report a file over a limit as a place to look, not as a defect.
 - **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
-  `rg -l "from ['\"][^'\"]*/<name>(\.[jt]sx?)?['\"]" <scope>` (this and the command below are Bash syntax), which
-  misses re-exports and path aliases. A file that
-  changes often and that many files depend on is the costly corner of *Practical Object-Oriented Design*'s grid of
-  likelihood of change against dependents; reading churn as likelihood of change is this plugin's, and it is one
-  input beside concreteness: a concrete class with many dependents is suspect even when it has been stable. So
-  also find the most-imported modules with the tools above, or list candidates by file name with
+  `rg -l "from ['\"][^'\"]*/<name>(\.[jt]sx?)?['\"]" <scope>` (this and the command below are Bash syntax), which misses
+  re-exports and path aliases. A file that changes often and that many files depend on is the costly corner of
+  _Practical Object-Oriented Design_'s grid of likelihood of change against dependents; reading churn as likelihood of
+  change is this plugin's, and it is one input beside concreteness: a concrete class with many dependents is suspect
+  even when it has been stable. So also find the most-imported modules with the tools above, or list candidates by file
+  name with
   `rg -o --no-filename -r '$1' "from ['\"]\.[^'\"]*?([^/'\"]+?)(\.[jt]sx?)?['\"]" <scope> | sort | uniq -c | sort -rn`
   (relative imports only; files that share a name, such as `index`, share a line). Take the top five that hold a
-  concrete class, count each one's importers with the `rg -l` command above, and add each that a tenth or more of
-  the files in scope import to the hot-spot table as a finding, whatever its churn (the ranking and the numbers are
-  this plugin's). The cures for both are in
-  `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
-- **Concrete names in churning files**: for each file high on churn, list the concrete classes it names (its
-  imports and `new` calls). The code that changes most should be the easiest to replace, and each concrete class it
-  names makes that harder (the article The Half-Life of Code, 2017; counting the names as an audit signal is this
-  plugin's reading).
+  concrete class, count each one's importers with the `rg -l` command above, and add each that a tenth or more of the
+  files in scope import to the hot-spot table as a finding, whatever its churn (the ranking and the numbers are this
+  plugin's). The cures for both are in `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a
+  dependency points.
+- **Concrete names in churning files**: for each file high on churn, list the concrete classes it names (its imports and
+  `new` calls). The code that changes most should be the easiest to replace, and each concrete class it names makes that
+  harder (the article The Half-Life of Code, 2017; counting the names as an audit signal is this plugin's reading).
 - **Read the quadrants**:
-  - often changed and complex: audit these first; a large central class full of conditionals that changes all the
-    time is the worst case (Polly Want a Message, 2018);
-  - complex but unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that
-    hides behind one message costs nothing until it has to change (the talk Go Ahead, Make a Mess, Rocky Mountain
-    Ruby 2012);
+  - often changed and complex: audit these first; a large central class full of conditionals that changes all the time
+    is the worst case (Polly Want a Message, 2018);
+  - complex but unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that hides
+    behind one message costs nothing until it has to change (the talk Go Ahead, Make a Mess, Rocky Mountain Ruby 2012);
   - simple: skip.
 
 ## 3. Judge the hot spots
@@ -68,29 +64,28 @@ For the top hot spots, at most about ten, read the code, its callers and its tes
 `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. Look across files too: the same type switch in several places
 (including a `switch` on one union's `kind` field), the same parameters passed together, and the same collaborator
 created in many classes are findings about the package, not about one file. Use
-`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or
-TypeScript form.
+`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or TypeScript
+form.
 
 ## 4. Report
 
-- Lead with the hot-spot table: file, commits in the period, dependents where counted, the complexity measure
-  used, and the quadrant.
-- Then the findings, ranked by cost: the files and lines, the smell's name, what change it makes expensive, the
-  cure, and the first small step. For a hot spot whose logic no test reaches, that first step is characterisation
-  tests (`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Characterisation tests), before any cure.
-  Group findings that share one cure. Leave formatting, lint and naming nits out unless a name hides a concept.
-  Where the cure changes a signature or type used across the package, point to the green steps in
+- Lead with the hot-spot table: file, commits in the period, dependents where counted, the complexity measure used, and
+  the quadrant.
+- Then the findings, ranked by cost: the files and lines, the smell's name, what change it makes expensive, the cure,
+  and the first small step. For a hot spot whose logic no test reaches, that first step is characterisation tests
+  (`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Characterisation tests), before any cure. Group
+  findings that share one cure. Leave formatting, lint and naming nits out unless a name hides a concept. Where the cure
+  changes a signature or type used across the package, point to the green steps in
   `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 - Say what is healthy and should be left alone, and why.
-- Recommend an order of work. Code is opened up for a specific change only once that change has been requested
-  (*99 Bottles of OOP*). Without a request, use churn and complexity only to rank where general work that loosens
-  coupling pays first, not to guess the next feature; that ranking is this plugin's judgement, and the report says
-  so.
+- Recommend an order of work. Code is opened up for a specific change only once that change has been requested (_99
+  Bottles of OOP_). Without a request, use churn and complexity only to rank where general work that loosens coupling
+  pays first, not to guess the next feature; that ranking is this plugin's judgement, and the report says so.
 - For a class in the often-changed and complex quadrant, recommend that it stop growing: build each new piece of
-  behaviour as small new classes that work with it, even where they look out of place beside it (the article Breaking
-  Up the Behemoth, 2017). The big class sends messages to them, but receives them injected or built by a factory,
-  so it learns roles rather than more class names (the articles What Does OO Afford?, 2018, and The Half-Life of
-  Code, 2017; the coordinating class of Polly Want a Message, 2018); the cures are in
+  behaviour as small new classes that work with it, even where they look out of place beside it (the article Breaking Up
+  the Behemoth, 2017). The big class sends messages to them, but receives them injected or built by a factory, so it
+  learns roles rather than more class names (the articles What Does OO Afford?, 2018, and The Half-Life of Code, 2017;
+  the coordinating class of Polly Want a Message, 2018); the cures are in
   `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - This is a report: change nothing. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.
 
