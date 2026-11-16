@@ -42,6 +42,8 @@ exceptions and the sources are there, not here. An answer written from this file
    - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
    - a raw number, string or boolean that stands for a domain idea and gets passed around:
      `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession;
+   - outside data (CSV rows, arrays, loose JSON) read by position or key in many places:
+     `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Raw structures from outside;
    - a requirement that lands on an already oversized class: build it as a new small object that works with that
      class, not as one more branch inside it (the article Breaking Up the Behemoth, 2017; the talk All the Little
      Things, 2014), then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
@@ -104,8 +106,9 @@ languages differ.
 ## Sources and attribution
 
 Ideas credited to Sandi Metz come from Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript
-(credited by title, its practices by name), from the publisher's sample chapter of her *Practical Object-Oriented
-Design*, 2nd edition, and from her talks and articles (cited by title, with the year where it
+(credited by title, its practices by name), from her *Practical Object-Oriented Design*, 2nd edition (credited the
+same way; where it and *99 Bottles of OOP* disagree, this plugin follows *99 Bottles of OOP*), and from her talks and
+articles (cited by title, with the year where it
 is known); ideas credited to Katrina Owen come from her talks (cited the same way). Every text in this plugin is
 written in its own words. This plugin takes no TypeScript guidance from its sources: each TypeScript mapping is its
 own adaptation and is marked so.

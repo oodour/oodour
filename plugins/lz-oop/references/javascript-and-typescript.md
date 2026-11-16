@@ -226,6 +226,13 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 - The public messages are the stable surface; `#private` fields and unexported functions are free to change. A test
   that needs to reach a private field shows a collaborator waiting to be extracted.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
+- Reading your own state. *Practical Object-Oriented Design* puts every field behind an accessor and has the class
+  itself read through it, so that one method decides what the value means and a later change to that meaning
+  touches one place. In JavaScript the outside half of that reason mostly falls away: a public field can become a
+  getter later and no caller changes. Inside the class it still holds, so where a value's meaning could change or a
+  subclass may redefine it, read it through a getter (`this.total`) and let only the getter touch `this.#total`.
+  *99 Bottles of OOP*'s own classes read their fields directly, so treat this as a choice for values like that, not a
+  rule for every field (this plugin's reading of the two books).
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
@@ -235,7 +242,7 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   parameters and defaults without breaking callers; a short list whose order is obvious and settled can stay
   positional (this plugin's example: `clamp(value, min, max)`), and existing code can move over gradually as it
   is touched. Its named arguments are Ruby's; this plugin's JavaScript form is one destructured options object,
-  `function schedule({ start, end, timezone = 'UTC' }: ScheduleOptions)`.
+  `function bookRoom({ start, end, timezone = 'UTC' }: BookingOptions)`.
 - ESLint `max-params` (default 3) counts an options object as one parameter, so it cannot see a large options
   object. Treat each key as a parameter when judging an argument list; that limit is this plugin's judgement,
   enforced in review.
@@ -243,6 +250,33 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   several calls, make them one value object.
 - Adding, removing or retyping a parameter that many callers use, in green steps, with what `tsc` checks and what
   JavaScript leaves to a temporary guard: [changing-in-steps.md](changing-in-steps.md).
+
+### Raw structures from outside
+
+Data often arrives in a shape the program does not control: CSV rows, arrays of positions from a library, loosely
+typed JSON. *Practical Object-Oriented Design* keeps the knowledge of that shape in one place, a function or method
+that turns each row into an object with named parts, so every other method sends messages to those objects instead
+of indexing into `row[4]`. When the program owns the input, pass real objects in the first place. The example is
+this plugin's:
+
+```ts
+type ExportRow = readonly string[];
+
+interface Payout {
+  readonly account: string;
+  readonly amount: number;
+}
+
+function toPayout(row: ExportRow): Payout {
+  return { account: row[0] ?? '', amount: Number(row[4]) };
+}
+```
+
+- `toPayout` is now the only code that knows the column order. When the bank adds a column, it is the only edit.
+- A tuple type such as `[account: string, amount: string]` documents the positions, but every reader still indexes
+  by position, so it is not this conversion (this plugin's note).
+- The `Payout` record is the boundary case that [smells.md](smells.md) excepts from Data Class: data parsed at the
+  edge may be a plain record, as long as nothing past the converter reads the raw row.
 
 ## Inheritance, mixins and built-in types
 
