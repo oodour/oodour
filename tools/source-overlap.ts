@@ -12,7 +12,7 @@
 // Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage or a file
 // that cannot be read (the other files are still checked and their runs printed).
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 // Not exported: an imported store path would let a script reach the store without naming it.
@@ -309,8 +309,13 @@ function draftFiles(path: string): readonly string[] {
   return isFolder(path) ? listTextFiles(path) : [path];
 }
 
+// A link to the store must count as the store: statSync and readdirSync follow it.
+function realPath(path: string): string {
+  return existsSync(path) ? realpathSync(path) : resolve(path);
+}
+
 function isWithin(parent: string, folder: string): boolean {
-  const path = relative(resolve(parent), resolve(folder));
+  const path = relative(realPath(parent), realPath(folder));
 
   return path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
 }

@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { test } from 'node:test';
@@ -339,6 +348,22 @@ test('a draft folder inside the store or holding it is refused, so no file name 
     '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
     '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
   ]);
+});
+
+test('a draft folder that is a link to the store or to a folder holding it is refused too', (t) => {
+  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const store = join(parent, 'store');
+  cpSync(syntheticStore(), store, { recursive: true });
+  const links = mkdtempSync(join(tmpdir(), 'oracle-links-'));
+  symlinkSync(store, join(links, 'to-store'), 'junction');
+  symlinkSync(parent, join(links, 'to-parent'), 'junction');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main([join(links, 'to-store')], store), 2);
+  assert.equal(main([join(links, 'to-parent')], store), 2);
+  assert.ok(printed.every((line) => line.startsWith('[ERROR] a draft folder names the store')), printed.join('\n'));
 });
 
 test('a draft folder with no text files in it is an error, exit 2, not reported clean', (t) => {
