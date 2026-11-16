@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { test } from 'node:test';
@@ -323,6 +323,33 @@ test('a folder named as a draft checks every text file below it', (t) => {
 
   assert.equal(main(['--min-words', '6', drafts], syntheticStore()), 1);
   assert.deepEqual(printed, [`${join(drafts, 'case', 'prompt.md')}: words 1-9 (9 words, entry book)`, '[ERROR] 1 run(s)']);
+});
+
+test('a draft folder inside the store or holding it is refused, so no file name inside an entry is printed', (t) => {
+  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const store = join(parent, 'store');
+  cpSync(syntheticStore(), store, { recursive: true });
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main([join(store, 'book')], store), 2);
+  assert.equal(main([parent], store), 2);
+  assert.deepEqual(printed, [
+    '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
+    '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
+  ]);
+});
+
+test('a draft folder with no text files in it is an error, exit 2, not reported clean', (t) => {
+  const drafts = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  writeFileSync(join(drafts, 'case.yaml'), 'runs: 3');
+  const printed: string[] = [];
+  t.mock.method(console, 'log', (line: string) => printed.push(line));
+  t.mock.method(console, 'error', (line: string) => printed.push(line));
+
+  assert.equal(main([drafts], syntheticStore()), 2);
+  assert.deepEqual(printed, [`[ERROR] ${drafts}: a draft folder with no text files to check`]);
 });
 
 test('a corpus folder that holds the store is checked, not refused as inside it', (t) => {

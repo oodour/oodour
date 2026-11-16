@@ -301,8 +301,12 @@ function readDraft(file: string): string | undefined {
   }
 }
 
+function isFolder(path: string): boolean {
+  return statSync(path, { throwIfNoEntry: false })?.isDirectory() === true;
+}
+
 function draftFiles(path: string): readonly string[] {
-  return statSync(path, { throwIfNoEntry: false })?.isDirectory() === true ? listTextFiles(path) : [path];
+  return isFolder(path) ? listTextFiles(path) : [path];
 }
 
 function isWithin(parent: string, folder: string): boolean {
@@ -336,6 +340,21 @@ export function main(args: readonly string[], dir: string = storeDir): number {
 
   if (options.corpus !== undefined && !hasTextFiles(options.corpus)) {
     console.error(`[ERROR] ${options.corpus}: not a folder with text files to compare against`);
+
+    return 2;
+  }
+
+  // Expanding such a folder would print the names of the store's files.
+  if (options.files.some((path) => isFolder(path) && (isWithin(dir, path) || isWithin(path, dir)))) {
+    console.error('[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it');
+
+    return 2;
+  }
+
+  const emptyFolder = options.files.find((path) => isFolder(path) && !hasTextFiles(path));
+
+  if (emptyFolder !== undefined) {
+    console.error(`[ERROR] ${emptyFolder}: a draft folder with no text files to check`);
 
     return 2;
   }
