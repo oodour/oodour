@@ -58,9 +58,8 @@ first, because following the rules makes it appear.
 4. Keep each edit to about a line; the book treats that size as a guide, not a hard limit. Two lines need not match
    after one edit: moving them a little closer with methods that already exist counts (the book).
 5. Undo any edit that turns the tests red, at once, instead of fixing forward, and try a better move. When the move
-   that failed was a big one, make the next one smaller; the book calls working in such small moves nibbling. Let the
-   size of each move follow how well you know the code: a bigger step that fails tells you that you knew less than
-   you thought (the book).
+   that failed was a big one, make the next one smaller. Let the size of each move follow how well you know the code:
+   a bigger step that fails tells you that you knew less than you thought (the book).
 6. Repeat from step 1. A copy is removed only once it matches another character for character.
 7. A branch that has come to match the default branch goes in one deletion, and the conditional
    stays for the branches that still differ. When the last branches match, collapse the conditional

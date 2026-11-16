@@ -136,19 +136,19 @@ not to objects those return (the book).
    the default in an options object. Drop the default as *99 Bottles of OOP* does when the class is reused in a
    second context, or when the default names something from the class's original setting.
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for
-   the class that plays it today (the book).
+   the class that plays it today (*99 Bottles of OOP*).
 4. Where you can, pass in a ready instance rather than a class for the receiver to instantiate
-   (the book).
+   (*99 Bottles of OOP*).
 5. Move object creation outward, toward the code that starts the program, and keep concrete class
-   names out of the methods that do the work (the book). Of two possible dependencies, depend on the
+   names out of the methods that do the work (*99 Bottles of OOP*). Of two possible dependencies, depend on the
    one less likely to change (below, Which way a dependency points); *99 Bottles of OOP* applies this
    when choosing what a factory's candidates should depend on.
 6. Put domain behaviour on instances, not on static methods or bare class-level functions. Static
    code bets that the concept will never hold varying data, and it is hard to refactor when that bet
-   loses; creating an instance costs almost nothing, so the book creates one every time. A static
-   method that only builds an instance and delegates to it is fine (the book).
+   loses; creating an instance costs almost nothing, so *99 Bottles of OOP* creates one every time. A
+   static method that only builds an instance and delegates to it is fine (the same book).
 7. Isolate what varies behind a role and inject it, so the code that stays the same does not change
-   when a new variant arrives (the book).
+   when a new variant arrives (*99 Bottles of OOP*).
 
 TypeScript (this plugin's inference): type the injected role as an interface or a type with only the
 messages the receiver sends, so any object with those methods can play it, a test fake included.

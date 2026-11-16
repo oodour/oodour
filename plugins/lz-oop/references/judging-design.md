@@ -191,12 +191,12 @@ questions at each green step until nothing is left to extract).
   (*99 Bottles of OOP*).
 - **A shortcut that relies on its caller**: an override or method that works only because of how one
   caller happens to use it ties the class to that caller and misleads readers about what varies.
-  Fewer lines are not the goal; implement the domain's real concepts (the book).
+  Fewer lines are not the goal; implement the domain's real concepts (*99 Bottles of OOP*).
 - **Leftovers of an origin**: a class that grew beyond the place it was born in still carries that
   place's name, defaults and hard-coded values. Rename it for what it now does, and inject the
   leftover values as named collaborators or arguments. Each assumption a class makes about where it runs
   narrows where else it can run, and writing its tests is usually where such an assumption first gets in
-  the way (the book). The book also drops the injected collaborator default that ties the class to its
+  the way (*99 Bottles of OOP*). That book also drops the injected collaborator default that ties the class to its
   origin, and keeps value defaults only in a form that no longer depends on that origin; where this
   plugin keeps a collaborator default elsewhere, it follows her 2009 article on dependency injection
   instead (see Injecting collaborators in [dependencies-and-messages.md](dependencies-and-messages.md)).
