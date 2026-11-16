@@ -19,6 +19,7 @@ change in a change set, and by `lz-audit` for each hot spot in a package.
    in a later refactoring). Code that answers these at a glance mirrors its problem.
 2. Name each smell you see in the vocabulary of named smells and refactorings, and pair it with its usual cure
    (the book; the talk Get a Whiff of This, 2016). Rank them; the easiest well-understood one goes first (the book).
+   For a smell's name, how to spot it, and the leaf that holds its cure, Read [smells.md](smells.md).
 3. Say plainly when the design is fine. A conditional that only chooses which object to create, an
    inheritance tree that meets all four conditions of the talk All the Little Things (2014) together (shallow,
    narrow, its subclasses at the edges of the object graph, and each subclass using all it inherits), and duplicated
