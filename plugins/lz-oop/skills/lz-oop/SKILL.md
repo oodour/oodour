@@ -55,12 +55,14 @@ exceptions and the sources are there, not here. An answer written from this file
       change is easy; then add the change, test-first. What open code looks like:
       `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, the Done line of Adding a kind.
    3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again; the book
-      calls taking smells on one at a time like this nibbling. A way to
-      open the code tends to appear as the smells go; keep an improvement even when the code is still closed
+      calls taking smells on one at a time like this nibbling. A way to open the code tends to appear as the smells
+      go; keep an improvement even when the code is still closed
       (the book). To choose which smell to start on, sketch in a comment the conditional the change would need;
       the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch (the book).
 
-   The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never changed.
+   The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never
+   changed. To decide whether a restructuring can stop, or whether more structure is worth adding when no change is
+   waiting, also check `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, step 6.
 5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and
    take a smaller one. Never rewrite the whole class in one go (the book). To change a signature, a parameter or a
    return type across its senders in such steps, or to take a long method or function apart (above all one with no
