@@ -92,10 +92,12 @@ const planFor = {
 `satisfies Record<PlanKind, ...>` makes the compiler demand an entry for every kind, so adding a kind without its
 variant fails the build.
 
-The `switch` the plugin starts from gets the same check from a `default` that assigns the kind to a `never` variable
-(or passes it to a function whose parameter is `never`). While every kind has a `case`, nothing reaches the
-`default`; a kind added to the union without a `case` makes that assignment a compile error (TypeScript Handbook,
-Narrowing).
+The `switch` the plugin starts from gets the same check from a `default` that states the kind is `never`:
+`kind satisfies never` (TypeScript 4.9 and later), or the older forms, assigning it to a `never` variable or passing
+it to a function whose parameter is `never`. While every kind has a `case`, nothing reaches the `default`; a kind
+added to the union without a `case` makes that line a compile error that names the missing kind (TypeScript
+Handbook, Narrowing). Keep the `throw`: a value from outside the program, such as parsed JSON, can still arrive
+with a kind the type does not list.
 
 ```ts
 function planFor(kind: PlanKind, seats: number): Plan {
@@ -104,14 +106,17 @@ function planFor(kind: PlanKind, seats: number): Plan {
       return new BasicPlan(seats);
     case 'pro':
       return new ProPlan(seats);
-    default: {
-      const unhandled: never = kind;
-
-      throw new Error(`No plan for ${String(unhandled)}`);
-    }
+    default:
+      kind satisfies never;
+      throw new Error(`No plan for ${String(kind)}`);
   }
 }
 ```
+
+To have every `switch` over a union checked without writing a `default` each time, turn on the typescript-eslint
+rule `@typescript-eslint/switch-exhaustiveness-check`. It needs type information and is in none of the recommended
+or strict configs, so enable it by name. Leave its `considerDefaultExhaustiveForUnions` option off (the default), so
+that a `default` does not hide a kind added later.
 
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
