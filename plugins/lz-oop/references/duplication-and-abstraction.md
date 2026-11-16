@@ -9,7 +9,8 @@ identical, step by step; Separating what varies; Once an abstraction exists, use
 ## Duplication you are tempted to remove
 
 Every extraction hands the reader one more name to learn and one more place to look. Weigh that
-against the edits it will save; an extraction with no edits ahead of it is pure cost (*99 Bottles of OOP*).
+against the edits it will save; an extraction with no edits ahead of it that does not make the code easier to read
+is pure cost, while a name for a concept the code hides pays for itself in reading (*99 Bottles of OOP*).
 
 1. Ask what would trigger the merge. A new requirement that the copies block is a reason (the book);
    this plugin reads that as a change request that would touch every copy. Enough clear examples to

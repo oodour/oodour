@@ -300,17 +300,21 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   methods; applying it to private fields is this plugin's). *99 Bottles of OOP*'s own code
   keeps plain fields and hides at module level, exporting only its entry points; `#private` is this plugin's form.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
-- Reading your own state. Where a value's meaning could change or a subclass may redefine it, read it through a
-  getter that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class
-  reads it, and public when a subclass may redefine it, since it is then a hook (`protected` only where no test
-  reads it; Hooks and required steps in TypeScript, below). *Practical Object-Oriented Design* puts every field
-  behind an accessor and has the class itself read through it, so that one method decides what the value means and
-  a later change to that meaning touches one place. In JavaScript the outside half of that reason mostly falls
-  away: a public field can become a getter later and no caller changes; inside the class it still holds, which is
-  why the class reads such a value through its getter, kept off the public interface unless a subclass may
-  redefine it. *99 Bottles of OOP*'s JavaScript classes read their fields directly (its Ruby code reads through
-  reader methods, which a public field read in JavaScript already resembles), so treat this as a choice for values
-  like that, not a rule for every field (this plugin's reading of the two books).
+- Reading your own state. The sources that state a guideline default to sending a message. *Practical
+  Object-Oriented Design* puts every field behind an accessor that the class itself reads through, so one method
+  decides what the value means and a later change to that meaning touches one place. Sandi Metz reads her own state
+  through a message whenever that costs no more than reading the raw value, to keep room for change (Ruby Rogues 87,
+  2013). Katrina Owen prefers the message with no cost condition: she wants the seam, and no split between stored
+  values and messages (Overkill, 2014). *99 Bottles of OOP* states no guideline, and its JavaScript classes read
+  their fields directly throughout. Metz's cost condition matters here: in Ruby a reader takes one line, while in
+  JavaScript a getter over a `#field` needs a second name for the field. This plugin's reading of the four: where
+  the class already has a public getter for a value, read through it inside the class too; where a value's meaning
+  could change or a subclass may redefine it, give it a getter that alone touches the `#field`, private
+  (`get #total()`, over a field named otherwise) when only the class reads it, and public when a subclass may
+  redefine it, since it is then a hook (`protected` only where no test reads it; Hooks and required steps in
+  TypeScript, below); otherwise a direct `#field` read, as in *99 Bottles of OOP*'s code, is fine. The outside half
+  of *Practical Object-Oriented Design*'s reason mostly falls away in JavaScript: a public field can become a getter
+  later and no caller changes.
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects

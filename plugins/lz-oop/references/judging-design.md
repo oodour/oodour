@@ -16,7 +16,14 @@ Obsession; Consistency; Does it do one job?; More smells.
    The book makes one exception from a code's first version: loosen coupling early, because nobody can
    predict where change will land, and it costs least before a second user reuses the code. Other
    improvements that no requirement asks for yet spend time now on a hoped-for saving; judge each on
-   its own odds.
+   its own odds. Sandi Metz keeps two cheap habits apart from these bets: while code is in her hands anyway, as she
+   writes it or before she checks it in, she injects its dependency and splits a long method into parts named for
+   what they do. She counts both as housekeeping, not design, does them almost always, and leaves them optional (Go
+   Ahead, Make a Mess, 2012, Triangle.rb 2013 and hafentalks 2017; Ruby Rogues 87, 2013). Neither is a reason to
+   reopen a stable mess that no change touches: that edit spends time the backlog needed (hafentalks 2017; Katrina
+   Owen's talk Succession, 2016, likewise advises refactoring for a real change in hand, not an imagined one). *99
+   Bottles of OOP* leaves a short working method unsplit while no change asks for it, so the splitting habit is for
+   long methods (this plugin's reading of the two).
    Weigh also what it costs a reader to follow the code today: every reader pays that, so it always counts.
    An extraction that saves future edits but makes the code harder to follow pays only when the
    saving is larger (the book).
