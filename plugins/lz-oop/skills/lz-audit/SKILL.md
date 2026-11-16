@@ -30,8 +30,10 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
   conditionals. Treat the numbers as fallible facts that start a judgement, not end it (*99 Bottles of OOP*).
   Cyclomatic complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer
   tests than its score has untested logic; say so in the report (the book).
-- **Size limits**: Read Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, apply the team's limits or
-  those, and report a file over a limit as a place to look, not as a defect.
+- **Size limits**: Read the Size limits entry under Bloaters in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, which
+  gives Sandi Metz's limits for class length, method length, parameter count and controller actions. Apply the
+  team's own limits where it has them, else those, and report a file over a limit as a place to look, not as a
+  defect.
 - **Dependents**: for the files high on churn, count how many files import each one. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph); otherwise count the files whose imports name it, for example
   `rg -l "from ['\"][^'\"]*/<name>(\.[jt]s)?['\"]" <scope>`, which misses re-exports and path aliases. A file that

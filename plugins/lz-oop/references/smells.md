@@ -33,13 +33,13 @@ both names are given. How each smell shows in JavaScript or TypeScript is this p
   [javascript-and-typescript.md](javascript-and-typescript.md); flag arguments:
   [variants-and-conditionals.md](variants-and-conditionals.md); changing the signature in green steps:
   [changing-in-steps.md](changing-in-steps.md).
-- **Size limits**: Sandi Metz's rules, made up for one team with very large classes (the talks Rules, 2013, and An
-  Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a method of at most 5, at most 4
-  parameters (packing more into one options object does not get round it), and a controller action that knows only
-  one business object and one presenter and hands one object to its view. Any rule may be broken when you win over
-  your pair. She calls the numbers arbitrary: reaching one is the cue to stop and ask whether to split, not a
-  failure, and experienced developers should set their own. Use the team's limits where it has them; report a file
-  over a limit as a place to look, not as a defect (this plugin's reading).
+- **Size limits** (not a smell; a cue to look for one): Sandi Metz's rules, made up for one team with very large
+  classes (the talks Rules, 2013, and An Exploration on the Purpose of Rules, 2014): a class of at most 100 lines, a
+  method of at most 5, at most 4 parameters (packing more into one options object does not get round it), and a
+  controller action that knows only one business object and one presenter and hands one object to its view. Any
+  rule may be broken when you win over your pair. She calls the numbers arbitrary: reaching one is the cue to stop
+  and ask whether to split, not a failure, and experienced developers should set their own. Use the team's limits
+  where it has them; report a file over a limit as a place to look, not as a defect (this plugin's reading).
 
 ## Object-oriented tools misused
 

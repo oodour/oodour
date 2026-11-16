@@ -135,8 +135,9 @@ that tell a reader the wrong story (*99 Bottles of OOP*).
    the copy-then-delete steps above, then the rest the same way as a group.
 2. Delete outer tests that now check the same thing as another test, such as one written only to combine cases that
    have their own tests (the book).
-3. Rewrite the outer class's remaining tests so they no longer depend on its collaborator's real output; a fake
-   playing the collaborator's role does this (the book; [testing-messages.md](testing-messages.md), Doubles).
+3. Rewrite the outer class's remaining tests so they no longer depend on its collaborator's real output; a double
+   playing the collaborator's role does this (the book, which calls it a fake; which kind to name in an answer:
+   [testing-messages.md](testing-messages.md), Doubles).
 4. Rename tests whose names were chosen before the domain was understood, so the names state the rule the tests now
    show; rename a test group in the same small green steps when its class is renamed. An out-of-date name can wait
    until other tests make the right one clear (the book).
@@ -152,8 +153,9 @@ what its test shows.
 - By default each class gets unit tests for its public messages. A small class that only one owner uses and no one
   outside can see may be tested through its owner; revisit that if it grows or gets reused (*99 Bottles of OOP*).
 - A factory's test checks only which object it returns for each input (the book).
-- Replace a collaborator with a fake, a small working stand-in written for tests, and keep the fake honest with a
-  role test that also runs against every real player of the role (the book): [testing-messages.md](testing-messages.md).
+- Replace a collaborator with a double, a small stand-in written for tests (the book calls it a fake), and keep the
+  double honest with a role test that also runs against every real player of the role (the book):
+  [testing-messages.md](testing-messages.md), Doubles, which also says which kind of double to name.
 
 ## In JavaScript and TypeScript (this plugin's adaptation)
 

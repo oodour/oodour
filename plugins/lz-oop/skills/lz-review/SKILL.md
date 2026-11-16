@@ -66,9 +66,10 @@ TypeScript form.
   finding.
 - Indirection the change adds without need is a finding: a layer, wrapper or general method that no current caller
   needs makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one
-  (the book). Name what the simpler form would be. Before you report a one-line method that only forwards, or a class
-  that now only relays calls, Read Lazy Class and Middle Man in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`: each
-  says when such code is not a finding.
+  (the book). Name what the simpler form would be. When the change adds a one-line method that only forwards, or
+  leaves a class that only relays calls, Read Lazy Class and Middle Man in
+  `${CLAUDE_PLUGIN_ROOT}/references/smells.md` before you judge it: each says when such code is not a finding, and
+  the report gives that reason either way.
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the

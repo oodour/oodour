@@ -95,7 +95,8 @@ smell you report before you recommend a cure.
   `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
 
 Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns
-it green; for a question about testing an object, say what each test asserts and which collaborators get a stand-in;
+it green; for a question about testing an object, say what each test asserts and which collaborators get a double,
+naming its kind as `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles, says (stub, mock or spy, fake);
 for tests that break on restructuring, name each test that checks how rather than what, and say what it should assert
 instead.
 

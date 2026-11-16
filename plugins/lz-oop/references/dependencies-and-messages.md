@@ -151,7 +151,7 @@ not to objects those return (the book).
    when a new variant arrives (*99 Bottles of OOP*).
 
 TypeScript (this plugin's inference): type the injected role as an interface or a type with only the
-messages the receiver sends, so any object with those methods can play it, a test fake included.
+messages the receiver sends, so any object with those methods can play it, a test double included.
 The forms in code: Injecting collaborators in [javascript-and-typescript.md](javascript-and-typescript.md).
 
 ## Which way a dependency points

@@ -159,7 +159,7 @@ changes later.
 
 Use when a conditional picks between two rules, and an object per rule would still leave something
 that has to choose between them. Run the tests after every step, and undo a step that turns them red (this plugin's
-working rule for every restructuring recipe here; a test written first for new behaviour is red until its step).
+working rule for every restructuring recipe here; the test-first steps of Adding a kind start from a red test).
 
 1. Ask whether the rules are variants of one idea. If they are, give each its own object that plays
    one role and inject the one to use (see Adding a kind above). If they are two separate jobs that
