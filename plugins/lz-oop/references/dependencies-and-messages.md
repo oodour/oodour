@@ -49,6 +49,10 @@ names are this plugin's):
    can hold a list of collaborators and send each the same message; a new collaborator joins with no edit to the
    sender.
 
+When you find a sender at the first stage, name what it knows about the receiver: the messages it sends, their
+arguments and order, the order the steps must run in, and the shape of any data it reads back. For each, say that a
+change to it in the receiver forces a change in the sender, which is what makes it a dependency (this plugin's note).
+
 When you move a sender up these stages, say how each side is then tested: the steps are tested on the receiver,
 through its public message; the sender's own unit test gets a stand-in receiver and checks either that the one
 outgoing command was sent, or what the sender returns or throws when the stand-in accepts or refuses. The message

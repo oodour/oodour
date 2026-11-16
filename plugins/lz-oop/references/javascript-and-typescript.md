@@ -347,10 +347,6 @@ function toReading(row: ReadingRow): MeterReading {
       yield* this.#items;
     }
 
-    get size(): number {
-      return this.#items.length;
-    }
-
     totalWeight(): number {
       return this.#items.reduce((sum, shipment) => sum + shipment.weightKg, 0);
     }
@@ -358,6 +354,10 @@ function toReading(row: ReadingRow): MeterReading {
   ```
 
   Callers get `for...of` and spread; for anything else they spread into an array (`[...shipments].filter(...)`).
+  When someone asks the wrapper for general list operations (sorting, the first item, an emptiness check), add no
+  forwarder for them: point the callers to iteration or spread, and say why, since each such method invites the
+  next and the list never ends. Forward a message only when it names an idea of the domain, as `totalWeight` does
+  (this plugin's rule).
   Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit. Write the forwarders
   by hand: a `Proxy` that forwards every message cannot be typed without a cast and cannot reach `#private` members
   (this plugin's note). Moving off a list subclass is a change many callers feel, so make it in green steps: add the
