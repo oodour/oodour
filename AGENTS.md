@@ -50,6 +50,7 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Axel Rauschmayer, *Exploring JavaScript*, ES2025 edition (2025) | `.oracle/rauschmayer-javascript/` | Sealed |
 | Martin Fowler's JavaScript refactoring articles (2015, 2016) | `.oracle/fowler-js-articles/` | Sealed |
 | MDN JavaScript class pages and TypeScript Handbook pages (classes, mixins, narrowing, `satisfies`) | `.oracle/js-ts-language-reference/` | Sealed |
+| The book's Ruby companion code, `sandimetz/99bottles_ruby`, as a full git clone | `.oracle/99bottles-ruby/` | Sealed |
 
 ### What you need, and the permitted route
 

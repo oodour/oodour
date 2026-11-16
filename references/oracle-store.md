@@ -21,6 +21,7 @@
 | `rauschmayer-javascript/` | Axel Rauschmayer, *Exploring JavaScript*, ES2025 edition, one file per chapter or part divider | `.oracle/rauschmayer-javascript/index.md` |
 | `fowler-js-articles/` | Martin Fowler's two JavaScript refactoring articles on martinfowler.com, one file per article | `.oracle/fowler-js-articles/index.md` |
 | `js-ts-language-reference/` | MDN's JavaScript class reference pages (`mdn/`) and TypeScript Handbook pages (`typescript/`) | `.oracle/js-ts-language-reference/index.md` |
+| `99bottles-ruby/` | A full git clone of `sandimetz/99bottles_ruby`, the book's Ruby companion code, under `repo/`, and each of its 866 tags exported as plain files under `stages/<tag>/` | `.oracle/99bottles-ruby/index.md` |
 
 `.oracle/README.md` lists one line per entry: the title and its index path. It holds nothing else
 (no descriptions, no chapter lists), because every agent may read it.
@@ -236,3 +237,10 @@ preview edition so if the oracle can curate a full edition, that's better."
   and Mixins, and only the `satisfies` section of the 4.9 release notes.
 - **Overlap**: the plugin's 6-word check then found five generic runs (a mixin description, a step phrase, an engine
   error message and an index loop in two evals); all were reworded.
+
+### 2026-11-16: the Ruby companion code
+
+On Lars's "1: OK" to importing `sandimetz/99bottles_ruby` the way `99bottles-js` was imported (PHP, Python and the
+`_milk` repositories left out), the curator cloned it (HEAD eed2603cf9, 2024-04-10; 294 commits on `main`; no
+licence file) and, in a heavy-lock slot, exported its 866 tags into `stages/<tag>/`: 4,330 files and 13,611,643
+bytes, matching `git ls-tree -r -l` per tag with no count mismatch.
