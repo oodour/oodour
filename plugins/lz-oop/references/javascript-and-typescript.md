@@ -502,8 +502,10 @@ it (this plugin's advice).
    `jest.setSystemTime()` in Jest, `mock.timers.enable({ apis: ['Date'], now: <a fixed time> })` in `node:test`;
    for randomness, a seed the code already accepts, else give `Math.random` a fixed result for the test
    (`vi.spyOn(Math, 'random').mockReturnValue(0.5)`, the same with `jest.spyOn`, or
-   `mock.method(Math, 'random', () => 0.5)` in `node:test`: a spy with no return value still calls the real one);
-   for any other varying part, loosen that part of the expected value to a pattern, as she does.
+   `mock.method(Math, 'random', () => 0.5)` in `node:test`: a spy with no return value still calls the real one),
+   and restore both after each test (`vi.useRealTimers()` and `vi.restoreAllMocks()`, the same in Jest, or `t.mock`
+   in `node:test`, which restores itself); for any other varying part, loosen that part of the expected value to a
+   pattern, as she does.
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value
    from each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a

@@ -181,7 +181,7 @@ override each member that is wrong for it, each override pinned by a test, as Fr
 when one kind is the default (*99 Bottles of OOP*). An override may differ in what it does, not only in a value:
 the book's own special kinds replace whole methods. Make a private step the subclass must override a hook first:
 public, or `protected` where no test sends it (this plugin's step; the book's overridden steps are already public
-methods). When fewer hold as written, a tie included, the kinds are peers, and the steps below apply (the count is
+methods). When half or fewer hold as written, the kinds are peers, and the steps below apply (the count is
 this plugin's reading).
 
 For peers, do not put the new kind straight under the working class. That class was written for one kind, so the
