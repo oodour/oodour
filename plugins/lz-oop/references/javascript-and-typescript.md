@@ -118,6 +118,19 @@ rule `@typescript-eslint/switch-exhaustiveness-check`. It needs type information
 or strict configs, so enable it by name. Leave its `considerDefaultExhaustiveForUnions` option off (the default), so
 that a `default` does not hide a kind added later.
 
+When the kind arrives as the tag of a discriminated union (an API message, parsed JSON, a store action), call the
+factory where the data arrives and pass the object on: later code sends messages to the `Plan` and never reads
+`kind` again. A further `switch` over the union that does each kind's work is the smell described in Choosing
+versus doing in [variants-and-conditionals.md](variants-and-conditionals.md), exhaustive or not.
+
+```ts
+type PlanRequest = { kind: 'basic'; seats: number } | { kind: 'pro'; seats: number };
+
+function onPlanRequest(request: PlanRequest): Plan {
+  return planFor(request.kind, request.seats);
+}
+```
+
 - Self-registration (each variant module calls `register()` on import) works only for modules something imports: a
   variant no one imports never registers, a type-only import registers nothing, and a bundler may drop the module
   when the package declares `"sideEffects": false`. Keep it for plugins added by other packages.

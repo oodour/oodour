@@ -44,7 +44,7 @@ Want a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credi
 For the top hot spots, at most about ten, read the code, its callers and its tests, and judge each with
 `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. This file only routes: Read judging-design.md, and for each
 smell you report the file its step 4 names, before you write the report; the cures and their steps are there, not
-here. Look across files too: the same type switch in several places,
+here. Look across files too: the same type switch in several places (including a `switch` on one union's `kind` field),
 the same parameters passed together, and the same collaborator created in many classes are findings about the
 package, not about one file. Use `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's
 idea needs its JavaScript or TypeScript form.

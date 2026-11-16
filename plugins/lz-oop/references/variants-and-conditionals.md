@@ -16,6 +16,23 @@ apart from the behaviour, is the object-oriented form.
   mean an object per kind is missing. Every new kind adds a branch here and in each place that
   switches on the same value.
 
+**Discriminated unions in TypeScript.** A union of object types told apart by a literal field such as
+`kind` is a fine shape for data that crosses a boundary: API messages, parsed JSON, store actions. That
+reading, and everything here about the compiler, is this plugin's; the sources say nothing on unions or
+exhaustiveness checks.
+
+- **Turn the tag into an object where the data arrives.** A factory reads the `kind` field there, once,
+  and its `switch` only chooses an object: the choosing conditional above, in its one place. The
+  article The Shape at the Bottom of All Things (2014) treats a tag as a weak stand-in to replace with
+  an object as early as possible; see Factory forms for the `switch` the compiler checks.
+- **A `switch` over the union that does each kind's work is the doing kind,** a smell even when it is
+  the only one (the book; the article Ruby Case Statements and kind_of?, 2009). Leave it while nothing
+  changes, as the book leaves Shameless Green; when a change touches it (a new kind, a new rule, a
+  second `switch` over the same union), give each kind its own object.
+- **Exhaustiveness does not change that.** A `satisfies never` check, or the
+  `@typescript-eslint/switch-exhaustiveness-check` rule, lists every `switch` a new kind must edit. It
+  removes none of the edits.
+
 ## What a conditional's form tells the reader
 
 Use when writing or reviewing a conditional, and before deciding whether it should become objects.
@@ -72,6 +89,8 @@ every player to answer, it stops caring which class it holds (Less, 2011; Polly 
   the talk SOLID Object-Oriented Design, 2009, which treats a kind check as a Liskov smell; the article
   Ruby Case Statements and kind_of?, 2009, which reads a switch on the class as procedural code). The
   JavaScript and TypeScript equivalents are this plugin's mapping: `instanceof`, `typeof` on a domain value, an `in` check, and a switch on a `kind` field.
+  A factory's one `switch` on a `kind` field that only chooses an object is not this sign (this
+  plugin's reading; see Choosing versus doing).
 - A type symbol or status string that picks the branches (Go Ahead, Make a Mess, 2012).
 - A check for null or `undefined` before each use (Nothing is Something, 2015).
 - Several names that share a prefix or suffix (All the Little Things, 2014; The Shape at the Bottom
@@ -142,9 +161,10 @@ searched for and fail quietly on a typo (the book).
   code has to stay in step with the list (see Choosing a variant: the factory map in
   [javascript-and-typescript.md](javascript-and-typescript.md)). Either way, prefer an explicit list
   over a name-built lookup. These defaults are the plugin's, not the book's.
-- **A `switch` the compiler checks.** In TypeScript, a `default` that assigns the kind to a `never`
-  variable fails the build when a kind has no `case`: the same check the map gets from
-  `satisfies Record<Kind, ...>`. The example is in Choosing a variant: the factory map, in
+- **A `switch` the compiler checks.** In TypeScript, a `default` with `kind satisfies never` fails
+  the build when a kind has no `case`: the same check the map gets from `satisfies Record<Kind, ...>`.
+  For a discriminated union, the map can be keyed on its tag, `Record<Message['kind'], ...>`. The
+  example is in Choosing a variant: the factory map, in
   [javascript-and-typescript.md](javascript-and-typescript.md). This form is the plugin's.
 - **Name the message, not the receiver.** Keep the receiver's type out of a message's name: the
   sender should not need to know which kind it holds, and a name that repeats the type breaks when

@@ -29,7 +29,8 @@ For each changed area, ask:
   fields? Not the same as the question above, which is about the steps of the change, not what the code now does:
   `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job?
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next
-  kind costs the same edits again: `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
+  kind costs the same edits again, even when an exhaustiveness check lists them:
+  `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, Choosing versus doing.
 - **A new flag or parameter on shared code?** Shared code gaining a boolean or a mode for one caller is the usual
   path to a wrong abstraction: `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md`.
 - **Duplication removed or added?** Judge it by the concept, not by matching text, and by whether a change request
