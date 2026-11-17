@@ -1,6 +1,7 @@
 ---
 name: lz-review
 description: Object-oriented design review of a change in JavaScript or TypeScript, based on Sandi Metz's principles and practices. Use when a developer asks for a design review of a diff, uncommitted or staged changes, a commit, a branch or a pull request, or asks whether a change made the code harder to change next time (new branches on a type switch, flag arguments, hard-coded collaborators, message chains, inheritance, tests that mock too much). Reports findings ranked by what they will cost later; changes nothing unless asked. Not for the design of one file, class or module as it stands (a change, not a file), not for auditing a whole package, and not for code in other languages.
+allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
 ---
 
 # lz-review: design review of a change
