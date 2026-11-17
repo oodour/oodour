@@ -24,6 +24,11 @@ functions or a record of closures can play a role as well as a class can.
 
 Advise on a question; change code only on an explicit request to do so, then stop.
 
+When you did change code, end by offering a design review of the change by the `lz-oop:reviewer` agent, which starts
+with fresh context and so without your reasons for the change. When the developer asked for a review of it, run that
+review, not the offer: launch `lz-oop:reviewer` with the scope as step 1 of the `lz-review` skill describes, and check
+its findings against the code before you relay them.
+
 This file only routes. Before you answer each request, follow-up questions included, Read each reference file the
 matching section below names for the request, and every further reference that file sends you to for the smell or
 practice at hand: the steps, the exceptions and the sources are there, not here. An answer written from this file alone

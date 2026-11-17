@@ -16,6 +16,18 @@ is incomplete.
 Review what the developer names: uncommitted or staged changes, a commit, a branch against its base, or a pull request.
 When nothing is named, review the uncommitted changes, or the last commit if there are none.
 
+**When this session wrote or changed the code in that scope**, do not review it here. The session that made a change
+reads it with its own reasons in mind, and a design review is worth most from a reader who has none of them. Launch the
+`lz-oop:reviewer` agent (the Agent tool, `subagent_type: "lz-oop:reviewer"`) with the scope and without your opinion of
+the change; when the change exists only in this conversation, put the code before and after it in the prompt. The
+reference reads this file asks for are then the reviewer's to make. When it answers, open the file and lines each
+finding cites, drop or correct a finding the code does not bear out, and relay the rest in the shape of step 4, saying
+that a reviewer with fresh context wrote them. If the agent cannot be launched, say so and review here.
+
+**Otherwise review here**, with steps 2 to 4: a change the developer or someone else wrote, whether it is in the
+repository or pasted into the chat. Reviewing here keeps the pasted code and what the conversation has said about the
+change, which a fresh reviewer would not see. The `lz-oop:reviewer` agent itself always reviews here.
+
 ## 2. Read the change and what it touches
 
 Read the diff, then the code around it: the callers of each changed function or class, the collaborators it now uses,

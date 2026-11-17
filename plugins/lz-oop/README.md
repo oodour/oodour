@@ -14,6 +14,12 @@ and practices.
 
 Claude picks the skill from your request; you can also run `/lz-oop:lz-review` or `/lz-oop:lz-audit` directly.
 
+## Agents
+
+- `lz-oop:reviewer`: reviews the design of a change with fresh context, following `lz-review`. Claude launches it when
+  you ask for a review of a change it wrote in the same session, so the review does not come from the change's author;
+  you can also ask for it by name with `@agent-lz-oop:reviewer`.
+
 Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 
 ## Install
