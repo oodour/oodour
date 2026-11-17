@@ -20,6 +20,10 @@ Claude picks the skill from your request; you can also run `/lz-oop:lz-review` o
   you ask for a review of a change it wrote in the same session, so the review does not come from the change's author;
   you can also ask for it by name with `@agent-lz-oop:reviewer`.
 
+The skills may read their reference files from the plugin folder without asking. A subagent does not get that grant, so
+the reviewer asks to read them; in a session where nobody can answer a prompt, such as `claude -p`, add the plugin
+folder to `permissions.additionalDirectories` or the reviewer works from the `lz-review` text alone.
+
 Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 
 ## Install
