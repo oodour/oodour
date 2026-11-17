@@ -31,6 +31,15 @@ the unreachable old code stays a quick way back to green if the new form fails, 
 book does both; its companion code does the first at several stages. ESLint's `no-unreachable` flags the old code for
 that one step (this plugin's note).
 
+When the edit moves data or behaviour to a new home (an extracted class, a module, a record of values), stage 4 also
+covers what the old home kept. Delete its copy of any data that moved, so a change to that data has one place to land
+(_Refactoring_, Move Field). A method left behind that only forwards to the new home may serve its callers for a while;
+switch them to the new home one at a time, then delete it once nothing calls it (_99 Bottles of OOP_). A forwarder may
+also stay for good (_Refactoring_, Move Function); when one does, as for tests or a public interface that still reach
+the object through it, say why in a comment or the commit (this plugin's advice). A parameter that passed in what the
+new object now holds goes as well: stop passing it from each sender, then delete it (the book; see Removing a
+parameter). Then read the callers again for a local variable that only held such a value (this plugin's reading).
+
 Done: the old code is gone, the tests are unchanged and green, and every stage between was green too.
 
 ## Adding a parameter: Gradual Cutover
