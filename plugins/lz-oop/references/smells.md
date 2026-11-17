@@ -135,6 +135,10 @@ The talk leaves this family unnamed; the name here is this plugin's.
   such. Cure: Extract Function or a rename (Change Function Declaration), and Introduce Assertion for an assumption
   about state (_Refactoring_). Prefer names and structure that carry the signal, under a style the team agrees on, to
   comments that go stale (_99 Bottles of OOP_).
+- **A query that also changes state**: a function called for its answer that also alters its argument, its object or
+  something outside, often named with an "And" joining the two jobs. A caller that only wants the answer gets the change
+  too. A description of what it does that needs "and" is the cue (_99 Bottles of OOP_; _Practical Object-Oriented
+  Design_). Cure: Separate Query from Modifier, a function that only answers and one that only changes (_Refactoring_).
 - _Refactoring_, 2nd edition, also adds Mysterious Name, Global Data, Mutable Data and Loops. For names, see Naming in
   [duplication-and-abstraction.md](duplication-and-abstraction.md).
 

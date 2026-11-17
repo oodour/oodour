@@ -208,7 +208,14 @@ implementation (_99 Bottles of OOP_ shows both failures).
   (`toString()`), so senders can drop the object into a template string, and names its weakness: the conversion is bent
   to one caller's need, and if a broader conversion turns out to be needed, a separately named method sent explicitly is
   the way. This plugin takes the named method from the start because a string conversion is called implicitly, is hard
-  to search for, and `tsc` does not check that a template gets the text you meant.
+  to search for, and `tsc` does not check that a template gets the text you meant. Giving the clump a type is the first
+  move, not the cure: Introduce Parameter Object starts it, and the logic that works on the values then moves onto the
+  new object (_Refactoring_, Combine Functions into Class). The object should answer the questions its senders keep
+  asking of those values (_99 Bottles of OOP_), and it is built where the values first meet, as far out as it can be,
+  then passed in (_99 Bottles of OOP_; _Practical Object-Oriented Design_). Done when no sender takes a value back out
+  of the object to work on it beside the others, no function inside the new home still takes the loose values, and no
+  caller builds the object from pieces it was already handed, which Preserve Whole Object removes (this plugin's reading
+  of those sources; the move is _Refactoring_'s).
 - **A shortcut that relies on its caller**: an override or method that works only because of how one caller happens to
   use it ties the class to that caller and misleads readers about what varies. Fewer lines are not the goal; implement
   the domain's real concepts (_99 Bottles of OOP_).

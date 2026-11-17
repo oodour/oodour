@@ -234,6 +234,10 @@ names this control coupling and calls it an anti-pattern: the receiver ends up m
 caller, which already knows enough to hand over the collaborator that does the work. She allows that sometimes only the
 receiver holds what the choice needs (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013).
 
+When a finding uses _Refactoring_'s name Flag Argument, keep to its narrower test: a caller passes a literal to pick
+which branch runs. A value computed at run time and passed along is not one, and an option stored on an object and
+tested in many of its methods is Repeated Switches (_Refactoring_).
+
 1. Name the flag list as the problem, not its length: the shared code is doing several jobs and the callers pick between
    them.
 2. Before proposing a new shape, ask whether several callers have bent this shared code, each with its own combination

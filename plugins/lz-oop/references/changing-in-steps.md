@@ -40,6 +40,14 @@ the object through it, say why in a comment or the commit (this plugin's advice)
 new object now holds goes as well: stop passing it from each sender, then delete it (the book; see Removing a
 parameter). Then read the callers again for a local variable that only held such a value (this plugin's reading).
 
+The fields the moved methods read move with them, data before the behaviour that uses it, and the methods that call
+nothing else move first (_Refactoring_, Extract Class). A check for a missing value that moved into the new home is
+still there: it goes only when a second player answers for the missing case (Null Object; _Refactoring_, Introduce
+Special Case). When the move splits a module, point each importer at the module that now owns what it uses, rather than
+leaving it on a re-export from the old one, and have new code import a name from its owner rather than through a module
+that re-exports it: an importer left on the old module can still be forced to change when that module does (this
+plugin's reading of _Practical Object-Oriented Design_'s advice on which way dependencies point).
+
 Done: the old code is gone, the tests are unchanged and green, and every stage between was green too.
 
 ## Adding a parameter: Gradual Cutover

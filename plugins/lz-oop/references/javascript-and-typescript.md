@@ -241,9 +241,9 @@ export class Checkout {
 - In a framework with its own injection (Angular providers and `inject()`, NestJS providers), use it there.
 - When a framework builds the class and fixes its constructor's parameters (a plugin API that passes only its own
   tokens, such as a logger and options), keep that class a thin adapter: it builds the collaborators and hands them to a
-  plain object that does the work, and tests build the plain object with doubles. A test-only setting then becomes a
-  parameter of the plain object, not a side door in module state. See Framework code at the edges below (this plugin's
-  form).
+  plain object that does the work: an instance of an ordinary class, or an object a function returns, that the framework
+  does not build. Tests build it with doubles. A test-only setting then becomes a parameter of that object, not a side
+  door in module state. See Framework code at the edges below (this plugin's form).
 - When injection must wait, create the collaborator on first use in one method, so the working methods never name its
   class (_Practical Object-Oriented Design_ isolates instance creation this way). The TypeScript form, which also makes
   that method private, is this plugin's: a field `#gateway?: PaymentGateway` read only through

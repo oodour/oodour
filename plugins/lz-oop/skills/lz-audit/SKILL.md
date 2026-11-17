@@ -46,11 +46,12 @@ a Message, 2018, and the article Breaking Up the Behemoth, 2017, both credit Mic
   test files are included, and give both counts when including them changes the ranking. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph, which also sees imports between packages by package name); otherwise
   count the files whose imports name it, for example `rg -l "from ['\"][^'\"]*/<name>(\.[jt]sx?)?['\"]" <scope>` (this
-  and the command below are Bash syntax), which misses re-exports, path aliases and imports by package name. A file that
-  changes often and that many files depend on is the costly corner of _Practical Object-Oriented Design_'s grid of
-  likelihood of change against dependents; reading churn as likelihood of change is this plugin's, and it is one input
-  beside concreteness: a concrete class with many dependents is suspect even when it has been stable. So also find the
-  most-imported modules with the tools above, or list candidates by file name with
+  and the command below are Bash syntax). It counts a file that re-exports the target but not the files that import it
+  through that file, and it misses path aliases and imports by package name. A file that changes often and that many
+  files depend on is the costly corner of _Practical Object-Oriented Design_'s grid of likelihood of change against
+  dependents; reading churn as likelihood of change is this plugin's, and it is one input beside concreteness: a
+  concrete class with many dependents is suspect even when it has been stable. So also find the most-imported modules
+  with the tools above, or list candidates by file name with
   `rg -o --no-filename -r '$1' "from ['\"]\.[^'\"]*?([^/'\"]+?)(\.[jt]sx?)?['\"]" <scope> | sort | uniq -c | sort -rn`
   (relative imports only; files that share a name, such as `index`, share a line). Take the top five that hold a
   concrete class, or, where classes are not the house style, a module whose exported functions hold rules that change,
@@ -100,6 +101,9 @@ and the commit history, not from a guess at features (this plugin's reading).
   findings that share one cure. Leave formatting, lint and naming nits out unless a name hides a concept. Where the cure
   changes a signature or type used across the package, point to the green steps in
   `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+- Keep the credits and the "this plugin's" labels of the steps above in the report: where a finding uses a source's
+  idea, such as the grid of likelihood of change against dependents, name the work, and say where churn stands in for
+  likely change (this plugin's).
 - Say what is healthy and should be left alone, and why.
 - Recommend an order of work. Code is opened up for a specific change only once that change has been requested (_99
   Bottles of OOP_). Without a request, use churn and complexity only to rank where general work that loosens coupling
