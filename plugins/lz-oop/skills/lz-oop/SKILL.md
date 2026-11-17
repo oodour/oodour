@@ -80,9 +80,12 @@ is incomplete.
    judging-design step 6, one refactoring short of where you could go (the last one would make the code more general
    than any current requirement needs, as this plugin reads it), and take that last one once there is evidence it will
    pay (the Q&A after Go Ahead, Make a Mess at Triangle.rb, 2013); a requested change that needs it is such evidence
-   (this plugin's reading). To change a signature, a parameter or a return type across its senders in such steps, to
-   rename a field that several methods use, or to take a long method or function apart (above all one with no tests),
-   use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+   (this plugin's reading). When the developer asked for a named cure, such as an audit finding or a smell to remove,
+   that request is the evidence: the cure's own Done line decides where to stop, and leaving part of the named smell in
+   place for a later change does not count as stopping one short (this plugin's reading). To change a signature, a
+   parameter or a return type across its senders in such steps, to rename a field that several methods use, or to take a
+   long method or function apart (above all one with no tests), use
+   `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
 
 Answer with the recommended structure, what it makes easy, what it costs, and which future request would change it (as
 the comments in Sandi Metz's own example code weigh a design), the first small step, the test that drives it, and the
