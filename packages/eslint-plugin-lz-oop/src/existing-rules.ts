@@ -14,7 +14,7 @@ export interface Conflict {
 }
 
 /**
- * An existing rule that a cue of the catalog already covers, turned off in every preset so one problem is reported
+ * An existing rule that one of this plugin's own rules replaces, turned off in every preset so one problem is reported
  * once. Unlike a conflict it does not work against lz-oop, so the `conflicts` config leaves it alone.
  */
 export interface Duplicate {

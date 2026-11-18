@@ -134,10 +134,36 @@ The hooks, the mod and the tools meet the script bar in `~/.claude/references/la
 skill scripts"): erasable-syntax TypeScript with `.test.ts` tests on Node.js 22 and 24. `npm run check`
 type-checks, lints and tests all of them.
 
+## Words and decisions
+
+- `GLOSSARY.md` defines the repository's own words (coach, review, audit, finding, cure, remedy, stop-and-look message,
+  tier, store, sealed and the rest). Use them in code, docs, tests and commit messages, and not the words a term lists
+  under _Avoid_. Change a term in the same commit as the change that needs it. The glossary defines words only;
+  behaviour belongs in the skills, the references and the package READMEs.
+- `docs/adr/` records the decisions that are hard to reverse, surprising without context and the result of a real
+  trade-off, one numbered file each. Read the ADRs that cover a change before committing it; when the change reverses
+  one, add an update to it or a new ADR that supersedes it.
+- [`references/glossary-and-adrs.md`](references/glossary-and-adrs.md) says when each of them changes and how to write
+  the change.
+
+## The plugin's skills and agents
+
+- The plugin stands alone: its shipped files (`plugins/lz-oop/`) name none of the maintainer's own plugins or skills.
+  Describe an idea in its own words instead of pointing at another tool, and credit people and their works, not tools.
+- No skill sets `disable-model-invocation: true`. In Claude Code it also makes the Skill tool refuse the skill,
+  stops `skills:` preloading, and keeps `/loop` and autonomous sessions from running it.
+- Name plugin agents with the plugin prefix wherever a caller names them (`skills: [lz-oop:lz-review]`,
+  `subagent_type: "lz-oop:reviewer"`). A bare name silently falls back to the default agent in a skill's `agent:`
+  field, and fails in an Agent call.
+- Point at bundled files with `${CLAUDE_SKILL_DIR}` inside a skill and `${CLAUDE_PLUGIN_ROOT}` across skills.
+- Verify a change to a skill or agent with a real run, the eval suite below, after Lars's go-ahead for the round.
+  Judge from the subagent's transcript what it received, not from the model's answer.
+
 ## Nx workspace
 
-The repository is an Nx workspace with two projects: `tooling` (the hooks, the mod and the tools, from
-`project.json`) and `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest). Run Nx as
+The repository is an Nx workspace with four projects: `tooling` (the hooks, the mod and the tools, from
+`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the two
+packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `project.json` under `packages/`). Run Nx as
 `npm exec -- nx`.
 
 - `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then

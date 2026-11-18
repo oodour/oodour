@@ -124,6 +124,13 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   you and other containers".
 - Lars, 2026-11-18, after the cognitive-alone measurement: "Let's set cognitive complexity to 4." (ESLint
   `cognitive-complexity` and Fallow `maxCognitive` both 4; cyclomatic stays 4.)
+- Lars, 2026-11-18, on the ABC and Halstead prior art: "The ABC and Halstead measurement: OK" (Claude's
+  recommendation: one throwaway measurement of ABC, counted as eslint-plugin-abcsize does plus loops, and Halstead
+  volume, counted per function from tokens as eslint-plugin-code-metrics does, over the four repositories and the
+  companion code; a rule only for a metric that flags functions the size and complexity rules miss).
+- Lars, 2026-11-18, on lz-gardener-19's relay of his words "Then guide the lz-oop session in setting up similar rules
+  and skill usage for its repo." (GLOSSARY.md, docs/adr, a words-and-decisions section in AGENTS.md): "When to set up
+  the glossary, ADRs and AGENTS.md rules lz-gardener-19 relayed: Now."
 - Lars, 2026-11-18: "Keep the 7-line limit" (`max-lines-per-function` 7 with blank lines and comments skipped; ESLint
   counts the signature line and the closing brace, so 7 allows 5 body lines, Metz's 5-line rule).
 - Lars, 2026-11-18: "ABC rule: OK." (Claude's recommendation: measure first whether ABC flags functions the size and
