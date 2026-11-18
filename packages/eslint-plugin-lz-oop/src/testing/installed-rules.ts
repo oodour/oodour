@@ -25,6 +25,7 @@ export function installedRule({ source, name }: Pick<CatalogRow, 'source' | 'nam
   return isRuleModule(rule) ? rule : undefined;
 }
 
-function isRuleModule(value: unknown): value is Rule.RuleModule {
+/** Narrows a rule module from any package, this plugin's own included, to ESLint's rule type. */
+export function isRuleModule(value: unknown): value is Rule.RuleModule {
   return typeof value === 'object' && value !== null && 'create' in value && typeof value.create === 'function';
 }

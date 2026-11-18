@@ -10,15 +10,15 @@ test('testConfiguredRules refuses cases that leave a configured cue out', () => 
       // @ts-expect-error -- every configured cue needs cases, so an empty record does not type-check
       testConfiguredRules({});
     },
-    { message: /^Configured cues without cases: max-lines-per-function, / },
+    { message: /^Configured cues without cases: no-param-reassign, / },
   );
 });
 
-// The catalog sets max-depth to 2, so three levels are reported where the rule's own default of 4 would pass them.
+// The catalog sets `props: true`, so a write to a parameter's property is reported where the rule's default passes it.
 test('testConfiguredRule runs the cases with the catalog options', () => {
-  testConfiguredRule('max-depth', {
-    valid: ['function f(a) { if (a) { if (a) { a = 0; } } }'],
-    invalid: [{ code: 'function f(a) { if (a) { if (a) { if (a) { a = 0; } } } }', errors: [{ messageId: 'tooDeeply' }] }],
+  testConfiguredRule('no-param-reassign', {
+    valid: ['function f(order) { return { ...order, total: 0 }; }'],
+    invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
   });
 });
 

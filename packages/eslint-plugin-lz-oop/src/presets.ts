@@ -1,7 +1,7 @@
 import eslintCommentsPlugin from '@eslint-community/eslint-plugin-eslint-comments';
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
-import type { OopRuleModule, Tier } from './create-rule.ts';
-import { existingRules, listExistingRules, type CatalogRow, type SourceId } from './existing-rules.ts';
+import type { Companion, OopRuleModule, Tier } from './create-rule.ts';
+import { listExistingRules, type CatalogRow } from './existing-rules.ts';
 
 /** The prefix of this plugin's rule IDs: `@layzee/lz-oop/type-hopping-chain`. */
 export const pluginNamespace = '@layzee/lz-oop';
@@ -58,7 +58,17 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
       '@eslint-community/eslint-comments': eslintCommentsPlugin,
     },
   };
-  const entries = [...ownRuleEntries(plugin), ...cueEntries((source) => !existingRules[source].optional)];
+  const allEntries = [...ownRuleEntries(plugin), ...cueEntries()];
+  // A rule that needs an optional plugin goes in that plugin's companion config, since turning on a rule of an
+  // unregistered plugin throws, and a wrapper of a missing rule throws too.
+  const entries = allEntries.filter((entry) => entry.companion === undefined);
+  const companion = (source: Companion): OopConfig[] => [
+    {
+      name: `lz-oop/${source}`,
+      plugins: { [pluginNamespace]: plugin },
+      rules: rulesOf(allEntries.filter((entry) => entry.companion === source)),
+    },
+  ];
   const layers = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [
     { name, rules: rulesOf(entries.filter((entry) => keep(entry) && !entry.skipsTestFiles)) },
     {
@@ -102,10 +112,6 @@ function turnedOff(name: string, key: 'conflict' | 'duplicateOf'): OopConfig {
   };
 }
 
-function companion(source: SourceId): OopConfig[] {
-  return [{ name: `lz-oop/${source}`, rules: rulesOf(cueEntries((from) => from === source)) }];
-}
-
 function rulesOf(entries: readonly PresetEntry[]): NonNullable<OopConfig['rules']> {
   return Object.fromEntries(entries.map(({ id, setting }) => [id, setting]));
 }
@@ -117,7 +123,12 @@ interface PresetEntry {
   readonly tier: Tier;
   readonly typed: boolean;
   readonly skipsTestFiles: boolean;
+  /** The companion config the rule goes in instead of the presets, when it needs an optional plugin. */
+  readonly companion: Companion | undefined;
 }
+
+// The catalog sources a consumer may lack: their cues go in their companion config.
+const companions: readonly Companion[] = ['unicorn', 'sonarjs', 'functional'];
 
 function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
   return Object.entries(plugin.rules).map(([name, rule]) => ({
@@ -126,28 +137,27 @@ function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
     tier: rule.meta.docs.tier,
     typed: rule.meta.docs.requiresTypeChecking,
     skipsTestFiles: rule.meta.docs.skipsTestFiles === true,
+    companion: rule.meta.docs.companion,
   }));
 }
 
-// Cues of an optional plugin go in its companion config, since turning on a rule of an unregistered plugin throws.
-function cueEntries(fromSource: (source: SourceId) => boolean): readonly PresetEntry[] {
-  return listExistingRules()
-    .filter(({ source }) => fromSource(source))
-    .flatMap((row) => {
-      const { id, stance } = row;
+function cueEntries(): readonly PresetEntry[] {
+  return listExistingRules().flatMap((row) => {
+    const { id, source, stance } = row;
 
-      return 'cue' in stance
-        ? [
-            {
-              id,
-              setting: ['error', ...(stance.options ?? [])],
-              tier: stance.tier,
-              typed: requiresTypeChecking(row),
-              skipsTestFiles: false,
-            },
-          ]
-        : [];
-    });
+    return 'cue' in stance
+      ? [
+          {
+            id,
+            setting: ['error', ...(stance.options ?? [])],
+            tier: stance.tier,
+            typed: requiresTypeChecking(row),
+            skipsTestFiles: false,
+            companion: companions.find((name) => name === source),
+          },
+        ]
+      : [];
+  });
 }
 
 // Core rules never need type information.

@@ -1,42 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existingRules, listExistingRules } from './existing-rules.ts';
+import { rules } from './rules/index.ts';
 import { installedRule } from './testing/installed-rules.ts';
 import { testConfiguredRules } from './testing/rule-testers.ts';
 
-const ifs = (count: number): string =>
-  `function f(a) {\n${Array.from({ length: count }, (_, index) => `  if (a === ${String(index)}) { a = 0; }\n`).join('')}}`;
-
 // Each pin sits on the boundary its catalog options draw: the last allowed shape is valid, one more step is not.
 testConfiguredRules({
-  'max-lines-per-function': {
-    valid: ['function f() {\n  const a = 1;\n\n  // note\n  const b = 2;\n  const c = 3;\n  const d = 4;\n  return a + b + c + d;\n}'],
-    invalid: [
-      {
-        code: 'function f() {\n  const a = 1;\n  const b = 2;\n  const c = 3;\n  const d = 4;\n  const e = 5;\n  return a + b + c + d + e;\n}',
-        errors: [{ messageId: 'exceed' }],
-      },
-    ],
-  },
-  'max-statements': {
-    valid: ['function f() { let a = 1; a += 1; a += 1; a += 1; return a; }'],
-    invalid: [{ code: 'function f() { let a = 1; a += 1; a += 1; a += 1; a += 1; return a; }', errors: [{ messageId: 'exceed' }] }],
-  },
-  complexity: {
-    valid: [ifs(3)],
-    invalid: [{ code: ifs(4), errors: [{ messageId: 'complex' }] }],
-  },
-  'max-depth': {
-    valid: ['function f(a) { if (a) { if (a) { a = 0; } } }'],
-    invalid: [{ code: 'function f(a) { if (a) { if (a) { if (a) { a = 0; } } } }', errors: [{ messageId: 'tooDeeply' }] }],
-  },
   'no-param-reassign': {
     valid: ['function f(order) { return { ...order, total: 0 }; }'],
     invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
-  },
-  '@typescript-eslint/max-params': {
-    valid: ['function f(this: void, a: number, b: number, c: number) {}'],
-    invalid: [{ code: 'function f(a: number, b: number, c: number, d: number) {}', errors: [{ messageId: 'exceed' }] }],
   },
   '@typescript-eslint/switch-exhaustiveness-check': {
     valid: ["declare const shape: 'circle' | 'square';\nswitch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n"],
@@ -79,10 +52,6 @@ testConfiguredRules({
       { code: '/* eslint no-console: "off" */\nconsole.log(1);', errors: [{ messageId: 'missingDescription' }] },
     ],
   },
-  'sonarjs/cognitive-complexity': {
-    valid: [ifs(5)],
-    invalid: [{ code: ifs(6), errors: [{ messageId: 'refactorFunction' }] }],
-  },
   'functional/immutable-data': {
     valid: ['class Counter { count = 0; increment(): void { this.count = this.count + 1; } }'],
     invalid: [{ code: 'function f(order: { total: number }): void { order.total = 0; }', errors: [{ messageId: 'generic' }] }],
@@ -105,6 +74,14 @@ test('no cue is deprecated in its installed package', () => {
     .map(({ id }) => id);
 
   assert.deepEqual(deprecated, []);
+});
+
+test('every duplicate is turned off in favour of a rule of this plugin, which reports it under our message', () => {
+  const elsewhere = listExistingRules().flatMap(({ id, stance }) =>
+    'duplicateOf' in stance && !Object.hasOwn(rules, stance.duplicateOf.replace('@layzee/lz-oop/', '')) ? [id] : [],
+  );
+
+  assert.deepEqual(elsewhere, []);
 });
 
 test('each catalog row carries the rule ID its source prefix gives it', () => {

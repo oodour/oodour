@@ -26,8 +26,6 @@ export type Stance = Cue | Conflict | Duplicate;
 export interface RuleSource {
   /** What a rule ID starts with: `''` for ESLint core, `'unicorn/'` for eslint-plugin-unicorn. */
   readonly prefix: string;
-  /** Whether a consumer may lack the plugin, so its cues go in a companion config instead of the presets. */
-  readonly optional: boolean;
   readonly rules: Readonly<Record<string, Stance>>;
 }
 
@@ -39,33 +37,12 @@ const staticAdvice =
 export const existingRules = {
   core: {
     prefix: '',
-    optional: false,
     rules: {
-      'max-lines-per-function': {
-        cue: 'Long Method: a body over five lines, counted without blank lines and comments.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 7, skipBlankLines: true, skipComments: true }],
-      },
-      'max-statements': {
-        cue: 'Long Method: more than five statements in one function.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 5 }],
-      },
-      'max-params': { duplicateOf: '@typescript-eslint/max-params' },
-      complexity: {
-        cue: 'Each path through a function is one more test to write; more than four paths is a function to split.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 4 }],
-      },
-      'max-depth': {
-        cue: 'Nested conditionals: more than two levels of nesting in one function.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 2 }],
-      },
+      'max-lines-per-function': { duplicateOf: '@layzee/lz-oop/max-lines-per-function' },
+      'max-statements': { duplicateOf: '@layzee/lz-oop/max-statements' },
+      'max-params': { duplicateOf: '@layzee/lz-oop/max-params' },
+      complexity: { duplicateOf: '@layzee/lz-oop/complexity' },
+      'max-depth': { duplicateOf: '@layzee/lz-oop/max-depth' },
       'no-param-reassign': {
         cue: 'A query that changes state: writing to a property of a parameter.',
         tier: 'strict',
@@ -85,14 +62,8 @@ export const existingRules = {
   },
   '@typescript-eslint': {
     prefix: '@typescript-eslint/',
-    optional: false,
     rules: {
-      'max-params': {
-        cue: 'Long Parameter List: more than three parameters, not counting a `this` parameter.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 3 }],
-      },
+      'max-params': { duplicateOf: '@layzee/lz-oop/max-params' },
       'switch-exhaustiveness-check': {
         cue: 'A choosing switch must name every member of the union, so a new member cannot fall into `default`.',
         tier: 'recommended',
@@ -160,7 +131,6 @@ export const existingRules = {
   },
   '@eslint-community/eslint-comments': {
     prefix: '@eslint-community/eslint-comments/',
-    optional: false,
     rules: {
       'require-description': {
         cue:
@@ -174,7 +144,6 @@ export const existingRules = {
   },
   unicorn: {
     prefix: 'unicorn/',
-    optional: true,
     rules: {
       'no-array-sort': {
         cue: 'A query that sorts its own array in place changes state.',
@@ -203,14 +172,8 @@ export const existingRules = {
   },
   sonarjs: {
     prefix: 'sonarjs/',
-    optional: true,
     rules: {
-      'cognitive-complexity': {
-        cue: 'A function that is hard to follow is a function to split.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [5],
-      },
+      'cognitive-complexity': { duplicateOf: '@layzee/lz-oop/cognitive-complexity' },
       'bool-param-default': {
         conflict: 'It asks for a default on a boolean parameter, which keeps a flag argument lz-oop would remove.',
       },
@@ -218,7 +181,6 @@ export const existingRules = {
   },
   functional: {
     prefix: 'functional/',
-    optional: true,
     rules: {
       'immutable-data': {
         cue: 'A query that changes data it was handed.',

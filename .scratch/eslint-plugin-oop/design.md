@@ -560,6 +560,31 @@ Wave 2, 2026-11-18 (the selector rules). Each deviation from graft 1 and the bri
 - **Merged with wave 1b.** `PresetEntry` gained `skipsTestFiles` (own rules read it from their docs; catalog cues are
   `false`), and each preset is `oop/plugins`, the two rule layers, then `oop/conflicts`.
 
+Wave W, 2026-11-18 (wrappers, messages, `lzOopRules`). Each choice and why; Claude's calls under Lars's rulings in the
+plan.
+
+- **One shared `wrapRule`** (`src/wrap-rule.ts`), used by the six size wrappers and `class-methods-use-this`. The
+  forwarding context, its runtime check and the missing-rule behaviour are the same for all seven; written seven times
+  they would drift. Each wrapper reports under one message id, `found`, and keeps the wrapped rule's data, so `{{max}}`
+  and its kin still print. `class-methods-use-this` moved from `noState` to `found`.
+- **Upstream types.** The wrapped rule comes in as `unknown` and is narrowed by a runtime check to typescript-eslint's
+  rule shape, because core, typescript-eslint and sonarjs rules are three type families. `coreRule(name)` is the one
+  place that reads `eslint/use-at-your-own-risk`.
+- **Options.** Each wrapper's `meta.defaultOptions` is the old catalog options, so `'error'` in a preset gives the same
+  limit; its schema is the wrapped rule's.
+- **The wrapped versions are off through the catalog's `Duplicate` kind**, `duplicateOf: '@layzee/lz-oop/<name>'`, for
+  core `max-lines-per-function`, `max-statements`, `max-params`, `complexity`, `max-depth`, typescript-eslint
+  `max-params` and `sonarjs/cognitive-complexity`. A test requires every `duplicateOf` to name a rule of this plugin.
+  Their RuleTester pins moved into the wrapper specs.
+- **sonarjs is optional.** `optionalPluginRule` loads it with `createRequire` and gives `undefined` on
+  `MODULE_NOT_FOUND` only; any other load error is thrown. A wrapper of a missing rule still loads (schema: any array),
+  stays silent while off, and throws an error naming the wrapped rule and "install its plugin" when a config turns it
+  on. `cognitive-complexity` carries `docs.companion: 'sonarjs'`, so it is in the `sonarjs` companion config, not in
+  any preset: the presets keep loading without sonarjs. Companion configs now register this plugin too, since they can
+  hold its rules.
+- **`RuleSource.optional` removed.** Which sources have a companion config is the `Companion` type and one list in
+  `presets.ts`; two flags would have been two truths.
+
 ## Open questions and risks
 
 Questions for Lars, each with Claude's recommendation:

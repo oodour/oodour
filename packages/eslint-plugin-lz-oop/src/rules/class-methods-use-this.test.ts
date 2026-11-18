@@ -10,12 +10,12 @@ testRule(classMethodsUseThis, {
   invalid: [
     {
       code: 'class Invoice { format(total: number) { return `$${String(total)}`; } }',
-      errors: [{ messageId: 'noState', data: { name: "method 'format'" } }],
+      errors: [{ messageId: 'found', data: { name: "method 'format'" } }],
     },
     // The documented limit: a Null Object that plays its role without declaring `implements` is reported.
     {
       code: 'class NoDiscount { rate() { return 0; } }',
-      errors: [{ messageId: 'noState', data: { name: "method 'rate'" } }],
+      errors: [{ messageId: 'found', data: { name: "method 'rate'" } }],
     },
   ],
 });

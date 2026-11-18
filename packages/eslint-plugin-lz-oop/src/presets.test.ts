@@ -114,11 +114,39 @@ test('strict-type-checked turns type-hopping-chain on at error', async () => {
 });
 
 test('strict turns on a core cue of the strict tier at error with its catalog options', async () => {
-  assert.deepEqual(await ruleSetting('strict', 'max-statements'), [2, { max: 5 }]);
+  assert.deepEqual(await ruleSetting('strict', 'no-param-reassign'), [2, { props: true }]);
 });
 
-test('strict turns on the typescript-eslint max-params at three parameters', async () => {
-  assert.deepEqual(await ruleSetting('strict', '@typescript-eslint/max-params'), [2, { max: 3 }]);
+const sizeLimits = {
+  'max-lines-per-function': { max: 7, skipBlankLines: true, skipComments: true },
+  'max-statements': { max: 5 },
+  'max-params': { max: 3 },
+  complexity: { max: 4 },
+  'max-depth': { max: 2 },
+};
+
+test('strict turns on each size limit as a rule of this plugin, at error with its limit', async () => {
+  const settings = await Promise.all(
+    Object.keys(sizeLimits).map((name) => ruleSetting('strict', `@layzee/lz-oop/${name}`)),
+  );
+
+  assert.deepEqual(
+    settings,
+    Object.values(sizeLimits).map((options) => [2, options]),
+  );
+});
+
+test('every preset turns off the size limits it wraps, so each finding is reported once, under our message', async () => {
+  const wrapped = [...Object.keys(sizeLimits), '@typescript-eslint/max-params', 'sonarjs/cognitive-complexity'];
+
+  const settings = await Promise.all(
+    presetNames.flatMap((preset) => wrapped.map(async (id) => severityOf(await ruleSetting(preset, id)))),
+  );
+
+  assert.deepEqual(
+    settings,
+    presetNames.flatMap(() => wrapped.map(() => 0)),
+  );
 });
 
 test('every preset requires a reason on each comment that turns a rule off', async () => {
@@ -130,12 +158,6 @@ test('every preset requires a reason on each comment that turns a rule off', asy
     settings,
     presetNames.map(() => [2, { ignore: ['eslint-enable', 'eslint-env', 'exported', 'global', 'globals'] }]),
   );
-});
-
-test('every preset turns off the core max-params, so a function is reported once', async () => {
-  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, 'max-params')));
-
-  assert.deepEqual(settings.map(severityOf), presetNames.map(() => 0));
 });
 
 test('recommended turns on an untyped typescript-eslint cue of the recommended tier and registers its plugin', async () => {
@@ -150,7 +172,7 @@ test('recommended-type-checked turns on a typed cue of the recommended tier with
 });
 
 test('recommended leaves out a cue of the strict tier', async () => {
-  assert.equal(await ruleSetting('recommended', 'max-statements'), undefined);
+  assert.equal(await ruleSetting('recommended', 'no-param-reassign'), undefined);
 });
 
 test('strict leaves out a cue that needs type information', async () => {
@@ -177,8 +199,14 @@ test('the unicorn companion turns on the unicorn cues for a consumer who registe
   assert.equal(severityOf(await ruleSetting('unicorn', 'unicorn/no-array-sort', { plugins: { unicorn } })), 2);
 });
 
-test('the sonarjs companion turns on the sonarjs cues with their catalog options', async () => {
-  assert.deepEqual(await ruleSetting('sonarjs', 'sonarjs/cognitive-complexity', { plugins: { sonarjs } }), [2, 5]);
+test('no preset turns on the cognitive-complexity limit, which needs eslint-plugin-sonarjs installed', async () => {
+  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, '@layzee/lz-oop/cognitive-complexity')));
+
+  assert.deepEqual(settings, presetNames.map(() => undefined));
+});
+
+test('the sonarjs companion turns on the cognitive-complexity limit as a rule of this plugin, at its limit', async () => {
+  assert.deepEqual(await ruleSetting('sonarjs', '@layzee/lz-oop/cognitive-complexity'), [2, 5]);
 });
 
 test('the functional companion turns on the functional cues with their catalog options', async () => {

@@ -22,7 +22,15 @@ export interface OopRuleDocs {
   readonly tier: Tier;
   /** The presets turn the rule on outside test and declaration files only, where its measured noise sits. */
   readonly skipsTestFiles?: true;
+  /**
+   * The optional plugin package whose rule this one wraps. The rule is then turned on in that plugin's companion config
+   * instead of the presets, so the presets work for a consumer who has not installed it.
+   */
+  readonly companion?: Companion;
 }
+
+/** The optional plugin packages, each with a companion config of its own. */
+export type Companion = 'unicorn' | 'sonarjs' | 'functional';
 
 /**
  * What a rule module hands to `createRule`: typescript-eslint's `RuleCreator` input, except that `fixable` and
