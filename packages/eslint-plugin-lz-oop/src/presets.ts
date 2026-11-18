@@ -2,8 +2,8 @@ import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import type { OopRuleModule, Tier } from './create-rule.ts';
 import { existingRules, listExistingRules, type CatalogRow, type SourceId } from './existing-rules.ts';
 
-/** The prefix of this plugin's rule IDs: `@layzee/oop/type-hopping-chain`. */
-export const pluginNamespace = '@layzee/oop';
+/** The prefix of this plugin's rule IDs: `@layzee/lz-oop/type-hopping-chain`. */
+export const pluginNamespace = '@layzee/lz-oop';
 
 /**
  * A flat config object, typed wider than ESLint's own `Linter.Config` on purpose: a rule built with typescript-eslint's
@@ -49,7 +49,7 @@ export interface RegisteredPlugin {
 /** Derives every preset from the rule registry; there is no list of rule names here. */
 export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
   const plugins: OopConfig = {
-    name: 'oop/plugins',
+    name: 'lz-oop/plugins',
     plugins: { [pluginNamespace]: plugin, '@typescript-eslint': tseslintPlugin },
   };
   const entries = [...ownRuleEntries(plugin), ...cueEntries((source) => !existingRules[source].optional)];
@@ -64,22 +64,22 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
   const untyped = (entry: PresetEntry): boolean => !entry.typed;
   const recommendedTier = (entry: PresetEntry): boolean => entry.tier === 'recommended';
   const conflicts: OopConfig = {
-    name: 'oop/conflicts',
+    name: 'lz-oop/conflicts',
     rules: Object.fromEntries(
       listExistingRules().flatMap(({ id, stance }) => ('conflict' in stance ? [[id, 'off']] : [])),
     ),
   };
-  const recommendedTypeChecked = [plugins, ...layers('oop/recommended-type-checked', recommendedTier), conflicts];
-  const strictTypeChecked = [plugins, ...layers('oop/strict-type-checked', () => true), conflicts];
+  const recommendedTypeChecked = [plugins, ...layers('lz-oop/recommended-type-checked', recommendedTier), conflicts];
+  const strictTypeChecked = [plugins, ...layers('lz-oop/strict-type-checked', () => true), conflicts];
 
   return {
     recommended: [
       plugins,
-      ...layers('oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
+      ...layers('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
       conflicts,
     ],
     'recommended-type-checked': recommendedTypeChecked,
-    strict: [plugins, ...layers('oop/strict', untyped), conflicts],
+    strict: [plugins, ...layers('lz-oop/strict', untyped), conflicts],
     'strict-type-checked': strictTypeChecked,
     recommendedTypeChecked,
     strictTypeChecked,
@@ -91,7 +91,7 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
 }
 
 function companion(source: SourceId): OopConfig[] {
-  return [{ name: `oop/${source}`, rules: rulesOf(cueEntries((from) => from === source)) }];
+  return [{ name: `lz-oop/${source}`, rules: rulesOf(cueEntries((from) => from === source)) }];
 }
 
 function rulesOf(entries: readonly PresetEntry[]): NonNullable<OopConfig['rules']> {

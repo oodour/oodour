@@ -3,7 +3,7 @@ import { buildConfigs, pluginNamespace, type OopConfigs } from './presets.ts';
 import { rules } from './rules/index.ts';
 
 /** The public plugin type: wide like `OopConfig`, so ESLint's `Plugin` type and `defineConfig` accept it. */
-export interface OopPlugin {
+export interface LzOopPlugin {
   readonly meta: { readonly name: string; readonly version: string; readonly namespace: string };
   readonly configs: OopConfigs;
 }
@@ -16,6 +16,6 @@ const registered = {
   configs: {},
 };
 
-const plugin: OopPlugin = Object.assign(registered, { configs: buildConfigs(registered) });
+const plugin: LzOopPlugin = Object.assign(registered, { configs: buildConfigs(registered) });
 
 export default plugin;

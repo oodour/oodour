@@ -24,7 +24,7 @@ export interface RuleSource {
 }
 
 const staticAdvice =
-  'Right signal, wrong advice: it suggests making the method static. @layzee/oop/class-methods-use-this reports the ' +
+  'Right signal, wrong advice: it suggests making the method static. @layzee/lz-oop/class-methods-use-this reports the ' +
   'same methods with advice that fits.';
 
 /** The one place this plugin takes a stance on a rule it does not own: one stance per rule name. */

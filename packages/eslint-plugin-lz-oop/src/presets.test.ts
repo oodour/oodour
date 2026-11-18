@@ -7,15 +7,15 @@ import functional from 'eslint-plugin-functional';
 import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
-import plugin, { type OopPlugin } from './index.ts';
+import plugin, { type LzOopPlugin } from './index.ts';
 import { selectorRules } from './rules/selector-rules.ts';
 
-const typeHoppingChain = '@layzee/oop/type-hopping-chain';
+const typeHoppingChain = '@layzee/lz-oop/type-hopping-chain';
 
 // The consumer's view: `defineConfig` with typescript-eslint's parser for TypeScript files, then the preset. Type-checking
 // this file is what proves the presets are accepted where a consumer writes them.
 async function ruleSettings(
-  preset: keyof OopPlugin['configs'],
+  preset: keyof LzOopPlugin['configs'],
   filePath: string,
   ...after: Parameters<typeof defineConfig>
 ): Promise<readonly (readonly [string, unknown])[]> {
@@ -44,7 +44,7 @@ async function ruleSettings(
 }
 
 async function ruleSetting(
-  preset: keyof OopPlugin['configs'],
+  preset: keyof LzOopPlugin['configs'],
   ruleId: string,
   ...after: Parameters<typeof defineConfig>
 ): Promise<unknown> {
@@ -54,10 +54,10 @@ async function ruleSetting(
 const presetNames = ['recommended', 'recommended-type-checked', 'strict', 'strict-type-checked'] as const;
 
 async function selectorRuleSettings(
-  preset: keyof OopPlugin['configs'],
+  preset: keyof LzOopPlugin['configs'],
   filePath: string,
 ): Promise<Readonly<Record<string, unknown>>> {
-  const selectorRuleIds = new Set(selectorRules.map(({ name }) => `@layzee/oop/${name}`));
+  const selectorRuleIds = new Set(selectorRules.map(({ name }) => `@layzee/lz-oop/${name}`));
 
   return Object.fromEntries((await ruleSettings(preset, filePath)).filter(([id]) => selectorRuleIds.has(id)));
 }
@@ -71,7 +71,7 @@ test("each preset turns on exactly its tier's selector rules, at error", async (
       Object.fromEntries(
         selectorRules
           .filter(({ meta }) => preset.startsWith('strict') || meta.docs.tier === 'recommended')
-          .map(({ name }) => [`@layzee/oop/${name}`, [2]]),
+          .map(({ name }) => [`@layzee/lz-oop/${name}`, [2]]),
       ),
     ),
   );
@@ -86,7 +86,7 @@ test('the selector rules ship in the tiers the measurements set', async () => {
     'optional-private-field',
     'options-object-keys',
   ];
-  const ids = (names: readonly string[]): readonly string[] => names.map((name) => `@layzee/oop/${name}`).sort();
+  const ids = (names: readonly string[]): readonly string[] => names.map((name) => `@layzee/lz-oop/${name}`).sort();
 
   const settings = await Promise.all(presetNames.map((preset) => selectorRuleSettings(preset, 'file.ts')));
 
@@ -234,7 +234,7 @@ test('the camelCase aliases are the same configs as their kebab-case presets', (
 
 test('a consumer may register the default export again under the same name', async () => {
   assert.deepEqual(
-    await ruleSetting('strict-type-checked', typeHoppingChain, { plugins: { '@layzee/oop': plugin } }),
+    await ruleSetting('strict-type-checked', typeHoppingChain, { plugins: { '@layzee/lz-oop': plugin } }),
     [2, { maxInterfaces: 2 }],
   );
 });

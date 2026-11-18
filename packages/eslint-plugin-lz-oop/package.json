@@ -1,5 +1,5 @@
 {
-  "name": "@layzee/eslint-plugin-oop",
+  "name": "@layzee/eslint-plugin-lz-oop",
   "version": "0.0.0",
   "private": true,
   "type": "module",

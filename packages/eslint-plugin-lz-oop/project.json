@@ -1,11 +1,11 @@
 {
-  "name": "eslint-plugin-oop",
+  "name": "eslint-plugin-lz-oop",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/eslint-plugin-oop/src",
+  "sourceRoot": "packages/eslint-plugin-lz-oop/src",
   "targets": {
     "typecheck": {
-      "command": "tsc -p packages/eslint-plugin-oop/tsconfig.json",
+      "command": "tsc -p packages/eslint-plugin-lz-oop/tsconfig.json",
       "inputs": [
         "default",
         {
@@ -24,10 +24,10 @@
       ]
     },
     "lint": {
-      "command": "eslint packages/eslint-plugin-oop"
+      "command": "eslint packages/eslint-plugin-lz-oop"
     },
     "test": {
-      "command": "node --test \"packages/eslint-plugin-oop/src/**/*.test.ts\"",
+      "command": "node --test \"packages/eslint-plugin-lz-oop/src/**/*.test.ts\"",
       "cache": true,
       "inputs": [
         "default",
