@@ -213,7 +213,7 @@ test('no preset turns on the cognitive-complexity limit, which needs eslint-plug
 });
 
 test('the sonarjs companion turns on the cognitive-complexity limit as a rule of this plugin, at its limit', async () => {
-  assert.deepEqual(await ruleSetting('sonarjs', '@layzee/lz-oop/cognitive-complexity'), [2, 5]);
+  assert.deepEqual(await ruleSetting('sonarjs', '@layzee/lz-oop/cognitive-complexity'), [2, 4]);
 });
 
 test('the functional companion turns on the functional cues with their catalog options', async () => {

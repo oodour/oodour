@@ -124,6 +124,8 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   you and other containers".
 - Lars, 2026-11-18, after the cognitive-alone measurement: "Let's set cognitive complexity to 4." (ESLint
   `cognitive-complexity` and Fallow `maxCognitive` both 4; cyclomatic stays 4.)
+- Lars, 2026-11-18: "Keep the 7-line limit" (`max-lines-per-function` 7 with blank lines and comments skipped; ESLint
+  counts the signature line and the closing brace, so 7 allows 5 body lines, Metz's 5-line rule).
 - Lars, 2026-11-18: "ABC rule: OK." (Claude's recommendation: measure first whether ABC flags functions the size and
   complexity rules miss, then build the rule only if it does.) On sources: "eslint-plugin-abcsize: ... It could be used
   as inspiration." and "typhonjs-escomplex: Hasn't been updated in 8 years but could serve as inspiration."

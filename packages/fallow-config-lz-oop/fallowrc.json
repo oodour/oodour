@@ -9,7 +9,7 @@
   },
   "health": {
     "maxCyclomatic": 4,
-    "maxCognitive": 5,
+    "maxCognitive": 4,
     "maxFileLines": 250,
     "thresholdOverrides": [
       {

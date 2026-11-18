@@ -16,5 +16,5 @@ export const cognitiveComplexity = wrapRule({
     'Stop and look: Long Function, this one is hard to follow (cognitive complexity {{complexityAmount}}, at most ' +
     '{{threshold}}). Look for nested conditionals and loops, and jumps out of the straight flow. Cure: Replace Nested ' +
     'Conditional with Guard Clauses, and Extract Function for each nested block.',
-  defaultOptions: [5],
+  defaultOptions: [4],
 });
