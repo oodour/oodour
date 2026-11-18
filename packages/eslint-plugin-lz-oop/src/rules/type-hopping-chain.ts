@@ -56,7 +56,10 @@ export const typeHoppingChain = createRule<Options, 'chain'>({
       tier: 'strict',
     },
     messages: {
-      chain: 'This chain steps through {{count}} different types; ask the nearest object for what you want.',
+      chain:
+        'Message Chains (Law of Demeter): this chain steps through {{count}} different types, so it breaks when any ' +
+        'of them changes. Look for what the chain is after. Cure: Hide Delegate, a method on the nearest object named ' +
+        'for that goal.',
     },
     schema: [
       {

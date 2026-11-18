@@ -17,7 +17,7 @@ const selectorRows = [
     tier: 'recommended',
     selectors: ["SwitchStatement[discriminant.type='MemberExpression'][discriminant.property.name='kind']"],
     message:
-      "This switch picks behaviour by the object's kind; an object per kind could do its own part of the work, and a new kind would not touch this switch.",
+      "Switch Statements: this switch picks behaviour by the object's kind. Look for branches that do each kind's work rather than only choose an object. Cure: Replace Conditional with Polymorphism, an object per kind, chosen once by a factory.",
     because: 'which objects take over each branch is a design decision no tool can make',
   },
   {
@@ -29,7 +29,7 @@ const selectorRows = [
       ":matches(PropertyDefinition, MethodDefinition[kind!='constructor'])[accessibility='private']:not(PropertyDefinition[value.callee.name='inject'])",
     ],
     message:
-      'TypeScript checks this private member only at compile time, and the running object still exposes it; a #private member is private at run time too.',
+      'Inappropriate Intimacy: TypeScript checks this private member only at compile time, so bracket access or a cast still reaches it. Look for code outside the class that reads it. Cure: make it a #private member, which the suggestion does.',
     suggest: {
       message: 'Make it a #private member and rename its uses through this in this class.',
       because:
@@ -44,7 +44,7 @@ const selectorRows = [
     tier: 'strict',
     selectors: ["Program > VariableDeclaration[kind='let']"],
     message:
-      'This module keeps state that any function in it may change; an object that owns the state, handed to the code that needs it, makes the dependency visible.',
+      'Global Data: this module keeps state that any function in it may change. Look for the functions that read and write it. Cure: Encapsulate Variable, then move the state into an object that is handed to the code that needs it.',
     because: 'the cure moves the state into an object and changes every reader, which needs a person',
   },
   {
@@ -55,7 +55,7 @@ const selectorRows = [
     // A callback that unpacks a row it is handed (`rows.map(({ a, b, c, d, e }) => ...)`) is left out.
     selectors: [':function:not(CallExpression > :function) > ObjectPattern.params[properties.length>4]'],
     message:
-      'This function unpacks more than four values from one object, which is a long parameter list in another form; the values may belong to an object with behaviour of its own, or the function may do more than one job.',
+      'Long Parameter List: this function unpacks more than four values from one object, a long list in another form. Look for values that travel together, or for more than one job. Cure: Introduce Parameter Object, a type with behaviour of its own, or Extract Function to split the jobs.',
     because: 'the cure names a new object or splits the function, and changes its callers, which needs a person',
   },
   {
@@ -67,7 +67,7 @@ const selectorRows = [
       `MethodDefinition[kind='constructor'] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${builtInConstructors}]):not(ThrowStatement > NewExpression)`,
     ],
     message:
-      'This constructor creates its collaborator itself, so the class is tied to that one concrete class; take the collaborator as a parameter, with this one as its default if most callers want it.',
+      'Hidden dependency: this constructor creates its collaborator, which ties the class to one concrete class. Look for the class it names. Cure: inject the collaborator as a constructor parameter, with this one as its default if most callers want it.',
     because:
       'the cure adds a constructor parameter, which a person should name; a codemod that injects the collaborator is planned',
   },
@@ -78,7 +78,7 @@ const selectorRows = [
     tier: 'strict',
     selectors: ["MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']"],
     message:
-      'This asks whether a collaborator is there before talking to it; an object that stands in for the missing one, set when this object is built, would let the code just send the message.',
+      'Repeated absence check: this asks whether a collaborator is there before talking to it. Look for the same check in other methods. Cure: Introduce Special Case, a Null Object set when this object is built, so the code just sends the message.',
     because: 'the cure needs a stand-in object whose behaviour a person decides',
   },
   {
@@ -88,7 +88,7 @@ const selectorRows = [
     tier: 'strict',
     selectors: ["PropertyDefinition[optional=true][key.type='PrivateIdentifier']"],
     message:
-      'This private field is set for only part of the life of the object, so every method must ask whether it is there; the values set together may belong to an object of their own, created when they are known.',
+      'Temporary Field: this private field holds a value for only part of the life of the object, so every method must ask whether it is there. Look for the fields set together. Cure: Extract Class for them, created when their values are known.',
     because: 'which fields move into the new object, and who creates it, is for a person to decide',
   },
 ] as const satisfies readonly SelectorRow[];
