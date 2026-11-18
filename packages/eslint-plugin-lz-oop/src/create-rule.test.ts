@@ -31,13 +31,10 @@ test('a rule with remedy "suggestion" gets meta.hasSuggestions, no fixable, and 
   assert.deepEqual(rule.meta.messages, { first: 'First problem.', second: 'Second problem.' });
 });
 
-test('the docs URL points at the rule page named after the rule', () => {
+test("the docs URL points at the readme of the plugin's public repository", () => {
   const rule = ruleWith({ kind: 'fix' });
 
-  assert.equal(
-    rule.meta.docs.url,
-    'https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/some-rule.md',
-  );
+  assert.equal(rule.meta.docs.url, 'https://github.com/LayZeeDK/lz-oop#readme-ov-file');
 });
 
 test('a rule with remedy "none" ends every message with why no automatic change exists', () => {

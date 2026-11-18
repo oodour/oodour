@@ -1,4 +1,5 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
+import packageJson from '../package.json' with { type: 'json' };
 import type { RuleContext, RuleListener, RuleMetaDataDocs, RuleModule } from '@typescript-eslint/utils/ts-eslint';
 
 /**
@@ -45,9 +46,6 @@ export type OopRuleModule<
   readonly meta: { readonly docs: OopRuleDocs & RuleMetaDataDocs };
 };
 
-const docsUrl = (name: string): string =>
-  `https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/${name}.md`;
-
 /**
  * The one way to define a rule in this package. Sets the docs URL, derives `fixable` and `hasSuggestions` from the
  * remedy, and ends every message of a `none` rule with the reason no automatic change exists.
@@ -70,7 +68,7 @@ export function createRule<TOptions extends readonly unknown[], TMessageIds exte
     name: definition.name,
     meta: {
       ...definition.meta,
-      docs: { ...definition.meta.docs, url: docsUrl(definition.name) },
+      docs: { ...definition.meta.docs, url: packageJson.homepage },
       ...(remedy.kind === 'fix' ? { fixable: 'code' } : {}),
       ...(remedy.kind === 'suggestion' ? { hasSuggestions: true } : {}),
       messages,
