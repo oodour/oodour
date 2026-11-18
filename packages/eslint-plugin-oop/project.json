@@ -14,7 +14,11 @@
             "@types/node",
             "eslint",
             "@typescript-eslint/utils",
-            "@typescript-eslint/rule-tester"
+            "@typescript-eslint/rule-tester",
+            "@typescript-eslint/eslint-plugin",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-sonarjs",
+            "eslint-plugin-functional"
           ]
         }
       ]
@@ -33,7 +37,11 @@
             "eslint",
             "typescript-eslint",
             "@typescript-eslint/utils",
-            "@typescript-eslint/rule-tester"
+            "@typescript-eslint/rule-tester",
+            "@typescript-eslint/eslint-plugin",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-sonarjs",
+            "eslint-plugin-functional"
           ]
         },
         { "runtime": "node --version" }
