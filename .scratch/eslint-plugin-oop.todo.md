@@ -1,8 +1,9 @@
 # eslint-plugin-oop todo (poteto Feature playbook under lars-mode)
 
-- [ ] 1. `how` over the affected subsystem.
-- [ ] 2. `architect` for parallel design exploration.
-- [ ] 3. Write the throughput checkpoint as four todo items.
+- [x] 1. `how` over the affected subsystem. (scratchpad how.md; key fact re-read: "off" skips plugin lookup)
+- [x] 2. `architect` for parallel design exploration. (arena: Opus-high and Fable-high runners, Sonnet judge; base
+      candidate-b, see `.scratch/eslint-plugin-oop/design.md` Synthesis decision)
+- [x] 3. Write the throughput checkpoint as four todo items.
   - [ ] Blocking first steps: wave 1 scaffold (package, project.json, devDeps, test harness, presets) before any rule.
   - [ ] Independent workstreams: each custom rule is its own file pair after the scaffold; at most 2 rule workers at
         once (4-agent cap, plus review agents).

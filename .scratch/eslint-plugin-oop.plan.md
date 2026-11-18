@@ -34,6 +34,48 @@ Lars, 2026-11-18, "1: OK" to the recommendation: each `no-restricted-syntax` sel
 by its measured false-positive rate on the three audited repositories (lz-gardener, lz-node-test,
 stryker-playwright-runner, run on scratch clones), and dropped if too noisy for `strict`.
 
+Lars, 2026-11-18: "Borrowed rules can't name our codemods: OK". A borrowed rule's codemod is named in the README
+table generated from the catalog, not in its message.
+
+Lars, 2026-11-18: "Wrapper rule: OK" to Claude's recommendation. `@layzee/oop/class-methods-use-this` wraps
+typescript-eslint's rule. It defaults to `ignoreOverrideMethods: true` and `ignoreClassesWithImplements: 'all'`, uses
+our own message (move the method to the object whose data it uses, or make it a module function for a pure
+calculation; keep `static` for methods that only build an instance), is in the `strict` tier, and has remedy `none`
+until a Move Function codemod exists. The core and typescript-eslint versions stay `off`. It is wave 1b work.
+Spike the context-forwarding wrapper first; if it fails, reimplement the check.
+
+## AFK contract, 2026-11-18 night
+
+Lars, 2026-11-18: "You are running in AFK mode overnight with a 3 agent cap and Fable 5.2 credits".
+
+- **Goal, in priority order** (falls back in this order when goals pull apart):
+  1. `@layzee/eslint-plugin-oop` per `.scratch/eslint-plugin-oop/design.md`, waves 1a, 1b, 2 to 5.
+  2. lz-oop Fallow preset(s) (Lars: "Following that, create `lz-oop` Fallow preset(s).").
+  3. lz-gardener full-cure round on `refactor/oop-audit`:
+     - the finding 3 tests and commit, then findings 5, 1, 4 and 6;
+     - each finding goes through a slim plugin session, then checks, commit, thermos review, fixes, and plugin
+       feedback.
+
+     Heavy test parts only in heavy-lock slots.
+- **Finish condition (checkable):**
+  - `npm exec -- nx run-many -t typecheck lint test -p eslint-plugin-oop` exits 0 on `main`.
+  - Every rule in the audit's Tier 2 list, the catalog's cues and conflicts, and every kept selector are in the
+    package.
+  - Each rule has RuleTester tests and a fix, suggestion or codemod, or `none` with a reason.
+  - One review round is done, with findings resolved or recorded.
+  - StrykerJS at 100% on the package or reasoned disables (lars-mutation-testing), under the heavy lock.
+  - Then the Fallow preset file(s) with a test.
+
+  The gardener round is done when each remaining finding is committed and reviewed. Stop after 3 waves without
+  progress on one goal.
+- **Gates that still hold:** no push, PR, issue or publish. Plugin-run sessions only for audited-repository code. The
+  oracle firewall. Heavy runs only in lock slots. No eval round without Lars's go-ahead. No hook or mod.
+- **Cap:** at most 3 subagents at once. Fable is allowed for the hard parts: codemods, design questions, a stuck
+  approach.
+- **Escape hatch:** if truly stuck, stop and write up why here.
+- **Decision log:** `.scratch/eslint-plugin-oop.decisions.tsv`. Rows are stamped with `date -u` at write time and
+  are Claude's calls, not Lars's.
+
 ## Assumptions (Claude's, stated, reversible)
 
 - Location: a new Nx project `eslint-plugin-oop` at `packages/eslint-plugin-oop/` in this workspace, package name
