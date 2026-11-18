@@ -484,6 +484,44 @@ Wave 1a, 2026-11-18. Each deviation from the sketch and why.
 - **`.nxignore` ignores `.scratch/`**: the sketch's `project.json` named a second `eslint-plugin-oop` project, which
   broke the Nx graph.
 
+Wave 1b, 2026-11-18. Each deviation from the sketch and why.
+
+- **Catalog rows.** A cue is `{ cue, tier, tierReason, options? }`, a conflict `{ conflict }`; the sources are keyed
+  `core`, `@typescript-eslint`, `unicorn`, `sonarjs`, `functional` with `prefix` and `optional`. No `package` field:
+  the loader table in `src/testing/installed-rules.ts` (`Record<SourceId, ...>`) names what each source loads. No
+  `remedy` on cue rows yet: nothing reads it until the README table; it comes with the README wave.
+- **`tierReason`** records each tier choice in one line, next to the rule, so the README can show it.
+- **Left out of the catalog:** `naming-convention` (the `…And…` query-and-command regex) and `no-restricted-imports`
+  each have one options slot that a consumer's own setting would replace or be replaced by, and the imports to ban
+  are the consumer's; `erasableSyntaxOnly` is a tsconfig flag; dependency-cruiser and `import-x/no-cycle` are not
+  catalog sources.
+- **Extension rules.** `dot-notation` and `no-unused-private-class-members` use the typescript-eslint versions only
+  (the first sees `private` bypasses, the second TypeScript `private`). `max-params` is on in both versions, as the
+  brief says, so a TypeScript function with five parameters is reported twice.
+- **Drift messages** list the missing or deprecated rule IDs; they do not print the package version.
+- **Core rule modules** come from `builtinRules` in `eslint/use-at-your-own-risk`, which ESLint 10 marks deprecated
+  with no replacement; one disable comment says why.
+- **One rules layer per preset**, holding own rules and cues together (`PresetEntry`: id, setting, tier, typed), then
+  `oop/conflicts` last. The typed flag of a cue is read from the installed typescript-eslint rule's
+  `meta.docs.requiresTypeChecking`; core cues are untyped.
+- **`OopConfig.rules`** values are `'error' | 'off' | ['error', ...options]`.
+- **Companion configs** (`unicorn`, `sonarjs`, `functional`) hold every cue of their source, whatever its tier. The
+  only functional cue, `immutable-data`, needs type information, so `configs.functional` does too.
+- **`testConfiguredRules`** runs ESLint's own RuleTester with one setup for every borrowed rule:
+  typescript-eslint's parser with the project service on `tests/typed-fixture`, each case's `filename` set to its
+  `file.ts`. It refuses a record that misses a configured cue at run time as well as by type. `testConfiguredRule`
+  takes the ID as a `string` (it throws on one that is not a configured cue), so the loop over the record needs no
+  cast. ESLint 10's RuleTester itself fails a case whose rule fixes without `output` or suggests without
+  `suggestions` (read in `lib/rule-tester/rule-tester.js` at v10.13.0).
+- **The `class-methods-use-this` wrapper wraps; it does not reimplement.** The spike (scratchpad
+  `probes-1b/wrapper-spike.ts`) measured two routes on ESLint 10.13.0: a `Proxy` over the context throws, because
+  ESLint freezes the context and a `Proxy` may not return another value for a frozen data property; an
+  `Object.create(context)` that shadows `options` and `report` works. `Object.create` returns `any`, so the result is
+  held as `unknown` and narrowed by `isRuleContext` (checks `report` and `sourceCode`, the members the upstream rule
+  uses). typescript-eslint 8.72.1 has no `ignoreClassesWithImplements` (core's name); its equivalent
+  `ignoreClassesThatImplementAnInterface: true` is the default, with `ignoreOverrideMethods: true`. The schema is
+  the upstream rule's.
+
 ## Open questions and risks
 
 Questions for Lars, each with Claude's recommendation:
