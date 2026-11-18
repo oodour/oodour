@@ -1,4 +1,4 @@
-# @layzee/fallow-config-oop
+# @layzee/fallow-config-lz-oop
 
 A [Fallow](https://github.com/fallow-rs/fallow) config preset for `lz-oop`. It sets the few Fallow thresholds that
 make `fallow health` point at the places the `lz-audit` skill looks at first: complex functions inside often-changed
@@ -12,11 +12,11 @@ Extend it from your own `.fallowrc.json` by path today:
 
 ```json
 {
-  "extends": "./path/to/lz-oop/packages/fallow-config-oop/fallowrc.json"
+  "extends": "./path/to/lz-oop/packages/fallow-config-lz-oop/fallowrc.json"
 }
 ```
 
-Once the package is published, extend it by name: `"extends": "npm:@layzee/fallow-config-oop"`.
+Once the package is published, extend it by name: `"extends": "npm:@layzee/fallow-config-lz-oop"`.
 
 Fallow merges `extends` sources in order, object by object, and your own file's keys win. To use a stricter or looser
 value than the preset, set the same key in your own file.
@@ -39,7 +39,7 @@ The lz-gardener example, where the four CLIs are the production entry points:
 
 ```json
 {
-  "extends": "./path/to/lz-oop/packages/fallow-config-oop/fallowrc.json",
+  "extends": "./path/to/lz-oop/packages/fallow-config-lz-oop/fallowrc.json",
   "entry": [
     "plugins/lz-gardening/skills/lz-garden/scripts/census.ts",
     "plugins/lz-gardening/skills/lz-garden/scripts/diffs.ts",

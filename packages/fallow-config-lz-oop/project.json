@@ -1,18 +1,18 @@
 {
-  "name": "fallow-config-oop",
+  "name": "fallow-config-lz-oop",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/fallow-config-oop/src",
+  "sourceRoot": "packages/fallow-config-lz-oop/src",
   "targets": {
     "typecheck": {
-      "command": "tsc -p packages/fallow-config-oop/tsconfig.json",
+      "command": "tsc -p packages/fallow-config-lz-oop/tsconfig.json",
       "inputs": ["default", { "externalDependencies": ["typescript", "@types/node", "ajv"] }]
     },
     "lint": {
-      "command": "eslint packages/fallow-config-oop"
+      "command": "eslint packages/fallow-config-lz-oop"
     },
     "test": {
-      "command": "node --test \"packages/fallow-config-oop/src/**/*.test.ts\"",
+      "command": "node --test \"packages/fallow-config-lz-oop/src/**/*.test.ts\"",
       "cache": true,
       "inputs": ["default", { "externalDependencies": ["ajv"] }, { "runtime": "node --version" }],
       "outputs": []
