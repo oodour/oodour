@@ -1,0 +1,2 @@
+# Design sketches hold a project.json for the package they sketch; Nx must not read them as projects.
+.scratch/
