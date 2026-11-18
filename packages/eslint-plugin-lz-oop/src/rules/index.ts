@@ -1,4 +1,5 @@
 import type { OopRuleModule } from '../create-rule.ts';
+import { abcSize } from './abc-size.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 import { cognitiveComplexity } from './cognitive-complexity.ts';
 import { complexity } from './complexity.ts';
@@ -11,6 +12,7 @@ import { selectorRules } from './selector-rules.ts';
 import { typeHoppingChain } from './type-hopping-chain.ts';
 
 const ruleModules: readonly OopRuleModule[] = [
+  abcSize,
   classMethodsUseThis,
   cognitiveComplexity,
   complexity,
