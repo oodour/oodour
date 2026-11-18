@@ -122,6 +122,11 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   store's stage exports, read-only, names and numbers only). Then: "Also run RuboCop and Flog for completeness' sake"
   (in a Docker `ruby` image, in a lock slot, store mounted read-only). And: "Shut down Docker and WSL when unused by
   you and other containers".
+- Lars, 2026-11-18, after the cognitive-alone measurement: "Let's set cognitive complexity to 4." (ESLint
+  `cognitive-complexity` and Fallow `maxCognitive` both 4; cyclomatic stays 4.)
+- Lars, 2026-11-18: "ABC rule: OK." (Claude's recommendation: measure first whether ABC flags functions the size and
+  complexity rules miss, then build the rule only if it does.) On sources: "eslint-plugin-abcsize: ... It could be used
+  as inspiration." and "typhonjs-escomplex: Hasn't been updated in 8 years but could serve as inspiration."
 - Lars, 2026-11-18: "Delete the merged worktrees: Approve merged worktree deletion." (fallow-2, eslint-plugin-w,
   eslint-plugin-r).
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
