@@ -448,7 +448,41 @@ conflicts inside the presets, and selectors as own rules. That agreement is the 
 
 ## Implementation reconciliation
 
-Nothing yet.
+Wave 1a, 2026-11-18. Each deviation from the sketch and why.
+
+- **Type family: the fallback.** Measured with `tsc` on a probe in the package: a plugin object holding rules built with
+  typescript-eslint's types does not type-check as ESLint's `Plugin` (the rule's `create(context)` takes typescript-eslint's
+  `RuleContext`, which ESLint's lacks several members of), so neither `Linter.Config[]` nor `defineConfig` accepts it.
+  `src/presets.ts` therefore types configs as our own wide `OopConfig` (`name`, `plugins` as `{ meta: { name } }`,
+  `rules` as `'error' | 'off'`), and `src/index.ts` types the default export as `OopPlugin` (`meta`, `configs`, no
+  `rules`). Both are reached by annotation, not a cast, and `presets.test.ts` type-checks a consumer's `defineConfig`
+  with them. `Object.assign` stays; getters were not needed. `OopConfigs` is a type literal, not an interface, because
+  ESLint's `Plugin.configs` is a string-keyed record. The config arrays are mutable because `defineConfig` rejects
+  readonly ones.
+- **`createRule` builds the module itself** instead of calling `ESLintUtils.RuleCreator`: RuleCreator's result types
+  `meta.docs` as optional, so every reader (the tester choice, the presets) would need a check. It uses
+  `ESLintUtils.applyDefault` with `meta.defaultOptions`, as RuleCreator does.
+- **`Remedy` has no `codemod` kind yet.** No codemod registry exists, so `CodemodName` would be `never`. The kind comes
+  back with the first codemod wave, together with the `curedBy` cure-contract check.
+- **`tier` is in `OopRuleDocs`** (`'recommended' | 'strict'`), per the synthesis decision. `buildConfigs` builds four
+  presets plus the two aliases, which are the same arrays as their kebab-case keys. One named layer per preset
+  (`oop/recommended`, ...) rather than stacked layers: there are no catalog cues or conflicts yet.
+- **No `@typescript-eslint` plugin registration, no conflicts layer, no companion configs** in `buildConfigs`: those
+  serve the catalog, which is wave 1b.
+- **Cure contract enforcement.** `testRule` throws when the cases never exercise the declared remedy (a `fix` rule
+  with no `output`, a `suggestion` rule with no `suggestions`), so a rule's spec fails to load instead of passing.
+  The check itself is `cureContractProblem`, tested directly.
+- **The node:test hookup wraps** `describe`, `it` and `it.only` in functions that `void` the returned promise, for
+  `no-misused-promises` under the workspace's strict lint.
+- **Docs URL**: `https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/<name>.md`,
+  Claude's placeholder; no docs pages exist yet.
+- **`type-hopping-chain` remedy is `none`** with the reason that the cure adds a delegating method in another file;
+  the hide-delegate codemod comes in a later wave.
+- **Root devDependencies**: only `@typescript-eslint/utils`, `@typescript-eslint/rule-tester` and
+  `@typescript-eslint/eslint-plugin` (8.72.1) were added. unicorn, sonarjs, functional and ts-morph wait for the wave
+  that uses them.
+- **`.nxignore` ignores `.scratch/`**: the sketch's `project.json` named a second `eslint-plugin-oop` project, which
+  broke the Nx graph.
 
 ## Open questions and risks
 
