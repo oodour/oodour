@@ -69,7 +69,19 @@ Two settings are command-line flags only, with no config key:
   cyclomatic² + cyclomatic, so every function of cyclomatic complexity 5 or more reaches the default CRAP limit of 30
   and gets an "add tests" finding. Read CRAP findings only from a run with `--coverage`.
 
-## The values
+## Run it
+
+Run Fallow twice, for two jobs:
+
+- **The gate**, on every change: `fallow health --coverage <coverage> --changed-since <base>`. It reports findings
+  only in files changed since `<base>` (a branch or commit, such as `origin/main`), scores CRAP from measured
+  coverage, and exits 1 on any finding at `error`. Write the coverage first, for example with
+  `NODE_V8_COVERAGE=coverage/v8 node --test` (then pass `coverage/v8`) or your test runner's coverage option (pass its
+  `coverage-final.json`). A function that no test in that coverage ran still gets the estimated CRAP score, so collect
+  the coverage from the whole suite.
+- **The report**, when you look for what to refactor first: `fallow health --hotspots --since 1y --report-only`. It
+  lists files that are both complex and often changed over the year `lz-audit` counts, and never fails the run.
+
 
 Every key the preset sets, the `lz-oop` guidance it serves, and why the number. The test suite checks that this table
 and `fallowrc.json` hold the same keys and values.
