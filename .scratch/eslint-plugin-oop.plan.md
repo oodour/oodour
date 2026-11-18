@@ -110,6 +110,9 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   goes for sonarjs and Fallow cognitive complexity. If unsynced, it should be to account for the differences by a fixed
   factor or similar." (Measured defaults: ESLint `complexity` 20, classic variant; Fallow `maxCyclomatic` 20; sonarjs
   `cognitive-complexity` 15; Fallow `maxCognitive` 15.)
+- Lars, on the complexity question: "All Metz/Owen content in the oracle store should be covered, not only books and
+  talks" (99-bottles-2e-js, metz-talks, metz-written, poodr-2e, owen-talks, 99bottles-js, 99bottles-ruby).
+- Lars: "Moving forward, keep your 3-agent cap".
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
   on the four repositories; neither Metz nor lz-oop names a file limit).
 - Lars: "The "stop and look" lint rule messsages should mention which smell/anti-pattern/what to look for, and their
