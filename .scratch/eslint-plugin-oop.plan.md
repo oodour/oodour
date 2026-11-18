@@ -133,6 +133,11 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   rules related to lz-oop/the oracle store, just cover the angular-eslint complexity rules in lz-oop's README or docs.
   If there *are* additional related *existing* Angular-specific rules, we should create an additional lz-oop ESLint
   plugin package for Angular."
+  Survey result, 2026-11-18 (scratchpad `eslint-plugin-oop/angular-rules-survey.md`, Claude's stances, no rule run):
+  angular-eslint 22.8.0 has 15 related rules beyond the two complexity rules (cues and conflicts), @ngrx/eslint-plugin
+  22.0.1 has 16, codelyzer 6.0.1 adds none not ported to angular-eslint. The condition holds, so the package
+  `@layzee/eslint-plugin-lz-oop-angular` is due. Open for Lars: NgRx as an `ngrx` config with an optional peer
+  dependency in that package (Claude's recommendation) or a separate package.
 - Lars, 2026-11-18, on ESLint, Fallow or both: "Our README or docs just need to cover turning either one off when both
   are used. We don't have to have additional presets for this. Some may prefer keeping both fully enabled."
 - Lars, 2026-11-18, on the ABC and Halstead prior art: "The ABC and Halstead measurement: OK" (Claude's
@@ -147,6 +152,11 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
 - Lars, 2026-11-18: "ABC rule: OK." (Claude's recommendation: measure first whether ABC flags functions the size and
   complexity rules miss, then build the rule only if it does.) On sources: "eslint-plugin-abcsize: ... It could be used
   as inspiration." and "typhonjs-escomplex: Hasn't been updated in 8 years but could serve as inspiration."
+- Lars, 2026-11-18, after the ABC and Halstead measurement: "An ABC rule: Approve recommendation." The recommendation
+  he approved: build an ABC rule in the recommended tier, alongside all the size rules, not instead of them, at a limit
+  of 15 or 17 (2.8% or 2.0% of functions; nothing new while the strict size rules are on); no Halstead rule. Claude's
+  decision on the open number, 2026-11-18: 15, the default of eslint-plugin-abcsize's code and `recommended` config, the
+  only ESLint ABC rule found (RuboCop's 17 is the alternative); reversible as a default option.
 - Lars, 2026-11-18: "Delete the merged worktrees: Approve merged worktree deletion." (fallow-2, eslint-plugin-w,
   eslint-plugin-r).
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
