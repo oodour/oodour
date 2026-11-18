@@ -103,6 +103,28 @@ and `fallowrc.json` hold the same keys and values.
 
 <!-- preset-values:end -->
 
+## With eslint-plugin-lz-oop
+
+Each tool works alone, and both can run fully enabled. They share the cyclomatic and cognitive limits, but they count
+differently, so a function near a limit can fail one and pass the other: ESLint counts cyclomatic complexity a little
+higher (it also counts default values and every `?.`), and Fallow counts cognitive complexity higher (it also counts runs
+of `||` and `??`). The `health.maxCyclomatic` and `health.maxCognitive` rows above give the measured overlap. In ESLint,
+cognitive complexity comes only from the plugin's `sonarjs` companion config.
+
+With both enabled, a function over a limit is reported twice, and an exception needs two entries: an `eslint-disable`
+comment with its reason, and a `fallow-ignore` comment or a `health.thresholdOverrides` entry. To report each function
+once, turn one tool's complexity limits off:
+
+- **Keep ESLint's.** In your Fallow config, set `"complexity-cyclomatic": "off"` and `"complexity-cognitive": "off"`
+  under `rules`. ESLint reports while code is written, and its messages name the smell and the cure. Fallow keeps the
+  CRAP score, the file-length limit, hot spots and change coupling. Fallow's template complexity goes too, since its
+  `<template>` findings (Angular components, Vue, Svelte, Astro) come under the same two rules; in Angular,
+  angular-eslint's `@angular-eslint/template/cyclomatic-complexity` and `@angular-eslint/template/conditional-complexity`
+  rules measure templates instead.
+- **Keep Fallow's.** In your ESLint config, set `@layzee/lz-oop/complexity` and `@layzee/lz-oop/cognitive-complexity`
+  to `"off"`. Fallow then also covers templates and counts cognitive complexity without sonarjs, but it reports only
+  when it runs, and its messages cannot be changed.
+
 ## Kept at Fallow's defaults, and why
 
 - `health.maxCrap` (30): only meaningful with `--coverage` (see above). With the cyclomatic limit at 4 it never fails a
@@ -134,6 +156,6 @@ and `fallowrc.json` hold the same keys and values.
 
 ## Why one preset
 
-A lenient and a strict preset would differ in the limits. The complexity limits match `eslint-plugin-lz-oop`'s, so a
-function passes or fails both tools alike, and the file-length limit holds in four of the five repositories measured.
+A lenient and a strict preset would differ in the limits. The complexity limits match `eslint-plugin-lz-oop`'s, so both
+tools hold a function to the same numbers, and the file-length limit holds in four of the five repositories measured.
 There is no measured second set to back a second preset, so there is one, at least until a measurement says otherwise.
