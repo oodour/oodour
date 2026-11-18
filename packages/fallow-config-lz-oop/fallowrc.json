@@ -8,7 +8,8 @@
     "complexity-file-lines": "error"
   },
   "health": {
-    "maxCyclomatic": 10,
+    "maxCyclomatic": 4,
+    "maxCognitive": 5,
     "maxFileLines": 250,
     "thresholdOverrides": [
       {
