@@ -79,6 +79,32 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   real-world OSS repos." Severities: "Error severity, not warn." `--coverage`: "OK" (the README shows
   `fallow health --coverage`). Open: package name precedent, and what a two-preset split would be.
 - Worktrees: "Approve merged worktree deletion."
+- Fallow name: "`@layzee/fallow-config-lz-oop`: OK". Count: "Only one preset, at least until the measurement is in."
+- Class size rule: "@layzee/lz-oop/max-class-lines: Include options skipBlankLines, skipComments, and similar from
+  `max-lines` with same defaults as `max-lines` unless oracle/lz-oop suggest other defaults."
+- Borrowed size rules: "Stop and look: Add wrappers to pass our messages." So each borrowed size rule gets an
+  `@layzee/lz-oop/` wrapper with our message, and the upstream version is off.
+- Fallow, after the measurement on lz-node-test and stryker-playwright-runner: "complexity-crap: OK" (stays `error`;
+  README says run `fallow health --coverage`; measure CRAP once with real coverage), "changeCoupling.minDegree: OK"
+  (0.4), "Real-world OSS next: OK" (tldraw and ts-morph).
+- "Named lzOopRules export with the LzOopRuleModule and LzOopRuleDocs types: OK". "Delete the agent's scratch
+  workspace: OK".
+- On `max-class-lines`, Lars asked: "Shouldn't the default `max` value for `max-class-lines` be `100` as per
+  lz-oop/oracle? Is that with our without skipping comments or blank lines? Which defaults align with Metz?"
+- "Measure the Ruby and JavaScript line counts through the oracle-curator and the oracle: OK" (the book's companion
+  code in both languages, JavaScript formatted by Prettier, counts only). After the classifier refused the curator's
+  copy-and-format step, Lars: "I approve the curator action" (copy the JS file into `.oracle/_linecount-tmp/js/`, run
+  Prettier on the copy, count, delete the temporary folder).
+- Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
+  on the four repositories; neither Metz nor lz-oop names a file limit).
+- Lars: "The "stop and look" lint rule messsages should mention which smell/anti-pattern/what to look for, and their
+  cure, not just "Stop and look"."
+- On Claude's reading of the 100-line screen for agents (a class should fit the screen of the person who approves
+  it), Lars: "Agreed, code should still be human-readable, whether authored and/or reviewed by agents. Good software
+  engineering practices lead to good code at good quality and maintainability, whether human- or agent-authored."
+  So the limits keep their human-reader rationale; the README states it.
+- (Message ruling, continued.) So every wrapper and custom-rule message names the smell or anti-pattern, what to
+  look for, and the cure (the refactoring and, where one exists, the codemod or fix).
 
 ## AFK contract, 2026-11-18 night
 
