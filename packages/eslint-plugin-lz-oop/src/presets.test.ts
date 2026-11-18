@@ -136,6 +136,13 @@ test('strict turns on each size limit as a rule of this plugin, at error with it
   );
 });
 
+test('strict turns on max-class-lines at 110 lines, not counting blank lines and comments', async () => {
+  assert.deepEqual(await ruleSetting('strict', '@layzee/lz-oop/max-class-lines'), [
+    2,
+    { max: 110, skipBlankLines: true, skipComments: true },
+  ]);
+});
+
 test('every preset turns off the size limits it wraps, so each finding is reported once, under our message', async () => {
   const wrapped = [...Object.keys(sizeLimits), '@typescript-eslint/max-params', 'sonarjs/cognitive-complexity'];
 

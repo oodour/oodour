@@ -584,6 +584,12 @@ plan.
   hold its rules.
 - **`RuleSource.optional` removed.** Which sources have a companion config is the `Companion` type and one list in
   `presets.ts`; two flags would have been two truths.
+- **`max-class-lines`** (Lars's ruling, max 110): its own rule, not a wrapper; nothing upstream counts a class. Options
+  `max`, `skipBlankLines`, `skipComments`, with core `max-lines` names and meanings. A line counts when a token spans
+  it; a line with no token counts as a comment line when a comment spans it (so a blank line inside a block comment is
+  a comment line, as in core `max-lines`), else as a blank line. Class declarations and expressions are both counted,
+  an inner class's lines count toward its outer class too, and lines a mixin or base class brings from another module
+  are not seen. Tier strict, remedy `none`.
 
 ## Open questions and risks
 

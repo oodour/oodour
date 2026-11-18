@@ -2,6 +2,7 @@ import type { OopRuleModule } from '../create-rule.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 import { cognitiveComplexity } from './cognitive-complexity.ts';
 import { complexity } from './complexity.ts';
+import { maxClassLines } from './max-class-lines.ts';
 import { maxDepth } from './max-depth.ts';
 import { maxLinesPerFunction } from './max-lines-per-function.ts';
 import { maxParams } from './max-params.ts';
@@ -13,6 +14,7 @@ const ruleModules: readonly OopRuleModule[] = [
   classMethodsUseThis,
   cognitiveComplexity,
   complexity,
+  maxClassLines,
   maxDepth,
   maxLinesPerFunction,
   maxParams,
