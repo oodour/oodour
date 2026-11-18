@@ -75,7 +75,10 @@ and `fallowrc.json` hold the same keys and values.
 | Key | Value | Serves | Why this number |
 | --- | --- | --- | --- |
 | `minimumVersion` | `"3.43.2"` | All of the below | The version every value was measured on. An older Fallow stops with a message naming both versions instead of failing on an unknown key. |
+| `rules.complexity-file-lines` | `"error"` | The file-length limit below. | Fallow turns the file-length check off until `maxFileLines` is set; with the limit set, an error fails the run like the other complexity rules. |
 | `health.maxCyclomatic` | `10` | `lz-audit` step 2, Complexity: cyclomatic complexity is the least number of tests that covers a function's paths, and the complex functions inside hot spots are where the audit reads first. | On lz-gardener, 10 flags 8 functions, all in the top 9 hot-spot files or in the one complex but rarely changed file, and they include four functions behind three of the audit's six design findings (both command-line parsers, the sync loop, and the bed setup in the file that does three jobs). Fallow's default of 20 flags 1 of those by cyclomatic complexity. 11 is the highest value that still flags all four; 10 is the round number below it and adds one function of complexity 11. |
+| `health.maxFileLines` | `250` | `references/smells.md`, Size limits: a module that holds several jobs is long, and a person who approves code must be able to read it, whoever wrote it. | A file longer than 250 physical lines is flagged. Measured with Fallow 3.43.2 on source files: 250 flags 5.6% of lz-node-test, 4.0% of ts-morph, 14.5% of stryker-playwright-runner and 16.0% of tldraw, and 30% of lz-gardener, where the long script modules are the ones that do several jobs. At 150 to 200 the share rises to 18 to 48% and the extra files are mostly single-purpose; at 300 only one multi-job file in the four established repositories drops out. |
+| `health.thresholdOverrides` | `[{"files":["**/*.test.*","**/*.spec.*","**/__tests__/**"],"maxFileLines":0}]` | The file-length limit above, for production code only. | Test files run long for ordinary reasons: 11 to 64% of them exceed 250 lines in the same repositories. `0` turns the file-length check off for matching files; Fallow requires an override that sets `maxFileLines` to leave `functions` empty, and the cyclomatic, cognitive and CRAP limits still apply to test files. The globs are the test-file globs of `eslint-plugin-lz-oop`, without its `**/*.d.ts`. |
 | `health.changeCoupling.minDegree` | `0.25` | `references/smells.md`, Shotgun Surgery and Divergent Change: files that change together with no import between them. | On lz-gardener, Fallow's default of 0.3 found no pair of production files. 0.25 keeps the other defaults (5 commits per file, 5 shared) and finds 3 pairs: the two reporter CLIs that the audit found out of step (18 shared commits, degree 0.27) and two pairs of test utility modules. |
 
 <!-- preset-values:end -->
@@ -86,10 +89,10 @@ and `fallowrc.json` hold the same keys and values.
   a change.
 - `health.maxCrap` (30): only meaningful with `--coverage` (see above). A higher value would hide real coverage gaps in
   a run that has coverage, and a lower one adds noise to a run that has none.
-- `health.maxUnitSize` and `health.maxFileLines`: `lz-oop`'s size limits (class and method length, parameter count, in
-  the Size limits entry of `references/smells.md`) stay in ESLint. Fallow cannot hold them: it has no parameter limit,
-  it lists functions over `maxUnitSize` only when at least 3% of all functions are over 60 lines, that list never fails
-  a run, and `maxFileLines` counts a file, not a class.
+- `health.maxUnitSize`: `lz-oop`'s class and method length limits and its parameter limit (the Size limits entry of
+  `references/smells.md`) stay in ESLint. Fallow cannot hold them: it has no parameter limit, and it lists functions
+  over `maxUnitSize` only when at least 3% of all functions are over 60 lines, a list that never fails a run. Only the
+  file-length limit, which counts a whole file, is set here.
 - `health.changeCoupling.maxFilesPerCommit`, `minRevisions` and `minSharedRevisions` (30, 5, 5): at degree 0.25,
   lowering the two revision counts to 3 finds 5 pairs on lz-gardener instead of 3, and both added pairs are test
   utility modules.

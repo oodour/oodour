@@ -1,5 +1,6 @@
 import { execSync, spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
@@ -47,6 +48,22 @@ describe('fallowrc.json', () => {
     assert.deepEqual(bareFindings, [['classify', 'crap']]);
   });
 
+  it('reports a 300-line source file and leaves a 300-line test file out of the file-length check', () => {
+    const root = mkdtempSync(fileURLToPath(new URL('../fixtures/file-length-', import.meta.url)));
+    const lines = Array.from({ length: 300 }, (_, index) => `export const value${String(index)} = ${String(index)};`).join('\n');
+    writeFileSync(join(root, 'big.ts'), `${lines}\n`);
+    writeFileSync(join(root, 'big.test.ts'), `${lines}\n`);
+    writeFileSync(
+      join(root, '.fallowrc.json'),
+      JSON.stringify({ extends: '../../fallowrc.json', entry: ['big.ts', 'big.test.ts'] }),
+    );
+
+    const findings = complexityReport(root, '.fallowrc.json').map((finding) => [finding['path'], finding['exceeded']]);
+    rmSync(root, { recursive: true });
+
+    assert.deepEqual(findings, [['big.ts', 'file_lines']]);
+  });
+
   it('holds exactly the values the README table states', () => {
     const preset = readJson(presetUrl);
     assert.ok(isRecord(preset));
@@ -59,6 +76,11 @@ describe('fallowrc.json', () => {
 
 function complexityFindings(configFile: string): readonly (readonly unknown[])[] {
   const root = fileURLToPath(new URL('../fixtures/consumer/', import.meta.url));
+
+  return complexityReport(root, configFile).map((finding) => [finding['name'], finding['exceeded']]);
+}
+
+function complexityReport(root: string, configFile: string): readonly Readonly<Record<string, unknown>>[] {
   const run = spawnSync(`${fallow} health --root . --config ${configFile} --no-cache --format json --quiet`, {
     cwd: root,
     encoding: 'utf8',
@@ -68,7 +90,5 @@ function complexityFindings(configFile: string): readonly (readonly unknown[])[]
   const report: unknown = JSON.parse(run.stdout);
   assert.ok(isRecord(report) && Array.isArray(report['findings']), `no findings list in: ${run.stdout}${run.stderr}`);
 
-  return report['findings'].map((finding: unknown) =>
-    isRecord(finding) ? [finding['name'], finding['exceeded']] : [finding],
-  );
+  return report['findings'].filter(isRecord);
 }

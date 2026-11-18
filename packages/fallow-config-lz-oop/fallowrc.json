@@ -1,8 +1,18 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/v3.43.2/schema.json",
   "minimumVersion": "3.43.2",
+  "rules": {
+    "complexity-file-lines": "error"
+  },
   "health": {
     "maxCyclomatic": 10,
+    "maxFileLines": 250,
+    "thresholdOverrides": [
+      {
+        "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+        "maxFileLines": 0
+      }
+    ],
     "changeCoupling": {
       "minDegree": 0.25
     }
