@@ -16,6 +16,7 @@
             "@typescript-eslint/utils",
             "@typescript-eslint/rule-tester",
             "@typescript-eslint/eslint-plugin",
+            "@eslint-community/eslint-plugin-eslint-comments",
             "eslint-plugin-unicorn",
             "eslint-plugin-sonarjs",
             "eslint-plugin-functional"
@@ -39,6 +40,7 @@
             "@typescript-eslint/utils",
             "@typescript-eslint/rule-tester",
             "@typescript-eslint/eslint-plugin",
+            "@eslint-community/eslint-plugin-eslint-comments",
             "eslint-plugin-unicorn",
             "eslint-plugin-sonarjs",
             "eslint-plugin-functional"

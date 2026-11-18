@@ -158,6 +158,20 @@ export const existingRules = {
       },
     },
   },
+  '@eslint-community/eslint-comments': {
+    prefix: '@eslint-community/eslint-comments/',
+    optional: false,
+    rules: {
+      'require-description': {
+        cue:
+          'A rule is broken only on purpose: a comment that turns a rule off says why, so the reason is there to ' +
+          'review. Comments that turn nothing off need none.',
+        tier: 'recommended',
+        tierReason: 'It fires only on a comment that turns a rule off without saying why.',
+        options: [{ ignore: ['eslint-enable', 'eslint-env', 'exported', 'global', 'globals'] }],
+      },
+    },
+  },
   unicorn: {
     prefix: 'unicorn/',
     optional: true,

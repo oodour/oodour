@@ -68,6 +68,17 @@ testConfiguredRules({
       },
     ],
   },
+  '@eslint-community/eslint-comments/require-description': {
+    valid: [
+      '// eslint-disable-next-line no-console -- the CLI prints its result\nconsole.log(1);',
+      '/* eslint-disable no-console -- the CLI prints its result */\nconsole.log(1);\n/* eslint-enable no-console */',
+      '/* global answer */\nanswer;',
+    ],
+    invalid: [
+      { code: '// eslint-disable-next-line no-console\nconsole.log(1);', errors: [{ messageId: 'missingDescription' }] },
+      { code: '/* eslint no-console: "off" */\nconsole.log(1);', errors: [{ messageId: 'missingDescription' }] },
+    ],
+  },
   'sonarjs/cognitive-complexity': {
     valid: [ifs(5)],
     invalid: [{ code: ifs(6), errors: [{ messageId: 'refactorFunction' }] }],

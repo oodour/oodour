@@ -121,6 +121,17 @@ test('strict turns on the typescript-eslint max-params at three parameters', asy
   assert.deepEqual(await ruleSetting('strict', '@typescript-eslint/max-params'), [2, { max: 3 }]);
 });
 
+test('every preset requires a reason on each comment that turns a rule off', async () => {
+  const settings = await Promise.all(
+    presetNames.map((preset) => ruleSetting(preset, '@eslint-community/eslint-comments/require-description')),
+  );
+
+  assert.deepEqual(
+    settings,
+    presetNames.map(() => [2, { ignore: ['eslint-enable', 'eslint-env', 'exported', 'global', 'globals'] }]),
+  );
+});
+
 test('every preset turns off the core max-params, so a function is reported once', async () => {
   const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, 'max-params')));
 

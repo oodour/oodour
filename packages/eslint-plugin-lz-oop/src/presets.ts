@@ -1,3 +1,4 @@
+import eslintCommentsPlugin from '@eslint-community/eslint-plugin-eslint-comments';
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import type { OopRuleModule, Tier } from './create-rule.ts';
 import { existingRules, listExistingRules, type CatalogRow, type SourceId } from './existing-rules.ts';
@@ -9,11 +10,12 @@ export const pluginNamespace = '@layzee/lz-oop';
  * A flat config object, typed wider than ESLint's own `Linter.Config` on purpose: a rule built with typescript-eslint's
  * types does not type-check as an ESLint rule, so a plugin object holding one cannot be typed as `ESLint.Plugin`. This
  * shape is assignable to `Linter.Config` and accepted by `defineConfig`, the route typescript-eslint itself takes.
+ * A plugin is any object, since eslint-plugin-eslint-comments has no `meta`.
  * The arrays stay mutable because `defineConfig` does not accept readonly ones.
  */
 export interface OopConfig {
   readonly name: string;
-  readonly plugins?: Readonly<Record<string, { readonly meta: { readonly name: string } }>>;
+  readonly plugins?: Readonly<Record<string, object>>;
   readonly ignores?: string[];
   readonly rules?: Readonly<Record<string, 'error' | 'off' | ['error', ...unknown[]]>>;
 }
@@ -50,7 +52,11 @@ export interface RegisteredPlugin {
 export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
   const plugins: OopConfig = {
     name: 'lz-oop/plugins',
-    plugins: { [pluginNamespace]: plugin, '@typescript-eslint': tseslintPlugin },
+    plugins: {
+      [pluginNamespace]: plugin,
+      '@typescript-eslint': tseslintPlugin,
+      '@eslint-community/eslint-comments': eslintCommentsPlugin,
+    },
   };
   const entries = [...ownRuleEntries(plugin), ...cueEntries((source) => !existingRules[source].optional)];
   const layers = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [

@@ -1,3 +1,4 @@
+import eslintCommentsPlugin from '@eslint-community/eslint-plugin-eslint-comments';
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import type { Rule } from 'eslint';
 import { builtinRules } from 'eslint/use-at-your-own-risk';
@@ -11,6 +12,7 @@ const ruleTables: Record<SourceId, Readonly<Record<string, unknown>>> = {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module, which RuleTester needs
   core: Object.fromEntries(builtinRules),
   '@typescript-eslint': tseslintPlugin.rules,
+  '@eslint-community/eslint-comments': eslintCommentsPlugin.rules,
   unicorn: unicorn.rules ?? {},
   sonarjs: sonarjs.rules,
   functional: functional.rules,
