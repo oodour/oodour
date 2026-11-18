@@ -9,6 +9,7 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
     "eslint": "^10.0.0"
   },
   "dependencies": {
