@@ -220,6 +220,17 @@ export const existingRules = {
 
 export type SourceId = keyof typeof existingRules;
 
+type Catalog = typeof existingRules;
+
+type ConfiguredIdsOf<TSource extends SourceId> = {
+  [TName in keyof Catalog[TSource]['rules']]: Catalog[TSource]['rules'][TName] extends { readonly options: readonly unknown[] }
+    ? `${Catalog[TSource]['prefix']}${TName & string}`
+    : never;
+}[keyof Catalog[TSource]['rules']];
+
+/** The ID of every cue the catalog sets options for: each needs RuleTester cases that pin those options. */
+export type ConfiguredRuleId = { [TSource in SourceId]: ConfiguredIdsOf<TSource> }[SourceId];
+
 /** One catalog entry with the rule ID a config uses for it. */
 export interface CatalogRow {
   readonly source: SourceId;

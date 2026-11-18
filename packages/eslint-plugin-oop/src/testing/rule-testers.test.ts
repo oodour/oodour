@@ -2,7 +2,49 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRule, type Remedy } from '../create-rule.ts';
 import { join } from 'node:path';
-import { cureContractProblem, testerConfigFor, testRule } from './rule-testers.ts';
+import { cureContractProblem, testConfiguredRule, testConfiguredRules, testerConfigFor, testRule } from './rule-testers.ts';
+
+test('testConfiguredRules refuses cases that leave a configured cue out', () => {
+  assert.throws(
+    () => {
+      // @ts-expect-error -- every configured cue needs cases, so an empty record does not type-check
+      testConfiguredRules({});
+    },
+    { message: /^Configured cues without cases: max-lines-per-function, / },
+  );
+});
+
+// The catalog sets max-params to 4, so four parameters pass where the rule's own default of 3 would report them.
+test('testConfiguredRule runs the cases with the catalog options', () => {
+  testConfiguredRule('max-params', {
+    valid: ['function f(a, b, c, d) {}'],
+    invalid: [{ code: 'function f(a, b, c, d, e) {}', errors: [{ messageId: 'exceed' }] }],
+  });
+});
+
+test('testConfiguredRule gives a rule that needs type information the strict typed fixture', () => {
+  const shape = "type Shape = 'circle' | 'square';\ndeclare const shape: Shape;\n";
+
+  testConfiguredRule('@typescript-eslint/switch-exhaustiveness-check', {
+    valid: [`${shape}switch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n`],
+    invalid: [
+      {
+        code: `${shape}switch (shape) {\n  case 'circle':\n    break;\n  default:\n    break;\n}\n`,
+        errors: [
+          {
+            messageId: 'switchIsNotExhaustive',
+            suggestions: [
+              {
+                messageId: 'addMissingCases',
+                output: `${shape}switch (shape) {\n  case 'circle':\n    break;\n  case "square": { throw new Error('Not implemented yet: "square" case') }\n  default:\n    break;\n}\n`,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+});
 
 function ruleWith(remedy: Remedy, requiresTypeChecking = false) {
   return createRule({
