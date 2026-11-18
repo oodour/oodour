@@ -29,6 +29,46 @@ const selectorCases = {
       },
     ],
   },
+  'module-let': {
+    valid: [
+      'const limit = 3;',
+      'export function total(items) { let sum = 0; items.forEach((item) => { sum += item; }); return sum; }',
+    ],
+    invalid: [
+      {
+        code: `
+          let activeSession;
+          export function begin(session) { activeSession = session; }
+          export function current() { return activeSession; }
+        `,
+        errors: [{ messageId: 'found' }],
+      },
+    ],
+  },
+  'new-in-constructor': {
+    valid: [
+      "class Port { constructor(n) { if (n < 0) { throw new PortRangeError('negative'); } this.n = n; } }",
+      'class Tally { constructor() { this.counts = new Map(); } }',
+      "class Checkout { constructor(gateway = new CardGateway('live')) { this.gateway = gateway; } }",
+    ],
+    invalid: [
+      {
+        code: `
+          class Checkout {
+            constructor(cart) {
+              this.cart = cart;
+              this.gateway = new CardGateway('live');
+            }
+          }
+        `,
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: 'class Store { constructor(options) { this.guard = options.guard ?? new ActionGuard(options); } }',
+        errors: [{ messageId: 'found' }],
+      },
+    ],
+  },
 } satisfies Record<SelectorRuleName, RunTests<SelectorMessageId, []>>;
 
 Object.entries(selectorCases).forEach(([name, cases]) => {
