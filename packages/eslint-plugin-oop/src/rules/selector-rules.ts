@@ -53,6 +53,26 @@ const selectorRows = [
     because:
       'the cure adds a constructor parameter, which a person should name; a codemod that injects the collaborator is planned',
   },
+  {
+    name: 'optional-collaborator',
+    description: 'Report optional chaining on a field of `this`',
+    concept: 'Null Object',
+    tier: 'strict',
+    selectors: ["MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']"],
+    message:
+      'This asks whether a collaborator is there before talking to it; an object that stands in for the missing one, set when this object is built, would let the code just send the message.',
+    because: 'the cure needs a stand-in object whose behaviour a person decides',
+  },
+  {
+    name: 'optional-private-field',
+    description: 'Report an optional #private field',
+    concept: 'Temporary Field',
+    tier: 'strict',
+    selectors: ["PropertyDefinition[optional=true][key.type='PrivateIdentifier']"],
+    message:
+      'This private field is set for only part of the life of the object, so every method must ask whether it is there; the values set together may belong to an object of their own, created when they are known.',
+    because: 'which fields move into the new object, and who creates it, is for a person to decide',
+  },
 ] as const satisfies readonly SelectorRow[];
 
 export type SelectorRuleName = (typeof selectorRows)[number]['name'];

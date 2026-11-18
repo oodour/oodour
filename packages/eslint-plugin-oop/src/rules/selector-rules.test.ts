@@ -69,6 +69,38 @@ const selectorCases = {
       },
     ],
   },
+  'optional-collaborator': {
+    valid: [
+      'class Dialog { title() { return this.data.title; } }',
+      'function title(dialog) { return dialog.data?.title; }',
+      'class Dialog { close() { this.onClose?.(); } }',
+    ],
+    invalid: [
+      {
+        code: `
+          class Dialog {
+            title() { return this.data?.title ?? 'Untitled'; }
+          }
+        `,
+        errors: [{ messageId: 'found' }],
+      },
+    ],
+  },
+  'optional-private-field': {
+    valid: ['class Badge { @Input() caption?: string; }', 'class ServerOptions { port?: number; host?: string; }'],
+    invalid: [
+      {
+        code: `
+          class Importer {
+            #batch?: Batch;
+            start(source: Source) { this.#batch = source.open(); }
+            next() { return this.#batch?.read(); }
+          }
+        `,
+        errors: [{ messageId: 'found' }],
+      },
+    ],
+  },
 } satisfies Record<SelectorRuleName, RunTests<SelectorMessageId, []>>;
 
 Object.entries(selectorCases).forEach(([name, cases]) => {
