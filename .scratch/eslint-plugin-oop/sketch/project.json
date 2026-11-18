@@ -1,0 +1,54 @@
+{
+  "name": "eslint-plugin-oop",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/eslint-plugin-oop/src",
+  "targets": {
+    "typecheck": {
+      "command": "tsc -p packages/eslint-plugin-oop/tsconfig.json",
+      "inputs": [
+        "default",
+        {
+          "externalDependencies": [
+            "typescript",
+            "@types/node",
+            "eslint",
+            "@typescript-eslint/eslint-plugin",
+            "@typescript-eslint/utils",
+            "@typescript-eslint/rule-tester",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-sonarjs",
+            "eslint-plugin-functional",
+            "ts-morph"
+          ]
+        }
+      ]
+    },
+    "lint": {
+      "command": "eslint packages/eslint-plugin-oop"
+    },
+    "test": {
+      "command": "node --test \"packages/eslint-plugin-oop/src/**/*.test.ts\"",
+      "cache": true,
+      "inputs": [
+        "default",
+        {
+          "externalDependencies": [
+            "typescript",
+            "eslint",
+            "@typescript-eslint/eslint-plugin",
+            "@typescript-eslint/parser",
+            "@typescript-eslint/utils",
+            "@typescript-eslint/rule-tester",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-sonarjs",
+            "eslint-plugin-functional",
+            "ts-morph"
+          ]
+        },
+        { "runtime": "node --version" }
+      ],
+      "outputs": []
+    }
+  }
+}

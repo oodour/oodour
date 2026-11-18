@@ -1,0 +1,23 @@
+{
+  "name": "@layzee/eslint-plugin-oop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ESLint rules and presets for object-oriented design in JavaScript and TypeScript.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "oop-codemod": "./src/run-codemod.ts"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "eslint": "^10.0.0",
+    "typescript": ">=4.8.4 <6.1.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.72.0",
+    "ts-morph": "*"
+  }
+}
