@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/v3.43.2/schema.json",
+  "minimumVersion": "3.43.2",
+  "health": {
+    "maxCyclomatic": 10,
+    "changeCoupling": {
+      "minDegree": 0.25
+    }
+  }
+}

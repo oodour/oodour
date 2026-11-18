@@ -1,0 +1,4 @@
+{
+  "extends": "../../fallowrc.json",
+  "entry": ["classify.js"]
+}

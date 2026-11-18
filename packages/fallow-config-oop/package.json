@@ -1,0 +1,9 @@
+{
+  "name": "@layzee/fallow-config-oop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fallow thresholds that point a health run at the places lz-oop's audit looks first.",
+  "main": "fallowrc.json",
+  "files": ["fallowrc.json", "README.md"]
+}
