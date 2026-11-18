@@ -1,0 +1,74 @@
+import { ESLintUtils } from '@typescript-eslint/utils';
+import type { RuleContext, RuleListener, RuleModule } from '@typescript-eslint/utils/ts-eslint';
+
+/**
+ * How a reader gets from a report to changed code, in order of preference. Every kind after `fix` says why nothing
+ * earlier in the order is possible.
+ */
+export type Remedy =
+  | { readonly kind: 'fix' }
+  | { readonly kind: 'suggestion'; readonly because: string }
+  | { readonly kind: 'none'; readonly because: string };
+
+export type Tier = 'recommended' | 'strict';
+
+export interface OopRuleDocs {
+  /** The lz-oop concept the rule prompts a look at. */
+  readonly concept: string;
+  /** Decides whether the rule lands in a `-type-checked` preset and which tester `testRule` runs it under. */
+  readonly requiresTypeChecking: boolean;
+  readonly remedy: Remedy;
+  readonly tier: Tier;
+}
+
+/**
+ * What a rule module hands to `createRule`: typescript-eslint's `RuleCreator` input, except that `fixable` and
+ * `hasSuggestions` come from `docs.remedy` and `defaultOptions` lives in `meta`.
+ */
+export interface OopRuleDefinition<TOptions extends readonly unknown[], TMessageIds extends string> {
+  readonly name: string;
+  readonly meta: Omit<
+    ESLintUtils.NamedCreateRuleMeta<TMessageIds, OopRuleDocs, TOptions>,
+    'fixable' | 'hasSuggestions' | 'defaultOptions'
+  > & { readonly defaultOptions: TOptions };
+  readonly create: (context: Readonly<RuleContext<TMessageIds, TOptions>>, options: Readonly<TOptions>) => RuleListener;
+}
+
+export type OopRuleModule<
+  TMessageIds extends string = string,
+  TOptions extends readonly unknown[] = readonly unknown[],
+> = RuleModule<TMessageIds, TOptions, OopRuleDocs> & { readonly name: string };
+
+const namedRule = ESLintUtils.RuleCreator<OopRuleDocs>(
+  (name) => `https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/${name}.md`,
+);
+
+/**
+ * The one way to define a rule in this package. Sets the docs URL, derives `fixable` and `hasSuggestions` from the
+ * remedy, and ends every message of a `none` rule with the reason no automatic change exists.
+ */
+export function createRule<TOptions extends readonly unknown[], TMessageIds extends string>(
+  definition: OopRuleDefinition<TOptions, TMessageIds>,
+): OopRuleModule<TMessageIds, TOptions> {
+  const { remedy } = definition.meta.docs;
+  const sentence = remedy.kind === 'none' ? ` No automatic change: ${remedy.because}.` : '';
+  const messages: Record<TMessageIds, string> = { ...definition.meta.messages };
+  const isMessageId = (key: string): key is TMessageIds => Object.hasOwn(messages, key);
+
+  Object.keys(messages)
+    .filter(isMessageId)
+    .forEach((id) => {
+      messages[id] = `${messages[id]}${sentence}`;
+    });
+
+  return namedRule({
+    name: definition.name,
+    meta: {
+      ...definition.meta,
+      ...(remedy.kind === 'fix' ? { fixable: 'code' } : {}),
+      ...(remedy.kind === 'suggestion' ? { hasSuggestions: true } : {}),
+      messages,
+    },
+    create: definition.create,
+  });
+}

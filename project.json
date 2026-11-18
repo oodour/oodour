@@ -18,7 +18,7 @@
       "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard && tsc -p .claude/mods/oracle-guard/.node-test"
     },
     "lint": {
-      "command": "eslint ."
+      "command": "eslint . --ignore-pattern \"packages/\""
     },
     "test": {
       "command": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\" \".claude/mods/oracle-guard/.node-test/*.test.ts\"",
