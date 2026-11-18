@@ -174,6 +174,26 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   of 15 or 17 (2.8% or 2.0% of functions; nothing new while the strict size rules are on); no Halstead rule. Claude's
   decision on the open number, 2026-11-18: 15, the default of eslint-plugin-abcsize's code and `recommended` config, the
   only ESLint ABC rule found (RuboCop's 17 is the alternative); reversible as a default option.
+- Lars, 2026-11-18, on the eight open items: "Middle Man, same-value parameter, and Data Clumps within a module: OK"
+  (measure false positives first, then decide each); "Temporaries: OK" (wrap sonarjs `prefer-immediate-return`, cure
+  Inline Temp, after counting its findings); "foreign-knowledge and positional arguments: OK" (count positional
+  arguments only for receivers the code does not own); "A template rule for deep data paths: OK" (deferred); "A
+  thin-component rule: OK" (none). On `no-super-lifecycle-call`: "Let's discard NgRx-specific lint rules and presets.
+  In fact, I think we shoul only include Angular rules -- whether existing or custom -- that have a direct correlation
+  to lz-oop/oracle like the angular-eslint template complexity rules." Still open: the `ts-private` `inject()`
+  exemption (he asked for the original reason) and `new-in-constructor` field initialisers (he asked for examples).
+- Lars, 2026-11-18: "ts-private: remove the inject() exemption: OK"; "Angular rule list: OK" (keep the direct-tie
+  rules, drop `no-empty-lifecycle-method`, `prefer-output-readonly`, template `no-any`, `require-switch-default`);
+  "new-in-constructor: OK" (field initialisers, `values` option, measured first). "template prefer-at-else:
+  `@if`+`@else` is additionally provenly better for performance than `@if`+`@if`." "no-global-document: We could
+  configure a restricted globals ESLint rule to force Angular application to wrap all browser global objects in
+  `InjectionToken`s or other DI symbols." "For Angular-specific custom lint rules, use angular-eslint's exported
+  utilities." "Oracle should also look for Metz on ABC calculation in oracle sources other than books." On
+  `no-super-lifecycle-call`: "I don't understand why components extending other components/directives shouldn't be
+  allowed to call super.ngOnInit() to run its ancestor's initialization. When you say "hooks instead of super", I'm
+  thinking that super.ngOnInit() *is* a hook so I don't see the issue." (open: Claude to explain)
+- Lars, 2026-11-18: "ABC rule: Go ahead, calculate as recommended by Metz" (count A, B and C as *99 Bottles of OOP*
+  does; the counting details come from the oracle, not from eslint-plugin-abcsize).
 - Lars, 2026-11-18: "Delete the merged worktrees: Approve merged worktree deletion." (fallow-2, eslint-plugin-w,
   eslint-plugin-r).
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
