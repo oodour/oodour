@@ -95,6 +95,15 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   code in both languages, JavaScript formatted by Prettier, counts only). After the classifier refused the curator's
   copy-and-format step, Lars: "I approve the curator action" (copy the JS file into `.oracle/_linecount-tmp/js/`, run
   Prettier on the copy, count, delete the temporary folder).
+- "max-class-lines defaults: OK but with `max: 110` to match the ~1.10 factor between Ruby and
+  JavaScript/TypeScript classes". So `@layzee/lz-oop/max-class-lines` defaults to `max: 110`, `skipBlankLines: true`,
+  `skipComments: true`, counting the whole class from its `class` line to its closing brace (measured: the book's JS
+  classes are 1.06 to 1.09 times their Ruby, physical and code lines).
+- Lars asked to "Include the Gilded Rose JavaScript kata used by the lz-tdd repo as a real-world repo for verifying
+  the `lz-audit` skill followed by the `lz-oop` skill to gather plugin feedback."
+- Fallow, after the file-length measurement on five repositories: "maxFileLines: 250, with complexity-file-lines at
+  error: OK" and "Test files and the file-length rule: OK" (test files left out of the file-length check through a
+  threshold override).
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
   on the four repositories; neither Metz nor lz-oop names a file limit).
 - Lars: "The "stop and look" lint rule messsages should mention which smell/anti-pattern/what to look for, and their
