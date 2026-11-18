@@ -138,6 +138,17 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   22.0.1 has 16, codelyzer 6.0.1 adds none not ported to angular-eslint. The condition holds, so the package
   `@layzee/eslint-plugin-lz-oop-angular` is due. Open for Lars: NgRx as an `ngrx` config with an optional peer
   dependency in that package (Claude's recommendation) or a separate package.
+- Lars, 2026-11-18, on a `switch` factory over four or more kinds passing the cyclomatic limit of 4 (Claude's
+  recommendation: keep the limit, the factory states its exception): "Switch factories under the cyclomatic limit of 4:
+  OK".
+- Lars, 2026-11-18, on codelyzer's `templates-use-public`: "The latest version of Angular supports templates reading
+  `public`, `protected`, or even `private` members (but not `#private` members). I prefer `protected` since it is a
+  clear indication of a template-only component member, given that component inheritance is rare and generally
+  discouraged with directive composition being the more modern, Angular-native alternative, although I covered Angular
+  inheritance in my Angular Ivy book."
+- Lars, 2026-11-18, on where NgRx stances go: "How directly related are they to lz-oop/oracle? This goes for all
+  rules/concepts discussed. *If* we add NgRx rules, I agree with your recommendation." (the recommendation: an `ngrx`
+  config in `@layzee/eslint-plugin-lz-oop-angular` with `@ngrx/eslint-plugin` as an optional peer dependency).
 - Lars, 2026-11-18, on ESLint, Fallow or both: "Our README or docs just need to cover turning either one off when both
   are used. We don't have to have additional presets for this. Some may prefer keeping both fully enabled."
 - Lars, 2026-11-18, on the ABC and Halstead prior art: "The ABC and Halstead measurement: OK" (Claude's
