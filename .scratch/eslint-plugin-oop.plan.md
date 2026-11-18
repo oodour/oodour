@@ -124,6 +124,17 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   you and other containers".
 - Lars, 2026-11-18, after the cognitive-alone measurement: "Let's set cognitive complexity to 4." (ESLint
   `cognitive-complexity` and Fallow `maxCognitive` both 4; cyclomatic stays 4.)
+- Lars, 2026-11-18, on keeping Fallow's complexity gates on in the preset (Claude's recommendation: keep them at
+  `error`, and tell consumers who also run the ESLint plugin how to turn them off): "1: Agreed. Fallow's complexity
+  checks seem slightly beneficial over ESLint's, especially to template-based frontend frameworks like Angular. At
+  the same time, we don't want to force Fallow onto lz-oop consumers so we need to support both ESLint and Fallow as
+  well as either/or."
+- Lars, 2026-11-18, on Angular template complexity: "Unless angular-eslint and other Angular ESLint plugins have other
+  rules related to lz-oop/the oracle store, just cover the angular-eslint complexity rules in lz-oop's README or docs.
+  If there *are* additional related *existing* Angular-specific rules, we should create an additional lz-oop ESLint
+  plugin package for Angular."
+- Lars, 2026-11-18, on ESLint, Fallow or both: "Our README or docs just need to cover turning either one off when both
+  are used. We don't have to have additional presets for this. Some may prefer keeping both fully enabled."
 - Lars, 2026-11-18, on the ABC and Halstead prior art: "The ABC and Halstead measurement: OK" (Claude's
   recommendation: one throwaway measurement of ABC, counted as eslint-plugin-abcsize does plus loops, and Halstead
   volume, counted per function from tokens as eslint-plugin-code-metrics does, over the four repositories and the
