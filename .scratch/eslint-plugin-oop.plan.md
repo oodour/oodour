@@ -118,6 +118,10 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
   cognitive 5 (sonarjs, wrapped) = Fallow `maxCognitive` 5. Basis: no Metz or Owen source sets a number; the book's JS
   companion code never exceeds 4 cyclomatic or 2 cognitive at any chapter end (curator measurement); the same number
   gives the best overlap between the tools (90.5% cyclomatic, 84.6% cognitive on four repositories).
+- Lars, 2026-11-18: "Measure the Ruby companion code with lizard: OK." (the curator runs `uv tool run lizard` over the
+  store's stage exports, read-only, names and numbers only). Then: "Also run RuboCop and Flog for completeness' sake"
+  (in a Docker `ruby` image, in a lock slot, store mounted read-only). And: "Shut down Docker and WSL when unused by
+  you and other containers".
 - Lars, 2026-11-18: "Delete the merged worktrees: Approve merged worktree deletion." (fallow-2, eslint-plugin-w,
   eslint-plugin-r).
 - Fallow: "I would include `complexity-file-lines` with a set `maxFileLines`" (value from a file-length measurement
