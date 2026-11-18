@@ -44,6 +44,13 @@ calculation; keep `static` for methods that only build an instance), is in the `
 until a Move Function codemod exists. The core and typescript-eslint versions stay `off`. It is wave 1b work.
 Spike the context-forwarding wrapper first; if it fails, reimplement the check.
 
+Lars, 2026-11-18 morning, on the morning brief: "Delete node_modules in the finished worktrees: OK". "The docs URL:
+Link to the GitHub repo's `#readme` anchor (if that still works)." "All exported symbols should be prefixed with
+`LzOop`, `lzOop`, or `lz-oop-`." He asked to be interviewed about each open Fallow preset call, whether the wave 1b
+limits are in line with lz-oop and the oracle and what a better developer experience would be, and what
+`configs.conflicts`, the codemod command naming conventions and the `remedy` field are, and why `OopPlugin` hides
+`rules`.
+
 ## AFK contract, 2026-11-18 night
 
 Lars, 2026-11-18: "You are running in AFK mode overnight with a 3 agent cap and Fable 5.2 credits".
