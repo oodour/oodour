@@ -4,7 +4,6 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
-  mkdtempSync,
   readdirSync,
   readFileSync,
   realpathSync,
@@ -15,9 +14,10 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { test } from 'node:test';
 import { describeRuns, findRuns, loadCorpus, main, parseArgs, permittedPhrases, tokenize } from './source-overlap.ts';
+import { tempDir } from './temp-dir.ts';
 
 function syntheticStore(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  const dir = tempDir('oracle-store-');
   mkdirSync(join(dir, 'book'));
   writeFileSync(
     join(dir, 'book', 'ch1.md'),
@@ -130,7 +130,7 @@ test('a talk title in the co-author talks index is a name too', () => {
 });
 
 test('curly apostrophes and case do not hide a copy', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  const dir = tempDir('oracle-store-');
   mkdirSync(join(dir, 'book'));
   writeFileSync(join(dir, 'book', 'a.md'), "it's the code that we don't want to keep around");
 
@@ -152,7 +152,7 @@ test('compatibility characters in a copy do not hide it', () => {
 });
 
 test('compatibility characters in the store are normalized too', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  const dir = tempDir('oracle-store-');
   mkdirSync(join(dir, 'book'));
   writeFileSync(join(dir, 'book', 'a.md'), 'we ﬁnd the ﬁrst ﬁx that ﬁts');
 
@@ -163,7 +163,7 @@ const lifted = 'one two three four five six seven eight';
 
 // A store whose only run of text sits in the named file.
 function storeWith(path: string, content: string = lifted): string {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-'));
+  const dir = tempDir('oracle-store-');
   const file = join(dir, ...path.split('/'));
   mkdirSync(join(file, '..'), { recursive: true });
   writeFileSync(file, content);
@@ -265,7 +265,7 @@ test('a --corpus with no folder after it is refused, not read as the store', () 
 
 test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
   const store = syntheticStore();
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const dir = tempDir('oracle-drafts-');
   const clean = join(dir, 'clean.md');
   const copy = join(dir, 'copy.md');
   writeFileSync(clean, 'A fox leaps a sleepy hound.');
@@ -281,8 +281,8 @@ test('the command exits 0 when clean, 1 on overlap and 2 on bad usage', (t) => {
 });
 
 test('a corpus folder with no text files in it is refused with exit 2, not reported clean', (t) => {
-  const empty = mkdtempSync(join(tmpdir(), 'open-corpus-'));
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const empty = tempDir('open-corpus-');
+  const dir = tempDir('oracle-drafts-');
   const draft = join(dir, 'draft.md');
   writeFileSync(draft, 'A fox leaps a sleepy hound.');
   const printed: string[] = [];
@@ -294,7 +294,7 @@ test('a corpus folder with no text files in it is refused with exit 2, not repor
 });
 
 test('a corpus folder that does not exist is refused with exit 2, not thrown as an overlap', (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const dir = tempDir('oracle-drafts-');
   const draft = join(dir, 'draft.md');
   writeFileSync(draft, 'A fox leaps a sleepy hound.');
   const printed: string[] = [];
@@ -307,7 +307,7 @@ test('a corpus folder that does not exist is refused with exit 2, not thrown as 
 
 test('a corpus folder inside the store is refused, so no file name inside an entry is printed', (t) => {
   const store = syntheticStore();
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const dir = tempDir('oracle-drafts-');
   const copy = join(dir, 'copy.md');
   writeFileSync(copy, 'the quick brown fox jumps over the lazy dog');
   const printed: string[] = [];
@@ -323,7 +323,7 @@ test('a corpus folder inside the store is refused, so no file name inside an ent
 });
 
 test('a folder named as a draft checks every text file below it', (t) => {
-  const drafts = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const drafts = tempDir('oracle-drafts-');
   mkdirSync(join(drafts, 'case'));
   writeFileSync(join(drafts, 'case', 'prompt.md'), 'the quick brown fox jumps over the lazy dog');
   writeFileSync(join(drafts, 'clean.md'), 'A fox leaps a sleepy hound.');
@@ -336,14 +336,14 @@ test('a folder named as a draft checks every text file below it', (t) => {
 });
 
 test('a draft folder inside the store or holding it is refused, so no file name inside an entry is printed', (t) => {
-  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const parent = tempDir('oracle-drafts-');
   const store = join(parent, 'store');
   cpSync(syntheticStore(), store, { recursive: true });
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
   t.mock.method(console, 'error', (line: string) => printed.push(line));
 
-  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-draft-')), 'draft.md');
+  const draft = join(tempDir('oracle-draft-'), 'draft.md');
   writeFileSync(draft, 'a plain draft');
 
   assert.equal(main([join(store, 'book')], store), 2);
@@ -357,10 +357,10 @@ test('a draft folder inside the store or holding it is refused, so no file name 
 });
 
 test('a draft folder that is a link to the store or to a folder holding it is refused too', (t) => {
-  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const parent = tempDir('oracle-drafts-');
   const store = join(parent, 'store');
   cpSync(syntheticStore(), store, { recursive: true });
-  const links = mkdtempSync(join(tmpdir(), 'oracle-links-'));
+  const links = tempDir('oracle-links-');
   symlinkSync(store, join(links, 'to-store'), 'junction');
   symlinkSync(parent, join(links, 'to-parent'), 'junction');
   const printed: string[] = [];
@@ -376,7 +376,7 @@ test('a draft folder that is a link to the store or to a folder holding it is re
 });
 
 test('a draft folder named by its short 8.3 path is refused like its long path', (t) => {
-  const parent = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const parent = tempDir('oracle-drafts-');
   const longParent = realpathSync.native(parent);
 
   if (longParent.toLowerCase() === parent.toLowerCase()) {
@@ -396,7 +396,7 @@ test('a draft folder named by its short 8.3 path is refused like its long path',
 });
 
 test('a draft folder with no text files in it is an error, exit 2, not reported clean', (t) => {
-  const drafts = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const drafts = tempDir('oracle-drafts-');
   writeFileSync(join(drafts, 'case.yaml'), 'runs: 3');
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
@@ -407,11 +407,11 @@ test('a draft folder with no text files in it is an error, exit 2, not reported 
 });
 
 test('a corpus folder that holds the store is checked, not refused as inside it', (t) => {
-  const parent = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  const parent = tempDir('open-corpus-');
   const store = join(parent, 'store');
   mkdirSync(store);
   writeFileSync(join(parent, 'page.md'), 'nothing in common with the draft at all here');
-  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'clean.md');
+  const draft = join(tempDir('oracle-drafts-'), 'clean.md');
   writeFileSync(draft, 'A fox leaps a sleepy hound.');
   t.mock.method(console, 'log', () => undefined);
   t.mock.method(console, 'error', () => undefined);
@@ -420,10 +420,10 @@ test('a corpus folder that holds the store is checked, not refused as inside it'
 });
 
 test('with --corpus the command checks against that folder instead of the store', (t) => {
-  const other = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  const other = tempDir('open-corpus-');
   mkdirSync(join(other, 'guide'));
   writeFileSync(join(other, 'guide', 'page.md'), 'every class should own one reason to change in the code base');
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const dir = tempDir('oracle-drafts-');
   const copy = join(dir, 'copy.md');
   writeFileSync(copy, 'They said every class should own one reason to change in practice.');
   const printed: string[] = [];
@@ -435,9 +435,9 @@ test('with --corpus the command checks against that folder instead of the store'
 });
 
 test('with --corpus a clean verdict names the folder it checked, and the usage shows the option', (t) => {
-  const other = mkdtempSync(join(tmpdir(), 'open-corpus-'));
+  const other = tempDir('open-corpus-');
   writeFileSync(join(other, 'page.md'), 'nothing in common with the draft at all here');
-  const draft = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'clean.md');
+  const draft = join(tempDir('oracle-drafts-'), 'clean.md');
   writeFileSync(draft, 'A fox leaps a sleepy hound.');
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
@@ -462,7 +462,7 @@ test('a draft that cannot be read is an error, exit 2, not an overlap', (t) => {
 
 test('the other drafts are still checked when one cannot be read', (t) => {
   const printed: string[] = [];
-  const copy = join(mkdtempSync(join(tmpdir(), 'oracle-drafts-')), 'copy.md');
+  const copy = join(tempDir('oracle-drafts-'), 'copy.md');
   writeFileSync(copy, 'the quick brown fox jumps over the lazy dog');
   t.mock.method(console, 'log', (line: string) => printed.push(line));
   t.mock.method(console, 'error', (line: string) => printed.push(line));
@@ -572,7 +572,7 @@ test('a run found in two entries belongs to the first entry read', () => {
 
 test('the command prints its usage, its verdict and its run count', (t) => {
   const store = syntheticStore();
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-drafts-'));
+  const dir = tempDir('oracle-drafts-');
   const clean = join(dir, 'clean.md');
   const copy = join(dir, 'copy.md');
   writeFileSync(clean, 'A fox leaps a sleepy hound.');

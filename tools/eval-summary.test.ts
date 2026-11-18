@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tempDir } from './temp-dir.ts';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { formatReport, passAtK, passHatK, summarise } from './eval-summary.ts';
@@ -225,7 +225,7 @@ test('the overall row averages the case means over the cases that ran', () => {
 });
 
 test('importing the module runs no command, whatever the arguments', () => {
-  const file = join(mkdtempSync(join(tmpdir(), 'eval-summary-')), 'result.json');
+  const file = join(tempDir('eval-summary-'), 'result.json');
   writeFileSync(file, JSON.stringify(result));
   const module = pathToFileURL(join(import.meta.dirname, 'eval-summary.ts')).href;
 
@@ -236,7 +236,7 @@ test('importing the module runs no command, whatever the arguments', () => {
 });
 
 test('run as a command, it prints the report of each file it is given, then a blank line', () => {
-  const file = join(mkdtempSync(join(tmpdir(), 'eval-summary-')), 'result.json');
+  const file = join(tempDir('eval-summary-'), 'result.json');
   writeFileSync(file, JSON.stringify(result));
 
   const run = spawnSync(process.execPath, [join(import.meta.dirname, 'eval-summary.ts'), file], { encoding: 'utf8' });

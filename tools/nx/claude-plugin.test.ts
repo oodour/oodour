@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { tempDir } from '../temp-dir.ts';
 import { test } from 'node:test';
 import { assemble, createNodes, pluginTargets } from './claude-plugin.ts';
 
@@ -14,7 +14,7 @@ function writeTree(root: string, files: Readonly<Record<string, string>>): void 
 }
 
 test('assemble copies the plugin, puts its eval cases under evals/ without past results, and drops stale files', () => {
-  const workspace = mkdtempSync(join(tmpdir(), 'assemble-'));
+  const workspace = tempDir('assemble-');
   const plugin = join(workspace, 'plugin');
   const evals = join(workspace, 'evals');
   const out = join(workspace, 'out');
@@ -35,7 +35,7 @@ const cli = join(import.meta.dirname, 'claude-plugin.ts');
 const noFolders = (): boolean => false;
 
 test('the assemble command assembles the folders it is given', () => {
-  const workspace = mkdtempSync(join(tmpdir(), 'assemble-cli-'));
+  const workspace = tempDir('assemble-cli-');
   writeTree(workspace, { 'plugin/README.md': 'readme', 'evals/case-a/prompt.md': 'prompt' });
 
   const run = spawnSync(process.execPath, [cli, 'assemble', 'plugin', 'evals', 'out'], { cwd: workspace });
@@ -58,7 +58,7 @@ test('a missing folder, an extra argument or another command prints the usage an
 });
 
 test('each plugin manifest becomes a project named after the plugin, with its Markdown files in the overlap check', async () => {
-  const workspaceRoot = mkdtempSync(join(tmpdir(), 'nodes-'));
+  const workspaceRoot = tempDir('nodes-');
   writeTree(workspaceRoot, {
     'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
     'plugins/demo/README.md': 'readme',
@@ -83,7 +83,7 @@ test('each plugin manifest becomes a project named after the plugin, with its Ma
 });
 
 test("the overlap check also covers each of the plugin's eval case folders that exists", async () => {
-  const workspaceRoot = mkdtempSync(join(tmpdir(), 'nodes-'));
+  const workspaceRoot = tempDir('nodes-');
   writeTree(workspaceRoot, {
     'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
     'plugins/demo/README.md': 'readme',
@@ -109,7 +109,7 @@ test('an eval case folder that does not exist is left out of the overlap check',
 });
 
 test('a manifest without a name is refused', () => {
-  const workspaceRoot = mkdtempSync(join(tmpdir(), 'nodes-'));
+  const workspaceRoot = tempDir('nodes-');
   writeTree(workspaceRoot, { 'plugins/demo/.claude-plugin/plugin.json': '{}' });
 
   assert.throws(

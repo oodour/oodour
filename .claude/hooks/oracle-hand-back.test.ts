@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { type Corpus, loadCorpus } from '../../tools/source-overlap.ts';
+import { tempDir } from '../../tools/temp-dir.ts';
 import { parseHookInput } from './hook-input.ts';
 import { lastAssistantText, output, review, run } from './oracle-hand-back.ts';
 
 const copied = 'It says the quick brown fox jumps over the lazy dog.';
 
 function corpus() {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-hand-back-'));
+  const dir = tempDir('oracle-hand-back-');
   mkdirSync(join(dir, 'book'));
   writeFileSync(join(dir, 'book', 'ch1.md'), 'the quick brown fox jumps over the lazy dog while the cat watches.');
 
@@ -62,7 +63,7 @@ test('the last assistant text is read from a transcript when the stop carries no
   assert.equal(lastAssistantText(JSON.stringify({ type: 'assistant', message: { content: 'plain' } })), 'plain');
   assert.equal(lastAssistantText(JSON.stringify({ type: 'user' })), '');
 
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-transcript-'));
+  const dir = tempDir('oracle-transcript-');
   const path = join(dir, 't.jsonl');
   writeFileSync(path, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: copied }] } }));
 
@@ -89,14 +90,14 @@ test('the last message is gathered from every trailing record that carries its i
 });
 
 test('an empty last message is read from the transcript like a missing one', () => {
-  const path = join(mkdtempSync(join(tmpdir(), 'oracle-transcript-')), 't.jsonl');
+  const path = join(tempDir('oracle-transcript-'), 't.jsonl');
   writeFileSync(path, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: copied }] } }));
 
   assert.match(review(stop({ agent_type: 'oracle', last_assistant_message: '', agent_transcript_path: path }), corpus()) ?? '', /Nothing was delivered/);
 });
 
 test('a transcript with no readable answer and an unparsable line blocks a first stop', () => {
-  const path = join(mkdtempSync(join(tmpdir(), 'oracle-transcript-')), 't.jsonl');
+  const path = join(tempDir('oracle-transcript-'), 't.jsonl');
   const written: string[] = [];
   writeFileSync(path, `${JSON.stringify({ type: 'user', message: { content: 'q' } })}\n{"type":"assist`);
 

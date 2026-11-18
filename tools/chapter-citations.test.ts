@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tempDir } from './temp-dir.ts';
 import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 import { chapterCitations, main } from './chapter-citations.ts';
 
 function files(contents: Record<string, string>): string[] {
-  const dir = mkdtempSync(join(tmpdir(), 'chapter-citations-'));
+  const dir = tempDir('chapter-citations-');
 
   return Object.entries(contents).map(([name, text]) => {
     const path = join(dir, name);

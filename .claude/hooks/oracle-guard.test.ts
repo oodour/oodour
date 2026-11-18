@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tempDir } from '../../tools/temp-dir.ts';
 import { test } from 'node:test';
 import { storePath as scrubStorePath } from '../mods/oracle-scrub/hooks/scrub.ts';
 import { parseHookInput } from './hook-input.ts';
@@ -280,7 +280,7 @@ test('a guard that cannot read its input denies the call', () => {
 });
 
 test("the guard reads a transcript's owner from the metadata file beside it", () => {
-  const folder = join(mkdtempSync(join(tmpdir(), 'oracle-guard-')), 'subagents');
+  const folder = join(tempDir('oracle-guard-'), 'subagents');
   const verdictFor = (id: string): string[] => {
     const written: string[] = [];
 
@@ -345,7 +345,7 @@ test('a Glob whose pattern ends at a subagents folder is denied', () => {
 });
 
 test("the owner's metadata sits beside the transcript even when a folder name holds .jsonl", () => {
-  const folder = join(mkdtempSync(join(tmpdir(), 'oracle-guard-')), 'runs.jsonl.d', 'subagents');
+  const folder = join(tempDir('oracle-guard-'), 'runs.jsonl.d', 'subagents');
   const written: string[] = [];
   mkdirSync(folder, { recursive: true });
   writeFileSync(join(folder, 'agent-g1.meta.json'), JSON.stringify({ agentType: 'general-purpose' }));

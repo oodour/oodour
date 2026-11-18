@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tempDir } from './temp-dir.ts';
 import { test } from 'node:test';
 import { checkEntry, describe, indexedPaths, main } from './store-check.ts';
 
 function store(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const dir = tempDir('oracle-store-check-');
   mkdirSync(join(dir, 'metz-written', 'github', 'poodr'), { recursive: true });
   writeFileSync(join(dir, 'metz-written', 'a.md'), 'body');
   writeFileSync(join(dir, 'metz-written', 'empty.md'), '');
@@ -106,7 +106,7 @@ test('a row without a closing pipe is still a table row', () => {
 });
 
 test("a cell resolves against a folder at the top of the entry, such as a clone's repo", () => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const dir = tempDir('oracle-store-check-');
   mkdirSync(join(dir, '99bottles-js', 'repo', 'lib'), { recursive: true });
   writeFileSync(join(dir, '99bottles-js', 'repo', 'lib', 'bottles.js'), 'code');
   writeFileSync(join(dir, '99bottles-js', 'index.md'), '| Code | `lib/bottles.js` |');
@@ -126,7 +126,7 @@ test('a bare cell that is a web address is not a path', () => {
 });
 
 test('a cell resolves against folders only, never through a file', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const dir = tempDir('oracle-store-check-');
   mkdirSync(join(dir, 'metz-written'));
   writeFileSync(join(dir, 'metz-written', 'a.md'), 'body');
   writeFileSync(join(dir, 'metz-written', 'index.md'), '| A | `../a.md` |');
@@ -135,7 +135,7 @@ test('a cell resolves against folders only, never through a file', () => {
 });
 
 test('a cell with a leading dot folder or a trailing separator still indexes its file', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const dir = tempDir('oracle-store-check-');
   mkdirSync(join(dir, 'metz-written'));
   writeFileSync(join(dir, 'metz-written', 'a.md'), 'body');
   writeFileSync(join(dir, 'metz-written', 'b.md'), 'body');
@@ -165,7 +165,7 @@ test('the command prints each report line, and names the missing store', (t) => 
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
   t.mock.method(console, 'error', (line: string) => printed.push(line));
-  const clean = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const clean = tempDir('oracle-store-check-');
   mkdirSync(join(clean, 'book'));
   writeFileSync(join(clean, 'book', 'a.md'), 'text');
   writeFileSync(join(clean, 'book', 'index.md'), '| `a.md` |');
@@ -179,7 +179,7 @@ test('the command prints each report line, and names the missing store', (t) => 
 test('the command fails on a missing file beside an unindexed one, and on a missing file beside an empty one', (t) => {
   t.mock.method(console, 'log', () => undefined);
   const entry = (index: string, files: Readonly<Record<string, string>>): string => {
-    const dir = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+    const dir = tempDir('oracle-store-check-');
     mkdirSync(join(dir, 'book'));
     writeFileSync(join(dir, 'book', 'index.md'), index);
     Object.entries(files).forEach(([name, text]) => {
@@ -203,7 +203,7 @@ test('the command exits 0 when consistent, 1 on a problem and 2 with no store', 
   const printed: string[] = [];
   t.mock.method(console, 'log', (line: string) => printed.push(line));
   t.mock.method(console, 'error', (line: string) => printed.push(line));
-  const clean = mkdtempSync(join(tmpdir(), 'oracle-store-check-'));
+  const clean = tempDir('oracle-store-check-');
   mkdirSync(join(clean, 'book'));
   writeFileSync(join(clean, 'book', 'a.md'), 'text');
   writeFileSync(join(clean, 'book', 'index.md'), '| `a.md` |');
