@@ -19,3 +19,8 @@ const registered = {
 const plugin: LzOopPlugin = Object.assign(registered, { configs: buildConfigs(registered) });
 
 export default plugin;
+
+// The plugin type leaves out `rules` so ESLint's `Plugin` type and `defineConfig` accept it; a consumer who needs the
+// rule modules (a docs generator, a test of their own config) takes them from here, typed as typescript-eslint rules.
+export { rules as lzOopRules } from './rules/index.ts';
+export type { OopRuleModule as LzOopRuleModule, OopRuleDocs as LzOopRuleDocs } from './create-rule.ts';
