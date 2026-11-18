@@ -2,12 +2,19 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import { rules } from './index.ts';
+import { selectorRules } from './selector-rules.ts';
 
 const files = readdirSync(import.meta.dirname);
 const ruleFiles = files.filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts') && file !== 'index.ts');
+const selectorTable = 'selector-rules.ts';
 
-test('every rule file is registered under its file name, and nothing else is', () => {
-  assert.deepEqual(Object.keys(rules).toSorted(), ruleFiles.map((file) => file.replace(/\.ts$/, '')).toSorted());
+test('every rule file and every selector table row is registered under its name, and nothing else is', () => {
+  const expected = [
+    ...ruleFiles.filter((file) => file !== selectorTable).map((file) => file.replace(/\.ts$/, '')),
+    ...selectorRules.map(({ name }) => name),
+  ];
+
+  assert.deepEqual(Object.keys(rules).toSorted(), expected.toSorted());
 });
 
 test('every rule file has a test file beside it', () => {

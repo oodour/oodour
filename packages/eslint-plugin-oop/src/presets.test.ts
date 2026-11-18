@@ -8,16 +8,17 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 import plugin, { type OopPlugin } from './index.ts';
+import { selectorRules } from './rules/selector-rules.ts';
 
 const typeHoppingChain = '@layzee/oop/type-hopping-chain';
 
 // The consumer's view: `defineConfig` with typescript-eslint's parser for TypeScript files, then the preset. Type-checking
 // this file is what proves the presets are accepted where a consumer writes them.
-async function ruleSetting(
+async function ruleSettings(
   preset: keyof OopPlugin['configs'],
-  ruleId: string,
+  filePath: string,
   ...after: Parameters<typeof defineConfig>
-): Promise<unknown> {
+): Promise<readonly (readonly [string, unknown])[]> {
   const eslint = new ESLint({
     cwd: import.meta.dirname,
     overrideConfigFile: true,
@@ -27,20 +28,54 @@ async function ruleSetting(
       ...after,
     ),
   });
-  const config: unknown = await eslint.calculateConfigForFile('file.ts');
+  const config: unknown = await eslint.calculateConfigForFile(filePath);
 
   if (typeof config !== 'object' || config === null || !('rules' in config)) {
-    return undefined;
+    return [];
   }
 
   const { rules } = config;
 
   if (typeof rules !== 'object' || rules === null) {
-    return undefined;
+    return [];
   }
 
-  return Object.entries(rules).find(([id]) => id === ruleId)?.[1];
+  return Object.entries(rules);
 }
+
+async function ruleSetting(
+  preset: keyof OopPlugin['configs'],
+  ruleId: string,
+  ...after: Parameters<typeof defineConfig>
+): Promise<unknown> {
+  return (await ruleSettings(preset, 'file.ts', ...after)).find(([id]) => id === ruleId)?.[1];
+}
+
+const presetNames = ['recommended', 'recommended-type-checked', 'strict', 'strict-type-checked'] as const;
+
+async function selectorRuleSettings(
+  preset: keyof OopPlugin['configs'],
+  filePath: string,
+): Promise<Readonly<Record<string, unknown>>> {
+  const selectorRuleIds = new Set(selectorRules.map(({ name }) => `@layzee/oop/${name}`));
+
+  return Object.fromEntries((await ruleSettings(preset, filePath)).filter(([id]) => selectorRuleIds.has(id)));
+}
+
+test("each preset turns on exactly its tier's selector rules, at error", async () => {
+  const settings = await Promise.all(presetNames.map((preset) => selectorRuleSettings(preset, 'file.ts')));
+
+  assert.deepEqual(
+    settings,
+    presetNames.map((preset) =>
+      Object.fromEntries(
+        selectorRules
+          .filter(({ meta }) => preset.startsWith('strict') || meta.docs.tier === 'recommended')
+          .map(({ name }) => [`@layzee/oop/${name}`, [2]]),
+      ),
+    ),
+  );
+});
 
 test('strict-type-checked turns type-hopping-chain on at error', async () => {
   assert.deepEqual(await ruleSetting('strict-type-checked', typeHoppingChain), [2, { maxInterfaces: 2 }]);
