@@ -149,6 +149,12 @@ Lars, 2026-11-18 09:4x local, on Claude's recommendations:
 - Lars, 2026-11-18, on where NgRx stances go: "How directly related are they to lz-oop/oracle? This goes for all
   rules/concepts discussed. *If* we add NgRx rules, I agree with your recommendation." (the recommendation: an `ngrx`
   config in `@layzee/eslint-plugin-lz-oop-angular` with `@ngrx/eslint-plugin` as an optional peer dependency).
+- Lars, 2026-11-18, on the interview: "foreign-knowledge rule: OK."; "Replacement for template/no-call-expression:
+  OK."; "NgRx: OK. No NgRx config."; "Rules mapped from Fallow: We should only decide on Fallow features that relate to
+  lz-oop/oracle."; "Use `protected` for template-read components members. Use `#private` for other component
+  internals, including `inject()`ed dependencies. If `private-modifier` suggests turning TypeScript `private` into
+  `#private`, that's compliant with using `protected` for template-read members." (Claude's note: the rule is named
+  `ts-private`; its `inject()` exemption, the X-ts-private-not-di form in design.md, contradicts this ruling.)
 - Lars, 2026-11-18, on ESLint, Fallow or both: "Our README or docs just need to cover turning either one off when both
   are used. We don't have to have additional presets for this. Some may prefer keeping both fully enabled."
 - Lars, 2026-11-18, on the ABC and Halstead prior art: "The ABC and Halstead measurement: OK" (Claude's
