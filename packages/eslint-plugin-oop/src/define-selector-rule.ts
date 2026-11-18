@@ -5,7 +5,7 @@ export type SelectorFix = (
   node: TSESTree.Node,
   fixer: TSESLint.RuleFixer,
   sourceCode: Readonly<TSESLint.SourceCode>,
-) => TSESLint.RuleFix | null;
+) => TSESLint.RuleFix | readonly TSESLint.RuleFix[] | null;
 
 /** The remedy is derived from which of these a row has: `fix`, `suggest`, or only the `because` of `none`. */
 type SelectorRemedyFields =

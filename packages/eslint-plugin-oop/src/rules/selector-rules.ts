@@ -1,4 +1,5 @@
 import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
+import { hashPrivateMember } from '../hash-private-member.ts';
 
 /**
  * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
@@ -18,6 +19,23 @@ const selectorRows = [
     message:
       "This switch picks behaviour by the object's kind; an object per kind could do its own part of the work, and a new kind would not touch this switch.",
     because: 'which objects take over each branch is a design decision no tool can make',
+  },
+  {
+    name: 'ts-private',
+    description: 'Report the TypeScript private modifier where a #private member keeps the privacy at run time',
+    concept: 'Private state',
+    tier: 'recommended',
+    selectors: [
+      ":matches(PropertyDefinition, MethodDefinition[kind!='constructor'])[accessibility='private']:not(PropertyDefinition[value.callee.name='inject'])",
+    ],
+    message:
+      'TypeScript checks this private member only at compile time, and the running object still exposes it; a #private member is private at run time too.',
+    suggest: {
+      message: 'Make it a #private member and rename its uses through this in this class.',
+      because:
+        'a use outside the class body, through another instance, or by a computed key would break, so a person confirms the rename',
+      fix: hashPrivateMember,
+    },
   },
   {
     name: 'module-let',
