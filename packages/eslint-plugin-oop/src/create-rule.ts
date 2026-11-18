@@ -1,5 +1,5 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
-import type { RuleContext, RuleListener, RuleModule } from '@typescript-eslint/utils/ts-eslint';
+import type { RuleContext, RuleListener, RuleMetaDataDocs, RuleModule } from '@typescript-eslint/utils/ts-eslint';
 
 /**
  * How a reader gets from a report to changed code, in order of preference. Every kind after `fix` says why nothing
@@ -23,7 +23,8 @@ export interface OopRuleDocs {
 
 /**
  * What a rule module hands to `createRule`: typescript-eslint's `RuleCreator` input, except that `fixable` and
- * `hasSuggestions` come from `docs.remedy` and `defaultOptions` lives in `meta`.
+ * `hasSuggestions` come from `docs.remedy` and `defaultOptions` lives in `meta`. `createRule` builds the module itself
+ * rather than through `RuleCreator`, whose result types `meta.docs` as optional.
  */
 export interface OopRuleDefinition<TOptions extends readonly unknown[], TMessageIds extends string> {
   readonly name: string;
@@ -37,11 +38,13 @@ export interface OopRuleDefinition<TOptions extends readonly unknown[], TMessage
 export type OopRuleModule<
   TMessageIds extends string = string,
   TOptions extends readonly unknown[] = readonly unknown[],
-> = RuleModule<TMessageIds, TOptions, OopRuleDocs> & { readonly name: string };
+> = RuleModule<TMessageIds, TOptions, OopRuleDocs> & {
+  readonly name: string;
+  readonly meta: { readonly docs: OopRuleDocs & RuleMetaDataDocs };
+};
 
-const namedRule = ESLintUtils.RuleCreator<OopRuleDocs>(
-  (name) => `https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/${name}.md`,
-);
+const docsUrl = (name: string): string =>
+  `https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/${name}.md`;
 
 /**
  * The one way to define a rule in this package. Sets the docs URL, derives `fixable` and `hasSuggestions` from the
@@ -61,14 +64,16 @@ export function createRule<TOptions extends readonly unknown[], TMessageIds exte
       messages[id] = `${messages[id]}${sentence}`;
     });
 
-  return namedRule({
+  return {
     name: definition.name,
     meta: {
       ...definition.meta,
+      docs: { ...definition.meta.docs, url: docsUrl(definition.name) },
       ...(remedy.kind === 'fix' ? { fixable: 'code' } : {}),
       ...(remedy.kind === 'suggestion' ? { hasSuggestions: true } : {}),
       messages,
     },
-    create: definition.create,
-  });
+    create: (context: Readonly<RuleContext<TMessageIds, TOptions>>) =>
+      definition.create(context, ESLintUtils.applyDefault<TOptions, TOptions>(definition.meta.defaultOptions, context.options)),
+  };
 }

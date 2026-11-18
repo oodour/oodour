@@ -35,7 +35,7 @@ test('the docs URL points at the rule page named after the rule', () => {
   const rule = ruleWith({ kind: 'fix' });
 
   assert.equal(
-    rule.meta.docs?.url,
+    rule.meta.docs.url,
     'https://github.com/LayZeeDK-Premium/lz-oop/blob/main/packages/eslint-plugin-oop/docs/rules/some-rule.md',
   );
 });
