@@ -13,7 +13,8 @@ export const complexity = wrapRule({
   },
   message:
     'Stop and look: Complex Conditional, {{name}} has {{complexity}} paths (at most {{max}}), each one more test. ' +
-    'Look for branches that do the work of one kind each, or the same absence check repeated. Cure: Decompose ' +
-    'Conditional, Replace Conditional with Polymorphism, or Introduce Special Case.',
+    'Look for branches that do the work of one kind each, a factory that picks a class by case, or the same absence ' +
+    'check repeated. Cure: Decompose Conditional, Replace Conditional with Polymorphism, a factory map from key to ' +
+    'class with a default, or Introduce Special Case.',
   defaultOptions: [{ max: 4 }],
 });
