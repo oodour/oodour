@@ -48,8 +48,11 @@ describe('fallowrc.json', () => {
     assert.deepEqual(bareFindings, [['classify', 'crap']]);
   });
 
-  it('reports a 300-line source file and leaves a 300-line test file out of the file-length check', () => {
+  it('reports a 300-line source file and leaves a 300-line test file out of the file-length check', (t) => {
     const root = mkdtempSync(fileURLToPath(new URL('../fixtures/file-length-', import.meta.url)));
+    t.after(() => {
+      rmSync(root, { recursive: true });
+    });
     const lines = Array.from({ length: 300 }, (_, index) => `export const value${String(index)} = ${String(index)};`).join('\n');
     writeFileSync(join(root, 'big.ts'), `${lines}\n`);
     writeFileSync(join(root, 'big.test.ts'), `${lines}\n`);
@@ -59,7 +62,6 @@ describe('fallowrc.json', () => {
     );
 
     const findings = complexityReport(root, '.fallowrc.json').map((finding) => [finding['path'], finding['exceeded']]);
-    rmSync(root, { recursive: true });
 
     assert.deepEqual(findings, [['big.ts', 'file_lines']]);
   });
