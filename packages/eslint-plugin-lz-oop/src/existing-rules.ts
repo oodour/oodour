@@ -13,7 +13,15 @@ export interface Conflict {
   readonly conflict: string;
 }
 
-export type Stance = Cue | Conflict;
+/**
+ * An existing rule that a cue of the catalog already covers, turned off in every preset so one problem is reported
+ * once. Unlike a conflict it does not work against lz-oop, so the `conflicts` config leaves it alone.
+ */
+export interface Duplicate {
+  readonly duplicateOf: string;
+}
+
+export type Stance = Cue | Conflict | Duplicate;
 
 export interface RuleSource {
   /** What a rule ID starts with: `''` for ESLint core, `'unicorn/'` for eslint-plugin-unicorn. */
@@ -45,12 +53,7 @@ export const existingRules = {
         tierReason: 'A size limit fires on ordinary code.',
         options: [{ max: 5 }],
       },
-      'max-params': {
-        cue: 'Long Parameter List: more than four parameters.',
-        tier: 'strict',
-        tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 4 }],
-      },
+      'max-params': { duplicateOf: '@typescript-eslint/max-params' },
       complexity: {
         cue: 'Each path through a function is one more test to write; more than four paths is a function to split.',
         tier: 'strict',
@@ -85,10 +88,10 @@ export const existingRules = {
     optional: false,
     rules: {
       'max-params': {
-        cue: 'Long Parameter List: more than four parameters, not counting a `this` parameter.',
+        cue: 'Long Parameter List: more than three parameters, not counting a `this` parameter.',
         tier: 'strict',
         tierReason: 'A size limit fires on ordinary code.',
-        options: [{ max: 4 }],
+        options: [{ max: 3 }],
       },
       'switch-exhaustiveness-check': {
         cue: 'A choosing switch must name every member of the union, so a new member cannot fall into `default`.',

@@ -22,10 +22,6 @@ testConfiguredRules({
     valid: ['function f() { let a = 1; a += 1; a += 1; a += 1; return a; }'],
     invalid: [{ code: 'function f() { let a = 1; a += 1; a += 1; a += 1; a += 1; return a; }', errors: [{ messageId: 'exceed' }] }],
   },
-  'max-params': {
-    valid: ['function f(a, b, c, d) {}'],
-    invalid: [{ code: 'function f(a, b, c, d, e) {}', errors: [{ messageId: 'exceed' }] }],
-  },
   complexity: {
     valid: [ifs(3)],
     invalid: [{ code: ifs(4), errors: [{ messageId: 'complex' }] }],
@@ -39,8 +35,8 @@ testConfiguredRules({
     invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
   },
   '@typescript-eslint/max-params': {
-    valid: ['function f(this: void, a: number, b: number, c: number, d: number) {}'],
-    invalid: [{ code: 'function f(a: number, b: number, c: number, d: number, e: number) {}', errors: [{ messageId: 'exceed' }] }],
+    valid: ['function f(this: void, a: number, b: number, c: number) {}'],
+    invalid: [{ code: 'function f(a: number, b: number, c: number, d: number) {}', errors: [{ messageId: 'exceed' }] }],
   },
   '@typescript-eslint/switch-exhaustiveness-check': {
     valid: ["declare const shape: 'circle' | 'square';\nswitch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n"],

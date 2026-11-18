@@ -63,23 +63,21 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
   ];
   const untyped = (entry: PresetEntry): boolean => !entry.typed;
   const recommendedTier = (entry: PresetEntry): boolean => entry.tier === 'recommended';
-  const conflicts: OopConfig = {
-    name: 'lz-oop/conflicts',
-    rules: Object.fromEntries(
-      listExistingRules().flatMap(({ id, stance }) => ('conflict' in stance ? [[id, 'off']] : [])),
-    ),
-  };
-  const recommendedTypeChecked = [plugins, ...layers('lz-oop/recommended-type-checked', recommendedTier), conflicts];
-  const strictTypeChecked = [plugins, ...layers('lz-oop/strict-type-checked', () => true), conflicts];
+  const conflicts = turnedOff('lz-oop/conflicts', 'conflict');
+  const duplicates = turnedOff('lz-oop/duplicates', 'duplicateOf');
+  const preset = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [
+    plugins,
+    ...layers(name, keep),
+    duplicates,
+    conflicts,
+  ];
+  const recommendedTypeChecked = preset('lz-oop/recommended-type-checked', recommendedTier);
+  const strictTypeChecked = preset('lz-oop/strict-type-checked', () => true);
 
   return {
-    recommended: [
-      plugins,
-      ...layers('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
-      conflicts,
-    ],
+    recommended: preset('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
     'recommended-type-checked': recommendedTypeChecked,
-    strict: [plugins, ...layers('lz-oop/strict', untyped), conflicts],
+    strict: preset('lz-oop/strict', untyped),
     'strict-type-checked': strictTypeChecked,
     recommendedTypeChecked,
     strictTypeChecked,
@@ -87,6 +85,14 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
     unicorn: companion('unicorn'),
     sonarjs: companion('sonarjs'),
     functional: companion('functional'),
+  };
+}
+
+/** A config that turns off every catalog rule whose stance has `key`. */
+function turnedOff(name: string, key: 'conflict' | 'duplicateOf'): OopConfig {
+  return {
+    name,
+    rules: Object.fromEntries(listExistingRules().flatMap(({ id, stance }) => (key in stance ? [[id, 'off']] : []))),
   };
 }
 

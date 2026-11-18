@@ -114,7 +114,17 @@ test('strict-type-checked turns type-hopping-chain on at error', async () => {
 });
 
 test('strict turns on a core cue of the strict tier at error with its catalog options', async () => {
-  assert.deepEqual(await ruleSetting('strict', 'max-params'), [2, { max: 4 }]);
+  assert.deepEqual(await ruleSetting('strict', 'max-statements'), [2, { max: 5 }]);
+});
+
+test('strict turns on the typescript-eslint max-params at three parameters', async () => {
+  assert.deepEqual(await ruleSetting('strict', '@typescript-eslint/max-params'), [2, { max: 3 }]);
+});
+
+test('every preset turns off the core max-params, so a function is reported once', async () => {
+  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, 'max-params')));
+
+  assert.deepEqual(settings.map(severityOf), presetNames.map(() => 0));
 });
 
 test('recommended turns on an untyped typescript-eslint cue of the recommended tier and registers its plugin', async () => {
@@ -129,7 +139,7 @@ test('recommended-type-checked turns on a typed cue of the recommended tier with
 });
 
 test('recommended leaves out a cue of the strict tier', async () => {
-  assert.equal(await ruleSetting('recommended', 'max-params'), undefined);
+  assert.equal(await ruleSetting('recommended', 'max-statements'), undefined);
 });
 
 test('strict leaves out a cue that needs type information', async () => {

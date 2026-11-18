@@ -14,11 +14,11 @@ test('testConfiguredRules refuses cases that leave a configured cue out', () => 
   );
 });
 
-// The catalog sets max-params to 4, so four parameters pass where the rule's own default of 3 would report them.
+// The catalog sets max-depth to 2, so three levels are reported where the rule's own default of 4 would pass them.
 test('testConfiguredRule runs the cases with the catalog options', () => {
-  testConfiguredRule('max-params', {
-    valid: ['function f(a, b, c, d) {}'],
-    invalid: [{ code: 'function f(a, b, c, d, e) {}', errors: [{ messageId: 'exceed' }] }],
+  testConfiguredRule('max-depth', {
+    valid: ['function f(a) { if (a) { if (a) { a = 0; } } }'],
+    invalid: [{ code: 'function f(a) { if (a) { if (a) { if (a) { a = 0; } } } }', errors: [{ messageId: 'tooDeeply' }] }],
   });
 });
 
