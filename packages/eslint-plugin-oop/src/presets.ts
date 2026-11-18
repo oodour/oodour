@@ -14,8 +14,12 @@ export const pluginNamespace = '@layzee/oop';
 export interface OopConfig {
   readonly name: string;
   readonly plugins?: Readonly<Record<string, { readonly meta: { readonly name: string } }>>;
+  readonly ignores?: string[];
   readonly rules?: Readonly<Record<string, 'error' | 'off' | ['error', ...unknown[]]>>;
 }
+
+/** Where a rule with `skipsTestFiles` stays off: test files by the common naming conventions, and declaration files. */
+export const testFileGlobs = ['**/*.test.*', '**/*.spec.*', '**/__tests__/**', '**/*.d.ts'];
 
 // A type literal, not an interface: ESLint's `Plugin.configs` is a string-keyed record, and only a type literal is
 // assignable to one without an index signature of its own.
@@ -49,10 +53,14 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
     plugins: { [pluginNamespace]: plugin, '@typescript-eslint': tseslintPlugin },
   };
   const entries = [...ownRuleEntries(plugin), ...cueEntries((source) => !existingRules[source].optional)];
-  const layer = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig => ({
-    name,
-    rules: rulesOf(entries.filter(keep)),
-  });
+  const layers = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [
+    { name, rules: rulesOf(entries.filter((entry) => keep(entry) && !entry.skipsTestFiles)) },
+    {
+      name: `${name}/outside-test-files`,
+      ignores: testFileGlobs,
+      rules: rulesOf(entries.filter((entry) => keep(entry) && entry.skipsTestFiles)),
+    },
+  ];
   const untyped = (entry: PresetEntry): boolean => !entry.typed;
   const recommendedTier = (entry: PresetEntry): boolean => entry.tier === 'recommended';
   const conflicts: OopConfig = {
@@ -61,13 +69,17 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
       listExistingRules().flatMap(({ id, stance }) => ('conflict' in stance ? [[id, 'off']] : [])),
     ),
   };
-  const recommendedTypeChecked = [plugins, layer('oop/recommended-type-checked', recommendedTier), conflicts];
-  const strictTypeChecked = [plugins, layer('oop/strict-type-checked', () => true), conflicts];
+  const recommendedTypeChecked = [plugins, ...layers('oop/recommended-type-checked', recommendedTier), conflicts];
+  const strictTypeChecked = [plugins, ...layers('oop/strict-type-checked', () => true), conflicts];
 
   return {
-    recommended: [plugins, layer('oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)), conflicts],
+    recommended: [
+      plugins,
+      ...layers('oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
+      conflicts,
+    ],
     'recommended-type-checked': recommendedTypeChecked,
-    strict: [plugins, layer('oop/strict', untyped), conflicts],
+    strict: [plugins, ...layers('oop/strict', untyped), conflicts],
     'strict-type-checked': strictTypeChecked,
     recommendedTypeChecked,
     strictTypeChecked,
@@ -92,6 +104,7 @@ interface PresetEntry {
   readonly setting: 'error' | ['error', ...unknown[]];
   readonly tier: Tier;
   readonly typed: boolean;
+  readonly skipsTestFiles: boolean;
 }
 
 function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
@@ -100,6 +113,7 @@ function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
     setting: 'error',
     tier: rule.meta.docs.tier,
     typed: rule.meta.docs.requiresTypeChecking,
+    skipsTestFiles: rule.meta.docs.skipsTestFiles === true,
   }));
 }
 
@@ -111,7 +125,15 @@ function cueEntries(fromSource: (source: SourceId) => boolean): readonly PresetE
       const { id, stance } = row;
 
       return 'cue' in stance
-        ? [{ id, setting: ['error', ...(stance.options ?? [])], tier: stance.tier, typed: requiresTypeChecking(row) }]
+        ? [
+            {
+              id,
+              setting: ['error', ...(stance.options ?? [])],
+              tier: stance.tier,
+              typed: requiresTypeChecking(row),
+              skipsTestFiles: false,
+            },
+          ]
         : [];
     });
 }

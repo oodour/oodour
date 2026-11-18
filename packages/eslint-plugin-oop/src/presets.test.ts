@@ -77,6 +77,38 @@ test("each preset turns on exactly its tier's selector rules, at error", async (
   );
 });
 
+test('the selector rules ship in the tiers the measurements set', async () => {
+  const recommended = ['switch-on-kind', 'ts-private'];
+  const strictOnly = [
+    'module-let',
+    'new-in-constructor',
+    'optional-collaborator',
+    'optional-private-field',
+    'options-object-keys',
+  ];
+  const ids = (names: readonly string[]): readonly string[] => names.map((name) => `@layzee/oop/${name}`).sort();
+
+  const settings = await Promise.all(presetNames.map((preset) => selectorRuleSettings(preset, 'file.ts')));
+
+  assert.deepEqual(
+    settings.map((setting) => Object.keys(setting).sort()),
+    [ids(recommended), ids(recommended), ids([...recommended, ...strictOnly]), ids([...recommended, ...strictOnly])],
+  );
+});
+
+test('no preset turns a selector rule on in a test file or a declaration file', async () => {
+  const files = ['cart.test.ts', 'cart.spec.ts', '__tests__/cart.ts', 'cart.d.ts'];
+
+  const settings = await Promise.all(
+    presetNames.flatMap((preset) => files.map((file) => selectorRuleSettings(preset, file))),
+  );
+
+  assert.deepEqual(
+    settings,
+    presetNames.flatMap(() => files.map(() => ({}))),
+  );
+});
+
 test('strict-type-checked turns type-hopping-chain on at error', async () => {
   assert.deepEqual(await ruleSetting('strict-type-checked', typeHoppingChain), [2, { maxInterfaces: 2 }]);
 });

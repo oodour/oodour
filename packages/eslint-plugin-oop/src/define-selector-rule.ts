@@ -60,6 +60,7 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
         requiresTypeChecking: false,
         remedy: remedyOf(row),
         tier: row.tier,
+        skipsTestFiles: true,
       },
       // A row without a suggestion never reports `suggestion`; the id exists so every row shares one message type.
       messages: { found: row.message, suggestion: row.suggest?.message ?? row.message },

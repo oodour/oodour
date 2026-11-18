@@ -19,6 +19,8 @@ export interface OopRuleDocs {
   readonly requiresTypeChecking: boolean;
   readonly remedy: Remedy;
   readonly tier: Tier;
+  /** The presets turn the rule on outside test and declaration files only, where its measured noise sits. */
+  readonly skipsTestFiles?: true;
 }
 
 /**

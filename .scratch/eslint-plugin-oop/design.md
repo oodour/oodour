@@ -522,6 +522,44 @@ Wave 1b, 2026-11-18. Each deviation from the sketch and why.
   `ignoreClassesThatImplementAnInterface: true` is the default, with `ignoreOverrideMethods: true`. The schema is
   the upstream rule's.
 
+Wave 2, 2026-11-18 (the selector rules). Each deviation from graft 1 and the brief, and why.
+
+- **Files.** `src/define-selector-rule.ts` holds `defineSelectorRule`; the rows are in `src/rules/selector-rules.ts`
+  (not `selector-cues.ts`: "cue" names the borrowed rules of the catalog), their cases in
+  `src/rules/selector-rules.test.ts`, keyed by the derived `SelectorRuleName` with `satisfies Record<...>`. Renaming a
+  row's name without its cases fails `tsc` (measured with a temporary rename). The registry spreads `selectorRules`.
+- **Row shape.** `selectors` is a non-empty tuple. The remedy comes from which field the row has: `fix`, `suggest`
+  (`message`, `because`, `fix`) or only `because` (remedy `none`). The fields exclude each other by `?: never`. No
+  `codemod` kind, as in wave 1a. Every selector rule has message ids `found` and `suggestion`; a row without a
+  suggestion never reports the second, which keeps one message type for all rows.
+- **`SelectorFix` gets `sourceCode`** and may return several fixes: the `#private` rename edits the modifier, the key
+  and each use.
+- **`:has(> ...)` is refused** by `defineSelectorRule` with an error naming the row. Measured on ESLint 10.13.0 with
+  esquery 1.7.0 and typescript-eslint's parser: `:has(> A)` matches, `:has(> A > B)` silently matches nothing. A test
+  pins that behaviour through the installed ESLint, so it fails when an esquery upgrade fixes it.
+- **Ship list and forms** (selector-tiers-2.md, merged table). `recommended`: `switch-on-kind`, `ts-private` (the
+  X-ts-private-not-di form). `strict`: `module-let`, `options-object-keys` (no callbacks), `new-in-constructor`
+  (sharpened), `optional-collaborator`, `optional-private-field` (the X-optional-private-field form, replacing
+  `optional-field`). One addition of Claude's, not measured on the corpus: `ts-private` leaves out
+  `private constructor`, which cannot be `#private`. The other selectors are the measured forms as written.
+- **Remedies.** Only `ts-private` has one: a suggestion that drops `private`, renames the member to `#name` and renames
+  each `this.name` in the class body. It is withheld for a decorated member, a class that reads `this[...]`, a
+  member also read through another receiver (`other.cents`, `Ids.next`), and a name two members share (get/set
+  pairs, overloads, an existing `#name`). Not a fix: a use outside the class body or in another file would break.
+  The other six are `none` with the reason in the message; `new-in-constructor` says a codemod that injects the
+  collaborator is planned.
+- **Test files.** Each selector rule's docs carry `skipsTestFiles: true` (a new optional `OopRuleDocs` field), and
+  `buildConfigs` splits every preset layer in two: `oop/<preset>` for the other rules and
+  `oop/<preset>/outside-test-files` with `ignores: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**', '**/*.d.ts']`.
+  Declaration files are added to the brief's globs because a `declare let` or a `private` member in a `.d.ts` is
+  emitted output, not code to cure. A config object with `ignores` and `rules` applies only outside those globs, and
+  a consumer who wants the rules in tests turns them on in a later config object. `type-hopping-chain` keeps linting
+  test files.
+- **Preset tests.** One test derives each preset's expected selector rules from the rows' tiers; another lists the
+  ship list by name, so a changed tier or a new row shows in a reviewed test edit.
+- **Merged with wave 1b.** `PresetEntry` gained `skipsTestFiles` (own rules read it from their docs; catalog cues are
+  `false`), and each preset is `oop/plugins`, the two rule layers, then `oop/conflicts`.
+
 ## Open questions and risks
 
 Questions for Lars, each with Claude's recommendation:
