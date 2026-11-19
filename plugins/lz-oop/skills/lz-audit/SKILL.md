@@ -13,6 +13,14 @@ those reads are no longer in your context when you write the report, Read them a
 ## 1. Scope and map
 
 Audit what the developer names: a folder, a package, or the whole repository; nothing named means the whole repository.
+
+**When this session wrote or changed code in that scope**, do not audit it here. The session that wrote code judges it
+with its own reasons in mind, and an audit is worth most from a reader who has none of them. Launch the `lz-oop:auditor`
+agent (the Agent tool, `subagent_type: "lz-oop:auditor"`) with the scope and without your opinion of the code. When it
+answers, open the file and lines each finding cites, drop or correct a finding the code does not bear out, and relay the
+rest in the shape of step 4, saying that an auditor with fresh context wrote them. If the agent cannot be launched, say
+so and audit here. Otherwise, and always inside the `lz-oop:auditor` agent, audit here.
+
 Read the README, the package manifest, the entry points and the test setup. Note where the framework code sits
 (controllers, components, handlers) and where the domain code sits, the style of the existing tests, and whether classes
 are the house style: where they are not, a cure can use a module of functions or a record of closures to play a role.

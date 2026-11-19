@@ -19,10 +19,13 @@ Claude picks the skill from your request; you can also run `/lz-oop:lz-review` o
 - `lz-oop:reviewer`: reviews the design of a change with fresh context, following `lz-review`. Claude launches it when
   you ask for a review of a change it wrote in the same session, so the review does not come from the change's author;
   you can also ask for it by name with `@agent-lz-oop:reviewer`.
+- `lz-oop:auditor`: audits a package or repository with fresh context, following `lz-audit`. Claude launches it when you
+  ask for an audit of code it wrote or changed in the same session; you can also ask for it by name with
+  `@agent-lz-oop:auditor`.
 
 The skills may read their reference files from the plugin folder without asking. A subagent does not get that grant, so
-the reviewer asks to read them; in a session where nobody can answer a prompt, such as `claude -p`, add the plugin
-folder to `permissions.additionalDirectories` or the reviewer works from the `lz-review` text alone.
+the agents ask to read them; in a session where nobody can answer a prompt, such as `claude -p`, add the plugin folder
+to `permissions.additionalDirectories` or each agent works from its skill's text alone.
 
 Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 
