@@ -281,3 +281,16 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   publishing. Until then consumers load it by path through jiti (ESLint's TS config loader).
 - Program-wide checks (Data Clumps across files, Repeated Switches across files): not ESLint rules; Fallow or a
   script.
+
+## Rulings, 2026-11-19 (evening)
+
+- Halstead and Flog get limit rules after all. Lars, 2026-11-19, on Claude's "no rule for either": "I still want
+  limits. That issues or smells are detected by multiple checks is a good thing and it allows consumers to pick and
+  choose between what they value measuring." Claude's defaults, pending Lars: `halstead-volume` per function at 1000
+  (Verifysoft's band, the only per-function limit in use); a Flog-style score per function with Flog's depth
+  multiplier and weights translated to JS/TS, limit 25 (Code Climate's flag line; Scruggs's bands put 21-40 at "might
+  need refactoring"). Both in the recommended preset at `error`, as ADR 0001 requires of every rule, with a "Stop and
+  look" message naming the smell and its cure.
+- lz-audit gets a fresh-context auditor agent. Lars, 2026-11-19: "The same applies to lz-audit. It might be called by
+  a long-running sesssion who created most of or the entire codebase being audited." Built as `lz-oop:auditor`
+  (5bf6cfb).
