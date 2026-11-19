@@ -77,12 +77,19 @@ output), stop reading it, do not use it, and tell Lars.
   are free: Shameless Green, the Flocking Rules, the Law of Demeter.
 - In research notes and plans, cite as the oracles do: `Ch.<n> (<your own words>)` for the book, the
   talk or article title with its year for the others. Never derive a chapter number from a file name.
-- In the distributed plugin (`plugins/lz-oop/`), never cite a chapter number: a reader without the book
-  gains nothing from it. Name the pattern, principle or practice, state its meaning, intent and steps
-  in your own words, credit the book by title, and have `oracle-reviewer` gate the result. Talks and
-  articles keep their title and year (Lars, 2026-11-15: "Ideally, it shouldn't be necessary for the
-  distributed skill or reference documents to mention the Chapter number since it adds no value to
-  consumers that don't have the oracle or book available.").
+- In the distributed plugin's skills, references and agents (`plugins/lz-oop/`), cite no source: no chapter number,
+  no title of a book, talk or article, no stand-in such as "the book" or "the talk", and no "her" or "she" for an
+  author. Name the pattern, principle or practice, state its meaning, intent and steps in your own words, and have
+  `oracle-reviewer` gate the result. The works are credited once, in `plugins/lz-oop/ATTRIBUTION.md`; add a work
+  there in the same change that first draws on it. Leave out sources-and-attribution sections, statements of where
+  the plugin's reading comes from, claims about material the plugin cannot read, and asides that give the agent
+  nothing to act on (Lars, 2026-11-15: "Ideally, it shouldn't be necessary for the distributed skill or reference
+  documents to mention the Chapter number since it adds no value to consumers that don't have the oracle or book
+  available."; Lars, 2026-11-19: "The distributed parts of the skills shouldn't mention titles of books, talks,
+  articles, or other sources. A separate license-like/attribution document distributed with the plugin, sure, but I
+  don't think we should waste tokens on mentioning titles of sources over and over again." and "No *Sources and
+  attribution* or similar directly in SKILL.md and references."). Whether person names stay is open until the
+  measurement Lars asked for ("Measure with/without titles and with/without the names of persons").
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
 - For a JavaScript or TypeScript form, *99 Bottles of OOP* and its JavaScript companion code decide first, then
