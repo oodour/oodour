@@ -5,7 +5,7 @@ Where an idea does not carry over to JavaScript or TypeScript as stated, this fi
 Contents: Roles; Role tests in Vitest, Jest and node:test; Choosing a variant: the factory map; Absence: Null Object,
 `?.` and `??`; Injecting collaborators; Testing outgoing messages; Commands and queries; Private state; Parameter lists
 and options objects; Inheritance, mixins and built-in types; Immutable values, caching and the cost of objects; Per-call
-state and `await`; Framework code at the edges; Characterisation tests; Measuring complexity.
+state and `await`; Framework code at the edges; Characterisation tests.
 
 Examples are TypeScript in syntax that Node.js can strip (`erasableSyntaxOnly`, TypeScript 5.8 and later): no `enum`, no
 runtime `namespace`, no constructor parameter properties. A JavaScript note follows where the languages differ.
@@ -531,11 +531,3 @@ steps to show intent or replace it with hand-written tests once the code can be 
 
 Done: every line you will touch runs under a test, every branch is reached, and the suite is green on the unchanged
 code.
-
-## Measuring complexity
-
-- ESLint core: `complexity` (default 20), `max-depth`, `max-lines-per-function`, `max-params`, `max-statements`.
-- `eslint-plugin-sonarjs`: `sonarjs/cognitive-complexity` (licensed LGPL-3.0).
-- No maintained tool computed the ABC metric for JavaScript or TypeScript when this was written (2026); the older
-  escomplex family had seen no release since 2022. Check before relying on that.
-- Churn: count how often each file appears in `git log --format= --name-only`.
