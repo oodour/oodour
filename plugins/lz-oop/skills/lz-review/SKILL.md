@@ -42,7 +42,7 @@ can play a role as well as a class can.
 For each changed area, ask:
 
 - **Two jobs in one?** Did the change restructure and add behaviour in the same step? Restructuring with tests green and
-  unchanged, then adding the behaviour, is the safer order (_99 Bottles of OOP_). What a restructure may do to tests:
+  unchanged, then adding the behaviour, is the safer order. What a restructure may do to tests:
   `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests while restructuring. Did it restructure code that no
   test covered? Then pinning that code first was the missing step: Characterisation tests in
   `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`.
@@ -51,11 +51,11 @@ For each changed area, ask:
   the same as the question above, which is about the steps of the change, not what the code now does:
   `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job? A class that changes often and is
   already large should stop growing even when the new job looks like its own: the next requirement lands as a small new
-  object beside it (the article Breaking Up the Behemoth, 2017). A class or method the change took past a size limit is
-  a place to look, not a finding by itself: Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`.
+  object beside it (Sandi Metz). A class or method the change took past a size limit is a place to look, not a finding
+  by itself: Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`.
 - **Restyling mixed in?** Restyling neighbouring code inside a behaviour change hides what changed, and restyling stable
-  code that has no other reason to change seldom repays its cost; she restyles old code only when real work opens it
-  anyway (the article Why We Argue: Style, 2017). Asking for any restyling in a commit of its own is this plugin's rule.
+  code that has no other reason to change seldom repays its cost; restyle old code only when real work opens it anyway.
+  Ask for any restyling in a commit of its own.
 - **A new branch on a kind?** A new `case` or `else if` for a kind that other methods also switch on means the next kind
   costs the same edits again, even when an exhaustiveness check lists them:
   `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, Choosing versus doing.
@@ -69,38 +69,36 @@ For each changed area, ask:
 - **Work hidden in a framework hook?** A new ORM lifecycle hook, subscriber or middleware that runs follow-up work after
   a save: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Framework code at the edges.
 - **Does it read as a story, and is it a good example?** Read the new names and test descriptions as a newcomer would:
-  do they say what the code does, and what would someone copy when adding one more case? (POODR with the Toronto Ruby
-  Brigade, 2013; the talk Defining Object-Oriented Design; she makes the same pass over her own diff before committing,
-  Ruby Rogues 87, 2013.)
+  do they say what the code does, and what would someone copy when adding one more case? The same pass suits your own
+  diff before committing (Sandi Metz).
 - **Tests:** do the new or changed tests assert what the code does through its public messages, leave outgoing queries
   unverified, and expect outgoing commands? Did tests change in a commit that claims to only restructure? That points to
-  tests that check how rather than what, or to a behaviour change hidden in the commit (the book):
+  tests that check how rather than what, or to a behaviour change hidden in the commit:
   `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Does every branch the change added have a test that reaches
   it, and does a new player of a role run the role's shared test (Role tests in
   `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`)?
 
 Judge each candidate finding with `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and use
-`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where a source's idea needs its JavaScript or TypeScript
-form.
+`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md` where an idea needs its JavaScript or TypeScript form.
 
 ## 4. Report
 
 - A finding is something this change did that makes a change harder: a new branch, flag, hard-coded collaborator, chain
   or subclass, or a test that checks how rather than what. Rank findings by how much each raises that cost, most first,
   and say which change each makes expensive.
-- A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. _99 Bottles of OOP_
-  waits for the actual change request, which shows the shape the code needs, and treats an unforced change to working
-  code as a bet. At most, name it in one line as what to reconsider when that request arrives.
-- The book also counts some unforced changes as bets always worth taking: those that loosen coupling (behaviour on
-  instances, collaborators injected as roles, objects created at the edges, no chains through other objects), because
-  change will come where no one can predict. A change of that kind is a strength to name, not a finding.
+- A new object, collaborator or abstraction for a requirement nobody has asked for is not a finding. Wait for the actual
+  change request, which shows the shape the code needs, and treat an unforced change to working code as a bet. At most,
+  name it in one line as what to reconsider when that request arrives.
+- Some unforced changes are bets always worth taking: those that loosen coupling (behaviour on instances, collaborators
+  injected as roles, objects created at the edges, no chains through other objects), because change will come where no
+  one can predict. A change of that kind is a strength to name, not a finding.
 - Indirection the change adds without need is a finding: a layer, wrapper or general method that no current caller needs
-  makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one (the
-  book). Name what the simpler form would be. When the change adds a one-line method that only forwards, or leaves a
-  class that only relays calls, Read Lazy Class and Middle Man in `${CLAUDE_PLUGIN_ROOT}/references/smells.md` before
-  you judge it: each says when such code is not a finding. In the report, give the reason for your verdict: for a
-  finding, why neither exception holds; for code that is fine, the caller goal the method names or the duty the class
-  keeps, under what the change did well.
+  makes the code harder to read and no cheaper to change, and an early wrong abstraction can hide the right one. Name
+  what the simpler form would be. When the change adds a one-line method that only forwards, or leaves a class that only
+  relays calls, Read Lazy Class and Middle Man in `${CLAUDE_PLUGIN_ROOT}/references/smells.md` before you judge it: each
+  says when such code is not a finding. In the report, give the reason for your verdict: for a finding, why neither
+  exception holds; for code that is fine, the caller goal the method names or the duty the class keeps, under what the
+  change did well.
 - When the change raised no cost, say it is sound, say why, and stop.
 - For each finding: file and lines, the smell's name, the cure, and the first small step toward it. Where a sketch
   helps, sketch that first step in TypeScript (one new object, one table entry), not the finished design. Where the cure
@@ -109,8 +107,3 @@ form.
 - Say plainly what the change did well and what is fine as it is, with the properties that make it fine.
 - Leave formatting, lint and naming nits out unless a name hides a concept.
 - Change no code unless the developer asks; then make the smallest step, run the tests, and stop.
-
-## Sources and attribution
-
-As in the `lz-oop` skill: the books are credited by title and their practices by name, talks and articles by title and
-year, and every TypeScript mapping is this plugin's adaptation.

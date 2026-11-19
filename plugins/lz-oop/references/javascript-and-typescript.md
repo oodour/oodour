@@ -1,10 +1,6 @@
 # JavaScript and TypeScript forms of the ideas
 
-_99 Bottles of OOP_ teaches in JavaScript, _Practical Object-Oriented Design_ in Ruby, and the talks mostly in Ruby.
-Where an idea does not carry over to JavaScript or TypeScript as stated, this file gives the form to use. **Everything
-here is this plugin's adaptation** unless a book or a talk is credited: the plugin takes no TypeScript guidance from its
-sources, and the mappings, tools and examples below are its own, checked against current TypeScript, Node.js, ESLint,
-Vitest, Jest and `node:test` documentation.
+Where an idea does not carry over to JavaScript or TypeScript as stated, this file gives the form to use.
 
 Contents: Roles; Role tests in Vitest, Jest and node:test; Choosing a variant: the factory map; Absence: Null Object,
 `?.` and `??`; Injecting collaborators; Testing outgoing messages; Commands and queries; Private state; Parameter lists
@@ -25,23 +21,16 @@ leaves roles implicit; TypeScript can name the messages.
   every other player as soon as that class has a `#private` or `private` member: an object literal or a fake with the
   same public methods no longer fits (measured with TypeScript 6.0.3).
 - Name a role interface as soon as a test double plays the role, since the double is already a second player.
-  `Pick<Concrete, 'a' | 'b'>` is at most a short-lived step on the way (this plugin's form). _Practical Object-Oriented
-  Design_ names a role even when it has one player, counts a stand-in built for a test as another, and shares the role's
-  test once another player appears.
+  `Pick<Concrete, 'a' | 'b'>` is at most a short-lived step on the way. A role deserves a name even when it has one
+  player, and its test is shared once another player appears.
 - Types check the shape, not the behaviour. Keep a shared role test (below) that every player runs.
 - Trust the player. Once the receiver depends on a role, it sends the message and asks nothing about who answers. A
   single `instanceof`, `typeof` or `in` check on that collaborator takes the trust back and ties the receiver to the
-  classes again (Less, the Path to Better Design, 2011); in her view a dynamic language repays its looseness only when
-  objects are reliable enough to be trusted without such checks (AMA, 2018). Checking the type of data at a boundary
-  (JSON, user input) is a different job and stays (this plugin's note).
-- Static typing. _Practical Object-Oriented Design_ weighs static against dynamic typing for Ruby. It doubts that
-  compile-time checks catch much: a cast lets a wrong type through, and well-designed object code seldom meets type
-  errors at run time. It also notes that a compiled language checks role interfaces itself, and treats a shared role
-  test as the price a dynamic language pays instead. This plugin's adaptation for TypeScript builds on that point: a
-  role typed as an interface lets the compiler check every player's messages, so the shared role test is left to check
-  behaviour; a cast, an `any` on the role, or a kind check on a collaborator gives up what both the role and the
-  compiler offer. Under `strictNullChecks` the compiler also reports an unhandled `undefined`, which the book's remark
-  about nil errors does not cover.
+  classes again; a dynamic language repays its looseness only when objects are reliable enough to be trusted without
+  such checks (Sandi Metz). Checking the type of data at a boundary (JSON, user input) is a different job and stays.
+- Static typing. A role typed as an interface lets the compiler check every player's messages, so the shared role test
+  is left to check behaviour; a cast, an `any` on the role, or a kind check on a collaborator gives up what both the
+  role and the compiler offer. Under `strictNullChecks` the compiler also reports an unhandled `undefined`.
 
 ```ts
 export interface Discount {
@@ -54,13 +43,11 @@ JavaScript note: there is no interface; the shared role test is the role's only 
 
 ## Role tests in Vitest, Jest and node:test
 
-_99 Bottles of OOP_ ranks the ways a dynamic language can make sure each player answers a role, from lightest to
-heaviest, ends with a language whose compiler checks interfaces, and recommends role tests for JavaScript. It keeps a
-fake honest with a role test that every player of the role and the fake run, checking that each answers the role's
-messages. In TypeScript the compiler already checks that; the shared test below asserts behaviour instead, which is this
-plugin's extension. In plain JavaScript no compiler checks the messages, so the shared test also checks that each one
-exists (`expect(typeof player.apply).toBe('function')`). Export one function that registers the role's tests for any
-player, and call it from each player's test file and from the fake's.
+Keep a fake honest with a role test that every player of the role and the fake run. In TypeScript the compiler already
+checks that each player answers the role's messages, so the shared test below asserts behaviour. In plain JavaScript no
+compiler checks the messages, so the shared test also checks that each one exists
+(`expect(typeof player.apply).toBe('function')`). Export one function that registers the role's tests for any player,
+and call it from each player's test file and from the fake's.
 
 ```ts
 // discount-role.ts (Vitest; Jest is the same with its globals)
@@ -88,13 +75,12 @@ describeDiscountRole(() => new PercentDiscount(10));
 ## Choosing a variant: the factory map
 
 Which form to start from, and when to move from a `switch` to a map, is in the bullet Which form to start from, under
-Factory forms in [variants-and-conditionals.md](variants-and-conditionals.md) (_99 Bottles of OOP_ weighs the forms in
-JavaScript). When that points to a map, this plugin's form in TypeScript is the key/value lookup, built in one place,
-with the `satisfies` check below. The compiler check is a bonus of that form, not a reason to move to it. Each entry,
-like each `case` below, only picks a class, and the object is built once after the choice, as in the book's companion
-code. Give every kind the same constructor parameters, even where a kind ignores some of them, so the factory never
-needs to know how the kinds differ (the talk Polly Want a Message, 2018); build inside a branch only when a kind cannot
-take the shared parameters at all (this plugin's exception).
+Factory forms in [variants-and-conditionals.md](variants-and-conditionals.md). When that points to a map, the form in
+TypeScript is the key/value lookup, built in one place, with the `satisfies` check below. The compiler check is a bonus
+of that form, not a reason to move to it. Each entry, like each `case` below, only picks a class, and the object is
+built once after the choice. Give every kind the same constructor parameters, even where a kind ignores some of them, so
+the factory never needs to know how the kinds differ; build inside a branch only when a kind cannot take the shared
+parameters at all.
 
 ```ts
 type PlanKind = 'basic' | 'pro';
@@ -115,15 +101,13 @@ function planFor(kind: PlanKind, seats: number): Plan {
 variant fails the build. A registry open to new keys (`Record<string, ...>`, as self-registration builds) is the
 opposite case: without `noUncheckedIndexedAccess` the compiler types every lookup as found, and an unknown kind fails at
 run time where the object is built. Turn the flag on, so the factory must decide once what an unknown kind gets, a
-default player or a thrown error, and no caller has to (this plugin's note). A `Map`'s `get` already includes
-`undefined`.
+default player or a thrown error, and no caller has to. A `Map`'s `get` already includes `undefined`.
 
-The `switch` the plugin starts from gets the same check from a `default` that states the kind is `never`:
-`kind satisfies never` (TypeScript 4.9 and later), or the older forms, assigning it to a `never` variable or passing it
-to a function whose parameter is `never`. While every kind has a `case`, nothing reaches the `default`; a kind added to
-the union without a `case` makes that line a compile error that names the missing kind (TypeScript Handbook, Narrowing).
-Keep the `throw`: a value from outside the program, such as parsed JSON, can still arrive with a kind the type does not
-list.
+The `switch` to start from gets the same check from a `default` that states the kind is `never`: `kind satisfies never`
+(TypeScript 4.9 and later), or the older forms, assigning it to a `never` variable or passing it to a function whose
+parameter is `never`. While every kind has a `case`, nothing reaches the `default`; a kind added to the union without a
+`case` makes that line a compile error that names the missing kind. Keep the `throw`: a value from outside the program,
+such as parsed JSON, can still arrive with a kind the type does not list.
 
 ```ts
 function planClassFor(kind: PlanKind): new (seats: number) => Plan {
@@ -168,7 +152,7 @@ function onPlanRequest(request: PlanRequest): Plan {
   the package declares `"sideEffects": false`. When kinds arrive so often that editing the factory is itself the cost
   (the bullet Which form to start from, in [variants-and-conditionals.md](variants-and-conditionals.md)), use
   self-registration only where every variant module is reliably loaded; plugins added by other packages are the usual
-  case (the module-loading limits are this plugin's).
+  case.
 - JavaScript note: no `satisfies` or `never`; freeze the map and test that every kind in a `kinds` list has an entry,
   and give a `switch` a `default` that throws.
 
@@ -177,14 +161,13 @@ function onPlanRequest(request: PlanRequest): Plan {
 - With `strictNullChecks`, every `T | undefined` must be handled, so each `?.` and `??` is a visible decision. One check
   at a boundary (a lookup that can miss, optional configuration) is fine when it drops the missing value, supplies a
   plain default value, or picks the stand-in object.
-- A `??` that supplies, inline, the behaviour of a missing collaborator already calls for a Null Object, even once (the
-  talk Nothing is Something, 2015). So does the same absence check repeated at several callers, each supplying the same
-  fallback, and a shorter spelling of the check (`?.`) is still the check (the article Suspicions of nil, 2014). Decide
-  once at the boundary and give callers a Null Object: a stand-in for the role whose methods do nothing or return a
-  neutral value (Nothing is Something, 2015).
+- A `??` that supplies, inline, the behaviour of a missing collaborator already calls for a Null Object, even once. So
+  does the same absence check repeated at several callers, each supplying the same fallback, and a shorter spelling of
+  the check (`?.`) is still the check. Decide once at the boundary and give callers a Null Object: a stand-in for the
+  role whose methods do nothing or return a neutral value.
 - A plain value default for optional configuration (`options.timeout ?? 5000`) is the boundary check above, and creating
   a collaborator on first use (`??=`, in Injecting collaborators) is creation, not absence handling; neither calls for a
-  Null Object (this plugin's reading).
+  Null Object.
 
 ```ts
 const noDiscount: Discount = { apply: (amount) => amount };
@@ -205,8 +188,7 @@ Injection is as cheap in JavaScript as in Ruby, but module imports invite hard-c
 top of a module and used inside a class is a hidden dependency, and tests then need `vi.mock`, `jest.mock` or
 `node:test`'s `mock.module` to replace a whole module. Ambient context hides one the same way: a domain method that
 reads a collaborator or a value from `AsyncLocalStorage`, or from any module-level store, depends on it without saying
-so; read it at the edge and pass it in (this plugin's note, extending the book's guideline to avoid naming constants
-inside instance methods where you can).
+so; read it at the edge and pass it in.
 
 ```ts
 export interface PaymentGateway {
@@ -227,15 +209,14 @@ export class Checkout {
 ```
 
 - A checkout cannot know which payment provider the application uses, so it takes the gateway with no default. A default
-  keeps call sites short while tests pass a double. _99 Bottles of OOP_ removes such defaults once callers pass the
-  collaborator, because a default ties the class to its first setting; her article keeps one (SOLID Design Principles -
-  Dependency Injection, 2009). This plugin keeps one only when the class can justify that player on its own, as
-  [dependencies-and-messages.md](dependencies-and-messages.md) says. Take a collaborator as a positional parameter, as
-  the book does; switch to an options object once a constructor has several optional settings (this plugin's form).
-- Domain behaviour belongs on instances (the book). In JavaScript and TypeScript the same applies to `static` methods
-  and to exported module functions that hold domain rules: a function that takes a record and decides for it cannot be
-  replaced by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure calculation
-  with no variants in sight (this plugin's reading).
+  keeps call sites short while tests pass a double, but it ties the class to its first setting, so keep one only when
+  the class can justify that player on its own, as [dependencies-and-messages.md](dependencies-and-messages.md) says.
+  Take a collaborator as a positional parameter; switch to an options object once a constructor has several optional
+  settings.
+- Domain behaviour belongs on instances. In JavaScript and TypeScript the same applies to `static` methods and to
+  exported module functions that hold domain rules: a function that takes a record and decides for it cannot be replaced
+  by injection, so a second variant becomes a branch inside it. A plain function is fine for a pure calculation with no
+  variants in sight.
 - Constructor parameter properties (`constructor(private payments: PaymentGateway)`) are not erasable; assign the field
   in the body.
 - In a framework with its own injection (Angular providers and `inject()`, NestJS providers), use it there.
@@ -243,18 +224,17 @@ export class Checkout {
   tokens, such as a logger and options), keep that class a thin adapter: it builds the collaborators and hands them to a
   plain object that does the work: an instance of an ordinary class, or an object a function returns, that the framework
   does not build. Tests build it with doubles. A test-only setting then becomes a parameter of that object, not a side
-  door in module state. See Framework code at the edges below (this plugin's form).
-- When injection must wait, create the collaborator on first use in one method, so the working methods never name its
-  class (_Practical Object-Oriented Design_ isolates instance creation this way). The TypeScript form, which also makes
-  that method private, is this plugin's: a field `#gateway?: PaymentGateway` read only through
+  door in module state. See Framework code at the edges below.
+- When injection must wait, create the collaborator on first use in one private method, so the working methods never
+  name its class: a field `#gateway?: PaymentGateway` read only through
   `get #payments(): PaymentGateway { return (this.#gateway ??= new CardGateway()); }`.
 - A collaborator that holds a resource (a connection, a file handle, a timer) is disposed of by the code that created
   it, never by the object it was handed to: knowing when it ends is knowing how it was made. The code that built both
   disposes of the collaborator after the receiver is done, with `using` (Explicit Resource Management, at stage 4;
   TypeScript 5.2 and later; Node.js 24 runs it) or `try`/`finally`. An object that creates its own resource on first
-  use, as above, owns it, so it implements `[Symbol.dispose]()` and is itself created with `using` (this plugin's rule).
+  use, as above, owns it, so it implements `[Symbol.dispose]()` and is itself created with `using`.
 - When only the receiver knows what its collaborator needs to be built, inject a factory function typed by what the
-  receiver wants back, and call it once: `constructor(quoteFor: (seats: number) => Quote)`. Steps and sources:
+  receiver wants back, and call it once: `constructor(quoteFor: (seats: number) => Quote)`. Steps:
   [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not own.
 - JavaScript note: the same, without the types.
 
@@ -263,17 +243,15 @@ export class Checkout {
 Build the double in the test, pass it in, and assert on the message it received. A mock function inside an injected
 double is fine; spying on a method of the object under test checks how it works rather than what it does. The one
 exception is code with no seam yet: there a test may replace one of the object's own steps that it is not verifying
-(_xUnit Test Patterns_, Test-Specific Subclass). Treating that as temporary, until the step moves into a collaborator,
-is this plugin's condition.
+(Test-Specific Subclass), until the step moves into a collaborator.
 
 - Vitest:
   `const charge = vi.fn<PaymentGateway['charge']>(); new Checkout({ charge }).pay(10); expect(charge).toHaveBeenCalledWith(10);`
 - Jest: `const charge = jest.fn(); ... expect(charge).toHaveBeenCalledWith(10);`
 - `node:test`: `const charge = mock.fn(); ... assert.deepStrictEqual(charge.mock.calls[0].arguments, [10]);`
 
-Neither Vitest nor Jest documents a preference between fakes and spies; the preference for injecting a double that plays
-the role, rather than stubbing a concrete class, is Sandi Metz's (the talk Get a Whiff of This, 2016). What to assert
-for each kind of message: [testing-messages.md](testing-messages.md).
+Prefer injecting a double that plays the role to stubbing a concrete class (Sandi Metz). What to assert for each kind of
+message: [testing-messages.md](testing-messages.md).
 
 ## Commands and queries
 
@@ -283,8 +261,7 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   that deliberately does both (a `pop()`) is allowed; test its returned value and its public effect separately.
 - A query that answers with a collection answers with a copy or a read-only view, so the asker cannot change the object
   through the answer: `toSorted()`, `toReversed()`, `with()` and `toSpliced()` (ES2023) return a new array where
-  `sort()`, `reverse()` and `splice()` change the one they are called on, and a `readonly` array type stops the rest
-  (this plugin's rule).
+  `sort()`, `reverse()` and `splice()` change the one they are called on, and a `readonly` array type stops the rest.
 - No lint rule enforces the separation. `@typescript-eslint/no-confusing-void-expression` stops a command's result being
   used as a value, and `@typescript-eslint/no-floating-promises` stops an async command being dropped. A query that
   changes state is caught by a test that calls it twice.
@@ -296,58 +273,48 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 - The public messages are the stable surface; `#private` fields and unexported functions are free to change. A test that
   needs to reach private code may point to a missing collaborator: extract one when its public interface would be
   steadier than the private code, and otherwise test through the public messages. Code still under active refactoring
-  may get a separate, temporary test (_Practical Object-Oriented Design_, which says this of private methods; applying
-  it to private fields is this plugin's). _99 Bottles of OOP_'s own code keeps plain fields and hides at module level,
-  exporting only its entry points; `#private` is this plugin's form.
+  may get a separate, temporary test. Hiding at module level, exporting only the entry points, serves the same end.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
-- Reading your own state. The sources that state a guideline default to sending a message. _Practical Object-Oriented
-  Design_ puts every field behind an accessor that the class itself reads through, so one method decides what the value
-  means and a later change to that meaning touches one place. Sandi Metz reads her own state through a message whenever
-  that costs no more than reading the raw value, to keep room for change (Ruby Rogues 87, 2013). Katrina Owen prefers
-  the message with no cost condition: she wants the seam, and no split between stored values and messages (Overkill,
-  2014). _99 Bottles of OOP_ states no guideline, and its JavaScript classes read their fields directly throughout.
-  Metz's cost condition matters here: in Ruby a reader takes one line, while in JavaScript a getter over a `#field`
-  needs a second name for the field. This plugin's reading of the four: where the class already has a public getter for
-  a value, read through it inside the class too; where a value's meaning could change or a subclass may redefine it,
-  give it a getter that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the
-  class reads it, and public when a subclass may redefine it, since it is then a hook (`protected` only where no test
-  reads it; Hooks and required steps in TypeScript, below); otherwise a direct `#field` read, as in _99 Bottles of
-  OOP_'s code, is fine. The outside half of _Practical Object-Oriented Design_'s reason mostly falls away in JavaScript:
-  a public field can become a getter later and no caller changes.
+- Reading your own state. Default to sending a message where that costs no more than reading the raw value (Sandi Metz),
+  so one method decides what the value means and a later change to that meaning touches one place; a message also keeps
+  a seam, with no split between stored values and messages (Katrina Owen). In JavaScript a getter over a `#field` needs
+  a second name for the field, which is that cost. So: where the class already has a public getter for a value, read
+  through it inside the class too; where a value's meaning could change or a subclass may redefine it, give it a getter
+  that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class reads it,
+  and public when a subclass may redefine it, since it is then a hook (`protected` only where no test reads it; Hooks
+  and required steps in TypeScript, below); otherwise a direct `#field` read is fine. A public field can become a getter
+  later and no caller changes.
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
 
-- _Practical Object-Oriented Design_ treats a fixed argument order as a dependency of its own: every caller must know
-  it. It prefers named arguments, which let callers pass them in any order and let the receiver add or drop parameters
-  and defaults without breaking callers; a short list whose order is obvious and settled can stay positional (this
-  plugin's example: `clamp(value, min, max)`), and existing code can move over gradually as it is touched. Its named
-  arguments are Ruby's; this plugin's JavaScript form is one destructured options object,
+- A fixed argument order is a dependency of its own: every caller must know it. Prefer named arguments, which let
+  callers pass them in any order and let the receiver add or drop parameters and defaults without breaking callers; a
+  short list whose order is obvious and settled can stay positional (`clamp(value, min, max)`), and existing code can
+  move over gradually as it is touched. The JavaScript form is one destructured options object,
   `function bookRoom({ start, end, timezone = 'UTC' }: BookingOptions)`.
 - ESLint `max-params` (default 3) counts an options object as one parameter, so it cannot see a large options object.
-  Treat each key as a parameter when judging an argument list; that limit is this plugin's judgement, enforced in
-  review.
+  Treat each key as a parameter when judging an argument list; enforce that limit in review.
 - Use an options object for optional settings with defaults. When the same few values travel together through several
   calls, make them one value object.
-- Defaults: _Practical Object-Oriented Design_ puts a plain default in the signature and has a default that takes code
-  to work out come from a method of the receiver. In JavaScript the first is a destructuring default; the second is
-  `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`
-  (this plugin's note).
+- Defaults: put a plain default in the signature, and have a default that takes code to work out come from a method of
+  the receiver. In JavaScript the first is a destructuring default; the second is
+  `options.limit ?? this.defaultLimit()`. Use `??`, not `||`, which also replaces a deliberate `0`, `''` or `false`.
 - JavaScript note: nothing reports a missing required key in an options object; destructuring quietly gives `undefined`.
   Check required keys where the object enters, or keep a required value as a positional parameter. TypeScript reports
-  the missing key at compile time (this plugin's note).
+  the missing key at compile time.
 - Across a class hierarchy, give each class its own options interface, the subclass's extending the parent's
   (`interface ExpressDeliveryOptions extends DeliveryOptions { readonly insuredValue?: number }`), rather than one open
-  `Record<string, unknown>` that checks nothing (this plugin's form).
+  `Record<string, unknown>` that checks nothing.
 - Adding, removing or retyping a parameter that many callers use, in green steps, with what `tsc` checks and what
   JavaScript leaves to a temporary guard: [changing-in-steps.md](changing-in-steps.md).
 
 ### Raw structures from outside
 
 Data often arrives in a shape the program does not control: CSV rows, arrays of positions from a library, loosely typed
-JSON. _Practical Object-Oriented Design_ keeps the knowledge of that shape in one place, a function or method that turns
-each row into an object with named parts, so every other method sends messages to those objects instead of indexing into
-`row[3]`. When the program owns the input, pass real objects in the first place. The example is this plugin's:
+JSON. Keep the knowledge of that shape in one place, a function or method that turns each row into an object with named
+parts, so every other method sends messages to those objects instead of indexing into `row[3]`. When the program owns
+the input, pass real objects in the first place.
 
 ```ts
 type ReadingRow = readonly string[];
@@ -371,9 +338,9 @@ function toReading(row: ReadingRow): MeterReading {
 
 - `toReading` is now the only code that knows the column order. When the supplier adds a column, it is the only edit.
 - The converter is also where each value is checked: `Number('')` is `0` and a missing cell gives `NaN`, so a converter
-  that only maps would pass bad rows on quietly (this plugin's note).
+  that only maps would pass bad rows on quietly.
 - A tuple type such as `readonly [meter: string, site: string, date: string, kwh: string]` documents the positions, but
-  every reader still indexes by position, so it is not this conversion (this plugin's note).
+  every reader still indexes by position, so it is not this conversion.
 - The `MeterReading` record is the boundary case that [smells.md](smells.md) excepts from Data Class: data parsed at the
   edge may be a plain record, as long as nothing past the converter reads the raw row.
 
@@ -383,19 +350,15 @@ function toReading(row: ReadingRow): MeterReading {
   inheritance: the parent is fixed when the classes are built. It also costs typing work (an `any[]` constructor
   signature, anonymous class types). Prefer a collaborator passed in; keep mixins small, with state only when it belongs
   to the role in every host. See [inheritance.md](inheritance.md).
-- Wrap value and collection built-ins (`String`, `Array`, `Map`); do not extend them. Katrina Owen gives two reasons
-  against her subclass of Ruby's `String`: it inherited a large interface the object did not need, and core operations
-  hand back the plain built-in type; she builds a standalone object instead (the talk Overkill, 2014). Both bite in
-  JavaScript: a subclass of `String` is an object, not a string (`s === 'x'` is false), and its operations return
-  primitives. A subclass of `Array` returns the subclass from `map`, `filter` and `slice` through `Symbol.species`,
-  which breaks a constructor with its own signature; that reason is JavaScript's, not hers. Extending `Error` to define
-  a kind of error is outside this rule: it brings in no unwanted interface.
-- A domain object that holds a list. _Practical Object-Oriented Design_ weighs the options: a subclass of the built-in
-  list hands callers every list method; a plain wrapper leaves callers stumbling over the list operations it lacks, and
-  adding those one at a time never ends. _Practical Object-Oriented Design_ settles on a wrapper that forwards a few
-  list messages and gets the rest from Ruby's iteration module. JavaScript has no module that builds a list interface
-  from one iteration method, so this plugin's form keeps the array private, makes the wrapper iterable, and forwards
-  only the messages the domain uses:
+- Wrap value and collection built-ins (`String`, `Array`, `Map`); do not extend them. A subclass of a built-in inherits
+  a large interface the object does not need, and core operations hand back the plain built-in type; build a standalone
+  object instead (Katrina Owen). Both bite in JavaScript: a subclass of `String` is an object, not a string (`s === 'x'`
+  is false), and its operations return primitives. A subclass of `Array` returns the subclass from `map`, `filter` and
+  `slice` through `Symbol.species`, which breaks a constructor with its own signature. Extending `Error` to define a
+  kind of error is outside this rule: it brings in no unwanted interface.
+- A domain object that holds a list. A subclass of the built-in list hands callers every list method; a plain wrapper
+  leaves callers stumbling over the list operations it lacks, and adding those one at a time never ends. Settle on a
+  wrapper that keeps the array private, makes itself iterable, and forwards only the messages the domain uses:
 
   ```ts
   class Shipments implements Iterable<Shipment> {
@@ -419,31 +382,25 @@ function toReading(row: ReadingRow): MeterReading {
   someone asks the wrapper for general list operations (sorting, the first item, an emptiness check), point the callers
   to iteration or spread first. Forward at most one or two general messages (a count, say), each used by several
   callers; forward any other only when it names an idea of the domain, since each convenience method invites the next.
-  Every message the wrapper answers must behave as callers of a list expect (this plugin's rule, checked with _Practical
-  Object-Oriented Design_). The iterator helpers of ES2025 (`shipments.values().filter(...)` on an array,
-  `Iterator.from(shipments)` on the wrapper) cover part of what Ruby's iteration module gave. Type a parameter that only
-  loops as `Iterable<Shipment>`, so an array and the wrapper both fit. Write the forwarders by hand: a `Proxy` that
-  forwards every message cannot be typed without a cast and cannot reach `#private` members (this plugin's note). Moving
-  off a list subclass is a change many callers feel, so make it in green steps: add the wrapper beside the subclass with
-  its own tests (iteration yields the items it was given, and each domain message returns its answer, such as
-  `totalWeight()` for known shipments), port its callers singly and test after each, and delete the subclass when its
-  last caller has moved, rather than switching the class in place and fixing whatever the compiler reports
-  ([changing-in-steps.md](changing-in-steps.md); this plugin's note).
+  Every message the wrapper answers must behave as callers of a list expect. The iterator helpers of ES2025
+  (`shipments.values().filter(...)` on an array, `Iterator.from(shipments)` on the wrapper) cover more of the list
+  interface. Type a parameter that only loops as `Iterable<Shipment>`, so an array and the wrapper both fit. Write the
+  forwarders by hand: a `Proxy` that forwards every message cannot be typed without a cast and cannot reach `#private`
+  members. Moving off a list subclass is a change many callers feel, so make it in green steps: add the wrapper beside
+  the subclass with its own tests (iteration yields the items it was given, and each domain message returns its answer,
+  such as `totalWeight()` for known shipments), port its callers singly and test after each, and delete the subclass
+  when its last caller has moved, rather than switching the class in place and fixing whatever the compiler reports
+  ([changing-in-steps.md](changing-in-steps.md)).
 
 - Do not add methods to built-in prototypes: they are shared by all code and can clash with future standard methods. The
   narrow exception is a polyfill that adds a standard method exactly as specified. Use a domain object or a plain
-  function. Sandi Metz is more relaxed in Ruby: she adds methods to core classes in applications she controls, where she
-  can foresee the other method names in play, and disapproves of it in code released for others to use (POODR with the
-  Toronto Ruby Brigade, 2013; The Bike Shed, 2016), and _Practical Object-Oriented Design_ allows it given a persuasive
-  reason. This plugin keeps the stricter rule for JavaScript, its own position: every library loaded into the same page
-  or process shares one prototype, so an application cannot foresee every name added to it, and a name added today can
-  collide with a standard method added later.
+  function. Every library loaded into the same page or process shares one prototype, so an application cannot foresee
+  every name added to it, and a name added today can collide with a standard method added later.
 
 ### Hooks and required steps in TypeScript
 
 Use when writing a parent class whose template method calls hooks (the conditions and the throwing parent:
-[inheritance.md](inheritance.md), When a hierarchy is safe to keep). These forms are this plugin's; the mechanics are
-from the TypeScript Handbook, Classes.
+[inheritance.md](inheritance.md), When a hierarchy is safe to keep).
 
 ```ts
 abstract class Invoice {
@@ -459,19 +416,18 @@ abstract class Invoice {
 }
 ```
 
-- Make a hook a public method by default, documented as a hook, as _Practical Object-Oriented Design_ does. Use
-  `protected` only where no test sends the hook; then test its value through the template method, on a subclass made for
-  the test. Never make a hook `#private`: were the hook `#fee`, a subclass's own `#fee` would be a second, separate
-  member, and the parent would keep calling its own. The `#private` default in Private state is for state, not for
-  hooks.
+- Make a hook a public method by default, documented as a hook. Use `protected` only where no test sends the hook; then
+  test its value through the template method, on a subclass made for the test. Never make a hook `#private`: were the
+  hook `#fee`, a subclass's own `#fee` would be a second, separate member, and the parent would keep calling its own.
+  The `#private` default in Private state is for state, not for hooks.
 - Mark a required step `abstract` in an `abstract` parent. The compiler then refuses a subclass that leaves it out and
   refuses `new Invoice()`. Both modifiers are erased, so the class runs under Node.js type stripping. In plain
   JavaScript, keep the parent method that throws.
 - Mark each hook a subclass supplies `override`, and turn on `noImplicitOverride`. Renaming a hook in the parent then
-  breaks the build instead of leaving the subclass's method silently uncalled (TypeScript 4.3 release notes).
-- _Practical Object-Oriented Design_ has the parent's constructor ask its subclasses for defaults and for extra setup
-  through hooks. In JavaScript and TypeScript the parent's constructor runs before the subclass's own fields exist,
-  which splits that in two (measured with Node.js 24; the forms are this plugin's):
+  breaks the build instead of leaving the subclass's method silently uncalled.
+- A parent's constructor may ask its subclasses for defaults and for extra setup through hooks. In JavaScript and
+  TypeScript the parent's constructor runs before the subclass's own fields exist, which splits that in two (measured
+  with Node.js 24):
   - A hook that returns a value and reads nothing the subclass sets works from the parent's constructor:
     `this.#rate = options.rate ?? this.defaultRate();`, with each subclass's `defaultRate()` returning its own constant.
     Use `??`, not `||`, which would also replace a deliberate `0`.
@@ -479,24 +435,22 @@ abstract class Invoice {
     throws a `TypeError`, and a write to a plain declared field is reset to `undefined` once `super()` returns. Give
     such a subclass its own constructor that calls `super(options)` and then sets its fields. That brings back a `super`
     call, but only in a constructor, where both languages refuse to touch `this` before `super()` has run, so the
-    forgotten `super` that hooks avoid cannot happen there (this plugin's reasoning). Subclasses that only supply hooks
-    declare no constructor.
+    forgotten `super` that hooks avoid cannot happen there. Subclasses that only supply hooks declare no constructor.
 - Do not write a hook as an arrow-function property (`fee = () => 0`). It lives on each instance, not on the prototype,
   so `super.fee()` cannot reach it, and the parent's property hides a subclass method of the same name.
 
 ## Immutable values, caching and the cost of objects
 
-- _99 Bottles of OOP_ prefers objects that do not change: they are easier to reason about and cheaper to test. It treats
-  creating objects as free in a first version and adds no caching there: storing a result is easy, knowing when it is
-  stale is not, and people guess wrong about speed, so write the plain version, measure, and optimise only the hot spot
-  the profiler shows.
+- Prefer objects that do not change: they are easier to reason about and cheaper to test. Treat creating objects as free
+  in a first version and add no caching there: storing a result is easy, knowing when it is stale is not, and people
+  guess wrong about speed, so write the plain version, measure, and optimise only the hot spot the profiler shows.
 - The practice comes first: assign each field once in the constructor, and return a new object from a method that would
-  change one, as the book's companion code does without enforcing it. TypeScript form (this plugin's enforcement):
-  `readonly` fields and `ReadonlyArray<T>` (or `readonly T[]`) make the compiler refuse writes; `#private` fields with
-  no setter keep the value fixed at run time. `Object.freeze` adds a run-time check, shallow only.
+  change one. TypeScript enforcement: `readonly` fields and `ReadonlyArray<T>` (or `readonly T[]`) make the compiler
+  refuse writes; `#private` fields with no setter keep the value fixed at run time. `Object.freeze` adds a run-time
+  check, shallow only.
 - A domain value such as an amount of money or a date range gets its own small type rather than a broad library type, so
   it answers only the domain's messages. `===` compares two objects by identity, so give such a value an `equals` method
-  that compares its parts (this plugin's note).
+  that compares its parts.
 - Measure in Node.js with `--cpu-prof` or `node --prof`, or the browser's performance panel, before caching anything.
 - JavaScript note: no `readonly`; `Object.freeze` in the constructor, and `#private` fields, give the run-time half.
 
@@ -504,9 +458,8 @@ abstract class Invoice {
 
 JavaScript runs one thing at a time, but `await` lets calls interleave. Two overlapping calls that each store data in an
 instance field before an `await` both read back the last value written. Keep per-call data in locals, parameters or a
-per-call object. Katrina Owen makes the general point in the talk Overkill (2014): data that belongs to one call stays
-out of fields, or a second caller overwrites it; the `await` case is this plugin's JavaScript form of it. Keep the rule
-even where an overlap is unlikely, as she does, so it does not depend on an `await`.
+per-call object: data that belongs to one call stays out of fields, or a second caller overwrites it (Katrina Owen).
+Keep the rule even where an overlap is unlikely, so it does not depend on an `await`.
 
 ## Framework code at the edges
 
@@ -515,55 +468,50 @@ edges, translating requests and calling plain objects or functions that hold the
 domain files import nothing from the framework, which ESLint `no-restricted-imports` or dependency-cruiser can enforce.
 The import rule is the target; during a migration, a domain class may for a while default a collaborator to one built on
 the framework, until its callers pass that collaborator in. Type a framework object the domain must receive by a role
-the domain owns (the POODR panel, 2021).
+the domain owns.
 
 Right after the handler, one object stands for the whole request: it runs the steps in order, calls the collaborators
-and gathers the outcome, and keeps little of the domain logic itself (The Bike Shed, 2016; the POODR panel, 2021).
+and gathers the outcome, and keeps little of the domain logic itself.
 
 Persistence follows the same rule. A class an ORM maps (a TypeORM entity, a Sequelize or Mongoose model) is a record
 that knows how to store itself. Domain rules go in plain objects that receive the record and treat it as stored data,
-and their tests pass a hand-written stand-in for it instead of a database (POODR with the Toronto Ruby Brigade, 2013;
-the POODR panel, 2021; her interview on the Maintainable podcast; the ORM names are this plugin's). In existing code,
-take the next change to a rule that lives in a record class as the cue to put a plain object around that record (the
-POODR panel, 2021). Logic that decides how two records interact, such as a transfer between two accounts, is an idea of
-its own and gets its own object, with both records passed in (the Changelog podcast, 2016; the Maintainable podcast; the
-example is this plugin's).
+and their tests pass a hand-written stand-in for it instead of a database. In existing code, take the next change to a
+rule that lives in a record class as the cue to put a plain object around that record. Logic that decides how two
+records interact, such as a transfer between two accounts, is an idea of its own and gets its own object, with both
+records passed in.
 
 Lifecycle hooks (TypeORM's `@BeforeInsert` or a subscriber, Mongoose middleware) hide follow-up work behind a save. A
 hook or two is fine; once several run, put the save and its follow-up steps in one object that runs them in order and
-owns the transaction, so one file shows the whole collaboration (the Maintainable podcast; the POODR panel, 2021; the
-hook names are this plugin's).
+owns the transaction, so one file shows the whole collaboration.
 
 ## Characterisation tests
 
-Use before restructuring code whose inputs and expected output you do not know, only that it works today. Katrina Owen
-pins such a method in the talk Therapeutic Refactoring (2012); the steps restate hers. _Practical Object-Oriented
-Design_ allows one exception: untested code that switches on a class, so fragile that its simple duck-type cure is
-likely the cheaper path, may be refactored before tests are written. Name the risk when you take it (this plugin's
-advice).
+Use before restructuring code whose inputs and expected output you do not know, only that it works today (Katrina Owen).
+One exception: untested code that switches on a class, so fragile that its simple duck-type cure is likely the cheaper
+path, may be refactored before tests are written. Name the risk when you take it.
 
 1. Call the code with a stand-in for its input, and assert a value you know is wrong. The failure is the point: it shows
    what the code needs or what it returns.
 2. While the failure is a missing input (the stand-in lacks something the code asks for), read the code at that line,
    learn what kind of value it wants, add it, and run again.
 3. Once the failure is a plain mismatch, paste the actual value it reports in as the expected value. Green. When the
-   pasted value still fails, read that as a part that varies from run to run (this plugin's reading). Where the clock or
-   a random source drives that part, fake them in the test without editing the code under test (this plugin's step):
-   `vi.useFakeTimers()` with `vi.setSystemTime()` in Vitest, `jest.useFakeTimers()` with `jest.setSystemTime()` in Jest,
+   pasted value still fails, read that as a part that varies from run to run. Where the clock or a random source drives
+   that part, fake them in the test without editing the code under test: `vi.useFakeTimers()` with `vi.setSystemTime()`
+   in Vitest, `jest.useFakeTimers()` with `jest.setSystemTime()` in Jest,
    `mock.timers.enable({ apis: ['Date'], now: <a fixed time> })` in `node:test`; for randomness, a seed the code already
    accepts, else give `Math.random` a fixed result for the test (`vi.spyOn(Math, 'random').mockReturnValue(0.5)`, the
    same with `jest.spyOn`, or `mock.method(Math, 'random', () => 0.5)` in `node:test`: a spy with no return value still
    calls the real one), and restore both after each test (`vi.useRealTimers()` and `vi.restoreAllMocks()`, the same in
    Jest, or `t.mock` in `node:test`, which restores itself); for any other varying part, loosen that part of the
-   expected value to a pattern, as she does.
+   expected value to a pattern.
 4. Choose inputs that make each transformation the code applies visible in the output, adjusting the expected value from
    each failure.
 5. Add a case for every branch of every conditional, including fallbacks for missing values and each side of a
    threshold.
 6. Where the behaviour looks wrong, pin it anyway as the current behaviour and ask whoever owns the requirement.
 
-She stops once every line runs under some input and every branch is reached from a test. The result is a regression
-suite and a record of today's behaviour, not a specification.
+Stop once every line runs under some input and every branch is reached from a test. The result is a regression suite and
+a record of today's behaviour, not a specification.
 
 ```ts
 // Step 1, in Vitest (Jest is the same with its globals): the expected value is a placeholder
@@ -578,10 +526,8 @@ Vitest and Jest, `t.assert.snapshot` in `node:test`. Snapshot only the output th
 serialised objects, so the test does not fail on changes it is not about; remove volatile fields and fake time and
 randomness; prefer an inline snapshot, which keeps the expected value beside the test. Never update a snapshot to make a
 failing test pass without reading the difference, and replace snapshots with assertions that name the behaviour once you
-understand it. The snapshot tools are this plugin's advice, and likening a snapshot to _xUnit Test Patterns_'s Recorded
-Test is this plugin's analogy: that book treats tests recorded by a tool as a quick safety net that tends to turn
-obscure and fragile, and has their steps recast to show intent or replaced with hand-written tests once the code can be
-tested.
+understand it. A snapshot is a Recorded Test: a quick safety net that tends to turn obscure and fragile, so recast its
+steps to show intent or replace it with hand-written tests once the code can be tested.
 
 Done: every line you will touch runs under a test, every branch is reached, and the suite is green on the unchanged
 code.

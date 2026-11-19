@@ -37,7 +37,8 @@ Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 
 JavaScript and TypeScript only. The plugin stands alone: it needs no other plugin.
 
-All text in this plugin is original writing. Ideas credited to Sandi Metz are cited to the work they come from.
+All text in this plugin is original writing. The works it draws on are credited in [ATTRIBUTION.md](ATTRIBUTION.md); the
+skills and references name patterns, principles and practices but cite no source.
 
 ## License
 
