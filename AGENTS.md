@@ -174,7 +174,9 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
 `npm exec -- nx`.
 
 - `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then
-  `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number (see "What you write").
+  `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number, a title that
+  `plugins/lz-oop/ATTRIBUTION.md` lists (two words or more), a stand-in such as "the book", or "her" or "she" (see "What
+  you write").
 - Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
   it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
   `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and

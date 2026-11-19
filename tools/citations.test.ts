@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tempDir } from './temp-dir.ts';
 import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
-import { chapterCitations, main } from './citations.ts';
+import { attributedTitles, chapterCitations, main, sourceMentions } from './citations.ts';
 
 function files(contents: Record<string, string>): string[] {
   const dir = tempDir('citations-');
@@ -25,6 +25,56 @@ test('a chapter number is reported with its line and column', () => {
   ]);
 });
 
+test('a pronoun standing for an author is reported, in any case, as a whole word only', () => {
+  assert.deepEqual(sourceMentions('She waits for the third.\nAs her talk says; there, shelf and hero stay.', []), [
+    { line: 1, column: 1, citation: 'She' },
+    { line: 2, column: 4, citation: 'her' },
+  ]);
+});
+
+test('a stand-in for a source is reported, and so is hers', () => {
+  assert.deepEqual(sourceMentions('As The book says, and the talk, and the article: the idea is hers.', []), [
+    { line: 1, column: 4, citation: 'The book' },
+    { line: 1, column: 23, citation: 'the talk' },
+    { line: 1, column: 37, citation: 'the article' },
+    { line: 1, column: 62, citation: 'hers' },
+  ]);
+});
+
+test('a title from the list is reported as written, and a lower-case phrase is not', () => {
+  assert.deepEqual(
+    sourceMentions('Wait (Nothing is Something). A nothing is something object.', ['Nothing is Something']),
+    [{ line: 1, column: 7, citation: 'Nothing is Something' }],
+  );
+});
+
+test('a title that ends in punctuation is reported', () => {
+  assert.deepEqual(sourceMentions('See What Does OO Afford? for more.', ['What Does OO Afford?']), [
+    { line: 1, column: 5, citation: 'What Does OO Afford?' },
+  ]);
+});
+
+test('titles come from the attribution list: book titles before a subtitle, dated talk and article titles', () => {
+  const attribution = [
+    '- Jo Ash, _Plain Objects: A Primer_ (2018).',
+    '- Kim Bay, _Tested Code_, 2nd edition.',
+    '- Jo Ash: Less, the Path to Design (2011); Rules (2013); What Does OO Afford? (2018); and further talks.',
+  ].join('\n');
+
+  assert.deepEqual(attributedTitles(attribution), [
+    'Plain Objects',
+    'Tested Code',
+    'Less, the Path to Design',
+    'What Does OO Afford?',
+  ]);
+});
+
+test('a list item wrapped over several lines keeps its titles whole', () => {
+  const attribution = '- Jo Ash: Go Ahead, Make a\n  Mess (2012); Why We Argue:\n  Style (2017).';
+
+  assert.deepEqual(attributedTitles(attribution), ['Go Ahead, Make a Mess', 'Why We Argue: Style']);
+});
+
 test('a chapter number of two digits is reported whole', () => {
   assert.deepEqual(chapterCitations('See Ch.12.'), [{ line: 1, column: 5, citation: 'Ch.12' }]);
 });
@@ -37,7 +87,10 @@ test('run as a script, it checks the files named on the command line and sets th
   });
 
   assert.equal(run.status, 1);
-  assert.equal(run.stdout, `${cited}:1:6: Ch.3\n[ERROR] 1 chapter citation(s); name the practice instead\n`);
+  assert.equal(
+    run.stdout,
+    `${cited}:1:6: Ch.3\n[ERROR] 1 citation(s); name the practice instead and credit the work in ATTRIBUTION.md\n`,
+  );
 });
 
 test('imported as a module, it checks nothing and leaves the exit code alone', () => {
@@ -66,12 +119,31 @@ test('the command lists each citation by file, line and column, and fails', () =
   assert.ok(cited);
 
   assert.equal(main([clean, cited], (line) => lines.push(line)), 1);
-  assert.deepEqual(lines, [`${cited}:2:6: Ch.3`, '[ERROR] 1 chapter citation(s); name the practice instead']);
+  assert.deepEqual(lines, [
+    `${cited}:2:6: Ch.3`,
+    '[ERROR] 1 citation(s); name the practice instead and credit the work in ATTRIBUTION.md',
+  ]);
+});
+
+test('the command reports titles named in ATTRIBUTION.md and stand-ins in every other file', () => {
+  const dir = tempDir('citations-');
+  const attribution = join(dir, 'ATTRIBUTION.md');
+  const skill = join(dir, 'SKILL.md');
+  writeFileSync(attribution, '- Jo Ash: Plain Old Objects (2014); her talks.\n');
+  writeFileSync(skill, 'Start plain (Plain Old Objects).\nAs she says.\n');
+  const lines: string[] = [];
+
+  assert.equal(main([attribution, skill], (line) => lines.push(line)), 1);
+  assert.deepEqual(lines, [
+    `${skill}:1:14: Plain Old Objects`,
+    `${skill}:2:4: she`,
+    '[ERROR] 2 citation(s); name the practice instead and credit the work in ATTRIBUTION.md',
+  ]);
 });
 
 test('the command passes when no file cites a chapter', () => {
   const lines: string[] = [];
 
   assert.equal(main(files({ 'clean.md': 'Shameless Green, from 99 Bottles of OOP.' }), (line) => lines.push(line)), 0);
-  assert.deepEqual(lines, ['[OK] no chapter citations']);
+  assert.deepEqual(lines, ['[OK] no citations']);
 });
