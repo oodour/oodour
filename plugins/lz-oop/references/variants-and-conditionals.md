@@ -40,6 +40,64 @@ shape for data that crosses a boundary: API messages, parsed JSON, store actions
   further in; outside input becomes an object as early as possible; and a switch, a lookup table and a naming-convention
   lookup are one conditional written three ways, with a name-to-class table counted as configuration rather than logic.
 
+Avoid: the conditional does each kind's work, so a new room kind edits this function and every other `switch` on `kind`.
+
+```ts
+type Room = { kind: 'standard' | 'suite'; nights: number };
+
+function nightlyCharge(room: Room): number {
+  switch (room.kind) {
+    case 'standard':
+      return 90 * room.nights;
+    case 'suite':
+      return 210 * room.nights + 40;
+  }
+}
+```
+
+Prefer: one conditional only chooses the object, and each object does its own work.
+
+```ts
+interface Stay {
+  charge(): number;
+}
+
+class StandardStay implements Stay {
+  readonly #nights: number;
+
+  constructor(nights: number) {
+    this.#nights = nights;
+  }
+
+  charge(): number {
+    return 90 * this.#nights;
+  }
+}
+
+class SuiteStay implements Stay {
+  readonly #nights: number;
+
+  constructor(nights: number) {
+    this.#nights = nights;
+  }
+
+  charge(): number {
+    return 210 * this.#nights + 40;
+  }
+}
+
+function stayFor(room: Room): Stay {
+  switch (room.kind) {
+    case 'standard':
+      return new StandardStay(room.nights);
+    case 'suite':
+      return new SuiteStay(room.nights);
+  }
+}
+```
+
+A new kind is now one class and one `case` in `stayFor`; senders call `stayFor(room).charge()` and never ask the kind.
+
 ## What a conditional's form tells the reader
 
 Use when writing or reviewing a conditional, and before deciding whether it should become objects. The form of a

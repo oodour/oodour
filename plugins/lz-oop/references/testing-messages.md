@@ -30,6 +30,34 @@ and changes nothing; a **command** changes something.
 - **An outgoing command**: its effect belongs to another object, so the test checks only that the message went out with
   the right arguments, using a mock or a spy.
 
+An example in Vitest. `Thermostat` receives `target(hour)` (a query) and `tick(hour)` (a command); it sends
+`schedule.degreesAt(hour)` and `sensor.degrees()` (outgoing queries) and `heater.setLevel(level)` (an outgoing command,
+with the level set to the degrees still missing).
+
+```ts
+import { expect, it, vi } from 'vitest';
+
+const schedule = { degreesAt: (hour: number) => (hour < 7 ? 16 : 21) }; // stub: answers only
+const sensor = { degrees: () => 18 }; // stub
+
+it('targets the scheduled temperature', () => {
+  const thermostat = new Thermostat(schedule, sensor, { setLevel: () => {} });
+
+  expect(thermostat.target(8)).toBe(21); // incoming query: assert the result
+});
+
+it('turns the heater up by the missing degrees', () => {
+  const heater = { setLevel: vi.fn<(level: number) => void>() }; // mock: the test checks the command
+  const thermostat = new Thermostat(schedule, sensor, heater);
+
+  thermostat.tick(8); // incoming command
+
+  expect(heater.setLevel).toHaveBeenCalledWith(3); // outgoing command: expect it sent
+});
+```
+
+Neither test asserts that `degreesAt` or `degrees` was called, and neither touches a private method.
+
 ## Doubles
 
 - A plain object that answers the role's messages is usually enough to stand in for a collaborator, and a mock is for

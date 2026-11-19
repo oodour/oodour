@@ -108,6 +108,26 @@ A method sends messages to itself, its arguments, and the objects it holds or cr
 4. Reports and other code whose job is to gather data from many places are a reasonable exception, and a rare one. The
    exception covers a chain that only reads, never one that changes the object at its end.
 
+Avoid: the sender walks loan, member and card, three interfaces, to answer its own question.
+
+```ts
+if (loan.member.card.expiresOn > today && loan.renewals < 2) {
+  loan.renew();
+}
+```
+
+Prefer: ask the nearest object, by a message named for the goal.
+
+```ts
+if (loan.canRenewOn(today)) {
+  loan.renew();
+}
+```
+
+`Loan#canRenewOn` asks its member, and the member asks its card; a change to cards now reaches one method, and the
+sender's test needs one loan, not a chain of nested objects. A message named `memberCardExpiresOn()` would hide the
+chain but still leak it, since its name says nothing about the goal.
+
 ## Injecting collaborators
 
 1. Treat creating an object as a message too: a class that creates its collaborators is coupled to their concrete

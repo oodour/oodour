@@ -90,6 +90,16 @@ make the edit again. That rewrite keeps the behaviour the test pins, so it does 
 step 4. A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
 asked you to change the code.
 
+A Shape answer, in outline:
+
+```md
+**Structure:** <the objects and the one place that chooses among them>
+**Makes easy:** <the change that becomes an addition> **Costs:** <indirection, files, what is harder to follow>
+**Would change it:** <the future request that would make this the wrong shape>
+**First step:** <one restructuring with the tests green and unchanged>, then run the tests.
+**Test that drives the change:** <its name and the example it pins>
+```
+
 ## Judge: one piece of existing code
 
 Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. It gives the verdict and names each smell, and its step 4
