@@ -92,9 +92,9 @@ export function pluginTargets(
       cache: false,
     },
     citations: {
-      command: ['node tools/chapter-citations.ts', ...markdown].join(' '),
+      command: ['node tools/citations.ts', ...markdown].join(' '),
       cache: true,
-      inputs: ['default', '{workspaceRoot}/tools/chapter-citations.ts'],
+      inputs: ['default', '{workspaceRoot}/tools/citations.ts'],
       outputs: [],
     },
   };

@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { tempDir } from './temp-dir.ts';
 import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
-import { chapterCitations, main } from './chapter-citations.ts';
+import { chapterCitations, main } from './citations.ts';
 
 function files(contents: Record<string, string>): string[] {
-  const dir = tempDir('chapter-citations-');
+  const dir = tempDir('citations-');
 
   return Object.entries(contents).map(([name, text]) => {
     const path = join(dir, name);
@@ -32,7 +32,7 @@ test('a chapter number of two digits is reported whole', () => {
 test('run as a script, it checks the files named on the command line and sets the exit code', () => {
   const [cited] = files({ 'cited.md': 'Two (Ch.3).' });
   assert.ok(cited);
-  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'chapter-citations.ts'), cited], {
+  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'citations.ts'), cited], {
     encoding: 'utf8',
   });
 
@@ -43,7 +43,7 @@ test('run as a script, it checks the files named on the command line and sets th
 test('imported as a module, it checks nothing and leaves the exit code alone', () => {
   const [cited] = files({ 'cited.md': 'Two (Ch.3).' });
   assert.ok(cited);
-  const script = pathToFileURL(join(import.meta.dirname, 'chapter-citations.ts')).href;
+  const script = pathToFileURL(join(import.meta.dirname, 'citations.ts')).href;
   const run = spawnSync(process.execPath, ['--input-type=module', '-e', `await import('${script}');`, cited, cited], {
     encoding: 'utf8',
   });
