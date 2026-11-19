@@ -9,8 +9,8 @@ arguments.
 
 ## Choosing versus doing
 
-Sort each conditional into one of two groups (Sandi Metz). A conditional that both recognises each case and holds that
-case's behaviour is procedural, while one that only records which object gets the job, kept in one place apart from the
+Sort each conditional into one of two groups. A conditional that both recognises each case and holds that case's
+behaviour is procedural, while one that only records which object gets the job, kept in one place apart from the
 behaviour, is the object-oriented form.
 
 - **It chooses which object to use.** One conditional that maps a kind to an object is fine, and some such choice is
@@ -58,12 +58,12 @@ conditional is a message to whoever reads it next; choose the one whose message 
   guard clauses and full `if`/`else` blocks for the same logic makes alike code look different, and the Squint Test can
   no longer spot the pattern.
 - **An early return means stop now.** Keep it for an exit that really is exceptional. Where the branches are a few
-  roughly equal alternatives, an early return signals an exit nothing in the code calls for (Katrina Owen); give such
-  alternatives one equal form, a `switch` or a full `if`/`else`.
+  roughly equal alternatives, an early return signals an exit nothing in the code calls for; give such alternatives one
+  equal form, a `switch` or a full `if`/`else`.
 - **Keep only the smallest difference inside, and name what varies.** When a rule meets one exception partway through a
   refactoring, keep in the conditional only what differs between the two cases, move out what both share, and keep both
   branches even when one is almost empty. Seeing both sides makes the name cover the one idea they express, not the
-  exception alone: a symmetrical conditional (Katrina Owen). Name its parameter for what the value is here, too.
+  exception alone: a symmetrical conditional. Name its parameter for what the value is here, too.
 
 An example of the last point: name the concept the branches vary, not the exception.
 
@@ -152,7 +152,7 @@ restructuring recipe here; the test-first step of Adding a kind starts from a re
 3. Let a step leave an input it does not concern unchanged. Do not first check whether the step applies: that check is
    the conditional being removed.
 4. Accept the extra work on inputs that pass through unchanged; treating every case alike is worth it, for simpler code
-   and easier tests (Sandi Metz).
+   and easier tests.
 
 Done when no conditional chooses between the rules, each rule is one small step, and every input takes the same path.
 
@@ -201,9 +201,9 @@ fail quietly on a typo.
 ## Flag arguments
 
 A boolean or a mode string passed into shared code makes the caller choose a branch inside the callee, and each
-conditional it adds doubles the paths through the code. Do not add another. This is control coupling, an anti-pattern
-(Sandi Metz): the receiver ends up making a choice that belongs with the caller, which already knows enough to hand over
-the collaborator that does the work. Sometimes only the receiver holds what the choice needs.
+conditional it adds doubles the paths through the code. Do not add another. This is control coupling, an anti-pattern:
+the receiver ends up making a choice that belongs with the caller, which already knows enough to hand over the
+collaborator that does the work. Sometimes only the receiver holds what the choice needs.
 
 When a finding uses the name Flag Argument, keep to its narrower test: a caller passes a literal to pick which branch
 runs. A value computed at run time and passed along is not one, and an option stored on an object and tested in many of

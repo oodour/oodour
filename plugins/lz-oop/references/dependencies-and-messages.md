@@ -19,10 +19,10 @@ the code works ([testing-messages.md](testing-messages.md)) are dependencies too
 
 ## Message first
 
-Decide first what message the sender wants to send, then find or invent the object that should answer it (Sandi Metz;
-coding by wishful thinking). A sender that walks a receiver through the steps of a job knows how the job is done, and so
-depends on it. Do not start from the obvious nouns of the domain: they come to mind first and collect behaviour that
-does not belong to them, while the messages passing between them reveal the objects that are missing.
+Decide first what message the sender wants to send, then find or invent the object that should answer it (coding by
+wishful thinking). A sender that walks a receiver through the steps of a job knows how the job is done, and so depends
+on it. Do not start from the obvious nouns of the domain: they come to mind first and collect behaviour that does not
+belong to them, while the messages passing between them reveal the objects that are missing.
 
 To find the objects and messages for a new use case, or when you cannot decide what to test first, sketch a sequence
 diagram on a whiteboard: it shows the design at the level that matters and is cheap to change, since there is no code
@@ -90,10 +90,9 @@ a subclass overrides as a hook, which stays public (`protected` only where no te
 TypeScript, in [javascript-and-typescript.md](javascript-and-typescript.md)).
 
 To decide what a class shows, hides or gives away, sort each thing it knows by two questions: is it this class's own
-responsibility or another's, and is it steady or likely to change (Sandi Metz). Its own and steady: public. Its own and
-changeable: private. Another's and steady: a dependency it may keep, and few of them. Another's and changeable: the
-costly kind, which should leave the class, often for a factory; a switch on a type symbol usually holds several such
-facts.
+responsibility or another's, and is it steady or likely to change. Its own and steady: public. Its own and changeable:
+private. Another's and steady: a dependency it may keep, and few of them. Another's and changeable: the costly kind,
+which should leave the class, often for a factory; a switch on a type symbol usually holds several such facts.
 
 ## Reaching through other objects (the Law of Demeter)
 
@@ -143,8 +142,8 @@ Use when deciding which of two collaborators should know about the other, or whe
 changing.
 
 1. Every dependency has a direction, chosen on purpose or by accident; point it at the side less likely to change than
-   the one that depends on it (Sandi Metz). Stability is relative: what matters is only that the thing depended on is
-   steadier than its dependent.
+   the one that depends on it. Stability is relative: what matters is only that the thing depended on is steadier than
+   its dependent.
 2. Weigh three facts about the candidate: how often its requirements are likely to change, whether it is concrete or
    abstract (abstractions change less than the concrete classes they came from), and how many others depend on it (each
    change reaches every dependent).
@@ -233,4 +232,4 @@ const tax = taxes.rateFor(region).taxOn(amount);
 A method that sometimes returns an object and sometimes `null` or `undefined` is fine when callers only test for
 presence. It costs when callers go on to send messages to the result, since every such caller then carries a guard and
 its own stand-in behaviour. There, return something that answers the same messages in every case, such as an object for
-the empty case (Sandi Metz).
+the empty case.

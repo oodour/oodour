@@ -15,10 +15,10 @@ TypeScript.
 - Do not agonise over the first test. You know least at the start; some early tests exist only to show that an idea was
   wrong.
 - Choose plain, unsurprising example values, so a reader does not hunt for meaning in them. Prefer data built for the
-  test over realistic data: the fewest, simplest values that exercise only the rule under test (Katrina Owen).
+  test over realistic data: the fewest, simplest values that exercise only the rule under test.
 - Do not draw the target design first and test-drive toward it. Gather concrete examples first and let the abstraction
-  come out of them; the next test is often just the next example (Sandi Metz). A small sketch of the messages for a new
-  use case still helps before the first test; how small, and when to stop sketching: Message first in
+  come out of them; the next test is often just the next example. A small sketch of the messages for a new use case
+  still helps before the first test; how small, and when to stop sketching: Message first in
   [dependencies-and-messages.md](dependencies-and-messages.md).
 - An experienced designer who cannot yet see what the code should be may spike: explore without tests until the design
   is clear, then go back to writing it test-first. Newcomers go tests first; do not overrate your own skill. Keep the
@@ -40,7 +40,7 @@ TypeScript.
 
 ## Getting to green
 
-Three ways to pass a test (Kent Beck):
+Three ways to pass a test:
 
 - **Fake It**: return the expected value as a literal. It pushes you to write the test that forces the real code.
 - **Obvious Implementation**: write the real code, but only for a tiny step you are sure of. A wrong guess costs the
@@ -61,9 +61,9 @@ unclear, and Fake It would only give you a pile of literals: write the next dist
 step 2. It is done when one piece of code, with no branch per test, passes every case, and a new distinct case passes
 without editing it.
 
-The one-test-at-a-time route reaches the same done line. Keep one failing test at a time (Kent Beck). Pass the second
-case even with a specific branch, then replace the literals and branches with the general form in small steps while
-every test is green. The switch to Triangulate is the one time to hold several red tests.
+The one-test-at-a-time route reaches the same done line. Keep one failing test at a time. Pass the second case even with
+a specific branch, then replace the literals and branches with the general form in small steps while every test is
+green. The switch to Triangulate is the one time to hold several red tests.
 
 ```ts
 // Before: one literal per test, each faked on its own
@@ -84,7 +84,7 @@ plain, and do not chase DRY before every example is in.
   would make the code harder to read, keep the duplication and ask what waiting costs and how soon more examples will
   come.
 - A common misreading of red/green/refactor is to remove every duplication after every test. Squeezing it out that early
-  disguises code that truly matches, so the real abstraction is harder to see later (Sandi Metz).
+  disguises code that truly matches, so the real abstraction is harder to see later.
 - Never copy an example that already exists in the code; call it. Duplication earns its place only by adding a new,
   independent example.
 

@@ -11,8 +11,8 @@ and checking each behaviour in one place. The grid below is how to aim them.
 
 ## The message grid
 
-Sort every message the object under test takes part in by where it goes and what it does (Sandi Metz). A **query**
-returns something and changes nothing; a **command** changes something.
+Sort every message the object under test takes part in by where it goes and what it does. A **query** returns something
+and changes nothing; a **command** changes something.
 
 | Message                  | Query                     | Command                                                          |
 | ------------------------ | ------------------------- | ---------------------------------------------------------------- |
@@ -33,10 +33,10 @@ returns something and changes nothing; a **command** changes something.
 ## Doubles
 
 - A plain object that answers the role's messages is usually enough to stand in for a collaborator, and a mock is for
-  proving that an outgoing command was sent. In answers, use the wider vocabulary (Gerard Meszaros): a double is any
-  stand-in, and stubs, fakes and mocks are kinds of double. Call a stand-in a double; name it a stub when it only
-  returns canned answers, a mock or spy when the test checks a command it received, and a fake when it is a lighter
-  working version of the collaborator.
+  proving that an outgoing command was sent. In answers, use the wider vocabulary: a double is any stand-in, and stubs,
+  fakes and mocks are kinds of double. Call a stand-in a double; name it a stub when it only returns canned answers, a
+  mock or spy when the test checks a command it received, and a fake when it is a lighter working version of the
+  collaborator.
 - A double has to match the real collaborator's interface, or the test stays green while the code breaks. The trap:
   after a role message is renamed, a hand-written double that still answers the old name keeps the sender's test green
   while the program is broken, until the shared role test (below) runs against the double as well.
@@ -57,10 +57,10 @@ returns something and changes nothing; a **command** changes something.
 
 Use when deciding whether a collaborator gets a double or the real object.
 
-- **Double only what you own** (Sandi Metz). When code calls a foreign library directly, move the call into a class of
-  your own, inject it, and mock that class in the caller's test. Check the real class against the real service in a
-  separate slow suite. Moving foreign calls behind your own object is in
-  [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not own.
+- **Double only what you own**. When code calls a foreign library directly, move the call into a class of your own,
+  inject it, and mock that class in the caller's test. Check the real class against the real service in a separate slow
+  suite. Moving foreign calls behind your own object is in [dependencies-and-messages.md](dependencies-and-messages.md),
+  Interfaces you do not own.
 - **Use the real object when it is cheap.** A collaborator with nothing external behind it, that runs fast and only
   holds data, such as a value object passed in as an argument, goes into the test as itself; trying to mock everything
   makes the code fragile. For an outgoing command whose effect is cheap and close by, plugging in the real object is
@@ -121,9 +121,9 @@ through them. Fix the code rather than the test. See [dependencies-and-messages.
 - The default is a test for every public method of every class. A looser reading of full coverage, offered tentatively:
   every line runs under the unit tests, not one test per public method. Leaving a class without its own tests is the
   exception and needs a reason: the class is small, simple and hidden from outside callers.
-- One workable habit (Sandi Metz): unit tests plus tests that drive the whole application from its edge, with nothing in
-  between: framework handlers stay thin enough to need no unit test of their own, and declining to unit-test them pushes
-  the logic into plain objects that the unit tests reach. A handler that holds logic of its own still gets tests.
+- One workable habit: unit tests plus tests that drive the whole application from its edge, with nothing in between:
+  framework handlers stay thin enough to need no unit test of their own, and declining to unit-test them pushes the
+  logic into plain objects that the unit tests reach. A handler that holds logic of its own still gets tests.
 
 ## Other guidance
 

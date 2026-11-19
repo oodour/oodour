@@ -27,7 +27,7 @@ leaves roles implicit; TypeScript can name the messages.
 - Trust the player. Once the receiver depends on a role, it sends the message and asks nothing about who answers. A
   single `instanceof`, `typeof` or `in` check on that collaborator takes the trust back and ties the receiver to the
   classes again; a dynamic language repays its looseness only when objects are reliable enough to be trusted without
-  such checks (Sandi Metz). Checking the type of data at a boundary (JSON, user input) is a different job and stays.
+  such checks. Checking the type of data at a boundary (JSON, user input) is a different job and stays.
 - Static typing. A role typed as an interface lets the compiler check every player's messages, so the shared role test
   is left to check behaviour; a cast, an `any` on the role, or a kind check on a collaborator gives up what both the
   role and the compiler offer. Under `strictNullChecks` the compiler also reports an unhandled `undefined`.
@@ -250,8 +250,8 @@ exception is code with no seam yet: there a test may replace one of the object's
 - Jest: `const charge = jest.fn(); ... expect(charge).toHaveBeenCalledWith(10);`
 - `node:test`: `const charge = mock.fn(); ... assert.deepStrictEqual(charge.mock.calls[0].arguments, [10]);`
 
-Prefer injecting a double that plays the role to stubbing a concrete class (Sandi Metz). What to assert for each kind of
-message: [testing-messages.md](testing-messages.md).
+Prefer injecting a double that plays the role to stubbing a concrete class. What to assert for each kind of message:
+[testing-messages.md](testing-messages.md).
 
 ## Commands and queries
 
@@ -275,15 +275,15 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
   steadier than the private code, and otherwise test through the public messages. Code still under active refactoring
   may get a separate, temporary test. Hiding at module level, exporting only the entry points, serves the same end.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
-- Reading your own state. Default to sending a message where that costs no more than reading the raw value (Sandi Metz),
-  so one method decides what the value means and a later change to that meaning touches one place; a message also keeps
-  a seam, with no split between stored values and messages (Katrina Owen). In JavaScript a getter over a `#field` needs
-  a second name for the field, which is that cost. So: where the class already has a public getter for a value, read
-  through it inside the class too; where a value's meaning could change or a subclass may redefine it, give it a getter
-  that alone touches the `#field`, private (`get #total()`, over a field named otherwise) when only the class reads it,
-  and public when a subclass may redefine it, since it is then a hook (`protected` only where no test reads it; Hooks
-  and required steps in TypeScript, below); otherwise a direct `#field` read is fine. A public field can become a getter
-  later and no caller changes.
+- Reading your own state. Default to sending a message where that costs no more than reading the raw value, so one
+  method decides what the value means and a later change to that meaning touches one place; a message also keeps a seam,
+  with no split between stored values and messages. In JavaScript a getter over a `#field` needs a second name for the
+  field, which is that cost. So: where the class already has a public getter for a value, read through it inside the
+  class too; where a value's meaning could change or a subclass may redefine it, give it a getter that alone touches the
+  `#field`, private (`get #total()`, over a field named otherwise) when only the class reads it, and public when a
+  subclass may redefine it, since it is then a hook (`protected` only where no test reads it; Hooks and required steps
+  in TypeScript, below); otherwise a direct `#field` read is fine. A public field can become a getter later and no
+  caller changes.
 - JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
 
 ## Parameter lists and options objects
@@ -352,10 +352,10 @@ function toReading(row: ReadingRow): MeterReading {
   to the role in every host. See [inheritance.md](inheritance.md).
 - Wrap value and collection built-ins (`String`, `Array`, `Map`); do not extend them. A subclass of a built-in inherits
   a large interface the object does not need, and core operations hand back the plain built-in type; build a standalone
-  object instead (Katrina Owen). Both bite in JavaScript: a subclass of `String` is an object, not a string (`s === 'x'`
-  is false), and its operations return primitives. A subclass of `Array` returns the subclass from `map`, `filter` and
-  `slice` through `Symbol.species`, which breaks a constructor with its own signature. Extending `Error` to define a
-  kind of error is outside this rule: it brings in no unwanted interface.
+  object instead. Both bite in JavaScript: a subclass of `String` is an object, not a string (`s === 'x'` is false), and
+  its operations return primitives. A subclass of `Array` returns the subclass from `map`, `filter` and `slice` through
+  `Symbol.species`, which breaks a constructor with its own signature. Extending `Error` to define a kind of error is
+  outside this rule: it brings in no unwanted interface.
 - A domain object that holds a list. A subclass of the built-in list hands callers every list method; a plain wrapper
   leaves callers stumbling over the list operations it lacks, and adding those one at a time never ends. Settle on a
   wrapper that keeps the array private, makes itself iterable, and forwards only the messages the domain uses:
@@ -458,8 +458,8 @@ abstract class Invoice {
 
 JavaScript runs one thing at a time, but `await` lets calls interleave. Two overlapping calls that each store data in an
 instance field before an `await` both read back the last value written. Keep per-call data in locals, parameters or a
-per-call object: data that belongs to one call stays out of fields, or a second caller overwrites it (Katrina Owen).
-Keep the rule even where an overlap is unlikely, so it does not depend on an `await`.
+per-call object: data that belongs to one call stays out of fields, or a second caller overwrites it. Keep the rule even
+where an overlap is unlikely, so it does not depend on an `await`.
 
 ## Framework code at the edges
 
@@ -486,9 +486,9 @@ owns the transaction, so one file shows the whole collaboration.
 
 ## Characterisation tests
 
-Use before restructuring code whose inputs and expected output you do not know, only that it works today (Katrina Owen).
-One exception: untested code that switches on a class, so fragile that its simple duck-type cure is likely the cheaper
-path, may be refactored before tests are written. Name the risk when you take it.
+Use before restructuring code whose inputs and expected output you do not know, only that it works today. One exception:
+untested code that switches on a class, so fragile that its simple duck-type cure is likely the cheaper path, may be
+refactored before tests are written. Name the risk when you take it.
 
 1. Call the code with a stand-in for its input, and assert a value you know is wrong. The failure is the point: it shows
    what the code needs or what it returns.

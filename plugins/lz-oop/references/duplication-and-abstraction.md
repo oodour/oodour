@@ -17,7 +17,7 @@ for a concept the code hides pays for itself in reading.
    not.
 2. Ask what waiting costs, and when better information will arrive. If the copies can sit unchanged until then, wait.
    While you wait, mark every copy you keep with the same short comment carrying a shared number, so that when the
-   change arrives each copy can be found and none is missed (Sandi Metz).
+   change arrives each copy can be found and none is missed.
 3. Look for the concept, not the matching characters. Abstract early only when many clear examples give confidence that
    the concept is understood; an idea that looks obvious from two examples can turn out wrong. A single line that means
    the same thing in both places (a date format, a rounding rule) may be extracted now only when three things hold: the
@@ -25,14 +25,14 @@ for a concept the code hides pays for itself in reading.
    something. Otherwise wait for a change request or more examples. Name it one level above the thing it names, in the
    domain's words. Two lines that happen to match but would change for different reasons are not one concept.
 4. Say why the wait is worth it: an abstraction drawn from too few examples tends to be the wrong one, and code built on
-   the wrong abstraction costs more to change than the duplication it replaced (Sandi Metz).
+   the wrong abstraction costs more to change than the duplication it replaced.
 
 ## Shared code that callers keep bending
 
 The usual history: code is extracted and shared; a new caller needs something slightly different and adds a parameter
 and a branch; the next caller adds another. Shared code that already exists looks deliberate, so newcomers extend it
 instead of questioning it, and every extension makes removing it look more costly. What remains is one function doing
-several jobs, picked by flags (Sandi Metz).
+several jobs, picked by flags.
 
 1. Recognise it: parameters that only some callers pass, branches that only some callers reach.
 2. Say that the abstraction is wrong and should be undone, and that the time already spent on it is no reason to keep
@@ -66,7 +66,7 @@ you need not know the abstraction first, because following the rules makes it ap
    failed was a big one, make the next one smaller. Let the size of each move follow how well you know the code: a
    bigger step that fails tells you that you knew less than you thought. The rules promise a safe way back, not the
    right direction. Duplication squeezed out too eagerly, merging pieces that only looked alike, can leave you stuck;
-   then put the duplication back and look again (Katrina Owen). That retreat is open at any point of the Flocking Rules.
+   then put the duplication back and look again. That retreat is open at any point of the Flocking Rules.
 6. Repeat from step 1. A copy is removed only once it matches another character for character.
 7. A branch that has come to match the default branch goes in one deletion, and the conditional stays for the branches
    that still differ. When the last branches match, collapse the conditional in two edits with the tests run after each:
@@ -123,7 +123,7 @@ return `${labelFor(tier)} members earn ${points * multiplierFor(tier)} points`;
   larger one, and finding it is why you compare the examples. Look for it on purpose, because what matches catches the
   eye first.
 - Before naming anything, put a placeholder in each copy wherever the copies' values differ, so they read as one
-  template with gaps; the gaps show what varies, and naming them comes after (Katrina Owen).
+  template with gaps; the gaps show what varies, and naming them comes after.
 
 ## Once an abstraction exists, use it everywhere
 
@@ -148,8 +148,8 @@ removed.
 5. When no good name comes, choose one of three moves: search for a short, fixed time and take the best so far; use a
    deliberately meaningless placeholder that is sure to be replaced; or ask the teammate who names things best. Name
    from the responsibility as you understand it now, and rename when that changes.
-6. Name from the domain, not from how the code works or how it is laid out: of the three, only domain names help
-   (Katrina Owen). Keep the names of one class at one level of abstraction, told from one consistent point of view.
+6. Name from the domain, not from how the code works or how it is laid out: of the three, only domain names help. Keep
+   the names of one class at one level of abstraction, told from one consistent point of view.
 
 Done looks like: the name fits every row of the table and the next one you can imagine, and a domain expert would
 recognise it.

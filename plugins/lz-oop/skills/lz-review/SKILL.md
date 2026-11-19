@@ -1,6 +1,6 @@
 ---
 name: lz-review
-description: Object-oriented design review of a change in JavaScript or TypeScript, based on Sandi Metz's principles and practices. Use when a developer asks for a design review of a diff, uncommitted or staged changes, a commit, a branch or a pull request, or asks whether a change made the code harder to change next time (new branches on a type switch, flag arguments, hard-coded collaborators, message chains, inheritance, tests that mock too much). Reports findings ranked by what they will cost later; changes nothing unless asked. Not for the design of one file, class or module as it stands (a change, not a file), not for auditing a whole package, and not for code in other languages.
+description: Object-oriented design review of a change in JavaScript or TypeScript. Use when a developer asks for a design review of a diff, uncommitted or staged changes, a commit, a branch or a pull request, or asks whether a change made the code harder to change next time (new branches on a type switch, flag arguments, hard-coded collaborators, message chains, inheritance, tests that mock too much). Reports findings ranked by what they will cost later; changes nothing unless asked. Not for the design of one file, class or module as it stands (a change, not a file), not for auditing a whole package, and not for code in other languages.
 allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
 ---
 
@@ -51,8 +51,8 @@ For each changed area, ask:
   the same as the question above, which is about the steps of the change, not what the code now does:
   `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, check Does it do one job? A class that changes often and is
   already large should stop growing even when the new job looks like its own: the next requirement lands as a small new
-  object beside it (Sandi Metz). A class or method the change took past a size limit is a place to look, not a finding
-  by itself: Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`.
+  object beside it. A class or method the change took past a size limit is a place to look, not a finding by itself:
+  Size limits in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`.
 - **Restyling mixed in?** Restyling neighbouring code inside a behaviour change hides what changed, and restyling stable
   code that has no other reason to change seldom repays its cost; restyle old code only when real work opens it anyway.
   Ask for any restyling in a commit of its own.
@@ -70,7 +70,7 @@ For each changed area, ask:
   a save: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Framework code at the edges.
 - **Does it read as a story, and is it a good example?** Read the new names and test descriptions as a newcomer would:
   do they say what the code does, and what would someone copy when adding one more case? The same pass suits your own
-  diff before committing (Sandi Metz).
+  diff before committing.
 - **Tests:** do the new or changed tests assert what the code does through its public messages, leave outgoing queries
   unverified, and expect outgoing commands? Did tests change in a commit that claims to only restructure? That points to
   tests that check how rather than what, or to a behaviour change hidden in the commit:

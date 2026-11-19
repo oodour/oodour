@@ -1,6 +1,6 @@
 ---
 name: lz-audit
-description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository, based on Sandi Metz's principles and practices. Use when a developer asks to audit the design of a codebase, find its design hot spots or technical debt, decide where to start refactoring a legacy codebase or which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
+description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository. Use when a developer asks to audit the design of a codebase, find its design hot spots or technical debt, decide where to start refactoring a legacy codebase or which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
 allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
 ---
 
@@ -19,7 +19,7 @@ are the house style: where they are not, a cure can use a module of functions or
 
 ## 2. Find the hot spots: churn against complexity
 
-Code that changes often and is hard to understand costs the most; plot each file on those two axes (Michael Feathers).
+Code that changes often and is hard to understand costs the most; plot each file on those two axes.
 
 - **Churn**: count commits per file over the last year, for example in a POSIX shell
   `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count the
@@ -36,10 +36,10 @@ Code that changes often and is hard to understand costs the most; plot each file
   score has untested logic; say so in the report. Where the repository gates on a mutation score, read that gate for the
   hot spot's file instead of counting tests: a passing gate says more about whether its logic is tested.
 - **Size limits**: Read the Size limits entry under Bloaters in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, which
-  gives Sandi Metz's limits for class length, method length, parameter count and controller actions. Apply the team's
-  own limits where it has them, else those, and report a file over a limit as a place to look, not as a defect. When
-  nearly every function is over a length limit, list only the longest few and every function over the parameter limit;
-  the rest add nothing to the ranking.
+  gives the limits for class length, method length, parameter count and controller actions. Apply the team's own limits
+  where it has them, else those, and report a file over a limit as a place to look, not as a defect. When nearly every
+  function is over a length limit, list only the longest few and every function over the parameter limit; the rest add
+  nothing to the ranking.
 - **Dependents**: for the files high on churn, count how many files import each one. Count production files; say whether
   test files are included, and give both counts when including them changes the ranking. Use what the repository has
   (dependency-cruiser, madge, the Nx project graph, which also sees imports between packages by package name); otherwise
@@ -100,9 +100,8 @@ history, not from a guess at features.
   a request, use churn and complexity only to rank where general work that loosens coupling pays first, not to guess the
   next feature, and say in the report that this ranking is a judgement.
 - For a class in the often-changed and complex quadrant, recommend that it stop growing: build each new piece of
-  behaviour as small new classes that work with it, even where they look out of place beside it (Sandi Metz). The big
-  class sends messages to them, but receives them injected or built by a factory, so it learns roles rather than more
-  class names, and becomes a coordinating class; the cures are in
-  `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
+  behaviour as small new classes that work with it, even where they look out of place beside it. The big class sends
+  messages to them, but receives them injected or built by a factory, so it learns roles rather than more class names,
+  and becomes a coordinating class; the cures are in `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`.
 - This is a report: leave the audited code unchanged. Scripts you write to measure it, and a report file the developer
   asks for, are fine. A fix the developer then asks for follows the `lz-oop` skill's Shape steps.

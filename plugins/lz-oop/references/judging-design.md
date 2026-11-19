@@ -8,21 +8,21 @@ Obsession; Consistency; Does it do one job?; More smells.
 
 1. Judge the code by what it costs to change, not by how it looks or by a metric alone. Ask what change is likely, and
    what this design would make that change cost. Code that works and will not change can stay as it is, however it
-   looks; polishing it costs time and buys nothing (Sandi Metz). A design is good enough while each change costs about
-   what the one before it did; changes that keep getting dearer are the sign to restructure. Judge a restructuring by
-   where it is heading, not halfway: its intermediate states often read and score worse than both its start and its end.
-   One exception from a code's first version: loosen coupling early, because nobody can predict where change will land,
-   and it costs least before a second user reuses the code. Other improvements that no requirement asks for yet spend
-   time now on a hoped-for saving; judge each on its own odds. Two cheap habits stand apart from these bets (Sandi
-   Metz): while code is in your hands anyway, as you write it or before you check it in, inject its dependency and split
-   a long method into parts named for what they do. Both are housekeeping, not design: do them almost always, and leave
-   them optional. Neither is a reason to reopen a stable mess that no change touches: that edit spends time the backlog
-   needed; refactor for a real change in hand, not an imagined one. Leave a short working method unsplit while no change
-   asks for it, so the splitting habit is for long methods. Weigh also what it costs a reader to follow the code today:
-   every reader pays that, so it always counts. An extraction that saves future edits but makes the code harder to
-   follow pays only when the saving is larger. Then ask whether a quick read shows the domain: how many variants there
-   are, which are alike and how, which stand apart, and what decides the next case. Code that answers these at a glance
-   mirrors its problem.
+   looks; polishing it costs time and buys nothing. A design is good enough while each change costs about what the one
+   before it did; changes that keep getting dearer are the sign to restructure. Judge a restructuring by where it is
+   heading, not halfway: its intermediate states often read and score worse than both its start and its end. One
+   exception from a code's first version: loosen coupling early, because nobody can predict where change will land, and
+   it costs least before a second user reuses the code. Other improvements that no requirement asks for yet spend time
+   now on a hoped-for saving; judge each on its own odds. Two cheap habits stand apart from these bets: while code is in
+   your hands anyway, as you write it or before you check it in, inject its dependency and split a long method into
+   parts named for what they do. Both are housekeeping, not design: do them almost always, and leave them optional.
+   Neither is a reason to reopen a stable mess that no change touches: that edit spends time the backlog needed;
+   refactor for a real change in hand, not an imagined one. Leave a short working method unsplit while no change asks
+   for it, so the splitting habit is for long methods. Weigh also what it costs a reader to follow the code today: every
+   reader pays that, so it always counts. An extraction that saves future edits but makes the code harder to follow pays
+   only when the saving is larger. Then ask whether a quick read shows the domain: how many variants there are, which
+   are alike and how, which stand apart, and what decides the next case. Code that answers these at a glance mirrors its
+   problem.
 2. Name each smell you see in the vocabulary of named smells and refactorings, and pair it with its usual cure. Rank
    them; the easiest well-understood one goes first. For a smell's name, how to spot it, and the leaf that holds its
    cure, Read [smells.md](smells.md).
@@ -45,11 +45,11 @@ Obsession; Consistency; Does it do one job?; More smells.
      or a class carrying traces of where it was born: the checks below.
 5. Keep each finding concrete: the file and lines, the smell's name, what change it makes expensive, the cure, and the
    first small step toward it.
-6. To decide whether a restructuring can stop, check the code against TRUE (Sandi Metz), and grade each refactoring step
-   by it. Transparent: what an edit affects is easy to see. Reasonable: a change costs in proportion to what it is
-   worth. Usable: the code can serve in a new setting without being copied. Exemplary: the easiest way for the next
-   developer to extend it is also a good way, so imitating it spreads good habits. Code that meets all four is good
-   enough; stop there. Classes that each have one job reach these qualities (Does it do one job?, below).
+6. To decide whether a restructuring can stop, check the code against TRUE, and grade each refactoring step by it.
+   Transparent: what an edit affects is easy to see. Reasonable: a change costs in proportion to what it is worth.
+   Usable: the code can serve in a new setting without being copied. Exemplary: the easiest way for the next developer
+   to extend it is also a good way, so imitating it spreads good habits. Code that meets all four is good enough; stop
+   there. Classes that each have one job reach these qualities (Does it do one job?, below).
 
 ## Smells and checks this leaf owns
 
@@ -147,16 +147,16 @@ must take the whole class, along with changes made for purposes they do not shar
    - a method that loops over a collection and also does the work for each item; split it into one method that only
      loops and one that handles a single item;
    - the facts it knows: list them for each class involved and compare; the class that knows the most is where the
-     complexity sits (Katrina Owen). A list that spans several topics also hints at a second job.
+     complexity sits. A list that spans several topics also hints at a second job.
 4. Ask whether its parts change at one pace. Parts that change at different rates belong apart. One reason to change,
    and parts that change at the same moment, are rules of thumb for cohesion, not strict conditions.
 5. Ask whether it could be two things, and what each would be. A believable answer means it may hold too much, and the
-   split is worth trying; inline it again if the result reads worse (Katrina Owen). Length is not the test: a method of
-   a few lines can still serve unrelated ends. When the choice is close, lean toward the smaller pieces: if that proves
-   wrong, joining two small parts again is cheap, while prying one large part apart is not, and code tends to grow too
-   big rather than too small, which is why size limits cap it from above (Sandi Metz). Use this as a tie-breaker inside
-   the split-or-contain choice below, where containing a job in its own methods already gives smaller pieces, and never
-   as licence for indirection nothing asks for.
+   split is worth trying; inline it again if the result reads worse. Length is not the test: a method of a few lines can
+   still serve unrelated ends. When the choice is close, lean toward the smaller pieces: if that proves wrong, joining
+   two small parts again is cheap, while prying one large part apart is not, and code tends to grow too big rather than
+   too small, which is why size limits cap it from above. Use this as a tie-breaker inside the split-or-contain choice
+   below, where containing a job in its own methods already gives smaller pieces, and never as licence for indirection
+   nothing asks for.
 
 The cure, one job at a time, with the tests green after each step: break the code into small methods, then, once a group
 of them leans on the same few values, move that job into a new class and inject an instance of it, going from small

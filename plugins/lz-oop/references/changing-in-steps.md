@@ -3,7 +3,7 @@
 Use when a change would break many places at once: adding or removing a parameter, renaming a field that several methods
 use, or changing the kind of value a method returns or accepts, in code that has several callers or several
 implementors. Each practice below turns it into small edits that each end on green, so the code could ship after any of
-them (Sandi Metz, Katrina Owen and TJ Stankus).
+them.
 
 Contents: The four stages of one edit; Adding a parameter: Gradual Cutover; Removing a parameter; Renaming a field;
 Accepting two kinds for a while; Taking a long method apart.
@@ -19,9 +19,9 @@ Use for every edit while you restructure.
 
 After each stage run the tests. On red, undo and take a smaller step rather than debug. Change about one line at a time;
 the steps may grow with practice and shrink again after a failure. Once back on green, ask why the step failed: a swap
-that should have been safe and was not often shows a rule of the code you had not understood (Katrina Owen). An
-editor-wide replace across many lines counts as one step when one undo reverses it. Finish the path you are on before
-you follow a side idea.
+that should have been safe and was not often shows a rule of the code you had not understood. An editor-wide replace
+across many lines counts as one step when one undo reverses it. Finish the path you are on before you follow a side
+idea.
 
 A way to reach stage 3 in one edit: put the new code above the old body and return its result early, so the old body
 stays in place but can no longer run, then delete it as stage 4. A new form of a conditional goes in the same way: above
@@ -170,7 +170,7 @@ new kind.
 
 Use when one method has grown too long to read and you need to change it. Pin its behaviour first:
 [javascript-and-typescript.md](javascript-and-typescript.md), "Characterisation tests". Such a method comes apart in
-fewer than thirty steps, each ending on green and each committed on its own (Katrina Owen).
+fewer than thirty steps, each ending on green and each committed on its own.
 
 1. If the method sits where it is hard to test, first move it into its own class (Replace Method with Method Object):
    the constructor takes the method's argument, the body becomes a method with no parameter, and the old method only
@@ -210,15 +210,14 @@ class ShippingCost {
 }
 ```
 
-When a conditional is too tangled to extract from at all, rebuild it instead (Sandi Metz): add a branch at the top that
-sends one category of input to a new, empty method; check that exactly the tests for that category now fail; write new
-code until each of those tests is green in turn, then tidy that method; repeat for each category; then delete the old
-conditional, never having had to understand it.
+When a conditional is too tangled to extract from at all, rebuild it instead: add a branch at the top that sends one
+category of input to a new, empty method; check that exactly the tests for that category now fail; write new code until
+each of those tests is green in turn, then tidy that method; repeat for each category; then delete the old conditional,
+never having had to understand it.
 
 When one opaque block serves many cases at once and you cannot see where one case's part ends, first add a temporary
-structure with one slot per case, so each case's part can be read and changed alone (Katrina Owen); it is scaffolding,
-and goes once objects carry the cases. While its removal is planned, a review should not report it as needless
-indirection.
+structure with one slot per case, so each case's part can be read and changed alone; it is scaffolding, and goes once
+objects carry the cases. While its removal is planned, a review should not report it as needless indirection.
 
 Done: each piece is a method named for what it does, the original reads as a few calls at one level of detail, no unused
 temporaries or code junk remain, and every step between was green.

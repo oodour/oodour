@@ -10,7 +10,7 @@ composed objects; Mixins.
 ## Inheritance is allowed
 
 Preferring composition is not a ban on inheritance. Judge a hierarchy by its properties, not by the keyword `extends`.
-Starting with a subclass and refactoring away from it when it stops paying is a sound route (Sandi Metz).
+Starting with a subclass and refactoring away from it when it stops paying is a sound route.
 
 - **Wait for a clear abstraction.** There is no fixed count: generalise once the examples make the shared shape plain,
   and keep the duplication while they leave it murky. A hierarchy starts from a change request and a smell, and its
@@ -169,9 +169,9 @@ parent holds nothing true of only one kind beyond the general rules that the spe
 
 The steps: find what varies, give it a name, decide the messages of that role, and inject an object that plays it.
 Composition with injection is the centre of object-oriented design: less code, and every combination of players
-available (Sandi Metz). When you move a varying part out of a class, extract the part into a new class, name the role
-that class plays, inject an instance back, and have the receiving class forward messages to it. Each new variant then
-plugs in at that injection point.
+available. When you move a varying part out of a class, extract the part into a new class, name the role that class
+plays, inject an instance back, and have the receiving class forward messages to it. Each new variant then plugs in at
+that injection point.
 
 - **A player for nothing.** The case where nothing should happen gets its own player as well, so the composed object
   never checks for absence.

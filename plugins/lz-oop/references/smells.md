@@ -80,7 +80,7 @@ Where a smell is known by two names, both are given.
   Class or Inline Function, and Collapse Hierarchy inside a class tree. A one-line method that only forwards is not lazy
   when it names a goal of its callers that differs from the method it calls: callers then need to know only its name,
   not the other method's arguments and their meaning. Going further, hide even a one-line detail behind a method named
-  for its intention, and keep a class's sibling predicates at one level of abstraction (Katrina Owen, after Kent Beck).
+  for its intention, and keep a class's sibling predicates at one level of abstraction.
 - **Speculative Generality**: structure for a need nobody has yet: a type parameter with one use, an optional parameter
   no caller passes, an abstract class with one subclass, code only tests call. Wait for the real requirement. Cure:
   Collapse Hierarchy, Inline Class or Inline Function, Change Function Declaration to drop unused parameters, and Remove
