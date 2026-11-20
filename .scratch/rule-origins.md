@@ -118,5 +118,28 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Rows 8-11, 17: Get a Whiff of This explains Fowler's smells in Mäntylä's five families: Large Class, Long Method,
   Long Parameter List, Data Clump (Extract Class), Feature Envy, Message Chains (Hide Delegate), Middle Man, Temporary
   Field.
-- Cited onward (talks): Fowler, Beck, Mäntylä, Industrial Logic's smells-to-refactorings table, Kerievsky, Reek, Flog,
+- Cited onward (talks), see below: Fowler, Beck, Mäntylä, Industrial Logic's smells-to-refactorings table, Kerievsky, Reek, Flog,
   Code Climate, Feathers, Robert Martin, Freeman and Pryce, Gang of Four.
+
+### Kerievsky, *Refactoring to Patterns* (Claude's summary of the oracle report, 2026-11-20; smells chapter only)
+
+- Rows 1-5: Long Method; cures Compose Method plus pattern-directed ones (Collecting Parameter, Command, Visitor,
+  Strategy). A size preference of roughly ten lines at most. No metric named.
+- Row 6: **Conditional Complexity** is this entry's smell name (one of the smells it adds to Fowler and Beck's list).
+  Cures by kind of branching: Replace Conditional Logic with Strategy, Move Embellishment to Decorator, Replace
+  State-Altering Conditionals with State, Introduce Null Object.
+- Row 7: no nesting smell; closest is Conditional Complexity.
+- Row 8: Large Class (Extract Class, Extract Subclass, plus Command, State, Interpreter refactorings).
+- Row 12: Switch Statements (the Fowler and Beck name, an if/else-if chain counts too; objectionable only once it makes
+  change or understanding harder); cures Replace Conditional Dispatcher with Command, Move Accumulation to Visitor.
+  Related: Primitive Obsession for a type code (Replace Type Code with Class, State, Strategy).
+- Row 13: Indecent Exposure (clients see code they should not) is the nearest smell, about visibility to clients, not
+  language enforcement.
+- Row 14: no global-data smell; Lazy Class notes that a Singleton often leaves the design on effectively global data
+  (Inline Singleton).
+- Row 15: no smell; nearest are Solution Sprawl (creation code spread over many classes; Move Creation Knowledge to
+  Factory) and Indecent Exposure.
+- Row 16: **Introduce Null Object** is a cure listed under Conditional Complexity and Duplicated Code; no smell name for
+  the check itself.
+- Rows 9, 10, 11, 17, CRAP, file length: not covered. Change coupling: Solution Sprawl pairs with Shotgun Surgery.
+- Unread: catalogue chapters 5-11.
