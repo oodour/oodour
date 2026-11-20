@@ -340,3 +340,12 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - Lars, on the Stryker runner: "use lz-node-test as asked and ensure that you have read all its docs to optimize your
   setup for wall-clock time, parallelization, and memory pressure." Done: 53b6ec8, pinned worktree at
   `D:/tmp/lz-node-test-pin-aa3bc1b` (aa3bc1b) after "Approve D:/tmp/ access".
+- Lars: "When the plugin is proven, dogfood it on this plugin's own CLI, scripts, ESLint, and Fallow artifacts."
+- Lars, on Claude's proposal "Stop and look: <smell>, <what was found>. <what to look for>. Cure: <named cures>." with
+  `concept` naming the smell and a registry test: "Naming the smell and the cure in lint messages: OK"
+- Lars, on Claude's proposal to count only the signature (positional parameters plus destructured keys): "How the
+  parameter rule counts: Detect options reads and destructuring in the body." Claude's reading: an object parameter
+  also counts each distinct key the body reads from it (`options.a`, `const { a } = options`), in place of the one
+  it counts for the object itself.
+- Lars: "Where the CLI lives: Bundle with plugin. Research prior art, @claude-code-guide, the plugin-dev and
+  skill-creator plugins, and `~/.claude/research/` for guidance."
