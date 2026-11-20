@@ -20,13 +20,13 @@ export const classMethodsUseThis = wrapRule<Options>({
   upstream: tseslintPlugin.rules['class-methods-use-this'],
   docs: {
     description: 'Report a class method that uses no state of its object',
-    concept: 'A method belongs with the data it works on',
+    concept: 'Feature Envy',
     requiresTypeChecking: false,
     remedy: { kind: 'none', because: "the method's new home is a design choice" },
     tier: 'strict',
   },
   message:
-    'Feature Envy: the {{name}} uses no state of its object. Look at whose data it reads. Cure: Move Function to that ' +
-    'object, or to a module function for a pure calculation; keep `static` only for a method that builds an instance.',
+    'Stop and look: Feature Envy, the {{name}} uses no state of its object. Look at whose data it reads. Cure: Move ' +
+    'Function to that object, or to a module function for a pure calculation; keep `static` only for a method that builds an instance.',
   defaultOptions: [{ ignoreOverrideMethods: true, ignoreClassesThatImplementAnInterface: true }],
 });

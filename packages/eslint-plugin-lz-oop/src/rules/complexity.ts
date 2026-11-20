@@ -6,7 +6,7 @@ export const complexity = wrapRule({
   upstream: coreRule('complexity'),
   docs: {
     description: 'Report a function with more paths through it than allowed',
-    concept: 'Complex conditional logic',
+    concept: 'Complex Conditional',
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',

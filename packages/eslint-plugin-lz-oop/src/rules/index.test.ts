@@ -25,6 +25,19 @@ test('every rule names the concept it prompts a look at and describes itself', (
   assert.deepEqual(undocumented, []);
 });
 
+test('every report message is a stop-and-look message that names the smell of its concept and a cure', () => {
+  const nonConforming = Object.entries(rules).flatMap(([name, { meta }]) =>
+    Object.entries(meta.messages).flatMap(([messageId, message]) =>
+      messageId === 'suggestion' ||
+      (message.startsWith(`Stop and look: ${meta.docs.concept},`) && message.includes('Cure: '))
+        ? []
+        : [`${name}:${messageId}`],
+    ),
+  );
+
+  assert.deepEqual(nonConforming, []);
+});
+
 test('every rule file has a test file beside it', () => {
   const untested = ruleFiles.filter((file) => !files.includes(file.replace(/\.ts$/, '.test.ts')));
 

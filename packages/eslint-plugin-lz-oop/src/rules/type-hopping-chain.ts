@@ -46,7 +46,7 @@ export const typeHoppingChain = createRule<Options, 'chain'>({
     type: 'suggestion',
     docs: {
       description: 'Report a chain that steps through more distinct types than allowed',
-      concept: 'Law of Demeter',
+      concept: 'Message Chains',
       requiresTypeChecking: true,
       remedy: {
         kind: 'none',
@@ -57,8 +57,8 @@ export const typeHoppingChain = createRule<Options, 'chain'>({
     },
     messages: {
       chain:
-        'Message Chains (Law of Demeter): this chain steps through {{count}} different types, so it breaks when any ' +
-        'of them changes. Look for what the chain is after. Cure: Hide Delegate, a method on the nearest object named ' +
+        'Stop and look: Message Chains, this chain steps through {{count}} different types against the Law of ' +
+        'Demeter, so it breaks when any of them changes. Look for what the chain is after. Cure: Hide Delegate, a method on the nearest object named ' +
         'for that goal.',
     },
     schema: [

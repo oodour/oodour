@@ -6,7 +6,7 @@ export const maxDepth = wrapRule({
   upstream: coreRule('max-depth'),
   docs: {
     description: 'Report blocks nested deeper than allowed',
-    concept: 'Nested conditionals',
+    concept: 'Nested Conditionals',
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',
