@@ -174,7 +174,7 @@ testRule(maxParams, {
     },
     {
       name: 'a function called where it is defined is still checked',
-      code: '(function f(a, b, c, d, e) {})();',
+      code: '(function f(a, b, c, d, e) {})(1);',
       errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
     },
     {
