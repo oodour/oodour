@@ -132,11 +132,13 @@ function keysReadBy(reference: TSESTree.Node): readonly (string | null)[] | unde
 
   if (target?.type === AST_NODE_TYPES.ObjectPattern) {
     return target.properties.map((property) =>
+      // Stryker disable next-line StringLiteral: any marker that is not a key the body reads counts the rest once
       property.type === AST_NODE_TYPES.Property ? ASTUtils.getPropertyName(property) : '...',
     );
   }
 
-  if (parent?.type !== AST_NODE_TYPES.MemberExpression || parent.object !== reference || isCallee(parent)) {
+  // A reference used as a computed key (`x[options]`) has no static name, so it counts the object whole.
+  if (parent?.type !== AST_NODE_TYPES.MemberExpression || isCallee(parent)) {
     return undefined;
   }
 
@@ -151,7 +153,8 @@ function destructuringTarget(reference: TSESTree.Node): TSESTree.Node | undefine
     return parent.id;
   }
 
-  return parent?.type === AST_NODE_TYPES.AssignmentExpression && parent.right === reference ? parent.left : undefined;
+  // When the reference is the left side, the target is the reference itself, which unpacks nothing.
+  return parent?.type === AST_NODE_TYPES.AssignmentExpression ? parent.left : undefined;
 }
 
 function isCallee(member: TSESTree.MemberExpression): boolean {
