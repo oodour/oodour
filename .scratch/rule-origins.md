@@ -64,3 +64,32 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Fallow: CRAP and file length have no smell; change coupling's nearest smell is Shotgun Surgery (mirror: Divergent
   Change).
 - Unread chapters: 1, 2, 4, 6-9, 11, 12.
+
+### Metz, *Practical Object-Oriented Design*, 2nd edition (Claude's summary of the oracle report, 2026-11-20; whole book read)
+
+- No smell catalogue; the frame is dependencies, single responsibility, interfaces, duck types, inheritance and
+  composition. Smell names in the table come from Fowler, not from this book.
+- Rows 1-7: no size or complexity measure. Ch.2 (one job per method) is the reason behind a length limit; Ch.1 says bad
+  metric numbers are a dependable warning and good ones prove nothing, backing metrics as a family, not any one metric.
+- Row 8: Single Responsibility (Ch.2, the one-sentence test) explains it better than size; Ch.9: many private methods
+  signal too many jobs.
+- Row 9: Ch.3 counts knowing the arguments, and their order, as dependencies; cures are keyword arguments, explicit
+  defaults, and isolating multiparameter initialization. No count limit. Counting options keys has no origin here.
+- Row 10: Ch.2 and Ch.7: behaviour that depends only on another object's data belongs in that object.
+- Row 11: the Law of Demeter (Ch.4), judged by the kinds of objects each step returns, not by dots; cure: find the
+  sender's goal and give the nearest object a public method for it. A better name than "Message Chains" here.
+- Row 12: two named problems: branching on a receiver's class is an overlooked duck type (Ch.5, cure: define the
+  message and trust the receivers); branching on an object's own category is an embedded type (Ch.6, cure: subclasses
+  with template method and hooks, or composition with a factory, Ch.8).
+- Row 13: Ch.4 treats visibility as a signal of stability, not enforcement; "make it #private" has no origin here.
+- Row 14: not covered.
+- Row 15: covered: knowing a concrete class name is a dependency (Ch.3); cure Inject Dependencies, depending on a role;
+  defaulted injection in Ch.7 and Ch.8. Nuance: Isolate Instance Creation (moving `new` into the constructor) is the
+  book's second-best form, better than a `new` buried in a working method. Ch.9: such coupling defeats isolated tests.
+- Row 16: no Null Object, Special Case or absence name in the book; a nil check is a class check (Ch.5), and hook
+  defaults in a parent remove the need to check (Ch.6, Ch.7).
+- Row 17: Ch.6: fields set only for some instances signal an embedded type (not part of a lifetime).
+- Fallow: complexity, CRAP and file length not covered; change coupling as a concept is Ch.3 (coupled objects change
+  together; coupling between objects; likelihood of change against number of dependents), not history mining.
+- Cited onward: Chidamber and Kemerer (1994), Basili (1995), Laing and Coleman (2001), Wirfs-Brock, Liskov, Gang of
+  Four, Meyer, Booch, Fowler.
