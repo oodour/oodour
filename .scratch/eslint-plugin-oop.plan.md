@@ -302,6 +302,15 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   statements; +0.2 for a call's receiver and arguments and a binary operator's operands; +0.3 for an optional
   receiver. A callback passed as an argument is scored into the enclosing function, its body at +0.1, as Flog scores
   a block in its method; any other nested function is scored on its own. Type-only syntax is left out. Limit 25.
+- Lars, 2026-11-20, on Claude's recommendation of a type-aware `require-super-lifecycle-call` in the Angular preset
+  (reports a lifecycle method that overrides a parent's implementation without calling `super.<method>()`; docs say
+  it is the project's choice and name the hook alternative): "The super.ngOnInit() rule: OK".
+- Lars, 2026-11-20, on Claude's browser-globals list (`no-restricted-globals` with `checkGlobalObject: true` plus one
+  `no-restricted-syntax` selector for destructuring, over `window`, `self`, `document`, `location`, `history`,
+  `navigator`, `screen`, `localStorage`, `sessionStorage`, `indexedDB`, `matchMedia`, `getComputedStyle`,
+  `requestAnimationFrame`, `cancelAnimationFrame`, `alert`, `confirm`, `prompt`, `open`; message points to `DOCUMENT`
+  or an app `InjectionToken`; Node.js-shared APIs left out): "The browser-globals list: OK. What would including time
+  and clock APIs mean?" (open: Claude to explain)
 - lz-audit gets a fresh-context auditor agent. Lars, 2026-11-19: "The same applies to lz-audit. It might be called by
   a long-running sesssion who created most of or the entire codebase being audited." Built as `lz-oop:auditor`
   (5bf6cfb).
