@@ -8,20 +8,8 @@ type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclarat
 
 type Range = TSESTree.Range;
 
-const operandTokens = new Set([
-  'Identifier',
-  'PrivateIdentifier',
-  'JSXIdentifier',
-  'Numeric',
-  'String',
-  'Template',
-  'RegularExpression',
-  'Boolean',
-  'Null',
-  'JSXText',
-]);
 // A closing bracket belongs to its opening one, which is counted.
-const closingBrackets = new Set([')', ']', '}']);
+const closingBrackets = new Set(['Punctuator )', 'Punctuator ]', 'Punctuator }']);
 const typeOnly = [
   'TSTypeAnnotation',
   'TSTypeParameterDeclaration',
@@ -31,13 +19,6 @@ const typeOnly = [
   ':matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion) > .typeAnnotation',
 ];
 
-function kindOf(token: TSESTree.Token): 'operand' | 'operator' | undefined {
-  if (operandTokens.has(token.type)) {
-    return 'operand';
-  }
-
-  return closingBrackets.has(token.value) ? undefined : 'operator';
-}
 
 const within = ([start, end]: Range, ranges: readonly Range[]): boolean =>
   ranges.some(([from, to]) => start >= from && end <= to);
@@ -86,19 +67,14 @@ export const halsteadVolume = createRule<Options, 'found'>({
       },
       ':function:exit'(node: FunctionNode) {
         const skip = [...(nested.pop() ?? []), ...types];
-        const distinct = { operand: new Set<string>(), operator: new Set<string>() };
-        let length = 0;
-
-        for (const token of sourceCode.getTokens(node)) {
-          const kind = kindOf(token);
-
-          if (kind !== undefined && !within(token.range, skip)) {
-            distinct[kind].add(token.value);
-            length += 1;
-          }
-        }
-
-        const vocabulary = distinct.operand.size + distinct.operator.size;
+        // A token's type keeps an operand apart from an operator of the same text, such as a property named delete.
+        const used = sourceCode
+          .getTokens(node)
+          .filter((token) => !within(token.range, skip))
+          .map((token) => `${token.type} ${token.value}`)
+          .filter((token) => !closingBrackets.has(token));
+        const length = used.length;
+        const vocabulary = new Set(used).size;
         const volume = length * Math.log2(vocabulary);
 
         if (volume > max) {

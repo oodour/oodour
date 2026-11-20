@@ -9,6 +9,13 @@ testRule(halsteadVolume, {
   ],
   invalid: [
     {
+      // The keyword delete and the property name delete are two distinct tokens: function f ( o { return delete . ;
+      // and o delete o (10 distinct, 11 total).
+      code: 'function f(o) { return delete o.delete; }',
+      options: [{ max: 0 }],
+      errors: [{ messageId: 'found', data: { name: "function 'f'", volume: '36.5', max: 0, length: 11, vocabulary: 10 } }],
+    },
+    {
       // Each literal kind and a private name counts as an operand: #p 'a' `b` /c/ 2 true null (7 distinct, 7 total).
       // Operators: ( { return [ this . , ; (8 distinct, 13 total); the closing ) ] } are left out.
       code: "class C { #p = 0; m() { return [this.#p, 'a', `b`, /c/, 2, true, null]; } }",
