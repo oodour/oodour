@@ -197,3 +197,34 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Rows 9, 11, 13, 14, 16, churn, CRAP, change coupling: not covered.
 - Cited onward: Fowler, Metz, Beck (Smalltalk Best Practice Patterns), Wake and Rutherford (Refactoring Workbook),
   Hickey, Helmkamp.
+
+### Sandi Metz articles, interviews and example code (Claude's summary of the oracle report, 2026-11-20)
+
+- No prose names Flog, ABC, Halstead, cyclomatic or cognitive complexity, CRAP, a coverage target, or a line or
+  parameter limit; no metric tool config in any repository.
+- Metric artefacts in code: her `play` Sokoban exercise keeps saved Flog and Saikuro (cyclomatic) reports for her
+  solution and a reference one; she compares the Flog total (hers higher) and the per-method average (hers lower, many
+  small classes). No threshold of her own.
+- Churn against complexity: Breaking Up the Behemoth (2017), after Feathers, with Code Climate's charts: the target is
+  tangled code edited often; cure: stop growing the big class and meet new requests with small collaborating classes.
+  The Half-Life of Code (2017): cost comes from change; make the churning code cheap to replace.
+- Reading numbers: InfoQ interview (2013): tools count, people judge; AMA (2018): coverage and quality tools show the
+  trend and the danger zones, with a pinch of salt.
+- CRAP, coverage, Halstead, cognitive complexity, nesting, file length, language privacy: not covered.
+- Row 6, 12: What Does OO Afford? (2018), The Shape at the Bottom of All Things (2014), Ruby Case Statements and
+  kind_of? (2009): branching on a type is a smell; cure: role players, a factory to choose, injection. Make Everything
+  The Same (2016); The Wrong Abstraction (2016). Workshop code turning conditionals into objects.
+- Row 9 caution: the 2009 dependency-injection article and the POODR chapter 3 example code recommend an options hash
+  with defaults; counting its keys runs against that advice, while Rules (2013) forbids the hash as a way under the
+  limit. max-params counts keys only for untyped or inline-typed parameters.
+- Row 14: not a smell here; preference for objects that don't change (AMA 2018).
+- Row 15: dependency injection with defaults that build the usual collaborator (2009 article; example code). Her cure
+  keeps `new` as a default argument: `new-in-constructor` checks only the constructor body, so a default parameter
+  value is not reported (Claude's check of the selector).
+- Row 16: Suspicions of nil (2014): returning nil or a real object gives senders two types; every nil test, truthiness
+  test or `try` is a type check repeated in each caller; cure named: the Null Object pattern (its follow-up post is
+  not in the store). Optional chaining is JavaScript's `try` (inference). A farm-song exercise is built for this.
+- Row 17: a field assigned under one condition with a lazy fallback elsewhere is one conditional split apart (code-shape
+  article and code).
+- Cited onward: Feathers, Code Climate, Fowler (Design Stamina), Robert Martin, Dan North, Beck, Freeman and Pryce,
+  Evans, Jay Fields, Kerievsky, Gang of Four, Wirfs-Brock.
