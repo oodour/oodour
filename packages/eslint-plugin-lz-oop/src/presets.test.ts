@@ -84,7 +84,6 @@ test('the selector rules ship in the tiers the measurements set', async () => {
     'new-in-constructor',
     'optional-collaborator',
     'optional-private-field',
-    'options-object-keys',
   ];
   const ids = (names: readonly string[]): readonly string[] => names.map((name) => `@layzee/lz-oop/${name}`).sort();
 
@@ -152,6 +151,15 @@ test('strict turns on each size limit as a rule of this plugin, at error with it
     settings,
     Object.values(sizeLimits).map((options) => [2, options]),
   );
+});
+
+test('each preset sets the parameter limit of its tier: four in recommended, three in strict', async () => {
+  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, '@layzee/lz-oop/max-params')));
+
+  const recommended = [2, { max: 4 }];
+  const strict = [2, { max: 3 }];
+
+  assert.deepEqual(settings, [recommended, recommended, strict, strict]);
 });
 
 test('strict turns on max-class-lines at 110 lines, not counting blank lines and comments', async () => {

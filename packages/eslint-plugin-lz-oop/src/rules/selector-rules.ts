@@ -48,17 +48,6 @@ const selectorRows = [
     because: 'the cure moves the state into an object and changes every reader, which needs a person',
   },
   {
-    name: 'options-object-keys',
-    description: 'Report a function that unpacks more than four keys from one object parameter',
-    concept: 'Long Parameter List',
-    tier: 'strict',
-    // A callback that unpacks a row it is handed (`rows.map(({ a, b, c, d, e }) => ...)`) is left out.
-    selectors: [':function:not(CallExpression > :function) > ObjectPattern.params[properties.length>4]'],
-    message:
-      'Stop and look: Long Parameter List, this function unpacks more than four values from one object, a long list in another form. Look for values that travel together, or for more than one job. Cure: Introduce Parameter Object, a type with behaviour of its own, or Extract Function to split the jobs.',
-    because: 'the cure names a new object or splits the function, and changes its callers, which needs a person',
-  },
-  {
     name: 'new-in-constructor',
     description: 'Report a constructor that creates its own collaborator',
     concept: 'Hidden Dependency',
