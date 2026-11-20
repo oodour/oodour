@@ -91,5 +91,32 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Row 17: Ch.6: fields set only for some instances signal an embedded type (not part of a lifetime).
 - Fallow: complexity, CRAP and file length not covered; change coupling as a concept is Ch.3 (coupled objects change
   together; coupling between objects; likelihood of change against number of dependents), not history mining.
-- Cited onward: Chidamber and Kemerer (1994), Basili (1995), Laing and Coleman (2001), Wirfs-Brock, Liskov, Gang of
+- Cited onward (POODR): Chidamber and Kemerer (1994), Basili (1995), Laing and Coleman (2001), Wirfs-Brock, Liskov, Gang of
   Four, Meyer, Booch, Fowler.
+
+### Sandi Metz talks (Claude's summary of the oracle report, 2026-11-20; 10 of 28 transcripts read)
+
+- Row 15: dependency injection, with a default that builds the usual collaborator (SOLID Object-Oriented Design, 2009;
+  Get a Whiff of This, 2016; Nothing is Something, 2015). Creating a collaborator deep in a method is worse than in the
+  initializer. "Hidden Dependency" is not her name.
+- Row 16: the Null Object pattern (Nothing is Something, 2015): checks for nil before a message are type checks that
+  multiply and lead to Shotgun Surgery; cure: a stand-in that answers the same message, and an adapter around an
+  outside source of nil so the one check lives in one place. Credits "active nothing" to Bruce Anderson.
+- Metrics: Flog, an ABC-style score, used as a second opinion beside judgement (All the Little Things, 2014); scores may
+  rise during a refactoring before they fall; for many small classes read the worst and the mean, not the sum. The
+  squint test (shape shows nesting). Paths through a method multiply with each conditional (Polly Want a Message,
+  2018). Churn against complexity, after Michael Feathers, with Code Climate's chart (Polly Want a Message, 2018): the
+  trouble spot is code that is both complex and changing often. Size limits: 100 lines a class, 5 a method, 4
+  parameters, no dodging by a hash (Rules, 2013). Not found: Halstead, cognitive complexity, CRAP, coverage targets,
+  file length, change coupling as a metric.
+- Row 12: a case statement on a type (Go Ahead, Make a Mess, 2012): move each branch to its own class sharing one
+  message, choose the class in a factory; Replace Conditional with Polymorphism named; template method as an alternative.
+  All the Little Things: separate choosing from doing; keep case statements in factories.
+- Row 13: Inappropriate Intimacy as reaching into another object's private methods (Get a Whiff of This, 2016); no
+  language privacy mechanism discussed.
+- Row 14: not found; only a stated preference for immutable objects (two podcasts).
+- Rows 8-11, 17: Get a Whiff of This explains Fowler's smells in Mäntylä's five families: Large Class, Long Method,
+  Long Parameter List, Data Clump (Extract Class), Feature Envy, Message Chains (Hide Delegate), Middle Man, Temporary
+  Field.
+- Cited onward (talks): Fowler, Beck, Mäntylä, Industrial Logic's smells-to-refactorings table, Kerievsky, Reek, Flog,
+  Code Climate, Feathers, Robert Martin, Freeman and Pryce, Gang of Four.
