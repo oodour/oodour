@@ -310,7 +310,12 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   `navigator`, `screen`, `localStorage`, `sessionStorage`, `indexedDB`, `matchMedia`, `getComputedStyle`,
   `requestAnimationFrame`, `cancelAnimationFrame`, `alert`, `confirm`, `prompt`, `open`; message points to `DOCUMENT`
   or an app `InjectionToken`; Node.js-shared APIs left out): "The browser-globals list: OK. What would including time
-  and clock APIs mean?" (open: Claude to explain)
+  and clock APIs mean?"
+- Lars, 2026-11-20, after Claude's explanation (no-argument `new Date()`, `Date.now()`, `performance.now()`, timers;
+  cure an injected clock or scheduler): "Time and clock APIs: OK, separate opt-in rule."
+- Lars, 2026-11-20, after the measurement that ABC 8 and Flog 13 match cyclomatic 4, and volume 750 matches ABC 15
+  and Flog 25: "Halstead volume default: *Recommended* gets ABC 15/Flog 25 and Halstead 750. Strict gets ABC 10/Flog
+  15 and Halstead 400." Done: rule docs carry `strictOptions`, the strict presets set them.
 - lz-audit gets a fresh-context auditor agent. Lars, 2026-11-19: "The same applies to lz-audit. It might be called by
   a long-running sesssion who created most of or the entire codebase being audited." Built as `lz-oop:auditor`
   (5bf6cfb).
