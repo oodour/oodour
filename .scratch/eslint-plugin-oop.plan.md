@@ -369,3 +369,11 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   our ESLint presets and the lz-oop plugin overall. Have we analyzed which concepts and cures apply to
   application/library code vs. test code? What does the oracle say about this?" (open: oracles on POODR, 99 Bottles,
   Meszaros, then the talks)
+- Lars, 2026-11-21: "File length: OK" (strict tier only, 250 lines, docs say Metz's unit is the class) and "Reek
+  candidates: OK" (oracle check of Feature Envy, Data Clump, Control/Boolean Parameter, Repeated Conditional, Manual
+  Dispatch before any rule).
+- Lars, 2026-11-21: "Vimeo: The oracle curator may used my Vimeo-authenticated Chrome with /playwright-cli" (for the
+  full Grit keynote).
+- Lars, 2026-11-21, on ts-private: "Was `#` available in JS when the book was written? \"private\" methods overridden
+  in subclasses map to TypeScript's `protected` (or `abstract`) methods and `override`." (open: Claude answered; the
+  rule's fate waits on Lars)
