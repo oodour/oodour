@@ -319,3 +319,24 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - lz-audit gets a fresh-context auditor agent. Lars, 2026-11-19: "The same applies to lz-audit. It might be called by
   a long-running sesssion who created most of or the entire codebase being audited." Built as `lz-oop:auditor`
   (5bf6cfb).
+
+## Rulings, 2026-11-20 (night)
+
+- Lars, on "1. Which field gives way for the smell names" (Claude recommended `concept` take the smell name each
+  message uses, every message opening "Stop and look: <concept>,"): "That sounds good but are we talking about lint
+  rules? Would it be possible for the lint rule messages to name both the smell/anti-pattern and the cure/ordained
+  pattern?" (open: Claude to answer; yes, lint rules)
+- Lars: "The lz-oop ESLint plugin should include a parameter rule that properly counts an *options* object parameter
+  in line with lz-oop/oracle." (open: oracle first)
+- Lars: "Shell commands mentioned in skills and agents: Consider .ts scripts instead so that they are proven and
+  shell-agnostic. For example, the shell scripts look for `from '<package-or-module-name>'` but not
+  `import('<package-or-module-name>')`."
+- Lars: "All subagent and skill steps that can be done deterministically using a script instead of prose-only should
+  be in a script/CLI. Consider an `lz-oop` CLI (package name: `@layzee/lz-oop-cli` or bundled with the plugin only),
+  keeping in mind that Claude Code does support `package.json` in a distributed plugin so we may use npm
+  dependencies."
+- Lars, about 23:00 local: "At that point, you will be on a Team plan with Fable credits, you won't have to coordinate
+  pausing to reduce token spend with other sessions, and your agent cap will be raised to 4."
+- Lars, on the Stryker runner: "use lz-node-test as asked and ensure that you have read all its docs to optimize your
+  setup for wall-clock time, parallelization, and memory pressure." Done: 53b6ec8, pinned worktree at
+  `D:/tmp/lz-node-test-pin-aa3bc1b` (aa3bc1b) after "Approve D:/tmp/ access".
