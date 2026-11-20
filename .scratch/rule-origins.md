@@ -56,6 +56,10 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 | Fallow file length | - | none; Metz puts several small classes in one file | - | drop (class length stays) |
 | Fallow change coupling | Shotgun Surgery | POODR Ch.3 (coupled objects change together); churn against complexity (Behemoth, 2017; Polly, 2019) | Move Function, Move Field | keep; prefer Fallow's churn-and-complexity hot spots if it has them |
 
+The Ruby companion code (oracle report, 2026-11-20) has no metric tooling (no Flog, Reek, RuboCop or SimpleCov config,
+no coverage); it shows the factory forms, injection by keyword argument with a default (later required), and the zero
+case as its own subclass. Commit messages were unreadable in both companion clones.
+
 ## Oracle answers
 
 (filled in per entry below)
