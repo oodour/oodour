@@ -143,3 +143,39 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
   the check itself.
 - Rows 9, 10, 11, 17, CRAP, file length: not covered. Change coupling: Solution Sprawl pairs with Shotgun Surgery.
 - Unread: catalogue chapters 5-11.
+
+### Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript (Claude's summary of the oracle report, 2026-11-20; all chapters read)
+
+- Metrics, Ch.1: lines of code (volume, not quality), cyclomatic complexity (McCabe 1976: paths through the code; pick
+  the lower of two versions, cap it with permission to exceed, read it as the least number of tests that reach every
+  branch), ABC (Fitzpatrick 1997: assignments, branches as message sends, conditions; mental size; a high score warns
+  of code costly to test and change). Tables in Ch.1 and Ch.2. No thresholds; no JavaScript metrics tool. Ch.4: scores
+  can look worse after a refactoring that improved the code; Ch.5: ABC rose after extracting a class. Not in the book:
+  Flog, Halstead, cognitive complexity as a word, CRAP, churn, change coupling.
+- Row 1: Long Function named once (Ch.8), caused by a conditional and cured through the switch; a blank line inside a
+  method hints at more than one job.
+- Row 5: the Squint Test (Ch.5): indentation shows conditionals and nesting, colour shows mixed abstraction.
+- Row 6: conditionals are suspect in OO code (Ch.3, Ch.5); cure Replace Conditional with Polymorphism (Ch.6).
+- Row 7: nested ternaries and the Squint Test; no named refactoring for nesting.
+- Row 8: Large Class only as a sample name; Extract Class applied (Ch.5, Ch.8); Single Responsibility (Ch.3).
+- Row 9: no Long Parameter List; knowing a message's arguments is a dependency (Ch.2); the same argument across methods
+  is a smell (Ch.5); Data Clump (Ch.6), cured by extracting a class.
+- Row 10: Feature Envy only as a sample name; methods leaning on a passed value point to Primitive Obsession (Ch.5).
+- Row 11: the Law of Demeter (Ch.8; the 1988 paper), judged by whether each hop changes interface; cure: a message named
+  for what the sender wants; inject the object you will message.
+- Row 12: Switch Statement (Ch.3, Ch.6); Primitive Obsession as the root (Ch.5); Replace Conditional with Polymorphism
+  (Ch.6); factories (Ch.6, Ch.7): branching to choose a class is legitimate, branching on behaviour is not. Class
+  sniffing or method probing before a message breaks the broadened Liskov principle.
+- Row 13: not covered (no language privacy).
+- Row 14: not covered; Ch.5 argues for objects that don't change.
+- Row 15: Ch.8: a hard-coded class name couples to a concretion; cure by dependency inversion through injection, with
+  a constructor default (later removed as a leftover, Ch.9); keep instantiation at the edges; a named factory class is
+  an accepted exception.
+- Row 16: no Null Object or Special Case; the broadened Liskov principle (Ch.4, Ch.6): a caller that must inspect what
+  it got has an unreliable collaborator; fix the receiver with polymorphism.
+- Row 17: not covered.
+- Fallow: cyclomatic covered (Ch.1, Ch.2); cognitive see row 5; CRAP, file length limit and change coupling absent
+  (Shotgun Surgery and Divergent Change only as sample names).
+- Cited onward: Fowler (both editions; smells and recipes, with Beck), Kerievsky, Gang of Four, Meszaros, Beck (TDD,
+  Implementation Patterns, horizontal and vertical refactoring), McCabe, Fitzpatrick, the Demeter paper, Robert Martin
+  (Dependency Inversion, 1996), Feathers.
