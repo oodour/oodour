@@ -347,5 +347,13 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   parameter rule counts: Detect options reads and destructuring in the body." Claude's reading: an object parameter
   also counts each distinct key the body reads from it (`options.a`, `const { a } = options`), in place of the one
   it counts for the object itself.
+- Lars, 2026-11-20: "1: Option B" (max-params recommended at 4, strict 3).
+- Lars, 2026-11-20: "Catalogue every rule's smell and cure, and enforce it: OK" (Claude's proposal: `docs.smells` and
+  `docs.cures` lists that build the message, a registry test that each is an entry, with its cure, in the plugin's
+  `references/smells.md`, and the missing entries added, gated by oracle-reviewer).
+- Lars, 2026-11-20, on Claude's proposal to keep "Hidden Dependency" and "Repeated Absence Check" as the plugin's own
+  names: "I would prefer that we don't invent concepts. lz-oop is based on oracle. Every concept, rule, or Fallow
+  check it includes should have an origin in oracle (Sandi Metz, Katrina Owen, and other sources they reference)."
+- Lars, 2026-11-20: "Spike for a bundled CLI install: OK".
 - Lars: "Where the CLI lives: Bundle with plugin. Research prior art, @claude-code-guide, the plugin-dev and
   skill-creator plugins, and `~/.claude/research/` for guidance."
