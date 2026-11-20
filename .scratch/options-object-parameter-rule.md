@@ -28,3 +28,27 @@ What no entry says: how to count destructured keys, optional keys, or an object 
 - Optional keys count the same as required ones; softening them is Claude's suggestion only, not taken.
 
 Open for Lars: whether `options.a` reads in the body should count (needs type information or a body scan).
+
+## Lars's ruling and the build plan
+
+Lars, 2026-11-20: "How the parameter rule counts: Detect options reads and destructuring in the body."
+
+Build plan (Claude's, 2026-11-20):
+
+- `max-params` stops wrapping `@typescript-eslint/max-params` and becomes the plugin's own rule, same name and
+  `{ max }` option (default 3, strict tier unchanged), so no consumer changes its config.
+- Count per parameter, `this` excluded:
+  - an identifier, default value or rest element: 1, unless it is an options object (below);
+  - an object pattern in the signature: one per key, a rest element 1;
+  - an array pattern: one per element.
+- An identifier parameter is an options object when the body reads keys from it and sends it no message: member
+  reads `p.a` / `p['a']` and destructuring `const { a, b } = p` (or `({ a } = p)`) count each distinct key. A call
+  on one of its members (`p.a()`) marks it a collaborator with behaviour, which counts 1 whatever else is read; so
+  does passing it on whole (`f(p)`), which only forwards it. This is Claude's reading of the oracle answers (an
+  object with behaviour is the cure; the forwarded options collection is endorsed), not a stated rule.
+- Nested functions: reads inside a nested function count for the outer parameter (closures still depend on it).
+- Message reports the count with its parts: "{{name}} takes {{count}} parameters, {{keys}} of them keys read from
+  an options object (at most {{max}})".
+- `options-object-keys` (selector rule, signature only, more than four keys) becomes redundant once this lands;
+  remove it in the same change with its presets entry and tests.
+- Test-first with lz-tdd, one test per cycle; Stryker on the new rule at the checkpoint.
