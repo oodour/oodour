@@ -3,6 +3,7 @@ import { abcSize } from './abc-size.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 import { cognitiveComplexity } from './cognitive-complexity.ts';
 import { complexity } from './complexity.ts';
+import { halsteadVolume } from './halstead-volume.ts';
 import { maxClassLines } from './max-class-lines.ts';
 import { maxDepth } from './max-depth.ts';
 import { maxLinesPerFunction } from './max-lines-per-function.ts';
@@ -16,6 +17,7 @@ const ruleModules: readonly OopRuleModule[] = [
   classMethodsUseThis,
   cognitiveComplexity,
   complexity,
+  halsteadVolume,
   maxClassLines,
   maxDepth,
   maxLinesPerFunction,
