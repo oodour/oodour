@@ -17,6 +17,14 @@ test('every rule file and every selector table row is registered under its name,
   assert.deepEqual(Object.keys(rules).toSorted(), expected.toSorted());
 });
 
+test('every rule names the concept it prompts a look at and describes itself', () => {
+  const undocumented = Object.entries(rules).flatMap(([name, { meta }]) =>
+    meta.docs.concept.length > 0 && meta.docs.description.length > 0 ? [] : [name],
+  );
+
+  assert.deepEqual(undocumented, []);
+});
+
 test('every rule file has a test file beside it', () => {
   const untested = ruleFiles.filter((file) => !files.includes(file.replace(/\.ts$/, '.test.ts')));
 

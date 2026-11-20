@@ -1,4 +1,4 @@
-import { AST_TOKEN_TYPES, ASTUtils, type TSESTree } from '@typescript-eslint/utils';
+import { ASTUtils, type TSESTree } from '@typescript-eslint/utils';
 import { createRule } from '../create-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
 
@@ -8,26 +8,20 @@ type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclarat
 
 type Range = TSESTree.Range;
 
-// The volume reads only the total of distinct operators and operands. A token of each type marked below never shares a
-// value with an operator token, so counting it among the operators gives the same volume.
 const operandTokens = new Set([
   'Identifier',
-  // Stryker disable next-line StringLiteral: as above
   'PrivateIdentifier',
   'JSXIdentifier',
-  // Stryker disable next-line StringLiteral: as above
   'Numeric',
   'String',
-  // Stryker disable next-line StringLiteral: as above
   'Template',
-  // Stryker disable next-line StringLiteral: as above
   'RegularExpression',
-  // Stryker disable next-line StringLiteral: as above
   'Boolean',
-  // Stryker disable next-line StringLiteral: as above
   'Null',
   'JSXText',
 ]);
+// A closing bracket belongs to its opening one, which is counted.
+const closingBrackets = new Set([')', ']', '}']);
 const typeOnly = [
   'TSTypeAnnotation',
   'TSTypeParameterDeclaration',
@@ -42,11 +36,7 @@ function kindOf(token: TSESTree.Token): 'operand' | 'operator' | undefined {
     return 'operand';
   }
 
-  if (token.type === AST_TOKEN_TYPES.Keyword) {
-    return token.value === 'this' || token.value === 'super' ? 'operand' : 'operator';
-  }
-
-  return token.type === AST_TOKEN_TYPES.Punctuator && !')]}'.includes(token.value) ? 'operator' : undefined;
+  return closingBrackets.has(token.value) ? undefined : 'operator';
 }
 
 const within = ([start, end]: Range, ranges: readonly Range[]): boolean =>
@@ -109,7 +99,7 @@ export const halsteadVolume = createRule<Options, 'found'>({
         }
 
         const vocabulary = distinct.operand.size + distinct.operator.size;
-        const volume = vocabulary > 1 ? length * Math.log2(vocabulary) : 0;
+        const volume = length * Math.log2(vocabulary);
 
         if (volume > max) {
           const name = ASTUtils.getFunctionNameWithKind(node, sourceCode);

@@ -117,6 +117,13 @@ test('strict turns on a core cue of the strict tier at error with its catalog op
   assert.deepEqual(await ruleSetting('strict', 'no-param-reassign'), [2, { props: true }]);
 });
 
+test("each preset names its rule layers after itself, so ESLint's config inspector tells them apart", () => {
+  assert.deepEqual(
+    presetNames.map((preset) => plugin.configs[preset].map(({ name }) => name).slice(1, 3)),
+    presetNames.map((preset) => [`lz-oop/${preset}`, `lz-oop/${preset}/outside-test-files`]),
+  );
+});
+
 test('each preset sets the ABC, Flog and Halstead limits of its tier', async () => {
   const ids = ['abc-size', 'flog-score', 'halstead-volume'].map((name) => `@layzee/lz-oop/${name}`);
 
