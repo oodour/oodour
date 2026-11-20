@@ -49,6 +49,11 @@
         { "runtime": "node --version" }
       ],
       "outputs": []
+    },
+    "mutate": {
+      "command": "stryker run stryker.eslint-plugin-lz-oop.config.json",
+      "cache": false,
+      "parallelism": false
     }
   }
 }
