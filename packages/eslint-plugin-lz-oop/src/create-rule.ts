@@ -27,6 +27,8 @@ export interface OopRuleDocs {
    * instead of the presets, so the presets work for a consumer who has not installed it.
    */
   readonly companion?: Companion;
+  /** The options the strict presets set, where they hold the rule to a tighter limit than its defaults. */
+  readonly strictOptions?: readonly unknown[];
 }
 
 /** The optional plugin packages, each with a companion config of its own. */

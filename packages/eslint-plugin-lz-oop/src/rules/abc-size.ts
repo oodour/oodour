@@ -43,6 +43,7 @@ export const abcSize = createRule<Options, 'found'>({
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
+      strictOptions: [{ max: 10 }],
     },
     messages: {
       found:

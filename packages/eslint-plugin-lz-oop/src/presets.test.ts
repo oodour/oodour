@@ -117,6 +117,17 @@ test('strict turns on a core cue of the strict tier at error with its catalog op
   assert.deepEqual(await ruleSetting('strict', 'no-param-reassign'), [2, { props: true }]);
 });
 
+test('each preset sets the ABC, Flog and Halstead limits of its tier', async () => {
+  const ids = ['abc-size', 'flog-score', 'halstead-volume'].map((name) => `@layzee/lz-oop/${name}`);
+
+  const settings = await Promise.all(presetNames.map((preset) => Promise.all(ids.map((id) => ruleSetting(preset, id)))));
+
+  const recommended = [15, 25, 750].map((max) => [2, { max }]);
+  const strict = [10, 15, 400].map((max) => [2, { max }]);
+
+  assert.deepEqual(settings, [recommended, recommended, strict, strict]);
+});
+
 const sizeLimits = {
   'max-lines-per-function': { max: 7, skipBlankLines: true, skipComments: true },
   'max-statements': { max: 5 },

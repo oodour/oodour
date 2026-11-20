@@ -66,34 +66,40 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
     {
       name: `lz-oop/${source}`,
       plugins: { [pluginNamespace]: plugin },
-      rules: rulesOf(allEntries.filter((entry) => entry.companion === source)),
+      rules: rulesOf(
+        allEntries.filter((entry) => entry.companion === source),
+        false,
+      ),
     },
   ];
-  const layers = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [
-    { name, rules: rulesOf(entries.filter((entry) => keep(entry) && !entry.skipsTestFiles)) },
+  const layers = (name: string, keep: (entry: PresetEntry) => boolean, strict: boolean): OopConfig[] => [
+    { name, rules: rulesOf(entries.filter((entry) => keep(entry) && !entry.skipsTestFiles), strict) },
     {
       name: `${name}/outside-test-files`,
       ignores: testFileGlobs,
-      rules: rulesOf(entries.filter((entry) => keep(entry) && entry.skipsTestFiles)),
+      rules: rulesOf(
+        entries.filter((entry) => keep(entry) && entry.skipsTestFiles),
+        strict,
+      ),
     },
   ];
   const untyped = (entry: PresetEntry): boolean => !entry.typed;
   const recommendedTier = (entry: PresetEntry): boolean => entry.tier === 'recommended';
   const conflicts = turnedOff('lz-oop/conflicts', 'conflict');
   const duplicates = turnedOff('lz-oop/duplicates', 'duplicateOf');
-  const preset = (name: string, keep: (entry: PresetEntry) => boolean): OopConfig[] => [
+  const preset = (name: string, keep: (entry: PresetEntry) => boolean, strict = false): OopConfig[] => [
     plugins,
-    ...layers(name, keep),
+    ...layers(name, keep, strict),
     duplicates,
     conflicts,
   ];
   const recommendedTypeChecked = preset('lz-oop/recommended-type-checked', recommendedTier);
-  const strictTypeChecked = preset('lz-oop/strict-type-checked', () => true);
+  const strictTypeChecked = preset('lz-oop/strict-type-checked', () => true, true);
 
   return {
     recommended: preset('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
     'recommended-type-checked': recommendedTypeChecked,
-    strict: preset('lz-oop/strict', untyped),
+    strict: preset('lz-oop/strict', untyped, true),
     'strict-type-checked': strictTypeChecked,
     recommendedTypeChecked,
     strictTypeChecked,
@@ -112,14 +118,18 @@ function turnedOff(name: string, key: 'conflict' | 'duplicateOf'): OopConfig {
   };
 }
 
-function rulesOf(entries: readonly PresetEntry[]): NonNullable<OopConfig['rules']> {
-  return Object.fromEntries(entries.map(({ id, setting }) => [id, setting]));
+function rulesOf(entries: readonly PresetEntry[], strict: boolean): NonNullable<OopConfig['rules']> {
+  return Object.fromEntries(
+    entries.map(({ id, setting, strictSetting }) => [id, strict ? (strictSetting ?? setting) : setting]),
+  );
 }
 
 /** A rule a preset turns on: one of this plugin's own, or a cue from the catalog. */
 interface PresetEntry {
   readonly id: string;
   readonly setting: 'error' | ['error', ...unknown[]];
+  /** The setting in the strict presets, when it differs from `setting`. */
+  readonly strictSetting?: ['error', ...unknown[]];
   readonly tier: Tier;
   readonly typed: boolean;
   readonly skipsTestFiles: boolean;
@@ -134,6 +144,9 @@ function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
   return Object.entries(plugin.rules).map(([name, rule]) => ({
     id: `${pluginNamespace}/${name}`,
     setting: 'error',
+    ...(rule.meta.docs.strictOptions === undefined
+      ? {}
+      : { strictSetting: ['error', ...rule.meta.docs.strictOptions] satisfies PresetEntry['setting'] }),
     tier: rule.meta.docs.tier,
     typed: rule.meta.docs.requiresTypeChecking,
     skipsTestFiles: rule.meta.docs.skipsTestFiles === true,

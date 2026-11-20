@@ -251,6 +251,7 @@ export const flogScore = createRule<Options, 'found'>({
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
+      strictOptions: [{ max: 15 }],
     },
     messages: {
       found:

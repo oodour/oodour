@@ -58,6 +58,7 @@ export const halsteadVolume = createRule<Options, 'found'>({
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
+      strictOptions: [{ max: 400 }],
     },
     messages: {
       found:
@@ -73,7 +74,7 @@ export const halsteadVolume = createRule<Options, 'found'>({
         additionalProperties: false,
       },
     ],
-    defaultOptions: [{ max: 1000 }],
+    defaultOptions: [{ max: 750 }],
   },
   create(context, [{ max }]) {
     const { sourceCode } = context;
