@@ -261,3 +261,17 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Row 17: optional arguments stored and branched on later; cure by injecting role players (Polly Want a Message, 2019).
 - Cited onward: Freeman and Pryce, Robert Martin, Feathers, Fowler, Wirfs-Brock, Beck, Evans, Gang of Four, Kerievsky,
   Hickey, Kay, Liskov.
+
+### *99 Bottles* JavaScript companion code (Claude's summary of the oracle report, 2026-11-20; commit messages unreadable)
+
+- No metric tooling: dev tools are a transpiler, the test runner and ESLint with the recommended preset plus four style
+  rules; no complexity, size or parameter rules, no coverage collection. Size limits show only in the code's shape
+  (most methods one expression or a few lines; classes 5-50 lines; files well under 250 lines).
+- Row 12: the choosing conditional moves into a factory that switches on the raw number; the factories stages try a
+  lookup table, candidates that say whether they handle a value, and self-registration on a static array.
+- Row 15: a `new` inside a working method becomes a constructor parameter with a default, later without one; the tests
+  pass a fake that a shared role check verifies.
+- Row 16: no absence handling; special values (0, 1, 6) become subclasses chosen by the factory (Special Case by
+  subclass, Claude's label).
+- Row 10: subclass methods that return constants and use no instance state are accepted for polymorphic overrides,
+  which `class-methods-use-this` would report.
