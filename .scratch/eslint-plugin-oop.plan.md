@@ -357,3 +357,15 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - Lars, 2026-11-20: "Spike for a bundled CLI install: OK".
 - Lars: "Where the CLI lives: Bundle with plugin. Research prior art, @claude-code-guide, the plugin-dev and
   skill-creator plugins, and `~/.claude/research/` for guidance."
+- Lars, 2026-11-21, on Claude's proposal to drop checks with no origin in the store: "Halstead volume: I still want to
+  include it. It's clear that Sandi Metz use code metrics to inform her decisions. With autonomous, high-churn agents,
+  this is even more important." "Cognitive complexity: Cyclomatic complexity is referenced multiple times from what I
+  understand. Cognitive and cyclomatic are related. Keep both." "CRAP: Same decision and reaons as Halstead volume."
+  Open: file length (Lars asks what the sources and Ruby and JS/TS practice say about several classes per file) and
+  ts-private (Lars asks what "privacy as a signal, not something to enforce" means in practice).
+- Lars, 2026-11-21: "Missing keynotes: OK" (fetch Grit and Practical Agile Development into metz-talks) and "The shared
+  pin: OK" (angular-clean-architecture may read `D:/tmp/lz-node-test-pin-aa3bc1b`).
+- Lars, 2026-11-21, on RuboCop excluding test files from `Style/OneClassPerFile`: "This is an important distinction for
+  our ESLint presets and the lz-oop plugin overall. Have we analyzed which concepts and cures apply to
+  application/library code vs. test code? What does the oracle say about this?" (open: oracles on POODR, 99 Bottles,
+  Meszaros, then the talks)

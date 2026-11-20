@@ -304,3 +304,54 @@ case as its own subclass. Commit messages were unreadable in both companion clon
   subclass, Claude's label).
 - Row 10: subclass methods that return constants and use no instance state are accepted for polymorphic overrides,
   which `class-methods-use-this` would report.
+
+### *99 Bottles* JavaScript companion code, commit and tag history (Claude's summary of the oracle report, 2026-11-21; 603 commits, 559 tags read)
+
+- Messages are one-line micro-steps. None names a metric, a tool, coverage, CRAP, privacy, Null Object, Special Case or
+  a smell from Fowler's catalogue. Named practices: Shameless Green, Liskov, a Demeter violation, injecting a role, a
+  fake, several factory forms.
+- Row 9 (max-params): the extract-class stage stops passing the number and deletes the parameter method by method once
+  the new class holds it; one step notes JavaScript does not check argument counts.
+- Row 10 (class-methods-use-this): methods move from using an argument to using the object's own state; Feature Envy is
+  not named (Claude's reading).
+- Row 11 (type-hopping-chain): the verse-extraction stage names a Demeter violation and removes it with a class-level
+  method.
+- Row 12 (switch-on-kind): the most covered row; factory method, case statement in the factory, class-level factory,
+  then metaprogrammed, map-based, can-handle, registry and self-registering factories, then back to the simplest.
+- Row 15 (new-in-constructor): injection of a role, consolidated object creation, injected bounds with defaults.
+- Row 16 (optional-collaborator): the zero case becomes its own subclass; neither pattern name appears.
+- Fallow CRAP: the tests stage adds an untested method, an echo-chamber test, then broken code the weak tests let
+  through, then reverts (close to coverage in spirit, the oracle's inference).
+- File layout: one source file holds every class; two early commits move utility functions to their own file.
+- Change coupling: source and test files change together only when a class is created, renamed, exported or deleted,
+  never in a behaviour-preserving step. Two revision lines duplicate commits, so a raw coupling count over all refs
+  would count pairs twice.
+
+### *99 Bottles* Ruby companion code, commit and tag history (Claude's summary of the oracle report, 2026-11-21; 831 commits, 866 tags)
+
+- No metric or tool named. Same refactoring steps as the JavaScript history; v2.2 (Owen, 2024) rewrites the parameter
+  removal run as explicit steps (send to self, temporary default, drop argument, drop parameter).
+- Row 11 names the Law of Demeter; row 15 names role injection, required once its default goes; row 12 walks the same
+  factory forms. Rows 4, 13, 16, 17 and coverage: nothing.
+- File layout: every class in one `lib` file at every stage, all tests in one test file; no class ever moves to its own
+  file. No `private` keyword at the seven stages sampled.
+- Change coupling: refactoring commits touch one file; only three commits touch source and test together.
+
+## Classes per file and privacy (Claude's summary of four oracle reports, 2026-11-21)
+
+- Classes per file: POODR (six chapters read) and *99 Bottles* (all chapters) are silent; both lay several classes in
+  one listing, and *99 Bottles* keeps every class in one file to the end. The talks say it outright: Making is Easy,
+  Mending is a Challenge (podcast) and Go Ahead, Make a Mess (2017) put small role-sharing classes in one file so a
+  reader sees them together and knows another member is the expected addition; Rails autoload must not dictate design.
+- Size: Rules (2013) and the 2014 rules talk set about 100 lines a class, counted per class (code moved into a module
+  only that class includes still counts), justified by one screen; Polly Want a Message (2018, 2019) ends with nine
+  classes, the largest 18 lines, 134 lines in all; the JavaScript companion's classes run 5-50 lines. No source names
+  file length as a metric.
+- Privacy: POODR Ch.4 splits public (stable, relied on, tested) from private (changeable, untested); the keyword both
+  signals and restricts, the restriction is easy to undo, and comments or a naming convention meet the obligation as
+  long as the private side is unmistakable. Callers wanting a private method redesign, add a public method, or isolate
+  the dependency in one wrapper. Ch.9: do not test private methods, except scaffolding for messy temporary code. The
+  talks repeat this (The Design of Tests; Bike Shed LIVE! 2016; Magic Tricks of Testing 2013) and name reaching into
+  another object's private methods Inappropriate Intimacy (Get a Whiff of This, 2016). *99 Bottles* uses no `#`, no
+  keyword and no underscore convention; privacy comes from which messages outsiders send. Oracle inference: `#`
+  methods cannot be overridden, so `#` on the bottle-number methods would break the polymorphism the book builds.
