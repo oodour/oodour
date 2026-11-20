@@ -68,6 +68,7 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
       plugins: { [pluginNamespace]: plugin },
       rules: rulesOf(
         allEntries.filter((entry) => entry.companion === source),
+        // Stryker disable next-line BooleanLiteral: no rule in a companion config sets strict options
         false,
       ),
     },

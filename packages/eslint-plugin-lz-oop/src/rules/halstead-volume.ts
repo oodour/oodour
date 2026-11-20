@@ -8,15 +8,23 @@ type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclarat
 
 type Range = TSESTree.Range;
 
+// The volume reads only the total of distinct operators and operands. A token of each type marked below never shares a
+// value with an operator token, so counting it among the operators gives the same volume.
 const operandTokens = new Set([
   'Identifier',
+  // Stryker disable next-line StringLiteral: as above
   'PrivateIdentifier',
   'JSXIdentifier',
+  // Stryker disable next-line StringLiteral: as above
   'Numeric',
   'String',
+  // Stryker disable next-line StringLiteral: as above
   'Template',
+  // Stryker disable next-line StringLiteral: as above
   'RegularExpression',
+  // Stryker disable next-line StringLiteral: as above
   'Boolean',
+  // Stryker disable next-line StringLiteral: as above
   'Null',
   'JSXText',
 ]);
