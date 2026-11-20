@@ -43,6 +43,13 @@ so the scripts version with the skills that call them and need no publish step; 
 them. To check before building: how Claude Code installs a plugin's `package.json` dependencies, and whether
 Node.js type stripping runs from the plugin cache path.
 
+## Dogfooding
+
+Lars, 2026-11-20: "When the plugin is proven, dogfood it on this plugin's own CLI, scripts, ESLint, and Fallow
+artifacts." Claude's reading: once the eval arms settle the plugin's text, run lz-audit and lz-review on the CLI,
+`tools/`, `packages/eslint-plugin-lz-oop` and `packages/fallow-config-lz-oop`, and fix what they find through the
+plugin, as in the audit-dogfood work on other repositories.
+
 ## Not in scope here
 
 The complexity numbers could come from eslint-plugin-lz-oop's own rules (ABC, Flog, Halstead, cyclomatic) once that
