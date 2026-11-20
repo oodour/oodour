@@ -228,3 +228,36 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
   article and code).
 - Cited onward: Feathers, Code Climate, Fowler (Design Stamina), Robert Martin, Dan North, Beck, Freeman and Pryce,
   Evans, Jay Fields, Kerievsky, Gang of Four, Wirfs-Brock.
+
+### Sandi Metz talks, the other 18 transcripts (Claude's summary of the oracle report, 2026-11-20)
+
+- Churn against complexity (Polly Want a Message, 2019; Bike Shed LIVE, 2016; Making is Easy, Mending is a Challenge):
+  her name for the class in the complex-and-changing corner is the Death Star anti-pattern (big, full of
+  conditionals, the core domain object); complex code that never changes can be left alone.
+- Tools (POODR panel, 2021): Code Climate scores, Flog, Reek, CodeScene (who changes what, how often, how complex);
+  metrics are not infallible but reproducible; a huge complex file says something different from complexity spread
+  over small files.
+- Each conditional doubles the paths through a method (Polly Want a Message, 2019): the idea of cyclomatic complexity,
+  not its name. Steady velocity as the test of good-enough design (Defining Object-Oriented Design).
+- Size rules (Ruby Rogues #87, 2013; Toronto 2013; Purpose of Rules, 2014; Bike Shed LIVE, 2016; Making is Easy): norms
+  that prompt the question "should this be two objects?"; each shop sets its own; a mixed-in module still counts
+  toward the class; no hash to get under the parameter limit; three might have been better than four.
+- File length: she argues for several small related classes in one file (Making is Easy; Go Ahead, Make a Mess 2017),
+  which a file-length check runs against.
+- Not found: Halstead, cognitive complexity, CRAP, ABC or cyclomatic complexity by name, coverage targets.
+- Row 7: big nested conditionals are one of the two problems she finds everywhere (Why Are Computers #3, 2016); cure by
+  the Flocking Rules.
+- Row 9: a boolean flag argument is a smell; cure: inject a role-playing object (Polly Want a Message, 2019).
+- Row 12: one duck-typed class per branch chosen by a factory; open and closed factories (If You Build It, 2022);
+  control coupling named (Triangle.rb 2013); branching on stable built-in classes is acceptable (Toronto 2013).
+- Row 13: she rarely marks methods private; privacy signals instability (The Design of Tests; Bike Shed LIVE, 2016).
+  No origin for enforced runtime privacy.
+- Row 14: data held on a class lives for the whole program and is never collected; keep accumulating data on an
+  instance (If You Build It, 2022); preference for immutability (Fireside Chat, 2015).
+- Row 15: never hard-code another class's name inside a class; inject it with a default (Defining Object-Oriented
+  Design); cheap lottery tickets (Ruby Rogues #87, 2013); stable built-ins may be created directly (Toronto 2013).
+- Row 16: the Null Object pattern (Ruby Rogues #87; Triangle.rb 2013); absence modelled as an object (Fireside Chat,
+  2015); stand-ins answering the same message (Polly Want a Message, 2019).
+- Row 17: optional arguments stored and branched on later; cure by injecting role players (Polly Want a Message, 2019).
+- Cited onward: Freeman and Pryce, Robert Martin, Feathers, Fowler, Wirfs-Brock, Beck, Evans, Gang of Four, Kerievsky,
+  Hickey, Kay, Liskov.
