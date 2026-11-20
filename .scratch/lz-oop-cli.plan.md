@@ -43,6 +43,22 @@ so the scripts version with the skills that call them and need no publish step; 
 them. To check before building: how Claude Code installs a plugin's `package.json` dependencies, and whether
 Node.js type stripping runs from the plugin cache path.
 
+## Bundling facts (claude-code-guide from the docs, 2026-11-20; not yet tested here)
+
+- Claude Code installs a plugin's npm dependencies into its cached version folder (`${CLAUDE_PLUGIN_ROOT}`) on
+  install, update and first load, when the root has `package.json` plus `package-lock.json` (lockfileVersion 2 or 3).
+  Rules: exact registry versions, no `overrides`, `--ignore-scripts`, 60-second timeout, npm or Bun from the PATH.
+  Source: code.claude.com/docs/en/plugins/loading.md, "Node.js package dependencies".
+- No automatic install for a plugin loaded in place (local-path marketplace, `--plugin-dir`): eval runs and local
+  development must install the dependencies themselves.
+- Skills call `node ${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts ...`; the variable is substituted in the skill text,
+  not set in the shell. Use `scripts/`, not `bin/`: claude.ai and Cowork refuse plugins with a root `bin/`.
+- Node.js type stripping refuses `.ts` files only under a `node_modules` path; the plugin cache is not under one.
+  Type stripping is on by default from Node.js 22.18.
+
+Consequence for the open question: bundling works without a publish step; the only cost is the install step for
+in-place runs.
+
 ## Dogfooding
 
 Lars, 2026-11-20: "When the plugin is proven, dogfood it on this plugin's own CLI, scripts, ESLint, and Fallow
