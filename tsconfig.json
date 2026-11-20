@@ -33,7 +33,8 @@
     ".claude/mods/oracle-guard/.node-test/*.ts",
     "tools/**/*.ts",
     "*.test.ts",
-    "eslint.config.ts"
+    "eslint.config.ts",
+    "stryker.*.config.ts"
   ],
   "exclude": ["node_modules", ".oracle"]
 }

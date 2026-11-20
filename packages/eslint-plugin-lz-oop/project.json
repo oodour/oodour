@@ -51,7 +51,7 @@
       "outputs": []
     },
     "mutate": {
-      "command": "stryker run stryker.eslint-plugin-lz-oop.config.json",
+      "command": "node --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.eslint-plugin-lz-oop.config.ts",
       "cache": false,
       "parallelism": false
     }
