@@ -179,3 +179,21 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 - Cited onward: Fowler (both editions; smells and recipes, with Beck), Kerievsky, Gang of Four, Meszaros, Beck (TDD,
   Implementation Patterns, horizontal and vertical refactoring), McCabe, Fitzpatrick, the Demeter paper, Robert Martin
   (Dependency Inversion, 1996), Feathers.
+
+### Katrina Owen talks (Claude's summary of the oracle report, 2026-11-20; all 3 read)
+
+- No metric of any kind, no thresholds. Length is not the measure: a short method can do several jobs; the test is
+  what the two things would be if it were split (Overkill, 2014; Succession, 2016).
+- Row 1: a huge method's smells (size, mixed abstraction, unnamed chunks); cures Replace Method with Method Object, then
+  Extract Method (Therapeutic Refactoring, 2012). The squint test, credited to Metz (Overkill).
+- Coverage as practice: characterization tests until every line and branch runs (Therapeutic Refactoring); no number.
+- Row 6: a conditional attracts more conditionals; shrink branches to the smallest difference, name the concept, find
+  the object (Succession).
+- Row 10: Feature Envy, named (Overkill); a method depending only on its argument moves to a new object (Succession).
+- Row 12: Replace Conditional with Polymorphism, credited to Fowler (Succession), with a small object choosing the
+  class.
+- Row 15: defaulted constructor data (Succession); no injection terminology.
+- Row 17: short-lived per-call data kept in instance state, cured by passing it as an argument (Overkill).
+- Rows 9, 11, 13, 14, 16, churn, CRAP, change coupling: not covered.
+- Cited onward: Fowler, Metz, Beck (Smalltalk Best Practice Patterns), Wake and Rutherford (Refactoring Workbook),
+  Hickey, Helmkamp.
