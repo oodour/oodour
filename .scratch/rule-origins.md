@@ -31,6 +31,31 @@ Fallow checks (`packages/fallow-config-lz-oop/fallowrc.json`): cyclomatic comple
 (max 4), CRAP score (complexity combined with missing test coverage), file length (max 250 lines), and change coupling
 (files that change together, minimum degree 0.4).
 
+## Proposed mapping (Claude, 2026-11-20, from the answers below; awaiting Lars)
+
+| Check | Smell (concept) | Origin of the check | Cures | Proposal |
+| --- | --- | --- | --- | --- |
+| max-lines-per-function, max-statements | Long Function | five-line method rule (Rules, 2013) | Extract Function | keep |
+| abc-size | Long Function | ABC (99 Bottles Ch.1, Fitzpatrick 1997) | Extract Function, Replace Temp with Query, Decompose Conditional | keep |
+| flog-score | Long Function | Flog (All the Little Things, 2014; POODR panel, 2021; Sokoban code) | as above, plus Replace Nested Conditional with Guard Clauses | keep |
+| halstead-volume | - | none found | - | drop |
+| cognitive-complexity (ESLint and Fallow) | - | none by name; the squint test is the nearest idea | - | drop |
+| complexity (ESLint and Fallow cyclomatic) | Conditional Complexity (Kerievsky) | cyclomatic (99 Bottles Ch.1, McCabe 1976) | Replace Conditional with Polymorphism, Decompose Conditional, Replace Conditional Logic with Strategy | keep, rename concept |
+| max-depth | Conditional Complexity | nested conditionals (Why Are Computers #3, 2016; squint test) | Replace Nested Conditional with Guard Clauses, Extract Function | keep, rename concept |
+| max-class-lines | Large Class | 100-line class rule (Rules, 2013) | Extract Class | keep |
+| max-params | Long Parameter List | four-parameter rule, no hash dodge (Rules, 2013) | Introduce Parameter Object, Preserve Whole Object, Remove Flag Argument | keep |
+| class-methods-use-this | Feature Envy | Fowler; Owen (Overkill, 2014) | Move Function | keep strict; the book's constant-returning overrides need `override` to pass |
+| type-hopping-chain | Message Chains | Law of Demeter judged by changing types (POODR Ch.4, 99 Bottles Ch.8) | Hide Delegate; a message named for the sender's goal | keep |
+| switch-on-kind | Switch Statements (99 Bottles, Kerievsky; Fowler 2e: Repeated Switches) | case on type (Go Ahead, Make a Mess, 2012; 99 Bottles Ch.6-7) | Replace Conditional with Polymorphism, the choice moved into a factory | keep |
+| ts-private | - | none; Metz treats privacy as a signal, not enforcement | - | drop |
+| module-let | Mutable Data (Global Data when exported) | Fowler; class-held data lives forever (If You Build It, 2022) | Encapsulate Variable | keep, rename concept |
+| new-in-constructor | no smell named in any source | concrete class name as a dependency (POODR Ch.3, 99 Bottles Ch.8, SOLID OOD 2009) | Inject Dependencies, with a default | Lars to choose the concept |
+| optional-collaborator | Conditional Complexity (Kerievsky lists Introduce Null Object under it) | nil checks as repeated type checks (Suspicions of nil, 2014; Nothing is Something, 2015) | Introduce Null Object, Introduce Special Case | keep, rename concept |
+| optional-private-field | Temporary Field | Fowler | Extract Class, Introduce Special Case | keep |
+| Fallow CRAP | - | none | - | drop |
+| Fallow file length | - | none; Metz puts several small classes in one file | - | drop (class length stays) |
+| Fallow change coupling | Shotgun Surgery | POODR Ch.3 (coupled objects change together); churn against complexity (Behemoth, 2017; Polly, 2019) | Move Function, Move Field | keep; prefer Fallow's churn-and-complexity hot spots if it has them |
+
 ## Oracle answers
 
 (filled in per entry below)
