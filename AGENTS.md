@@ -34,7 +34,7 @@ oracle agents. A source gets a row here in the same change that admits it.
 | Entry | Path | Tier |
 | --- | --- | --- |
 | Metz, Owen and Stankus, *99 Bottles of OOP*, 2nd edition, JavaScript | `.oracle/99-bottles-2e-js/` | Sealed |
-| Sandi Metz talk transcripts (28 talks, interviews, podcasts and Q&A sessions, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
+| Sandi Metz talk transcripts (30 talks, interviews, podcasts and Q&A sessions, 2009 to 2022) | `.oracle/metz-talks/` | Sealed |
 | Sandi Metz articles, blog posts, and her public example-code repositories | `.oracle/metz-written/` | Sealed |
 | The book's companion code, `sandimetz/99bottles_js`, as a full git clone | `.oracle/99bottles-js/` | Sealed |
 | Katrina Owen talk transcripts (3 talks, 2012, 2014 and 2016) | `.oracle/owen-talks/` | Sealed |

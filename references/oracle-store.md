@@ -5,7 +5,7 @@
 | Entry | Holds | Index |
 | --- | --- | --- |
 | `99-bottles-2e-js/` | *99 Bottles of OOP*, 2nd edition, JavaScript, converted to Markdown, one file per front-matter part or chapter, plus `images/` | `.oracle/99-bottles-2e-js/index.md` |
-| `metz-talks/` | Transcripts of 28 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
+| `metz-talks/` | Transcripts of 30 Sandi Metz talks, interviews, podcasts and Q&A sessions | `.oracle/metz-talks/index.md` |
 | `metz-written/` | Sandi Metz articles and blog posts, one file per work, plus the READMEs and code of her public GitHub example repositories under `github/<repo>/` | `.oracle/metz-written/index.md` |
 | `99bottles-js/` | A full git clone of `sandimetz/99bottles_js`, the book's companion code, under `repo/`, and each of its 559 tags exported as plain files under `stages/<tag>/` | `.oracle/99bottles-js/index.md` |
 | `owen-talks/` | Caption transcripts of 3 talks by co-author Katrina Owen | `.oracle/owen-talks/index.md` |
@@ -256,3 +256,19 @@ ruling above, the curator compared the build with `99-bottles-2e-js/` first: the
 differing in 10 lines (1, 4 and 5), each by the trailing backslash only. It replaced those three files, checked the
 entry against the build with `diff -r`, and added the source and commit to the entry's `index.md`; all 19 indexed
 links resolve.
+
+### 2026-11-21: companion history exports and two keynotes
+
+On Lars's "The oracle should be able to read them or the oracle curator should fix their clones.", the curator
+exported each companion clone's full commit log (messages and changed files) and tag list to text files inside its
+entry: `99bottles-js` 603 commits and 559 tags, `99bottles-ruby` 831 commits and 866 tags.
+
+On Lars's "Missing keynotes: OK", it filed two keynotes in `metz-talks/`, which now indexes 30 transcripts:
+
+- **Grit**: only the 11-minute highlights clip on Metz's own channel (auto captions). The full recording linked from
+  her speaking page is unavailable; other copies sit behind a Vimeo login or a university sign-in and were not tried.
+- **Practical Agile Development: A Challenge From the Trenches** (2016 Agile Alliance Technical Conference, from a
+  search summary): the 50-minute Vimeo recording on the conference site has no captions, so the curator transcribed it
+  with whisper.cpp `small.en` in an 18-minute heavy-lock slot and deleted the recording.
+
+store-check: `metz-talks` 30 indexed, 0 missing, 0 empty, 0 unindexed.
