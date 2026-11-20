@@ -3,6 +3,7 @@ import { abcSize } from './abc-size.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 import { cognitiveComplexity } from './cognitive-complexity.ts';
 import { complexity } from './complexity.ts';
+import { flogScore } from './flog-score.ts';
 import { halsteadVolume } from './halstead-volume.ts';
 import { maxClassLines } from './max-class-lines.ts';
 import { maxDepth } from './max-depth.ts';
@@ -17,6 +18,7 @@ const ruleModules: readonly OopRuleModule[] = [
   classMethodsUseThis,
   cognitiveComplexity,
   complexity,
+  flogScore,
   halsteadVolume,
   maxClassLines,
   maxDepth,
