@@ -291,6 +291,17 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   multiplier and weights translated to JS/TS, limit 25 (Code Climate's flag line; Scruggs's bands put 21-40 at "might
   need refactoring"). Both in the recommended preset at `error`, as ADR 0001 requires of every rule, with a "Stop and
   look" message naming the smell and its cure.
+- `flog-score` design (Claude's translation of Flog v4.9.4 to JS/TS; research web file section B). Per function,
+  `hypot(A, B, C)` of weighted sums, each event worth its base weight times the multiplier where it sits (1.0 at the
+  top). A: declarator with init, assignment, update. B: `if`, `?:`, `switch`, each `case`, `&&`/`||`/`??`, loops,
+  `catch`, and a call that takes a callback (Flog's block call). C: calls and `new` (1; `eval` and `Function` 5,
+  `.call`/`.apply`/`.bind` and computed calls 3 like `send`, `reduce` 2 like `inject`, `Reflect.*`,
+  `Object.defineProperty(ies)`, `Object.setPrototypeOf` and `new Proxy` 2), binary operators (1, as Ruby operators are
+  calls), and number literals other than 0 and -1 outside a `const` initializer (0.25). Multiplier: +0.1
+  for the bodies of branches, loops and `catch`, both sides of a logical operator and a block of two or more
+  statements; +0.2 for a call's receiver and arguments and a binary operator's operands; +0.3 for an optional
+  receiver. A callback passed as an argument is scored into the enclosing function, its body at +0.1, as Flog scores
+  a block in its method; any other nested function is scored on its own. Type-only syntax is left out. Limit 25.
 - lz-audit gets a fresh-context auditor agent. Lars, 2026-11-19: "The same applies to lz-audit. It might be called by
   a long-running sesssion who created most of or the entire codebase being audited." Built as `lz-oop:auditor`
   (5bf6cfb).
