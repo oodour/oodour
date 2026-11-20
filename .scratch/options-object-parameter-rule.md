@@ -36,7 +36,8 @@ Lars, 2026-11-20: "How the parameter rule counts: Detect options reads and destr
 Build plan (Claude's, 2026-11-20):
 
 - `max-params` stops wrapping `@typescript-eslint/max-params` and becomes the plugin's own rule, same name and
-  `{ max }` option (default 3, strict tier unchanged), so no consumer changes its config.
+  `{ max }` option. Lars, 2026-11-20, "1: Option B" (Claude's option b: recommended tier at 4, strict 3 through
+  `docs.strictOptions`, matching the talks' four and the stated preference for three).
 - Count per parameter, `this` excluded:
   - an identifier, default value or rest element: 1, unless it is an options object (below);
   - an object pattern in the signature: one per key, a rest element 1;
