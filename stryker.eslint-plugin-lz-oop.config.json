@@ -2,6 +2,7 @@
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "testRunner": "command",
   "commandRunner": { "command": "node --test \"packages/eslint-plugin-lz-oop/src/**/*.test.ts\"" },
+  "timeoutMS": 30000,
   "checkers": ["typescript"],
   "tsconfigFile": "packages/eslint-plugin-lz-oop/tsconfig.json",
   "reporters": ["clear-text", "progress", "html"],
