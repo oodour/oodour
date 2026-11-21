@@ -72,7 +72,8 @@ export const featureEnvy = createRule<[], 'found'>({
           return;
         }
 
-        const most = Math.max(...method.uses.values());
+        // A spread of every count would pass one argument per local and overflow the stack in generated code.
+        const most = [...method.uses.values()].reduce((highest, count) => Math.max(highest, count), 0);
 
         [...method.uses]
           .filter(([, count]) => count === most && count - method.own >= minimumLead)
