@@ -157,6 +157,8 @@ type-checks, lints and tests all of them.
 
 - The plugin stands alone: its shipped files (`plugins/lz-oop/`) name none of the maintainer's own plugins or skills.
   Describe an idea in its own words instead of pointing at another tool, and credit people and their works, not tools.
+- Every concept a rule's message names, every rule and every Fallow check traces to the sources, and code metrics
+  count as traced ([ADR 0003](docs/adr/0003-every-concept-rule-and-check-traces-to-the-sources.md)).
 - No skill sets `disable-model-invocation: true`. In Claude Code it also makes the Skill tool refuse the skill,
   stops `skills:` preloading, and keeps `/loop` and autonomous sessions from running it.
 - Name plugin agents with the plugin prefix wherever a caller names them (`skills: [lz-oop:lz-review]`,
