@@ -192,6 +192,11 @@ testRule(featureEnvy, {
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
     {
+      name: 'a local that held a field of its own object and now holds another object',
+      code: 'class Cart { total(item) { let cache = this.cache; cache = item.order; return cache.a + cache.b + cache.c + cache.d + this.e; } }',
+      errors: [{ messageId: 'found', data: { name: 'cache', count: 4, own: 2 } }],
+    },
+    {
       name: 'a parameter used through satisfies',
       code: 'class Cart { price(item) { return (item satisfies Item).base + (item satisfies Item).tax + (item satisfies Item).fee + this.fee; } }',
       errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
