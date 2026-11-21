@@ -55,6 +55,28 @@ testRule(dataClumps, {
   ],
   invalid: [
     {
+      name: 'a clump that a default-exported function shares with two others of its module',
+      code: `
+        export default function line(x, y) { return [x, y]; }
+        function area(x, y) { return x * y; }
+        export const dots = (x, y) => x + y;
+      `,
+      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 2 }],
+    },
+    {
+      name: 'a clump that class-field functions share with a method',
+      code: `
+        class Plot {
+          line = (x, y) => [x, y];
+          area = function (x, y) { return x * y; };
+          dots(x, y) { return x + y; }
+          label = 'plot';
+          count;
+        }
+      `,
+      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 }],
+    },
+    {
       name: 'a clump that only all three methods share, each pair sharing one more name',
       code: `
         class Plot {

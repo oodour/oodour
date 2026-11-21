@@ -32,10 +32,11 @@ export const dataClumps = createRule<[], 'found'>({
     return {
       ClassBody(node) {
         reportClumps(
-          node.body
-            .filter((member) => member.type === AST_NODE_TYPES.MethodDefinition)
-            .filter((method) => method.value.type !== AST_NODE_TYPES.TSEmptyBodyFunctionExpression)
-            .map((method) => ({ node: method, names: parameterNames(method.value) })),
+          node.body.flatMap((member) => {
+            const fn = memberFunction(member);
+
+            return fn ? [{ node: member, names: parameterNames(fn) }] : [];
+          }),
         );
       },
       Program(node) {
@@ -45,27 +46,44 @@ export const dataClumps = createRule<[], 'found'>({
   },
 });
 
+/** The function a class member runs: a method with a body, or a field that holds a function. */
+function memberFunction(member: TSESTree.ClassElement): TSESTree.FunctionLike | undefined {
+  if (member.type === AST_NODE_TYPES.MethodDefinition) {
+    return member.value.type === AST_NODE_TYPES.TSEmptyBodyFunctionExpression ? undefined : member.value;
+  }
+
+  return member.type === AST_NODE_TYPES.PropertyDefinition && member.value && isFunctionExpression(member.value)
+    ? member.value
+    : undefined;
+}
+
 /** The functions a module declares at its top level, exported or not, including those a `const` holds. */
 function moduleFunctions(program: TSESTree.Program): readonly TSESTree.FunctionLike[] {
   return program.body
     .map((statement) =>
-      statement.type === AST_NODE_TYPES.ExportNamedDeclaration && statement.declaration ? statement.declaration : statement,
+      (statement.type === AST_NODE_TYPES.ExportNamedDeclaration ||
+        statement.type === AST_NODE_TYPES.ExportDefaultDeclaration) &&
+      statement.declaration
+        ? statement.declaration
+        : statement,
     )
     .flatMap<TSESTree.FunctionLike>((statement) => {
-      if (statement.type === AST_NODE_TYPES.FunctionDeclaration) {
+      if (statement.type === AST_NODE_TYPES.FunctionDeclaration || isFunctionExpression(statement)) {
         return [statement];
       }
 
       if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
-        return statement.declarations.flatMap(({ init }) =>
-          init?.type === AST_NODE_TYPES.ArrowFunctionExpression || init?.type === AST_NODE_TYPES.FunctionExpression
-            ? [init]
-            : [],
-        );
+        return statement.declarations.flatMap(({ init }) => (init && isFunctionExpression(init) ? [init] : []));
       }
 
       return [];
     });
+}
+
+function isFunctionExpression(
+  node: TSESTree.Node,
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression {
+  return node.type === AST_NODE_TYPES.ArrowFunctionExpression || node.type === AST_NODE_TYPES.FunctionExpression;
 }
 
 function parameterNames(fn: TSESTree.FunctionLike): readonly string[] {
