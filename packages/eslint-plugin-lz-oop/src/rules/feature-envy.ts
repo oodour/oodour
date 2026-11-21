@@ -121,15 +121,22 @@ function isTemporary(variable: TSESLint.Scope.Variable): boolean {
   return initializersOf(variable).some(createsScratch);
 }
 
-/** Whether the value is a literal or built-in collection made here, alone or as the right side of `??`, `||` or `&&`. */
+/** Whether the value is an object literal or a built-in collection made here. */
 function createsScratch(init: TSESTree.Expression): boolean {
+  return init.type === AST_NODE_TYPES.ObjectExpression || createsCollection(init);
+}
+
+/**
+ * Whether the value is a built-in collection made here, alone or as the right side of `??`, `||` or `&&`. An object
+ * literal on the right says nothing about the type of the left, so it does not count there.
+ */
+function createsCollection(init: TSESTree.Expression): boolean {
   return (
     init.type === AST_NODE_TYPES.ArrayExpression ||
-    init.type === AST_NODE_TYPES.ObjectExpression ||
     (init.type === AST_NODE_TYPES.NewExpression &&
       init.callee.type === AST_NODE_TYPES.Identifier &&
       builtInConstructors.has(init.callee.name)) ||
-    (init.type === AST_NODE_TYPES.LogicalExpression && createsScratch(withoutTypeAssertions(init.right)))
+    (init.type === AST_NODE_TYPES.LogicalExpression && createsCollection(withoutTypeAssertions(init.right)))
   );
 }
 

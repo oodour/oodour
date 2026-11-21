@@ -81,6 +81,10 @@ testRule(featureEnvy, {
       code: 'class Loader { load(paths, known) { const seen = known ?? new Set(); seen.add(this.root); return seen.has(paths) || seen.size; } }',
     },
     {
+      name: 'a built-in collection behind a type assertion that the method creates when a caller gives none',
+      code: 'class Loader { load(paths, known) { const seen = known ?? (new Set() as Set<string>); seen.add(this.root); return seen.has(paths) || seen.size; } }',
+    },
+    {
       name: 'a constructor parameter property, which is a field of its own object',
       code: 'class Cart { constructor(private readonly order: Order) { this.total = order.base + order.tax - order.discount; } }',
     },
@@ -176,6 +180,11 @@ testRule(featureEnvy, {
     {
       name: "a local that holds a field of another object, which is not the method's own",
       code: 'class Cart { total(item) { const order = item.order; return order.a + order.b + order.c + this.d; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: "a local that holds a caller's object, or else an empty object literal",
+      code: 'class Cart { total(input) { const order = input ?? {}; return order.a + order.b + order.c + this.d; } }',
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
     {
