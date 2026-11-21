@@ -137,6 +137,7 @@ test('in a test file, strict-type-checked leaves out exactly the rules that chec
     'repeated-switches',
     'manual-dispatch',
     'data-clumps',
+    'feature-envy',
   ]
     .map((name) => `@layzee/lz-oop/${name}`)
     .sort();
@@ -273,8 +274,8 @@ test('every preset turns flag-argument and repeated-switches on at error, rules 
   assert.deepEqual(settings, presetNames.map(() => [[2], [2]]));
 });
 
-test('only the strict presets turn manual-dispatch and data-clumps on, rules of the strict tier', async () => {
-  const ids = ['@layzee/lz-oop/manual-dispatch', '@layzee/lz-oop/data-clumps'];
+test('only the strict presets turn manual-dispatch, data-clumps and feature-envy on, rules of the strict tier', async () => {
+  const ids = ['@layzee/lz-oop/manual-dispatch', '@layzee/lz-oop/data-clumps', '@layzee/lz-oop/feature-envy'];
   const settings = await Promise.all(
     presetNames.map(async (preset) => Promise.all(ids.map(async (id) => ruleSetting(preset, id)))),
   );

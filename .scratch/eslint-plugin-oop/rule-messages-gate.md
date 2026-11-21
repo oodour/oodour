@@ -108,3 +108,28 @@ Shipped message (overlap check: no run of 8+ words shared with the store):
 > Stop and look: Data Clumps, the parameters {{clump}} travel together through {{count}} functions here. Look for the
 > object they describe. Cure: Introduce Parameter Object, one object for them and the behaviour that uses them; or
 > Preserve Whole Object where a caller already holds an object that carries them.
+
+## feature-envy (strict tier), gated 2026-11-21
+
+Reports an instance method whose most-used parameters or locals lead its uses of `this` and `super` by two or more
+(Reek v6.6.0 FeatureEnvy counting, read from its source; the exemptions and the lead of two are this plugin's, set
+from the corrected probe, decisions.tsv row of 2026-11-21T03:27:34Z).
+
+Round 1. Fowler 2e: pass. The smell, the cure pair (Extract Function on the envious part, then Move Function), the
+most-data heuristic for several modules, and Strategy and Visitor as deliberate exceptions all supported (Ch.3, the
+smells catalogue). The mechanical count is a declared choice; the source offers no thresholds and prefers judgment.
+POODR 2e: revise. The message stated the move unconditionally, which would pull a role-player's behaviour back into
+the object that delegated it (Ch.4 and Ch.5, an object handing itself to a collaborator that asks it for what it
+needs); a tie across several objects points to a missing object (Ch.4); claim 4 did not match the message.
+
+Round 2, after the message was made conditional, given the tie case and the role case: Fowler 2e pass (the tie case
+is not contradicted, and the role case follows from the sanctioned exceptions); POODR 2e pass. Optional suggestion
+not applied: when the envied variable is a role with several players, shared behaviour belongs with the role (Ch.7);
+the message already says "often".
+
+Shipped message (overlap check: no run of 8+ words shared with the store):
+
+> Stop and look: Feature Envy, this method uses '{{name}}' {{count}} times and its own object {{own}}. Look for what it
+> asks of '{{name}}'. Cure: Move Function, often to the class of '{{name}}', with Extract Function first when only part
+> of the method envies; when it draws on several objects about equally, a new object may own that behaviour. Leave it
+> where it is when this object plays a role, such as a strategy or visitor, that '{{name}}' hands itself to.
