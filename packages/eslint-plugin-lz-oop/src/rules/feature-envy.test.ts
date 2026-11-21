@@ -231,6 +231,10 @@ new RuleTester({
       code: 'class Job { tries = 0; run(pending: PromiseLike<number>) { pending.then(this.done); pending.then(this.log); return pending.then(this.next); } }',
     },
     {
+      name: 'a method that works through a library type with one declared property',
+      code: 'class Grid { pad = 0; span(cells: ArrayLike<number>) { return cells.length + cells.length * 2 + cells.length * this.pad; } }',
+    },
+    {
       name: 'a method that works through a string parameter that may be undefined',
       code: 'class Label { prefix = ""; render(text?: string) { return this.prefix + text?.trim() + text?.at(0) + text?.length; } }',
     },
