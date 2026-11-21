@@ -2,6 +2,7 @@ import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescr
 import ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
+import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 /**
  * How many more uses another object needs than the method's own object. Reek reports any lead, but on real code a lead
@@ -151,13 +152,4 @@ function initializersOf(variable: TSESLint.Scope.Variable): TSESTree.Expression[
   return variable.defs.flatMap(({ node }) =>
     node.type === AST_NODE_TYPES.VariableDeclarator && node.init ? [withoutTypeAssertions(node.init)] : [],
   );
-}
-
-function withoutTypeAssertions(expression: TSESTree.Expression): TSESTree.Expression {
-  return expression.type === AST_NODE_TYPES.TSAsExpression ||
-    expression.type === AST_NODE_TYPES.TSSatisfiesExpression ||
-    expression.type === AST_NODE_TYPES.TSNonNullExpression ||
-    expression.type === AST_NODE_TYPES.TSTypeAssertion
-    ? withoutTypeAssertions(expression.expression)
-    : expression;
 }
