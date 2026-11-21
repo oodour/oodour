@@ -377,3 +377,8 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - Lars, 2026-11-21, on ts-private: "Was `#` available in JS when the book was written? \"private\" methods overridden
   in subclasses map to TypeScript's `protected` (or `abstract`) methods and `override`." (open: Claude answered; the
   rule's fate waits on Lars)
+- Lars, 2026-11-21: "Test-code treatment: Mainly configure file patterns so that rules that only apply to production
+  code exclude test files. Test code-specific rules should only be adapted if an oracle origin is verified/traced."
+- Lars, 2026-11-21: "Reek-derived rules: OK" (flag-argument and repeated-switches recommended, manual-dispatch,
+  data-clumps and feature-envy strict, switch-on-kind to strict, Data Clumps and Feature Envy limits from probe runs)
+  and "Full Grit keynote: OK" (stop at the highlights clip).
