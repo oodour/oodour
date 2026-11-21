@@ -84,3 +84,27 @@ Shipped message (overlap check: no run of 8+ words shared with the store):
 > why this code needs it. Cure: ask its class for a public message named for that need; only when none can exist,
 > confine this access to one place. A test sends public messages and tests private code only while that code's design
 > is unsettled, apart from the public tests; settled private code that needs tests may move into a collaborator.
+
+## data-clumps (strict tier), gated 2026-11-21
+
+Reports, within one class or among a module's top-level functions, every function taking a group of two or more
+parameter names that three or more functions share (Reek v6.6.0 DataClump defaults, read from its source).
+
+Gate on Fowler 2e: revise. Supported: the smell (Ch.3, items that keep appearing together as fields and parameters);
+the group points to an object (Ch.3). Drift: Introduce Parameter Object and Preserve Whole Object are alternatives,
+not two steps, and Preserve Whole Object fits a caller that already holds the carrying object. Extract Class comes
+first for clumped fields; left out because the rule sees parameters only. Name matching and the limits: declared
+choices, no contradiction (the source refuses fixed thresholds and leaves the call to judgment; the message asks the
+reader to look).
+
+Gate on POODR 2e: pass. A recurring argument pair turns into a collaborator in the running example (Ch.3, an unnamed
+case); handing over one collaborator instead of its parts matches the dependency teaching. Optional suggestion
+applied: the object holds the behaviour that uses the values, not just the values. Optional note kept for the
+record: test files are skipped because test setup repeats argument groups on purpose, not because tests need no
+design.
+
+Shipped message (overlap check: no run of 8+ words shared with the store):
+
+> Stop and look: Data Clumps, the parameters {{clump}} travel together through {{count}} functions here. Look for the
+> object they describe. Cure: Introduce Parameter Object, one object for them and the behaviour that uses them; or
+> Preserve Whole Object where a caller already holds an object that carries them.

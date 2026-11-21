@@ -3,6 +3,7 @@ import { abcSize } from './abc-size.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 import { cognitiveComplexity } from './cognitive-complexity.ts';
 import { complexity } from './complexity.ts';
+import { dataClumps } from './data-clumps.ts';
 import { flagArgument } from './flag-argument.ts';
 import { flogScore } from './flog-score.ts';
 import { halsteadVolume } from './halstead-volume.ts';
@@ -22,6 +23,7 @@ const ruleModules: readonly OopRuleModule[] = [
   classMethodsUseThis,
   cognitiveComplexity,
   complexity,
+  dataClumps,
   flagArgument,
   flogScore,
   halsteadVolume,
