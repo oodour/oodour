@@ -7,8 +7,8 @@ Contents: Bloaters; Object-oriented tools misused; Change preventers; Dispensabl
 
 A smell has a precise meaning, but it only says where to look: it may point at a problem, and it proves none. Nothing
 obliges you to remove every smell, and code that never changes can keep its smells. No count decides it; the call is the
-developer's judgement. Use this list this way: learn the names so the team can talk about them, pick one smell out of
-the tangle, and look up its cure instead of inventing one.
+developer's judgement. Use the list this way: learn the names so the team can talk about them, pick one smell out of the
+tangle, and look up its cure instead of inventing one.
 
 Where a smell is known by two names, both are given.
 
@@ -33,26 +33,30 @@ Where a smell is known by two names, both are given.
   at most 5, at most 4 parameters (packing more into one options object does not get round it), and a controller action
   that knows only one business object and one presenter and hands one object to its view. Any rule may be broken when
   you win over your pair. Lines a mixin brings into a class count toward the class's size. The numbers are arbitrary:
-  reaching one is the cue to stop and ask whether to split, not a failure, and experienced developers should set their
-  own. Use the team's limits where it has them; report a file over a limit as a place to look, not as a defect.
+  reaching one is the prompt to stop and ask whether to split, not a failure, and experienced developers should set
+  their own. Use the team's limits where it has them; report a file over a limit as a place to look, not as a defect.
 
 ## Object-oriented tools misused
 
 - **Switch Statements**: [variants-and-conditionals.md](variants-and-conditionals.md), Choosing versus doing. Its
   narrower form, **Repeated Switches**, is the same branching copied in several places; that leaf also reads a single
   switch that does each kind's work as this smell.
+- **Flag Argument**: a caller passes a literal (a boolean or a mode string) that picks which branch of shared code runs.
+  Cure: Remove Flag Argument, a function for each choice. Steps:
+  [variants-and-conditionals.md](variants-and-conditionals.md), Flag arguments.
 - **Conditional Complexity**: conditional logic that has grown hard to follow and grows again with each new case: many
   paths through one function, blocks nested inside blocks, or the same check for a missing collaborator before each
   message to it. The cure depends on what the branches do. To untangle the conditions themselves, use Decompose
-  Conditional, Consolidate Conditional Expression, guard clauses that return early in place of the nesting, or Extract
-  Function for an inner block that does one job; try these first. A pattern pays off only once the branching stays
-  complex after them, and each of the following is an option to weigh, not a rule. Branches that choose behaviour by
-  kind point to Replace Conditional with Polymorphism or Replace Conditional Logic with Strategy. Branches that follow
-  an object's changes of state point to the State pattern, one object per state that decides which state comes next, and
-  branches that add optional extras to a class with a small interface point to Move Embellishment to Decorator. The same
-  check for a missing collaborator, repeated in several places, points to Introduce Special Case, of which a Null Object
-  is one form. Steps: [variants-and-conditionals.md](variants-and-conditionals.md), What a conditional's form tells the
-  reader.
+  Conditional, Consolidate Conditional Expression, Replace Nested Conditional with Guard Clauses where the nested cases
+  are unusual exits rather than equal alternatives, or Extract Function for an inner block that does one job; try these
+  first. A pattern pays off only once the branching stays complex after them, and each of the following is an option to
+  weigh, not a rule. Branches that choose behaviour by kind point to Replace Conditional with Polymorphism or Replace
+  Conditional Logic with Strategy. Branches that follow an object's changes of state point to Replace State-Altering
+  Conditionals with State, one object per state that decides which state comes next, and branches that add optional
+  extras to a class with a small interface point to Move Embellishment to Decorator. The same check for a missing
+  collaborator, repeated in several places, points to Introduce Special Case, of which a Null Object is one form. How to
+  read a conditional's form before choosing: [variants-and-conditionals.md](variants-and-conditionals.md), What a
+  conditional's form tells the reader.
 - **Manual Dispatch**: code that tests which class an object is, or whether it has a method, to decide what to send it,
   making by hand the choice that polymorphism would make. Cure: name the role (the duck type) that every one of those
   objects plays, give each the one message the code needs, and send it without asking (Replace Conditional with
