@@ -89,6 +89,10 @@ testRule(featureEnvy, {
       code: 'class Cart { constructor(private readonly order: Order) { this.total = order.base + order.tax - order.discount; } }',
     },
     {
+      name: 'a constructor parameter property with a default value',
+      code: 'class Cart { constructor(private readonly order: Order = blank) { this.total = order.base + order.tax - order.discount; } }',
+    },
+    {
       name: 'two callback parameters that share a name, each used once',
       code: 'class Grid { columns() { this.log(); return [(x) => x.id, (x) => x.name]; } }',
     },

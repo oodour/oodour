@@ -147,7 +147,12 @@ function createsCollection(init: TSESTree.Expression): boolean {
 function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
   return (
     // Stryker disable next-line MethodExpression: a parameter property's variable has one definition, so some and every agree
-    variable.defs.some(({ name }) => name.parent.type === AST_NODE_TYPES.TSParameterProperty) ||
+    variable.defs.some(
+      ({ name }) =>
+        name.parent.type === AST_NODE_TYPES.TSParameterProperty ||
+        (name.parent.type === AST_NODE_TYPES.AssignmentPattern &&
+          name.parent.parent.type === AST_NODE_TYPES.TSParameterProperty),
+    ) ||
     initializersOf(variable).some(
       (init) =>
         init.type === AST_NODE_TYPES.ThisExpression ||
