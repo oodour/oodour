@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { join, parse } from 'node:path';
 import { functionsIn } from './functions.ts';
+
+test('a file outside the folder the run started in is counted too, as a coverage run of a monorepo package reaches it', () => {
+  const outside = join(parse(process.cwd()).root, 'elsewhere', 'settle.ts');
+
+  assert.deepEqual(
+    functionsIn(outside, 'export function settle(paid: boolean) { return paid ? 0 : 1; }').map(({ name }) => name),
+    ["Function 'settle'"],
+  );
+});
 
 test('a source ESLint cannot parse stops the count with the file and the parse error, rather than counting nothing', () => {
   assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);

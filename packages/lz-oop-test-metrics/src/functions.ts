@@ -1,3 +1,4 @@
+import { dirname, resolve } from 'node:path';
 import { type JSSyntaxElement, Linter, type Rule } from 'eslint';
 import { builtinRules } from 'eslint/use-at-your-own-risk';
 import * as parser from '@typescript-eslint/parser';
@@ -51,7 +52,8 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
     },
   };
 
-  const [fatal] = new Linter().verify(
+  // ESLint matches `files` against the path below its cwd, so a file outside the run's folder would match no config.
+  const [fatal] = new Linter({ cwd: dirname(resolve(file)) }).verify(
     source,
     [
       {
