@@ -4,21 +4,24 @@
   "rules": {
     "complexity-cyclomatic": "error",
     "complexity-cognitive": "error",
-    "complexity-crap": "error",
-    "complexity-file-lines": "error"
+    "complexity-crap": "error"
   },
   "health": {
     "maxCyclomatic": 4,
     "maxCognitive": 4,
-    "maxFileLines": 250,
-    "thresholdOverrides": [
-      {
-        "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
-        "maxFileLines": 0
-      }
-    ],
     "changeCoupling": {
       "minDegree": 0.4
     }
-  }
+  },
+  "duplicates": {
+    "ignore": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**", "**/e2e/**"]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**", "**/e2e/**"],
+      "rules": {
+        "complexity-crap": "off"
+      }
+    }
+  ]
 }

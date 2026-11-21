@@ -9,14 +9,14 @@ export function presetValues(config: Readonly<Record<string, unknown>>): readonl
     );
 }
 
-/** The key and value cells of each row between the README's preset-values markers. */
-export function readmeValues(markdown: string): readonly (readonly [string, string])[] {
+/** The key and value cells of each row between the README's `<marker>:start` and `<marker>:end` comments. */
+export function readmeValues(markdown: string, marker = 'preset-values'): readonly (readonly [string, string])[] {
   const lines = markdown.split(/\r?\n/);
-  const start = lines.indexOf('<!-- preset-values:start -->');
-  const end = lines.indexOf('<!-- preset-values:end -->');
+  const start = lines.indexOf(`<!-- ${marker}:start -->`);
+  const end = lines.indexOf(`<!-- ${marker}:end -->`);
 
   if (start === -1 || end === -1) {
-    throw new Error('The README has no <!-- preset-values:start --> and <!-- preset-values:end --> markers.');
+    throw new Error(`The README has no <!-- ${marker}:start --> and <!-- ${marker}:end --> markers.`);
   }
 
   const table = lines.slice(start + 1, end);

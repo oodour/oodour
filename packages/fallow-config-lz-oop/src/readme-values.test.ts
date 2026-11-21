@@ -55,6 +55,21 @@ describe('readmeValues', () => {
     assert.deepEqual(values, [['health.maxCyclomatic', '10']]);
   });
 
+  it('reads the table named by its marker', () => {
+    const markdown = [
+      '<!-- preset-values:start -->',
+      '| `health.maxCyclomatic` | `10` | base |',
+      '<!-- preset-values:end -->',
+      '<!-- strict-preset-values:start -->',
+      '| `health.maxFileLines` | `250` | strict |',
+      '<!-- strict-preset-values:end -->',
+    ];
+
+    const values = readmeValues(markdown.join('\n'), 'strict-preset-values');
+
+    assert.deepEqual(values, [['health.maxFileLines', '250']]);
+  });
+
   it('throws when the README has no preset-values table', () => {
     const markdown = '| `health.maxCyclomatic` | `10` | a reason |';
 

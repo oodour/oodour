@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/v3.43.2/schema.json",
+  "extends": "./fallowrc.json",
+  "rules": {
+    "complexity-file-lines": "error"
+  },
+  "health": {
+    "maxFileLines": 250,
+    "thresholdOverrides": [
+      {
+        "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**", "**/e2e/**"],
+        "maxFileLines": 0
+      }
+    ]
+  }
+}
