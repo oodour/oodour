@@ -140,6 +140,12 @@ Where a smell is known by two names, both are given.
   something outside, often named with an "And" joining the two jobs. A caller that only wants the answer gets the change
   too. A description of what it does that needs "and" is the cue. Cure: Separate Query from Modifier, a function that
   only answers and one that only changes.
+- **Untested Code**: code no test runs, so a change can break it with nothing to tell you. It costs most where many
+  paths meet few tests, which is what a CRAP score measures: a function's path count, raised steeply by the share of it
+  no test runs. Cure: a test that drives each path no test takes, through the inputs that reach it; a stand-in for a
+  collaborator can supply an input that is hard to produce. When the inputs stay hard to set up, change the design first
+  so they are not: fewer paths (Decompose Conditional, Replace Conditional with Polymorphism), or the collaborator
+  passed in. Read the number as a pointer, not a target: a test written to raise it can still check nothing.
 - **Global Data**: state any code can change, a module-level variable, class-level state or a singleton, so when it
   holds a wrong value nothing points to the code that wrote it. Cure: Encapsulate Variable, every read and write through
   functions you can find, then narrow its reach until one class or module alone touches the state. Going further, a
