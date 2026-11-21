@@ -89,6 +89,32 @@ change it makes, so a method no test sends is untested, and one that nothing sen
 
 A function that no test called gets no branch line. Its CRAP score already counts every path in it as untested.
 
+## How often each signal fires
+
+Measured at the defaults with the `node:test` reporter on Node.js 24.22.0. Each project's own `test` target ran with
+coverage of that project's source files, test files and fixtures left out. Every repository tests well: 97% of its
+functions ran in at least one test.
+
+| Repository                                       | Functions | CRAP lines at 30 | Uncalled public methods | Branch lines |
+| ------------------------------------------------ | --------- | ---------------- | ----------------------- | ------------ |
+| lz-gardener (`6c2401c`, 3 projects)              | 1,055     | 4 (0.4%)         | 0 of 0                  | 69 (6.7%)    |
+| lz-node-test (`aa3bc1b`, 8 projects)             | 823       | 4 (0.5%)         | 4 of 8                  | 31 (3.9%)    |
+| stryker-playwright-runner (`f39d8ac`, 11 projects) | 1,668   | 6 (0.4%)         | 3 of 22                 | 71 (4.4%)    |
+
+The branch share counts the functions a test called, since only those get a branch line.
+
+- **CRAP at 30** gives about one line per 200 functions, so a failed run points at a few functions. A limit of 20
+  gives 0.5 to 0.9%, and a limit of 10 gives 2.3 to 2.9%.
+- **Uncalled public methods** depend on how much code sits in classes. lz-gardener has no public class methods. In
+  lz-node-test, all four sit on one class that its separate `test-integration` target runs, and that target was not
+  part of the measurement. So a line says what the measured tests leave out, not what no test anywhere covers.
+- **Branch lines** fire most: one for every 15 to 26 called functions. They are the signal to switch off first when
+  a run prints more than a team reads.
+
+ts-morph, the fourth repository the Fallow preset was measured on, runs its tests with mocha under Deno, so neither
+reporter runs there. One test in lz-node-test fails under `--experimental-test-coverage` alone, with no reporter
+added: it formats `NaN` and expects `-NaN`.
+
 ## A called function is not a tested one
 
 Coverage records that a test ran a function, not that a test checked what it did. A test that calls a method and
