@@ -130,6 +130,12 @@ testRule(privateAccess, {
       errors: [{ messageId: 'found', data: { member: '_secret' } }],
     },
     {
+      name: 'an underscore member read in one function on a module variable that another function gave its this',
+      code: 'let current; function bind() { current = this; } function peek() { return current._secret; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_secret' } }],
+    },
+    {
       name: "an underscore member read in a field initializer on a module variable that another class's field gave this",
       code: 'let current; class A { mine = (current = this); } class B { peek = () => current._secret; }',
       options: underscore,

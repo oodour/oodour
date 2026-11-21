@@ -36,6 +36,10 @@ testRule(featureEnvy, {
       code: 'class Cache { read(key) { let entry = this.entry; entry ??= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
     },
     {
+      name: 'a local given a call result that a field of its own object holds too, whose uses count as its own',
+      code: 'class Cache { read(key, other) { const entry = (this.entry = load(key)); return entry.a + entry.b + other.x + other.y + other.z; } }',
+    },
+    {
       name: 'a local that holds a field of its own object, or another field when that one is set',
       code: 'class Cache { read(key) { let entry = this.entry; entry &&= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
     },
