@@ -11,6 +11,7 @@ import { maxDepth } from './max-depth.ts';
 import { maxLinesPerFunction } from './max-lines-per-function.ts';
 import { maxParams } from './max-params.ts';
 import { maxStatements } from './max-statements.ts';
+import { repeatedSwitches } from './repeated-switches.ts';
 import { selectorRules } from './selector-rules.ts';
 import { typeHoppingChain } from './type-hopping-chain.ts';
 
@@ -27,6 +28,7 @@ const ruleModules: readonly OopRuleModule[] = [
   maxLinesPerFunction,
   maxParams,
   maxStatements,
+  repeatedSwitches,
   typeHoppingChain,
   ...selectorRules,
 ];

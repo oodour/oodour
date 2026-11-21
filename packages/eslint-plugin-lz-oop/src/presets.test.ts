@@ -134,6 +134,7 @@ test('in a test file, strict-type-checked leaves out exactly the rules that chec
     'max-lines-per-function',
     'class-methods-use-this',
     'flag-argument',
+    'repeated-switches',
   ]
     .map((name) => `@layzee/lz-oop/${name}`)
     .sort();
@@ -261,10 +262,13 @@ test('recommended-type-checked turns on a typed cue of the recommended tier with
   ]);
 });
 
-test('every preset turns flag-argument on at error, a rule of the recommended tier', async () => {
-  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, '@layzee/lz-oop/flag-argument')));
+test('every preset turns flag-argument and repeated-switches on at error, rules of the recommended tier', async () => {
+  const ids = ['@layzee/lz-oop/flag-argument', '@layzee/lz-oop/repeated-switches'];
+  const settings = await Promise.all(
+    presetNames.map(async (preset) => Promise.all(ids.map(async (id) => ruleSetting(preset, id)))),
+  );
 
-  assert.deepEqual(settings, presetNames.map(() => [2]));
+  assert.deepEqual(settings, presetNames.map(() => [[2], [2]]));
 });
 
 test('recommended leaves out a cue of the strict tier', async () => {
