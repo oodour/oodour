@@ -10,11 +10,7 @@
     },
     "lint": {
       "command": "eslint packages/fallow-config-lz-oop",
-      "inputs": [
-        "default",
-        "{workspaceRoot}/eslint.config.ts",
-        { "externalDependencies": ["eslint", "typescript-eslint", "typescript", "jiti", "@types/node", "ajv"] }
-      ]
+      "inputs": ["default", "eslintConfig", { "externalDependencies": ["@types/node", "ajv"] }]
     },
     "test": {
       "command": "node --test \"packages/fallow-config-lz-oop/src/**/*.test.ts\"",

@@ -3,50 +3,32 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "packages/eslint-plugin-lz-oop/src",
+  "namedInputs": {
+    "ruleDependencies": [
+      {
+        "externalDependencies": [
+          "typescript",
+          "eslint",
+          "typescript-eslint",
+          "@typescript-eslint/utils",
+          "@typescript-eslint/rule-tester",
+          "@typescript-eslint/eslint-plugin",
+          "@eslint-community/eslint-plugin-eslint-comments",
+          "eslint-plugin-unicorn",
+          "eslint-plugin-sonarjs",
+          "eslint-plugin-functional"
+        ]
+      }
+    ]
+  },
   "targets": {
     "typecheck": {
       "command": "tsc -p packages/eslint-plugin-lz-oop/tsconfig.json",
-      "inputs": [
-        "default",
-        {
-          "externalDependencies": [
-            "typescript",
-            "@types/node",
-            "eslint",
-            "typescript-eslint",
-            "@typescript-eslint/utils",
-            "@typescript-eslint/rule-tester",
-            "@typescript-eslint/eslint-plugin",
-            "@eslint-community/eslint-plugin-eslint-comments",
-            "eslint-plugin-unicorn",
-            "eslint-plugin-sonarjs",
-            "eslint-plugin-functional"
-          ]
-        }
-      ]
+      "inputs": ["default", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
     },
     "lint": {
       "command": "eslint packages/eslint-plugin-lz-oop",
-      "inputs": [
-        "default",
-        "{workspaceRoot}/eslint.config.ts",
-        {
-          "externalDependencies": [
-            "eslint",
-            "typescript-eslint",
-            "typescript",
-            "jiti",
-            "@types/node",
-            "@typescript-eslint/utils",
-            "@typescript-eslint/rule-tester",
-            "@typescript-eslint/eslint-plugin",
-            "@eslint-community/eslint-plugin-eslint-comments",
-            "eslint-plugin-unicorn",
-            "eslint-plugin-sonarjs",
-            "eslint-plugin-functional"
-          ]
-        }
-      ]
+      "inputs": ["default", "eslintConfig", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
     },
     "test": {
       "command": "node --test \"packages/eslint-plugin-lz-oop/src/**/*.test.ts\"",
@@ -54,20 +36,7 @@
       "inputs": [
         "default",
         "{workspaceRoot}/plugins/lz-oop/references/*.md",
-        {
-          "externalDependencies": [
-            "typescript",
-            "eslint",
-            "typescript-eslint",
-            "@typescript-eslint/utils",
-            "@typescript-eslint/rule-tester",
-            "@typescript-eslint/eslint-plugin",
-            "@eslint-community/eslint-plugin-eslint-comments",
-            "eslint-plugin-unicorn",
-            "eslint-plugin-sonarjs",
-            "eslint-plugin-functional"
-          ]
-        },
+        "ruleDependencies",
         { "runtime": "node --version" }
       ],
       "outputs": []

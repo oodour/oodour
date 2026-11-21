@@ -34,18 +34,8 @@
       "command": "eslint . --ignore-pattern \"packages/\"",
       "inputs": [
         "default",
-        "{workspaceRoot}/eslint.config.ts",
-        {
-          "externalDependencies": [
-            "eslint",
-            "typescript-eslint",
-            "typescript",
-            "jiti",
-            "@nx/devkit",
-            "@stryker-mutator/core",
-            "@stryker-mutator/api"
-          ]
-        },
+        "eslintConfig",
+        { "externalDependencies": ["@nx/devkit", "@stryker-mutator/core", "@stryker-mutator/api"] },
         { "runtime": "claude --version" }
       ]
     },
