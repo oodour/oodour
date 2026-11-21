@@ -227,6 +227,10 @@ new RuleTester({
       code: "import type { Linter } from 'eslint'; class Check { code = ''; run(linter: Linter) { return linter.verify(this.code, []).length + linter.getTimes().passes.length + linter.version.length; } }",
     },
     {
+      name: 'a method that works through a library interface with a single member',
+      code: 'class Job { tries = 0; run(pending: PromiseLike<number>) { pending.then(this.done); pending.then(this.log); return pending.then(this.next); } }',
+    },
+    {
       name: 'a method that works through a string parameter that may be undefined',
       code: 'class Label { prefix = ""; render(text?: string) { return this.prefix + text?.trim() + text?.at(0) + text?.length; } }',
     },
@@ -251,6 +255,11 @@ new RuleTester({
       name: "a method that works through a library utility type over a project class, whose fields are the project's",
       code: "class Order { base = 0; tax = 0; discount = 0; id = ''; } class Cart { fee = 0; price(order: Omit<Order, 'id'>) { return order.base + order.tax - order.discount + this.fee; } }",
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a method that works through a project type that extends a library type',
+      code: 'interface Shift extends Date { base: number; tax: number; } class Roster { fee = 0; cost(shift: Shift) { return shift.base + shift.tax + shift.getHours() + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'shift', count: 3, own: 1 } }],
     },
     {
       name: 'a method that works through a value whose type the checker cannot tell',

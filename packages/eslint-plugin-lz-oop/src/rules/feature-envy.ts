@@ -1,5 +1,5 @@
 import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
-import ts from 'typescript';
+import type ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
@@ -9,13 +9,6 @@ import { withoutTypeAssertions } from '../without-type-assertions.ts';
  * of one was mostly noise: about 15% of those reports were true, and every lead-of-one report sampled was weak or false.
  */
 const minimumLead = 2;
-
-const primitive =
-  ts.TypeFlags.StringLike |
-  ts.TypeFlags.NumberLike |
-  ts.TypeFlags.BooleanLike |
-  ts.TypeFlags.BigIntLike |
-  ts.TypeFlags.ESSymbolLike;
 
 export const featureEnvy = createRule<[], 'found'>({
   name: 'feature-envy',
@@ -56,15 +49,12 @@ export const featureEnvy = createRule<[], 'found'>({
         const declarations = checker.getPropertiesOfType(member).flatMap((property) => property.declarations ?? []);
 
         return (
-          (member.flags & primitive) !== 0 ||
-          checker.isArrayType(member) ||
-          checker.isTupleType(member) ||
-          (declarations.length > 0 &&
-            declarations.every(
-              (declaration) =>
-                program.isSourceFileDefaultLibrary(declaration.getSourceFile()) ||
-                declaration.getSourceFile().fileName.includes('/node_modules/'),
-            ))
+          declarations.length > 0 &&
+          declarations.every(
+            (declaration) =>
+              program.isSourceFileDefaultLibrary(declaration.getSourceFile()) ||
+              declaration.getSourceFile().fileName.includes('/node_modules/'),
+          )
         );
       };
 
@@ -149,6 +139,7 @@ function createsScratch(init: TSESTree.Expression): boolean {
  */
 function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
   return (
+    // Stryker disable next-line MethodExpression: a parameter property's variable has one definition, so some and every agree
     variable.defs.some(({ name }) => name.parent.type === AST_NODE_TYPES.TSParameterProperty) ||
     initializersOf(variable).some(
       (init) =>
