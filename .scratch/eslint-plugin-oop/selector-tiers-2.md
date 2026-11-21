@@ -287,6 +287,12 @@ replaces the as-written selector it names.
 | optional-collaborator | 1 / 4 | 1/0 | 0/1 | 4/0 | 1/6 = 17% | `strict` | the four class-heavy hits are one file; the first-corpus hit is judged FP by J2 and TP by J1 |
 | X-optional-private-field (replaces optional-field) | 5 / 0 | 4/1 | 3/2 | - | 3/10 = 30% | `strict` | all five hits are fields of one class (`runner.ts`); as written, optional-field is 7/11 (61 percent FP) because `@Input` and configuration properties match |
 
+Update, 2026-11-21 (Lars's rulings, recorded in `../eslint-plugin-oop.plan.md`, "Rulings, 2026-11-20 (night)"): the
+table above is the measurement as it stood. Shipped since: `switch-on-kind` moved to `strict` (d7dc465); a new
+`flag-argument` rule, in `recommended` (d325d7c), reports a boolean parameter that the function itself branches on, a
+narrower form than the dropped `boolean-parameter` and `S-flag-argument` selectors below (one true positive in its probe
+run, `presets.ts` `rulesOf`). `ts-private` is to leave every preset (opt-in), pending the marker-or-lock oracle answers.
+
 ### Drop
 
 | Selector (form) | Hits A / B | J1 A | J2 A | J2 B | FP share | Evidence |

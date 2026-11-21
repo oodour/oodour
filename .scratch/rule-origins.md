@@ -356,6 +356,35 @@ case as its own subclass. Commit messages were unreadable in both companion clon
   keyword and no underscore convention; privacy comes from which messages outsiders send. Oracle inference: `#`
   methods cannot be overridden, so `#` on the bottle-number methods would break the polymorphism the book builds.
 
+### A marker the next programmer can bypass, or a lock (POODR oracle, 2026-11-21; Ch.4 and Ch.9 read, Ch.6 not)
+
+- Stated: visibility does two jobs, telling readers what is stable and limiting who may call it, and the book keeps
+  them apart. Restricting rests on a forecast (the author knows better now than later programmers will) that may be
+  wrong. A comment or naming convention is acceptable and at times better, since it informs without restricting and
+  leaves the call to those who know more later. Depending on another class's private method is debt; redesign first,
+  and if unavoidable, contain it in one place. Test private methods only as temporary scaffolding, kept apart.
+- Oracle inference: the book leans to the marker. A lock that cannot be opened is the strongest form of the
+  restriction it treats as optional, and it removes two fallbacks the book allows: containing an unavoidable
+  dependency on a private method, and a temporary test of messy internals. Hooks a subclass overrides cannot be `#`.
+- On Lars's counterpoint (other instances reach a `#` member): the book describes Ruby `protected`, which allows
+  that, without judging it; Ruby `private` does not. `#` behaves like Ruby `protected` there. Ch.9 adds that moving a
+  method behind a public interface does not make it more stable: how stable the code is matters, not the mechanism.
+
+### The same question, Sandi Metz talks (oracle, 2026-11-21; all 30 transcripts read)
+
+- Stated: privacy is a warning about instability, and a comment would serve as well; she does not use the keyword
+  herself and leaves the choice to a team convention (The Design of Tests). She called a gem's long-stable private
+  method, disliked an author who kept everything private, sided against Java's `final`, wished for graded levels of
+  instability the caller picks from, and told a static-typing advocate to rely on trust in programmers instead (Bike Shed LIVE!, 2016).
+  Reaching into another object's private parts is the Inappropriate Intimacy smell (Get a Whiff of This, 2016). Her
+  remarks on compilers and type checkers concern types and interfaces, never visibility.
+- Oracle inference: being able to get past the marker is the point under her values, so `#` being "less of an
+  illusion" counts against it; `#` is all-or-nothing where she wants graded markers; the counterweights (author
+  caution, the smell, hiding unstable internals) support discouraging access, not forbidding it. Life-critical code is
+  the one setting where a hard lock could fit. Same-class access to `#` is never discussed. For application code with
+  no outside callers she would likely care little, given a team convention.
+- Not in the store: run-time locks, JavaScript `#`, TypeScript `private`, compiler-enforced visibility.
+
 ## Reek candidates (Claude's summary of three oracle reports, 2026-11-21; Lars: "Reek candidates: OK")
 
 | Candidate | Fowler 2e | POODR | Metz talks | Cure |
