@@ -108,10 +108,6 @@ new RuleTester({
       code: "class Account { private balance = 0; audit() { return this['balance']; } }",
     },
     {
-      name: "a private member read through a dot on another instance of the same class, as in a value object's equality",
-      code: 'class Money { private cents = 0; equals(other: Money) { return this.cents === other.cents; } }',
-    },
-    {
       name: 'a public member read through brackets on another object',
       code: "class Account { balance = 0; } function audit(account: Account) { return account['balance']; }",
     },
@@ -136,6 +132,11 @@ new RuleTester({
       name: 'a private member read through brackets on a union of classes that each declare it',
       code: "class Cash { private balance = 0; } class Card { private balance = 0; } function audit(source: Cash | Card) { return source['balance']; }",
       errors: [{ messageId: 'found', data: { member: 'balance' } }],
+    },
+    {
+      name: 'a private member read through a dot on another instance of the same class',
+      code: 'class Money { private cents = 0; equals(other: Money) { return this.cents === other.cents; } }',
+      errors: [{ messageId: 'found', data: { member: 'cents' } }],
     },
     {
       name: 'a private member read through brackets on another instance of the same class',
