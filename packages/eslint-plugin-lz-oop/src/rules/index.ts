@@ -6,6 +6,7 @@ import { complexity } from './complexity.ts';
 import { flagArgument } from './flag-argument.ts';
 import { flogScore } from './flog-score.ts';
 import { halsteadVolume } from './halstead-volume.ts';
+import { manualDispatch } from './manual-dispatch.ts';
 import { maxClassLines } from './max-class-lines.ts';
 import { maxDepth } from './max-depth.ts';
 import { maxLinesPerFunction } from './max-lines-per-function.ts';
@@ -23,6 +24,7 @@ const ruleModules: readonly OopRuleModule[] = [
   flagArgument,
   flogScore,
   halsteadVolume,
+  manualDispatch,
   maxClassLines,
   maxDepth,
   maxLinesPerFunction,

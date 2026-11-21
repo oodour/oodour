@@ -135,6 +135,7 @@ test('in a test file, strict-type-checked leaves out exactly the rules that chec
     'class-methods-use-this',
     'flag-argument',
     'repeated-switches',
+    'manual-dispatch',
   ]
     .map((name) => `@layzee/lz-oop/${name}`)
     .sort();
@@ -269,6 +270,15 @@ test('every preset turns flag-argument and repeated-switches on at error, rules 
   );
 
   assert.deepEqual(settings, presetNames.map(() => [[2], [2]]));
+});
+
+test('only the strict presets turn manual-dispatch on, a rule of the strict tier', async () => {
+  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, '@layzee/lz-oop/manual-dispatch')));
+
+  assert.deepEqual(
+    settings,
+    presetNames.map((preset) => (preset.startsWith('strict') ? [2] : undefined)),
+  );
 });
 
 test('recommended leaves out a cue of the strict tier', async () => {

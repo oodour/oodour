@@ -1,13 +1,12 @@
 import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
+import { builtInConstructors as builtInNames } from '../built-in-constructors.ts';
 import { hashPrivateMember } from '../hash-private-member.ts';
 
 /**
  * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
  * best. `selector-rules.test.ts` must hold cases for every name here, or type-checking fails.
  */
-// Values and containers a class may create for itself: they hold its own state, not a collaborator it talks to.
-const builtInConstructors =
-  '/^(Error|TypeError|RangeError|Map|Set|WeakMap|WeakSet|Array|Date|URL|Promise|RegExp|AbortController)$/';
+const builtInConstructors = `/^(${[...builtInNames].join('|')})$/`;
 
 const selectorRows = [
   {
