@@ -110,7 +110,7 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
   const strictTypeChecked = preset('lz-oop/strict-type-checked', () => true, true);
 
   return {
-    recommended: preset('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry)),
+    recommended: preset('lz-oop/recommended', (entry) => recommendedTier(entry) && untyped(entry) && !entry.defaultsNeedTypes),
     'recommended-type-checked': recommendedTypeChecked,
     strict: preset('lz-oop/strict', untyped, true),
     'strict-type-checked': strictTypeChecked,
@@ -145,6 +145,7 @@ interface PresetEntry {
   readonly strictSetting?: ['error', ...unknown[]];
   readonly tier: Tier;
   readonly typed: boolean;
+  readonly defaultsNeedTypes: boolean;
   readonly skipsTestFiles: boolean;
   /** The companion config the rule goes in instead of the presets, when it needs an optional plugin. */
   readonly companion: Companion | undefined;
@@ -162,6 +163,7 @@ function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
       : { strictSetting: ['error', ...rule.meta.docs.strictOptions] satisfies PresetEntry['setting'] }),
     tier: rule.meta.docs.tier,
     typed: rule.meta.docs.requiresTypeChecking,
+    defaultsNeedTypes: rule.meta.docs.defaultsNeedTypes === true,
     skipsTestFiles: rule.meta.docs.skipsTestFiles === true,
     companion: rule.meta.docs.companion,
   }));
@@ -178,6 +180,7 @@ function cueEntries(): readonly PresetEntry[] {
             setting: ['error', ...(stance.options ?? [])],
             tier: stance.tier,
             typed: requiresTypeChecking(row),
+            defaultsNeedTypes: false,
             skipsTestFiles: false,
             companion: companions.find((name) => name === source),
           },

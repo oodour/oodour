@@ -286,7 +286,7 @@ test('only the strict presets turn manual-dispatch, data-clumps and feature-envy
   );
 });
 
-test('every preset turns private-access on in production and test files, the strict ones with underscore members', async () => {
+test('every preset but plain recommended turns private-access on in production and test files, the strict ones with underscore members', async () => {
   const settings = await Promise.all(
     presetNames.map(async (preset) =>
       Promise.all(
@@ -300,7 +300,8 @@ test('every preset turns private-access on in production and test files, the str
   assert.deepEqual(
     settings,
     presetNames.map((preset) => {
-      const setting = [2, { underscore: preset.startsWith('strict') }];
+      // Without type information the recommended setting reports nothing.
+      const setting = preset === 'recommended' ? undefined : [2, { underscore: preset.startsWith('strict') }];
 
       return [setting, setting];
     }),

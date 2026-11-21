@@ -15,6 +15,7 @@ export const privateAccess = createRule<Options, 'found'>({
       remedy: { kind: 'none', because: 'which public message serves the need is a design decision no tool can make' },
       tier: 'recommended',
       strictOptions: [{ underscore: true }],
+      defaultsNeedTypes: true,
     },
     messages: {
       found:

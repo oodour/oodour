@@ -29,6 +29,11 @@ export interface OopRuleDocs {
   readonly companion?: Companion;
   /** The options the strict presets set, where they hold the rule to a tighter limit than its defaults. */
   readonly strictOptions?: readonly unknown[];
+  /**
+   * The rule's default options report only with type information, while its strict options need none: plain
+   * `recommended` leaves it out, and plain `strict` keeps it.
+   */
+  readonly defaultsNeedTypes?: true;
 }
 
 /** The optional plugin packages, each with a companion config of its own. */
