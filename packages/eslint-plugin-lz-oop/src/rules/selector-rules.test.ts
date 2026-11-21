@@ -55,6 +55,9 @@ const selectorCases = {
       'class Money { static parse(text) { const money = new Money(Number(text)); money.check(); return money; } }',
       'class Tally { #counts = new Map(); }',
       "class Checkout { pay(gateway = new CardGateway('live')) { return gateway.charge(this.total); } }",
+      'class Panel { render() { this.container.addChild(new Spacer(1)); } }',
+      "class Profile { name = new FormControl(''); saved = new EventEmitter(); changes = new BehaviorSubject(null); }",
+      "class Upload { send(file) { const body = new FormData(); body.append('file', file); return this.http.post(body); } }",
     ],
     invalid: [
       {
@@ -74,6 +77,10 @@ const selectorCases = {
       },
       {
         code: 'class Report { print() { const printer = new Printer(); printer.send(this.lines); } }',
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: 'class App { start() { this.screen = new Screen(new Terminal()); } }',
         errors: [{ messageId: 'found' }],
       },
       {

@@ -5,7 +5,22 @@ import { builtInConstructors as builtInNames } from '../built-in-constructors.ts
  * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
  * best. `selector-rules.test.ts` must hold cases for every name here, or type-checking fails.
  */
-const builtInConstructors = `/^(${[...builtInNames].join('|')})$/`;
+// Framework classes for a component's own form state and event streams, which frameworks create in place.
+const frameworkStateNames = [
+  'FormControl',
+  'FormGroup',
+  'FormArray',
+  'FormRecord',
+  'UntypedFormControl',
+  'UntypedFormGroup',
+  'UntypedFormArray',
+  'EventEmitter',
+  'Subject',
+  'BehaviorSubject',
+  'ReplaySubject',
+  'AsyncSubject',
+];
+const ownStateConstructors = `/^(${[...builtInNames, ...frameworkStateNames].join('|')})$/`;
 
 const selectorRows = [
   {
@@ -34,8 +49,8 @@ const selectorRows = [
     concept: 'Dependency Inversion',
     tier: 'strict',
     selectors: [
-      `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${builtInConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression)`,
-      `PropertyDefinition > NewExpression.value:not([callee.name=${builtInConstructors}])`,
+      `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${ownStateConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression):not(CallExpression > NewExpression):not(NewExpression > NewExpression)`,
+      `PropertyDefinition > NewExpression.value:not([callee.name=${ownStateConstructors}])`,
     ],
     message:
       'Stop and look: Dependency Inversion, this class creates its own collaborator, so it depends on one concrete class instead of the role it needs. Look for the class it names. Cure: Dependency Injection, the collaborator as a constructor or method parameter; keep this class as a default only while existing callers still need it, and let a factory be the one place that creates it when it varies.',

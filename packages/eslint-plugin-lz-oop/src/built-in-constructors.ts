@@ -16,4 +16,11 @@ export const builtInConstructors: ReadonlySet<string> = new Set([
   'Promise',
   'RegExp',
   'AbortController',
+  'FormData',
+  'Headers',
+  'URLSearchParams',
+  'TextEncoder',
+  'TextDecoder',
+  'Blob',
+  'Uint8Array',
 ]);
