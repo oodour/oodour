@@ -9,6 +9,7 @@ const settle: FunctionSite = {
   start: { line: 1, column: 7 },
   bodyStart: { line: 1, column: 37 },
   end: { line: 4, column: 1 },
+  publicMethod: false,
 };
 
 test("a function's coverage is the share of its statements that ran, joined to it by where its body starts", () => {
@@ -34,6 +35,7 @@ test('a function with no statements of its own is covered when a test called it,
     start: { line: 2, column: 7 },
     bodyStart: { line: 2, column: 10 },
     end: { line: 2, column: 12 },
+    publicMethod: false,
   };
   const coverageWhenCalled = (calls: number) => ({
     fnMap: { '0': { name: 'reset', loc: { start: { line: 2, column: 10 }, end: { line: 2, column: 12 } } } },
@@ -55,6 +57,7 @@ test('a function the coverage does not list, such as a class field initializer, 
     start: { line: 2, column: 10 },
     bodyStart: { line: 2, column: 10 },
     end: { line: 2, column: 39 },
+    publicMethod: false,
   };
   const coverage = {
     fnMap: {},
@@ -74,6 +77,7 @@ test('a statement inside a nested function counts for the nested function only',
     start: { line: 2, column: 15 },
     bodyStart: { line: 2, column: 22 },
     end: { line: 2, column: 40 },
+    publicMethod: false,
   };
   const coverage = {
     fnMap: {

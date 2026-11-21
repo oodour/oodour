@@ -27,6 +27,7 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       start: { line: 1, column: 7 },
       bodyStart: { line: 1, column: 37 },
       end: { line: 4, column: 1 },
+      publicMethod: false,
     },
     {
       name: "Arrow function 'double'",
@@ -34,6 +35,7 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       start: { line: 5, column: 22 },
       bodyStart: { line: 5, column: 37 },
       end: { line: 5, column: 42 },
+      publicMethod: false,
     },
     {
       name: 'Class field initializer',
@@ -41,6 +43,7 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       start: { line: 7, column: 10 },
       bodyStart: { line: 7, column: 10 },
       end: { line: 7, column: 39 },
+      publicMethod: false,
     },
     {
       name: 'Class static block',
@@ -48,6 +51,7 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       start: { line: 8, column: 2 },
       bodyStart: { line: 8, column: 2 },
       end: { line: 8, column: 38 },
+      publicMethod: false,
     },
     {
       name: "Getter 'size'",
@@ -55,6 +59,36 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       start: { line: 9, column: 10 },
       bodyStart: { line: 9, column: 13 },
       end: { line: 9, column: 26 },
+      publicMethod: true,
     },
   ]);
+});
+
+test('a public method or accessor of a class is marked as one; private, protected and constructors are not', () => {
+  const source = [
+    'export class Shop {',
+    '  constructor() {}',
+    '  price() { return 1; }',
+    '  static open() { return 1; }',
+    '  get size() { return 1; }',
+    '  #audit() { return 1; }',
+    '  private hidden() { return 1; }',
+    '  protected kept() { return 1; }',
+    '}',
+    'export function label() { return 1; }',
+  ].join('\n');
+
+  assert.deepEqual(
+    functionsIn('shop.ts', source).map(({ name, publicMethod }) => [name, publicMethod]),
+    [
+      ['Constructor', false],
+      ["Method 'price'", true],
+      ["Static method 'open'", true],
+      ["Getter 'size'", true],
+      ['Private method #audit', false],
+      ["Method 'hidden'", false],
+      ["Method 'kept'", false],
+      ["Function 'label'", false],
+    ],
+  );
 });

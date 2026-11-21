@@ -19,6 +19,8 @@ export interface FunctionSite {
   readonly bodyStart: Position;
   /** Just past its last character. */
   readonly end: Position;
+  /** A method or accessor other objects may send: not `#private`, TypeScript `private` or `protected`, or a constructor. */
+  readonly publicMethod: boolean;
 }
 
 const functionTypes = new Set(['ArrowFunctionExpression', 'FunctionDeclaration', 'FunctionExpression']);
@@ -87,7 +89,23 @@ function siteOf(descriptor: Rule.ReportDescriptor): FunctionSite {
     start: positionOf(node.loc.start),
     bodyStart: positionOf((bodyOf(node).loc ?? node.loc).start),
     end: positionOf(node.loc.end),
+    publicMethod: isPublicMethod(node),
   };
+}
+
+function isPublicMethod(node: JSSyntaxElement): boolean {
+  const parent: unknown = 'parent' in node ? node.parent : undefined;
+
+  return (
+    isSyntaxElement(parent) &&
+    parent.type === 'MethodDefinition' &&
+    'kind' in parent &&
+    parent.kind !== 'constructor' &&
+    'key' in parent &&
+    isSyntaxElement(parent.key) &&
+    parent.key.type !== 'PrivateIdentifier' &&
+    !('accessibility' in parent && (parent.accessibility === 'private' || parent.accessibility === 'protected'))
+  );
 }
 
 /** The name of the variable the function is the value of, as in `const double = (n) => n * 2`. */

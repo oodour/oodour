@@ -9,6 +9,7 @@ const settle: FunctionSite = {
   start: { line: 1, column: 7 },
   bodyStart: { line: 1, column: 37 },
   end: { line: 4, column: 1 },
+  publicMethod: false,
 };
 
 test("a function's coverage is the share of its lines that ran, joined to it by the line it starts on", () => {
@@ -44,6 +45,7 @@ test('the lines of a nested function count for the nested function only', () => 
     start: { line: 2, column: 15 },
     bodyStart: { line: 2, column: 21 },
     end: { line: 4, column: 3 },
+    publicMethod: false,
   };
   const coverage = {
     functions: [
@@ -67,6 +69,7 @@ test('functions that start on one line join the entries of that line in source o
     start: { line: 1, column: 21 },
     bodyStart: { line: 1, column: 29 },
     end: { line: 1, column: 62 },
+    publicMethod: false,
   };
   const callback: FunctionSite = {
     name: 'Arrow function',
@@ -74,6 +77,7 @@ test('functions that start on one line join the entries of that line in source o
     start: { line: 1, column: 37 },
     bodyStart: { line: 1, column: 44 },
     end: { line: 1, column: 61 },
+    publicMethod: false,
   };
   const coverage = {
     functions: [
