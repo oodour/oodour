@@ -9,7 +9,6 @@
       "{projectRoot}/tools/**/*",
       "{projectRoot}/*.ts",
       "{projectRoot}/package.json",
-      "{projectRoot}/stryker.config.json",
       "sharedGlobals"
     ]
   },
@@ -31,7 +30,7 @@
       "outputs": []
     },
     "mutate": {
-      "command": "stryker run",
+      "command": "stryker run stryker.config.ts",
       "cache": false,
       "parallelism": false
     }

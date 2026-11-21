@@ -27,7 +27,7 @@ jobs:
       - run: npm ci
       # The sealed store is git-ignored, so CI has none; test:stryker skips the one test that reads it.
       - run: npm run test:stryker
-      - run: npx stryker run --concurrency 4
+      - run: npx stryker run stryker.config.ts --concurrency 4
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
