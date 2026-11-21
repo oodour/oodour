@@ -60,6 +60,9 @@ One package with three entry points, so the two reporters share one core and one
      nothing on branch coverage; Ch.1 treats design metrics as proxies, which supports columns over gates.
    - "Called" proves less than "tested": a role test can check that a method exists without calling it, and a mock
      keeps the real code from running. The README says so.
+3. Shape of the two columns: separate stop-and-look lines that never fail the run (only CRAP lines set the exit code),
+   each signal switchable, all on by default. Lars, 2026-11-21, 18:16 local: "What the \"two extra columns\" look like:
+   OK", on Claude's option (B) over (A), extra fields on the CRAP lines.
 
 ## Steps
 
