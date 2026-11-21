@@ -1,0 +1,12 @@
+{
+  "name": "@layzee/lz-oop-test-metrics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vitest and node:test reporters that score each function by CRAP, from the coverage of the test run.",
+  "homepage": "https://github.com/LayZeeDK/lz-oop#readme-ov-file",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  }
+}
