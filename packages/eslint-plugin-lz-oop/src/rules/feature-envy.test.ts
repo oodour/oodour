@@ -77,6 +77,14 @@ testRule(featureEnvy, {
       `,
     },
     {
+      name: 'a built-in collection the method takes from a caller or else creates for itself',
+      code: 'class Loader { load(paths, known) { const seen = known ?? new Set(); seen.add(this.root); return seen.has(paths) || seen.size; } }',
+    },
+    {
+      name: 'a constructor parameter property, which is a field of its own object',
+      code: 'class Cart { constructor(private readonly order: Order) { this.total = order.base + order.tax - order.discount; } }',
+    },
+    {
       name: 'two callback parameters that share a name, each used once',
       code: 'class Grid { columns() { this.log(); return [(x) => x.id, (x) => x.name]; } }',
     },

@@ -128,22 +128,33 @@ export const featureEnvy = createRule<[], 'found'>({
 
 /** Whether the variable holds a built-in collection or a literal the method creates for its own work. */
 function isTemporary(variable: TSESLint.Scope.Variable): boolean {
-  return initializersOf(variable).some(
-    (init) =>
-      init.type === AST_NODE_TYPES.ArrayExpression ||
-      init.type === AST_NODE_TYPES.ObjectExpression ||
-      (init.type === AST_NODE_TYPES.NewExpression &&
-        init.callee.type === AST_NODE_TYPES.Identifier &&
-        builtInConstructors.has(init.callee.name)),
+  return initializersOf(variable).some(createsScratch);
+}
+
+/** Whether the value is a literal or built-in collection made here, alone or as the right side of `??`, `||` or `&&`. */
+function createsScratch(init: TSESTree.Expression): boolean {
+  return (
+    init.type === AST_NODE_TYPES.ArrayExpression ||
+    init.type === AST_NODE_TYPES.ObjectExpression ||
+    (init.type === AST_NODE_TYPES.NewExpression &&
+      init.callee.type === AST_NODE_TYPES.Identifier &&
+      builtInConstructors.has(init.callee.name)) ||
+    (init.type === AST_NODE_TYPES.LogicalExpression && createsScratch(withoutTypeAssertions(init.right)))
   );
 }
 
-/** Whether the variable holds its own object or one of its fields, as in `const cache = this.cache` or `{ a } = this`. */
+/**
+ * Whether the variable holds its own object or one of its fields, as in `const cache = this.cache` or `{ a } = this`,
+ * or is a constructor parameter property, which is a field.
+ */
 function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
-  return initializersOf(variable).some(
-    (init) =>
-      init.type === AST_NODE_TYPES.ThisExpression ||
-      (init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression),
+  return (
+    variable.defs.some(({ name }) => name.parent.type === AST_NODE_TYPES.TSParameterProperty) ||
+    initializersOf(variable).some(
+      (init) =>
+        init.type === AST_NODE_TYPES.ThisExpression ||
+        (init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression),
+    )
   );
 }
 
