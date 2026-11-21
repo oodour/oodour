@@ -1,6 +1,7 @@
 import { AST_NODE_TYPES, ASTUtils, type TSESTree } from '@typescript-eslint/utils';
 import ts from 'typescript';
 import { createRule } from '../create-rule.ts';
+import { initializersOf } from '../initializers-of.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 type Options = [{ readonly underscore?: boolean }];
@@ -82,13 +83,7 @@ export const privateAccess = createRule<Options, 'found'>({
         bare.type === AST_NODE_TYPES.ThisExpression ||
         bare.type === AST_NODE_TYPES.Super ||
         // Stryker disable next-line MethodExpression: a local that holds this has one definition, so some and every agree
-        (variable?.defs.some(
-          ({ node }) =>
-            node.type === AST_NODE_TYPES.VariableDeclarator &&
-            node.init !== null &&
-            withoutTypeAssertions(node.init).type === AST_NODE_TYPES.ThisExpression,
-        ) === true &&
-          variable.references.every((reference) => reference.init === true || !reference.isWrite()))
+        (variable ? initializersOf(variable).some((init) => init.type === AST_NODE_TYPES.ThisExpression) : false)
       );
     };
 

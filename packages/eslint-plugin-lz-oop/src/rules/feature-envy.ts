@@ -2,6 +2,7 @@ import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescr
 import type ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
+import { initializersOf } from '../initializers-of.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 /**
@@ -158,19 +159,5 @@ function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
         init.type === AST_NODE_TYPES.ThisExpression ||
         (init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression),
     )
-  );
-}
-
-/**
- * The values the variable's declarators give it, without the type assertions that change only their static type, or
- * none when a later assignment replaces them.
- */
-function initializersOf(variable: TSESLint.Scope.Variable): TSESTree.Expression[] {
-  if (variable.references.some((reference) => reference.isWrite() && reference.init !== true)) {
-    return [];
-  }
-
-  return variable.defs.flatMap(({ node }) =>
-    node.type === AST_NODE_TYPES.VariableDeclarator && node.init ? [withoutTypeAssertions(node.init)] : [],
   );
 }
