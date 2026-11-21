@@ -8,7 +8,12 @@ import { Ajv2020 } from 'ajv/dist/2020.js';
 import { isRecord, presetValues, readmeValues } from './readme-values.ts';
 
 const fallow = 'npx --yes fallow@3.43.2';
-const fallowEnv = { ...process.env, FALLOW_TELEMETRY_DISABLED: '1', DO_NOT_TRACK: '1' };
+// Fallow settings from the caller's environment would change results that the Nx cache hash cannot see.
+const fallowEnv = {
+  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('FALLOW_'))),
+  FALLOW_TELEMETRY_DISABLED: '1',
+  DO_NOT_TRACK: '1',
+};
 const presetUrl = new URL('../fallowrc.json', import.meta.url);
 const strictPresetUrl = new URL('../strict.json', import.meta.url);
 

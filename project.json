@@ -14,10 +14,40 @@
   },
   "targets": {
     "typecheck": {
-      "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard && tsc -p .claude/mods/oracle-guard/.node-test"
+      "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard && tsc -p .claude/mods/oracle-guard/.node-test",
+      "inputs": [
+        "default",
+        {
+          "externalDependencies": [
+            "typescript",
+            "@types/node",
+            "@nx/devkit",
+            "@stryker-mutator/core",
+            "@stryker-mutator/api",
+            "typescript-eslint"
+          ]
+        },
+        { "runtime": "claude --version" }
+      ]
     },
     "lint": {
-      "command": "eslint . --ignore-pattern \"packages/\""
+      "command": "eslint . --ignore-pattern \"packages/\"",
+      "inputs": [
+        "default",
+        "{workspaceRoot}/eslint.config.ts",
+        {
+          "externalDependencies": [
+            "eslint",
+            "typescript-eslint",
+            "typescript",
+            "jiti",
+            "@nx/devkit",
+            "@stryker-mutator/core",
+            "@stryker-mutator/api"
+          ]
+        },
+        { "runtime": "claude --version" }
+      ]
     },
     "test": {
       "command": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\" \".claude/mods/oracle-guard/.node-test/*.test.ts\"",

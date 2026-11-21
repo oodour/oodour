@@ -13,6 +13,7 @@
             "typescript",
             "@types/node",
             "eslint",
+            "typescript-eslint",
             "@typescript-eslint/utils",
             "@typescript-eslint/rule-tester",
             "@typescript-eslint/eslint-plugin",
@@ -25,7 +26,27 @@
       ]
     },
     "lint": {
-      "command": "eslint packages/eslint-plugin-lz-oop"
+      "command": "eslint packages/eslint-plugin-lz-oop",
+      "inputs": [
+        "default",
+        "{workspaceRoot}/eslint.config.ts",
+        {
+          "externalDependencies": [
+            "eslint",
+            "typescript-eslint",
+            "typescript",
+            "jiti",
+            "@types/node",
+            "@typescript-eslint/utils",
+            "@typescript-eslint/rule-tester",
+            "@typescript-eslint/eslint-plugin",
+            "@eslint-community/eslint-plugin-eslint-comments",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-sonarjs",
+            "eslint-plugin-functional"
+          ]
+        }
+      ]
     },
     "test": {
       "command": "node --test \"packages/eslint-plugin-lz-oop/src/**/*.test.ts\"",
