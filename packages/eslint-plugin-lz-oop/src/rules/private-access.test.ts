@@ -108,6 +108,10 @@ new RuleTester({
       code: "class Account { private balance = 0; audit() { return this['balance']; } }",
     },
     {
+      name: 'a #private field read on another instance beside a private member of the same name',
+      code: 'class Money { private cents = 0; #cents = 0; equals(other: Money) { return other.#cents; } }',
+    },
+    {
       name: 'a public member read through brackets on another object',
       code: "class Account { balance = 0; } function audit(account: Account) { return account['balance']; }",
     },

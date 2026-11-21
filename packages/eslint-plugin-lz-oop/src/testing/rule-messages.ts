@@ -30,7 +30,7 @@ export function presetMessages(
 }
 
 function messagesOf(name: string, code: string, config: Config, filename?: string): readonly string[] {
-  return new Linter({ configType: 'flat' })
+  return new Linter()
     .verify(code, config, filename)
     .filter((message) => message.ruleId === ruleId(name))
     .map(({ message }) => message);
