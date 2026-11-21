@@ -29,7 +29,7 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       end: { line: 4, column: 1 },
     },
     {
-      name: 'Arrow function',
+      name: "Arrow function 'double'",
       complexity: 1,
       start: { line: 5, column: 22 },
       bodyStart: { line: 5, column: 37 },

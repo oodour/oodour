@@ -79,13 +79,28 @@ function siteOf(descriptor: Rule.ReportDescriptor): FunctionSite {
     throw new Error("ESLint's complexity rule reported without a located function node, a name or a count.");
   }
 
+  const variable = name.includes("'") ? undefined : variableHolding(node);
+
   return {
-    name,
+    name: variable === undefined ? name : `${name} '${variable}'`,
     complexity,
     start: positionOf(node.loc.start),
     bodyStart: positionOf((bodyOf(node).loc ?? node.loc).start),
     end: positionOf(node.loc.end),
   };
+}
+
+/** The name of the variable the function is the value of, as in `const double = (n) => n * 2`. */
+function variableHolding(node: JSSyntaxElement): string | undefined {
+  const parent: unknown = 'parent' in node ? node.parent : undefined;
+
+  if (!isSyntaxElement(parent) || parent.type !== 'VariableDeclarator' || !('id' in parent)) {
+    return undefined;
+  }
+
+  const { id } = parent;
+
+  return isSyntaxElement(id) && 'name' in id && typeof id.name === 'string' ? id.name : undefined;
 }
 
 /** A function's body, or the node itself for a class field initializer or static block, which is its own body. */
