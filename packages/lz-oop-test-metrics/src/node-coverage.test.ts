@@ -26,3 +26,26 @@ test("a function's coverage is the share of its lines that ran, joined to it by 
     { file: 'src/order.ts', line: 1, name: "Function 'settle'", complexity: 2, coverage: 0.75 },
   ]);
 });
+
+test('the lines of a nested function count for the nested function only', () => {
+  const outer: FunctionSite = { ...settle, end: { line: 6, column: 1 } };
+  const inner: FunctionSite = {
+    name: 'Arrow function',
+    complexity: 1,
+    start: { line: 2, column: 15 },
+    bodyStart: { line: 2, column: 21 },
+    end: { line: 4, column: 3 },
+  };
+  const coverage = {
+    functions: [
+      { name: 'settle', line: 1, count: 1 },
+      { name: 'pick', line: 2, count: 0 },
+    ],
+    lines: [1, 0, 0, 0, 1, 1].map((count, index) => ({ line: index + 1, count })),
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [outer, inner], coverage).map(({ coverage: share }) => share),
+    [1, 0],
+  );
+});

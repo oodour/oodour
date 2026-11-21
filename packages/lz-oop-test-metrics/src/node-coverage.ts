@@ -22,13 +22,27 @@ export function measuredFromNodeCoverage(
   sites: readonly FunctionSite[],
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
-  return sites.flatMap(({ name, complexity, start, end }) => {
+  return sites.flatMap((site) => {
+    const { name, complexity, start } = site;
+
     if (!coverage.functions.some(({ line }) => line === start.line)) {
       return [];
     }
 
-    const own = coverage.lines.filter(({ line }) => line >= start.line && line <= end.line);
+    const nested = sites.filter((other) => other !== site && holdsLines(site, other));
+    const own = coverage.lines.filter(
+      ({ line }) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner)),
+    );
 
     return [{ file, line: start.line, name, complexity, coverage: own.filter(({ count }) => count > 0).length / own.length }];
   });
+}
+
+/** Whether the function's lines take in every line of the other one, other than itself. */
+function holdsLines(outer: FunctionSite, inner: FunctionSite): boolean {
+  return isOnLines(inner.start.line, outer) && isOnLines(inner.end.line, outer) && inner.start.line > outer.start.line;
+}
+
+function isOnLines(line: number, { start, end }: FunctionSite): boolean {
+  return line >= start.line && line <= end.line;
 }
