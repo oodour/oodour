@@ -398,3 +398,13 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - Lars, 2026-11-21, about 01:45 local: "Usage limit has been reset but you are back on the Pro plan so use a 2-agent
   cap and coordinate a token spend (tool use, subagent, eval, headless session) pause with other sessions when you need
   a heavy spend like an eval round."
+- Lars, 2026-11-21, about 02:25 local: "Usage limit reset on a Team plan with Fable credits, you don't have to
+  coordinate pausing to reduce token spend with other sessions, and your agent cap is raised to 4."
+- Lars, 2026-11-21, on Claude's four items after the three privacy oracles: "The `private` or `#` default in the
+  skills, the opt-in ts-private rule: OK." (skills follow the repository's convention; where it has none, TypeScript
+  `private`, `protected` for hooks a subclass overrides, a leading underscore in JavaScript, `#` only by team choice;
+  ts-private an opt-in convention rule without a smell concept) "Rule name: OK" (new-in-constructor becomes
+  new-collaborator) "manual-dispatch's concept name: OK" (Manual Dispatch). Open: "Should `ts-private` be in the lz-oop
+  ESLint plugin and which value should be the default in the recommended and strict presets? Could we make an improved
+  version of the `ts-private` rule that better detects Metz/oracle conformance or is a wrapper rule with an lz-oop
+  message enough?"
