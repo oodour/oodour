@@ -49,9 +49,9 @@ export const featureEnvy = createRule<[], 'found'>({
           method.own += 1;
         }
       },
-      MemberExpression({ object }) {
+      MemberExpression(node) {
         const method = methods.at(-1);
-
+        const object = withoutTypeAssertions(node.object);
         const variable =
           method && object.type === AST_NODE_TYPES.Identifier ? localVariable(method.node, object) : undefined;
 
@@ -96,10 +96,12 @@ function isTemporary(variable: TSESLint.Scope.Variable): boolean {
   );
 }
 
-/** Whether the variable is a local copy of one of its own object's fields, as in `const cache = this.cache`. */
+/** Whether the variable holds its own object or one of its fields, as in `const cache = this.cache` or `{ a } = this`. */
 function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
   return initializersOf(variable).some(
-    (init) => init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression,
+    (init) =>
+      init.type === AST_NODE_TYPES.ThisExpression ||
+      (init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression),
   );
 }
 

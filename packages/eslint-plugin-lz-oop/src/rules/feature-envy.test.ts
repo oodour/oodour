@@ -51,6 +51,18 @@ testRule(featureEnvy, {
       code: 'class Grid { columns() { this.log(); return [(x) => x.id, (x) => x.name]; } }',
     },
     {
+      name: 'locals that hold its own object or destructure its fields',
+      code: `
+        class Cart {
+          total() {
+            const { items } = this;
+            const self = this;
+            return items.a + items.b + items.c + items.d + self.e + self.f + self.g + self.h;
+          }
+        }
+      `,
+    },
+    {
       name: 'a scratch collection behind a type assertion',
       code: 'class Report { rows() { const out = [] as string[]; out.push(this.title); out.push(out.join()); return out.length + out.at(0); } }',
     },
@@ -87,6 +99,11 @@ testRule(featureEnvy, {
           }
         }
       `,
+      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a parameter used through non-null and type assertions',
+      code: 'class Cart { price(item: Item | undefined) { return item!.base + (item as Item).tax - item!.discount + this.fee; } }',
       errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
     },
     {
