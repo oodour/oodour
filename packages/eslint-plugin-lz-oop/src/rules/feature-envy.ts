@@ -86,13 +86,13 @@ export const featureEnvy = createRule<[], 'found'>({
         const variable =
           method && object.type === AST_NODE_TYPES.Identifier ? localVariable(method.node, object) : undefined;
 
-        if (!method || !variable || isTemporary(variable) || cannotTakeAMove(variable)) {
+        if (!method || !variable || isTemporary(variable)) {
           return;
         }
 
         if (holdsOwnField(variable)) {
           method.own += 1;
-        } else {
+        } else if (!cannotTakeAMove(variable)) {
           method.uses.set(variable, (method.uses.get(variable) ?? 0) + 1);
         }
       },

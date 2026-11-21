@@ -261,6 +261,10 @@ new RuleTester({
       name: 'a method that works through a string parameter that may be undefined',
       code: 'class Label { prefix = ""; render(text?: string) { return this.prefix + text?.trim() + text?.at(0) + text?.length; } }',
     },
+    {
+      name: 'a method whose own string field, read through a local, counts as its own object as it does without types',
+      code: 'class Order { base = 0; tax = 0; discount = 0; extra = 0; } class Cart { label = ""; price(order: Order) { const label = this.label; return label.trim() + label.at(0) + label.length + label.concat("") + order.base + order.tax + order.discount + order.extra; } }',
+    },
   ],
   invalid: [
     {
