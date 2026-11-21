@@ -85,8 +85,9 @@ Run Fallow twice, for two jobs:
   `NODE_V8_COVERAGE=coverage/v8 node --test` (then pass `coverage/v8`) or your test runner's coverage option (pass its
   `coverage-final.json`). A function that no test in that coverage ran still gets the estimated CRAP score, so collect
   the coverage from the whole suite.
-- **The report**, when you look for what to refactor first: `fallow health --hotspots --since 1y --report-only`. It
-  lists files that are both complex and often changed over the year `lz-audit` counts, and never fails the run.
+- **The hot-spot list**, when you look for what to refactor first:
+  `fallow health --hotspots --since 1y --report-only`. It lists files that are both complex and often changed over the
+  year `lz-audit` counts, and never fails the run.
 
 
 ## The recommended preset
@@ -112,8 +113,8 @@ table and `fallowrc.json` hold the same keys and values.
 
 ## The strict preset
 
-`strict.json` extends the recommended preset and adds the file-length limit. It sets these keys, which the test suite checks
-against `strict.json` the same way:
+`strict.json` extends the recommended preset and adds the file-length limit. It sets these keys, which the test suite
+checks against `strict.json` the same way:
 
 <!-- strict-preset-values:start -->
 
@@ -151,8 +152,8 @@ Fallow's `extends` merges objects key by key but replaces arrays. If your own co
 
 Each tool works alone, and both can run fully enabled. They share the cyclomatic and cognitive limits, but they count
 differently, so a function near a limit can fail one and pass the other: ESLint counts cyclomatic complexity a little
-higher (it also counts default values and every `?.`), and Fallow counts cognitive complexity higher (it also counts runs
-of `||` and `??`). The `health.maxCyclomatic` and `health.maxCognitive` rows above give the measured overlap. In ESLint,
+higher (it also counts default values and every `?.`), and Fallow counts cognitive complexity higher (it also counts
+runs of `||` and `??`). The `health.maxCyclomatic` and `health.maxCognitive` rows above give the measured overlap. In ESLint,
 cognitive complexity comes only from the plugin's `sonarjs` companion config.
 
 With both enabled, a function over a limit is reported twice, and an exception needs two entries: an `eslint-disable`
@@ -160,11 +161,11 @@ comment with its reason, and a `fallow-ignore` comment or a `health.thresholdOve
 once, turn one tool's complexity limits off:
 
 - **Keep ESLint's.** In your Fallow config, set `"complexity-cyclomatic": "off"` and `"complexity-cognitive": "off"`
-  under `rules`. ESLint reports while code is written, and its messages name the smell and the cure. Fallow keeps the
-  CRAP score, the strict preset's file-length limit, hot spots and change coupling. Fallow's template complexity goes too, since its
-  `<template>` reports (Angular components, Vue, Svelte, Astro) come under the same two rules; in Angular,
-  angular-eslint's `@angular-eslint/template/cyclomatic-complexity` and `@angular-eslint/template/conditional-complexity`
-  rules measure templates instead.
+  under `rules`. ESLint reports while code is written, and its messages name the concept and the cure. Fallow keeps the
+  CRAP score, the strict preset's file-length limit, hot spots and change coupling. Fallow's template complexity goes
+  too, since its `<template>` reports (Angular components, Vue, Svelte, Astro) come under the same two rules; in
+  Angular, angular-eslint's `@angular-eslint/template/cyclomatic-complexity` and
+  `@angular-eslint/template/conditional-complexity` rules measure templates instead.
 - **Keep Fallow's.** In your ESLint config, set `@layzee/lz-oop/complexity` and `@layzee/lz-oop/cognitive-complexity`
   to `"off"`. Fallow then also covers templates and counts cognitive complexity without sonarjs, but it reports only
   when it runs, and its messages cannot be changed.
@@ -191,7 +192,7 @@ once, turn one tool's complexity limits off:
 
 ## What the presets do not change
 
-- `fallow health` exits 1 when it reports anything. To read the reports without a failing exit code, run it with
+- `fallow health` exits 1 on any report at `error`. To read the reports without a failing exit code, run it with
   `--report-only`, or set the `complexity-*` rules to `"warn"` in your own config. The presets keep them at `error`.
 - Fallow counts commits per path and does not follow renames, so a file renamed in the window shows less churn than
   `git log --follow` gives. On lz-gardener the three most-changed files showed 68, 66 and 40 commits against 112, 77
@@ -204,5 +205,5 @@ once, turn one tool's complexity limits off:
 The complexity limits match `eslint-plugin-lz-oop`'s, so both tools hold a function to the same numbers, and there is
 no measured second set of complexity limits to back a lenient preset. The presets differ in one check instead: the
 file-length limit, which is strict only because the limit `lz-oop` takes from its sources is per class, not per file.
-The recommended preset leaves file length to the class limit in ESLint; the strict preset adds the 250-line backstop, which
-holds in four of the five repositories measured.
+The recommended preset leaves file length to the class limit in ESLint; the strict preset adds the 250-line backstop,
+which holds in four of the five repositories measured.

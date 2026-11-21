@@ -5,8 +5,9 @@ presets turn on has an origin in the sealed sources, and the plugin does not inv
 would prefer that we don't invent concepts. lz-oop is based on oracle. Every concept, rule, or Fallow check it includes
 should have an origin in oracle (Sandi Metz, Katrina Owen, and other sources they reference)."
 
-Code metrics are the exception a reader would not expect: Halstead volume, cognitive complexity and the CRAP score stay
-in the presets although no source names them, because the sources use metrics to inform design decisions.
+Code metrics count as traced although no source names Halstead volume, cognitive complexity or the CRAP score: Lars
+reads the sources as using metrics to inform design decisions, and holds that autonomous agents need them more (his
+words below).
 
 ## Considered Options
 
@@ -21,3 +22,6 @@ in the presets although no source names them, because the sources use metrics to
 - A rule's concept is a smell, principle or practice the sources name. A name the plugin made up for a rule's concept
   gives way to the nearest one the sources use: the ruling above answered Claude's proposal to keep two such names,
   Hidden Dependency and Repeated Absence Check, as the plugin's own.
+- Lars approved one name the plugin chose after this ruling, for the manual-dispatch rule's concept, Manual Dispatch.
+  Lars, 2026-11-21: "manual-dispatch's concept name: OK". Whether a source uses that name has not been checked; a
+  rename to a name the sources use reopens that approval with Lars.

@@ -69,7 +69,7 @@ _Avoid_: cure (the cure is the refactoring; the remedy is how the rule helps app
 
 **Wrapped rule**:
 A rule of this plugin that runs an existing ESLint, typescript-eslint or third-party rule with lz-oop's options and a
-message of its own that names the smell and its cure. The rule it wraps is a duplicate.
+message of its own that names the concept and its cure. The rule it wraps is a duplicate.
 _Avoid_: borrowed rule, proxy rule
 
 **Concept**:
@@ -94,12 +94,12 @@ and tighter limits. A strict preset holds both tiers; a recommended preset holds
 
 **Preset**:
 A ready-made configuration a consumer turns on whole, named for its tier: recommended or strict. Each ESLint preset also
-comes type-checked; Fallow's strict preset extends its recommended one.
+has a type-checked variant.
 _Avoid_: profile, ruleset
 
 **Type-checked**:
 Said of a preset that gives its rules the type information of the TypeScript program, and of a rule that needs it. A
-rule that needs type information runs only in the type-checked presets; the other presets are plain.
+preset without type information is plain.
 
 **Companion config**:
 A configuration that turns on the rules that wrap or cue an optional third-party plugin, for a consumer who has
@@ -122,7 +122,7 @@ The agent that answers a question from one entry in its own words. The **oracle 
 entry; the **curator** is the only agent that adds to or changes the store.
 
 **Firewall**:
-The rules and checks that keep the store's wording out of every session's context and everything it writes.
+The rules, hooks and tools that keep the store's wording out of every session's context and everything it writes.
 
 **Overlap**:
 A run of words a text shares with the store, long enough that chance does not explain it.
