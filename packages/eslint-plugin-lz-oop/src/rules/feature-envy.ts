@@ -52,11 +52,16 @@ export const featureEnvy = createRule<[], 'found'>({
       MemberExpression({ object }) {
         const method = methods.at(-1);
 
-        const variable = method && object.type === AST_NODE_TYPES.Identifier && localVariable(method.node, object);
+        const variable =
+          method && object.type === AST_NODE_TYPES.Identifier ? localVariable(method.node, object) : undefined;
 
-        if (method && variable && holdsOwnField(variable)) {
+        if (!method || !variable || isTemporary(variable)) {
+          return;
+        }
+
+        if (holdsOwnField(variable)) {
           method.own += 1;
-        } else if (method && variable && !isTemporary(variable)) {
+        } else {
           method.uses.set(variable, (method.uses.get(variable) ?? 0) + 1);
         }
       },
@@ -81,41 +86,35 @@ export const featureEnvy = createRule<[], 'found'>({
 
 /** Whether the variable holds a built-in collection or a literal the method creates for its own work. */
 function isTemporary(variable: TSESLint.Scope.Variable): boolean {
-  return variable.defs.some(({ node }) => {
-    if (node.type !== AST_NODE_TYPES.VariableDeclarator || !node.init) {
-      return false;
-    }
-
-    const { init } = node;
-
-    return (
+  return initializersOf(variable).some(
+    (init) =>
       init.type === AST_NODE_TYPES.ArrayExpression ||
       init.type === AST_NODE_TYPES.ObjectExpression ||
       (init.type === AST_NODE_TYPES.NewExpression &&
         init.callee.type === AST_NODE_TYPES.Identifier &&
-        builtInConstructors.has(init.callee.name))
-    );
-  });
+        builtInConstructors.has(init.callee.name)),
+  );
 }
 
 /** Whether the variable is a local copy of one of its own object's fields, as in `const cache = this.cache`. */
 function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
-  return variable.defs.some(({ node }) => {
-    if (node.type !== AST_NODE_TYPES.VariableDeclarator || !node.init) {
-      return false;
-    }
-
-    const init = withoutTypeAssertions(node.init);
-
-    return init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression;
-  });
+  return initializersOf(variable).some(
+    (init) => init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression,
+  );
 }
 
-/** The expression under any `as`, `satisfies` or non-null assertion, which changes only its static type. */
+/** The values the variable's declarators give it, without the type assertions that change only their static type. */
+function initializersOf(variable: TSESLint.Scope.Variable): TSESTree.Expression[] {
+  return variable.defs.flatMap(({ node }) =>
+    node.type === AST_NODE_TYPES.VariableDeclarator && node.init ? [withoutTypeAssertions(node.init)] : [],
+  );
+}
+
 function withoutTypeAssertions(expression: TSESTree.Expression): TSESTree.Expression {
   return expression.type === AST_NODE_TYPES.TSAsExpression ||
     expression.type === AST_NODE_TYPES.TSSatisfiesExpression ||
-    expression.type === AST_NODE_TYPES.TSNonNullExpression
+    expression.type === AST_NODE_TYPES.TSNonNullExpression ||
+    expression.type === AST_NODE_TYPES.TSTypeAssertion
     ? withoutTypeAssertions(expression.expression)
     : expression;
 }

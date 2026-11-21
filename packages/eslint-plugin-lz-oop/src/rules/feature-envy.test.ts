@@ -51,6 +51,14 @@ testRule(featureEnvy, {
       code: 'class Grid { columns() { this.log(); return [(x) => x.id, (x) => x.name]; } }',
     },
     {
+      name: 'a scratch collection behind a type assertion',
+      code: 'class Report { rows() { const out = [] as string[]; out.push(this.title); out.push(out.join()); return out.length + out.at(0); } }',
+    },
+    {
+      name: 'a local that holds a field of its own object through an angle-bracket type assertion',
+      code: 'class Report { rows() { const cache = <Cache>this.cache; return cache.a + cache.b + cache.c; } }',
+    },
+    {
       name: 'the parameters of a callback the method passes on',
       code: `
         class List {
