@@ -1,9 +1,9 @@
 name: Mutation testing
 
+# Manual runs only while the repository is private, where CI minutes are paid; push and pull_request come back once it
+# is public.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
