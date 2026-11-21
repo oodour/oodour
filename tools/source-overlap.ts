@@ -23,8 +23,8 @@ export const draftMinWords = 8;
 // caller: below it, hit positions let a caller test candidate wording against the source.
 export const handBackMinWords = 6;
 
-// Names are allowed; expression is not. A run made only of a work's title, or of the
-// public-domain song the 99 Bottles exercise is built on, is not a finding.
+// Names are allowed; expression is not. A run made only of a work's title, of a refactoring's
+// name, or of the public-domain song the 99 Bottles exercise is built on, is not a finding.
 export const permittedPhrases: readonly string[] = [
   '99 Bottles of OOP',
   'JavaScript Edition',
@@ -46,6 +46,8 @@ export const permittedPhrases: readonly string[] = [
   'Rebecca Wirfs-Brock',
   'Alan McKean',
   'Kent Beck',
+  'Replace Nested Conditional with Guard Clauses',
+  'Replace State-Altering Conditionals with State',
   'bottles of beer on the wall',
   'take one down and pass it around',
   'take it down and pass it around',
