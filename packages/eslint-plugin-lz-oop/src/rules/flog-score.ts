@@ -23,7 +23,7 @@ const isNode = (value: unknown): value is TSESTree.Node =>
   typeof value === 'object' && value !== null && 'type' in value;
 
 function childrenOf(node: TSESTree.Node, keys: VisitorKeys): TSESTree.Node[] {
-  // Stryker disable next-line ArrayDeclaration: the parser's visitor keys name every node type, so the fallback never runs
+  // Stryker disable next-line ArrayDeclaration: a key no node has yields no children, so a seeded fallback walks nothing
   return (keys[node.type] ?? []).flatMap((key) => {
     const value: unknown = Reflect.get(node, key);
 
