@@ -79,6 +79,7 @@ export const abcSize = createRule<Options, 'found'>({
         stack.push({ a: 0, b: 0, c: 0 });
       },
       ':function:exit'(node: FunctionNode) {
+        // Stryker disable next-line LzJsNumericLiteral: every function's exit follows the entry that pushed its counts, so the fallback never runs
         const { a, b, c } = stack.pop() ?? { a: 0, b: 0, c: 0 };
         const size = Math.hypot(a, b, c);
 

@@ -43,3 +43,8 @@ test('halstead-volume counts JSX names and JSX text as operands', () => {
 test('halstead-volume rejects an option it does not know', () => {
   assert.throws(() => lint('', 'file.ts', { max: 1, limit: 1 }), /additional properties/);
 });
+
+test('halstead-volume accepts a limit of zero and rejects a negative one', () => {
+  assert.equal(lint('function f() {}', 'file.ts', { max: 0 }).length, 1);
+  assert.throws(() => lint('', 'file.ts', { max: -1 }), /should be >= 0/);
+});

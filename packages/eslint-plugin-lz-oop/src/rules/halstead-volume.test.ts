@@ -38,6 +38,16 @@ testRule(halsteadVolume, {
       ],
     },
     {
+      // Each function leaves out only the functions nested in it: g leaves out h, and f leaves out g with h inside it.
+      code: 'function f() { function g() { const h = () => 1; } }',
+      options: [{ max: 0 }],
+      errors: [
+        { messageId: 'found', data: { name: "function 'f'", volume: '8.0', max: 0, length: 4, vocabulary: 4 } },
+        { messageId: 'found', data: { name: "function 'g'", volume: '24.0', max: 0, length: 8, vocabulary: 8 } },
+        { messageId: 'found', data: { name: "arrow function 'h'", volume: '4.8', max: 0, length: 3, vocabulary: 3 } },
+      ],
+    },
+    {
       // Operators: function ( , { return + ; (7 distinct, 7 total). Operands: f a b a b (3 distinct, 5 total).
       code: 'function f(a, b) { return a + b; }',
       options: [{ max: 0 }],

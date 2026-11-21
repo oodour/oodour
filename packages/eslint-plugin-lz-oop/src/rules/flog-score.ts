@@ -20,9 +20,10 @@ interface Event {
 }
 
 const isNode = (value: unknown): value is TSESTree.Node =>
-  typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string';
+  typeof value === 'object' && value !== null && 'type' in value;
 
 function childrenOf(node: TSESTree.Node, keys: VisitorKeys): TSESTree.Node[] {
+  // Stryker disable next-line ArrayDeclaration: the parser's visitor keys name every node type, so the fallback never runs
   return (keys[node.type] ?? []).flatMap((key) => {
     const value: unknown = Reflect.get(node, key);
 
@@ -99,11 +100,12 @@ function isMagicNumber(node: TSESTree.Literal): boolean {
     return false;
   }
 
-  return !(parent.type === T.VariableDeclarator && parent.parent.kind === 'const' && parent.init === node);
+  // A literal right under a declarator is its initializer, since a declarator's name is never a literal.
+  return !(parent.type === T.VariableDeclarator && parent.parent.kind === 'const');
 }
 
-const arithmeticAssignment = /^(?:[-+*/%&|^]|\*\*|<<|>>>?)=$/;
-const logicalAssignment = /^(?:\|\||&&|\?\?)=$/;
+/** Compound assignments that branch; every other compound assignment is arithmetic or bitwise. */
+const logicalAssignment = new Set(['||=', '&&=', '??=']);
 
 function callEvent(node: TSESTree.CallExpression | TSESTree.NewExpression): Event {
   const { callee } = node;
@@ -146,7 +148,7 @@ function eventOf(node: TSESTree.Node): Event {
       return { c: isMagicNumber(node) ? 0.25 : 0 };
     }
     case T.AssignmentExpression: {
-      if (arithmeticAssignment.test(node.operator)) {
+      if (node.operator !== '=' && !logicalAssignment.has(node.operator)) {
         return {
           a: 1,
           c: 1,
@@ -157,7 +159,7 @@ function eventOf(node: TSESTree.Node): Event {
         };
       }
 
-      return { a: 1, b: logicalAssignment.test(node.operator) ? 1 : 0 };
+      return { a: 1, b: logicalAssignment.has(node.operator) ? 1 : 0 };
     }
     case T.BinaryExpression: {
       return {
@@ -193,7 +195,7 @@ function branchEvent(node: TSESTree.Node): Event {
       return branch([node.discriminant], node.cases);
     }
     case T.SwitchCase: {
-      return node.test === null ? { parts: node.consequent.map((child): Part => [child, 0]) } : branch([node.test], node.consequent);
+      return node.test === null ? {} : branch([node.test], node.consequent);
     }
     case T.WhileStatement:
     case T.DoWhileStatement: {

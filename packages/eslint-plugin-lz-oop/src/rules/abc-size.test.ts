@@ -1,5 +1,40 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import plugin from '../index.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { abcSize } from './abc-size.ts';
+
+const ruleId = `${plugin.meta.namespace}/abc-size`;
+
+function lint(code: string, options: Record<string, unknown>): readonly string[] {
+  const config = defineConfig(plugin.configs.recommended, { rules: { [ruleId]: ['error', options] } });
+
+  return new Linter({ configType: 'flat' })
+    .verify(code, config)
+    .filter((message) => message.ruleId === ruleId)
+    .map(({ message }) => message);
+}
+
+test('abc-size rejects an option it does not know', () => {
+  assert.throws(() => lint('', { max: 15, limit: 15 }), /additional properties/);
+});
+
+test('abc-size accepts a limit of zero and rejects a negative one', () => {
+  assert.equal(lint('function f() { g(); }', { max: 0 }).length, 1);
+  assert.throws(() => lint('', { max: -1 }), /should be >= 0/);
+});
+
+test('abc-size reports with a message that names the smell, the counts and the cure', () => {
+  assert.deepEqual(lint('function f() { g(); }', { max: 0 }), [
+    "Stop and look: Long Function, function 'f' has ABC size 1.0 (at most 0) from 0 assignments, 1 sends and 0 " +
+      'conditions, more than a reader holds at once. Look at the largest count: assignments are often temporaries, ' +
+      'sends are steps or collaborators, conditions are choices. Cure: Extract Function for each step, Replace Temp ' +
+      'with Query or Inline Temp, Decompose Conditional, or Replace Conditional with Polymorphism. No automatic ' +
+      'change: which pieces to split out, and their names, are for a person to choose.',
+  ]);
+});
 
 /** A case reported at limit 0, so its message shows the counts of the one function in `body`. */
 const scored = (body: string, [a, b, c]: readonly [number, number, number], size: string) => ({
