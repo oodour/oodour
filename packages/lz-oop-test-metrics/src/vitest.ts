@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
-import { posix, relative, sep } from 'node:path';
 import type { Reporter } from 'vitest/node';
 import { reportLine, reportsAtLimit } from './crap.ts';
 import { functionsIn } from './functions.ts';
 import { measuredFromIstanbul, parseCoverageMap } from './istanbul.ts';
+import { shownPath } from './shown-path.ts';
 
 export interface TestMetricsOptions {
   /** The CRAP score at which a function is reported; Fallow's default. */
@@ -32,9 +32,4 @@ export class TestMetricsReporter implements Reporter {
       process.exitCode = 1;
     }
   }
-}
-
-/** The path from the working directory, with `/` between its parts on every platform so a line reads the same. */
-function shownPath(path: string): string {
-  return relative(process.cwd(), path).split(sep).join(posix.sep);
 }

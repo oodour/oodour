@@ -25,8 +25,15 @@ export function measuredFromNodeCoverage(
   return sites.flatMap((site) => {
     const { name, complexity, start } = site;
 
-    if (!coverage.functions.some(({ line }) => line === start.line)) {
+    const entries = coverage.functions.filter(({ line }) => line === start.line);
+
+    if (entries.length === 0) {
       return [];
+    }
+
+    // The first line also holds whatever ran around the function, such as `export` when the module loaded.
+    if (entries.every(({ count }) => count === 0)) {
+      return [{ file, line: start.line, name, complexity, coverage: 0 }];
     }
 
     const nested = sites.filter((other) => other !== site && holdsLines(site, other));

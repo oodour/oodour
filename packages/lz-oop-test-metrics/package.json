@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./vitest": "./src/vitest.ts",
+    "./node-test": "./src/node-test.ts",
     "./package.json": "./package.json"
   },
   "peerDependencies": {

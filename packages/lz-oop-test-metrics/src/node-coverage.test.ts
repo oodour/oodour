@@ -27,6 +27,15 @@ test("a function's coverage is the share of its lines that ran, joined to it by 
   ]);
 });
 
+test('a function no test called is uncovered, though its first line ran when the module loaded', () => {
+  const coverage = {
+    functions: [{ name: 'settle', line: 1, count: 0 }],
+    lines: [1, 0, 0, 0].map((count, index) => ({ line: index + 1, count })),
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.coverage, 0);
+});
+
 test('the lines of a nested function count for the nested function only', () => {
   const outer: FunctionSite = { ...settle, end: { line: 6, column: 1 } };
   const inner: FunctionSite = {
