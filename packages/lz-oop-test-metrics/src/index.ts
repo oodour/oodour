@@ -1,1 +1,1 @@
-export { crapScore, reportsAtLimit, type CrapReport, type FunctionMeasure, type MeasuredFunction } from './crap.ts';
+export { crapScore, reportLine, reportsAtLimit, type CrapReport, type FunctionMeasure, type MeasuredFunction } from './crap.ts';
