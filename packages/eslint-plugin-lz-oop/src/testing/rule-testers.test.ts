@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRule, type Remedy } from '../create-rule.ts';
 import { join } from 'node:path';
-import { cureContractProblem, testConfiguredRule, testConfiguredRules, testerConfigFor, testRule } from './rule-testers.ts';
+import { cureContractProblem, testConfiguredRule, testConfiguredRules, testerConfigFor, testRule, testRuleWithTypes } from './rule-testers.ts';
 
 test('testConfiguredRules refuses cases that leave a configured cue out', () => {
   assert.throws(
@@ -152,6 +152,15 @@ test('testRule refuses cases that break the cure contract', () => {
   assert.throws(
     () => {
       testRule(ruleWith({ kind: 'fix' }), { valid: [], invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }] });
+    },
+    { message: 'some-rule declares remedy "fix", but no invalid case has an output.' },
+  );
+});
+
+test('testRuleWithTypes refuses cases that break the cure contract', () => {
+  assert.throws(
+    () => {
+      testRuleWithTypes(ruleWith({ kind: 'fix' }), { valid: [], invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }] });
     },
     { message: 'some-rule declares remedy "fix", but no invalid case has an output.' },
   );

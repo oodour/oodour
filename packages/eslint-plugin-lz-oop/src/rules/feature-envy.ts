@@ -90,6 +90,7 @@ export const featureEnvy = createRule<[], 'found'>({
           return;
         }
 
+        // The types only drop a variable that would be envied; an own field of any type still counts as own.
         if (holdsOwnField(variable)) {
           method.own += 1;
         } else if (!cannotTakeAMove(variable)) {

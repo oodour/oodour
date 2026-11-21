@@ -10,7 +10,7 @@ import { isRecord, presetValues, readmeValues } from './readme-values.ts';
 const fallow = 'npx --yes fallow@3.43.2';
 // Fallow settings from the caller's environment would change results that the Nx cache hash cannot see.
 const fallowEnv = {
-  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('FALLOW_'))),
+  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.toUpperCase().startsWith('FALLOW_'))),
   FALLOW_TELEMETRY_DISABLED: '1',
   DO_NOT_TRACK: '1',
 };

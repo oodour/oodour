@@ -24,6 +24,11 @@ ESLintRuleTester.it = RuleTester.it;
 ESLintRuleTester.itOnly = RuleTester.itOnly;
 
 const typedFixture = join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture');
+const typedTesterConfig: RuleTesterConfig = {
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
+  },
+};
 
 /** RuleTester cases for a configured existing rule. They carry no options: the catalog's are added to each. */
 export interface ConfiguredCases {
@@ -103,13 +108,7 @@ export function testRule<TMessageIds extends string, TOptions extends readonly u
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
 ): void {
-  const problem = cureContractProblem(rule, cases);
-
-  if (problem !== undefined) {
-    throw new Error(problem);
-  }
-
-  new RuleTester(testerConfigFor(rule)).run(rule.name, rule, cases);
+  runCases(rule, cases, testerConfigFor(rule), rule.name);
 }
 
 /**
@@ -120,20 +119,23 @@ export function testRuleWithTypes<TMessageIds extends string, TOptions extends r
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
 ): void {
+  runCases(rule, cases, typedTesterConfig, `${rule.name} with type information`);
+}
+
+function runCases<TMessageIds extends string, TOptions extends readonly unknown[]>(
+  rule: OopRuleModule<TMessageIds, TOptions>,
+  cases: RunTests<TMessageIds, TOptions>,
+  config: RuleTesterConfig,
+  suite: string,
+): void {
   const problem = cureContractProblem(rule, cases);
 
   if (problem !== undefined) {
     throw new Error(problem);
   }
 
-  new RuleTester(typedTesterConfig).run(`${rule.name} with type information`, rule, cases);
+  new RuleTester(config).run(suite, rule, cases);
 }
-
-const typedTesterConfig: RuleTesterConfig = {
-  languageOptions: {
-    parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
-  },
-};
 
 /** The tester configuration a rule's own `requiresTypeChecking` asks for. */
 export function testerConfigFor(rule: OopRuleModule): RuleTesterConfig {
