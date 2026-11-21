@@ -35,8 +35,8 @@ The skills, the references and the package READMEs say how things behave; the gl
 - Wrap at 120 characters.
 - After a change, search the shipped files and the instructions for the avoided words, as whole words, and reword any
   hit that means the defined term:
-  `rg -n -i -w -e '<word>|<word>' plugins packages/*/README.md packages/*/src AGENTS.md references`.
-  A hit that means something else stays: "not a defect" is not a finding, and Fallow's `threshold` key is Fallow's
+  `rg -n -i -w -e '<word>|<word>' plugins packages/*/README.md packages/*/package.json packages/*/src AGENTS.md references`.
+  `-w` matches whole words only, so give each form the word takes (`thresholds?`). A hit that means something else stays: "not a defect" is not a finding, and Fallow's `threshold` key is Fallow's
   name.
 
 ## The ADRs

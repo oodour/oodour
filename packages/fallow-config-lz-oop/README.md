@@ -1,6 +1,6 @@
 # @layzee/fallow-config-lz-oop
 
-Two [Fallow](https://github.com/fallow-rs/fallow) config presets for `lz-oop`. They set the few Fallow thresholds that
+Two [Fallow](https://github.com/fallow-rs/fallow) config presets for `lz-oop`. They set the few Fallow limits that
 make `fallow health` point at the places the `lz-audit` skill looks at first: complex functions inside often-changed
 files, files that change together without importing each other, and, in the strict preset, files too long to read.
 They fail the run (severity `error`, not `warn`) on a function over the complexity limits, and the strict preset also
