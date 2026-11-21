@@ -385,6 +385,23 @@ case as its own subclass. Commit messages were unreadable in both companion clon
   no outside callers she would likely care little, given a team convention.
 - Not in the store: run-time locks, JavaScript `#`, TypeScript `private`, compiler-enforced visibility.
 
+### The same question, *99 Bottles* JavaScript (oracle, 2026-11-21; all chapters read)
+
+- Stated: no privacy marker of any kind in the code (no `#`, no JSDoc tag, no comment; one underscore in a flawed
+  Ch.1 solution, uncommented). Privacy is a design matter: a role's public intentions versus the internals each player
+  hides, a factory that alone names the concrete classes, instance methods treated as private once a class-side entry
+  point fronts them (Ch.8, Ch.9). Methods one might call private are a sign of a class waiting to be extracted (Ch.5).
+  Ch.9 ranks ways to keep role players honest, from team agreement through stricter tests to a type-checked language,
+  and prefers signals in code over comments, which go stale. Ch.6: dynamic OO runs on trust in unwritten contracts.
+- Oracle inference, checked against the code: `#` would break the bottle-number family (subclasses override five
+  self-sent concepts, one of them sent only from inside the class), the Ch.6 recipe that copies a base method reading
+  the stored number into a subclass (a subclass cannot name the base's `#` field), the Ch.5 Extract Class copy, and
+  the Ch.7 class-side predicates and registry. `#` would not break leaf state no subclass reads. Note: the book's
+  `Class#method` notation means an instance method, not a JavaScript private name.
+- On Lars's counterpoint: the ranking and the dislike of comment markers give it some ground; trust in contracts,
+  design-based protection and the overridable hierarchy count against. One instance reading another's internals is
+  absent; the Law of Demeter would favour asking the other object.
+
 ## Reek candidates (Claude's summary of three oracle reports, 2026-11-21; Lars: "Reek candidates: OK")
 
 | Candidate | Fowler 2e | POODR | Metz talks | Cure |
