@@ -58,7 +58,7 @@ export function testConfiguredRule(id: string, cases: ConfiguredCases): void {
     throw new Error(`${id} is not a configured cue of an installed rule.`);
   }
 
-  // One typed setup for every borrowed rule: it parses TypeScript, and the rules that need no types ignore the program.
+  // One typed setup for every existing rule: it parses TypeScript, and the rules that need no types ignore the program.
   const tester = new ESLintRuleTester({
     languageOptions: { parser: tseslint.parser, parserOptions: { projectService: true, tsconfigRootDir: typedFixture } },
   });

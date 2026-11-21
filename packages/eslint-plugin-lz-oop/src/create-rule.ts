@@ -14,7 +14,7 @@ export type Remedy =
 export type Tier = 'recommended' | 'strict';
 
 export interface OopRuleDocs {
-  /** The smell the rule prompts a look at, which its stop-and-look message names first. */
+  /** The concept the rule prompts a look at, a smell, a principle or a practice, which its message names first. */
   readonly concept: string;
   /** Decides whether the rule lands in a `-type-checked` preset and which tester `testRule` runs it under. */
   readonly requiresTypeChecking: boolean;
