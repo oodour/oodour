@@ -259,9 +259,9 @@ fail quietly on a typo.
 ## Flag arguments
 
 A boolean or a mode string passed into shared code makes the caller choose a branch inside the callee, and each
-conditional it adds doubles the paths through the code. Do not add another. This is control coupling, an anti-pattern:
-the receiver ends up making a choice that belongs with the caller, which already knows enough to hand over the
-collaborator that does the work. Sometimes only the receiver holds what the choice needs.
+conditional it adds doubles the paths through the code. Do not add another. This is control coupling: the receiver ends
+up making a choice that belongs with the caller, which already knows enough to hand over the collaborator that does the
+work. Sometimes only the receiver holds what the choice needs.
 
 When a finding uses the name Flag Argument, keep to its narrower test: a caller passes a literal to pick which branch
 runs. A value computed at run time and passed along is not one, and an option stored on an object and tested in many of

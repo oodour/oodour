@@ -1,4 +1,4 @@
-# Code smells
+# Smells
 
 Use when you need a smell's name, how to spot it in JavaScript or TypeScript, its usual cure, or the leaf that holds
 that cure. judging-design.md step 2 sends you here.
@@ -6,9 +6,9 @@ that cure. judging-design.md step 2 sends you here.
 Contents: Bloaters; Object-oriented tools misused; Change preventers; Dispensables; Couplers; Outside the families.
 
 A smell has a precise meaning, but it only says where to look: it may point at a problem, and it proves none. Nothing
-obliges you to remove every smell, and code that never changes can keep its smells. There are no thresholds; the call is
-the developer's judgement. Use the catalogue this way: learn the names so the team can talk about them, pick one smell
-out of the tangle, and look up its cure instead of inventing one.
+obliges you to remove every smell, and code that never changes can keep its smells. No count decides it; the call is the
+developer's judgement. Use this list this way: learn the names so the team can talk about them, pick one smell out of
+the tangle, and look up its cure instead of inventing one.
 
 Where a smell is known by two names, both are given.
 
@@ -29,8 +29,8 @@ Where a smell is known by two names, both are given.
   [javascript-and-typescript.md](javascript-and-typescript.md); flag arguments:
   [variants-and-conditionals.md](variants-and-conditionals.md); changing the signature in green steps:
   [changing-in-steps.md](changing-in-steps.md).
-- **Size limits** (not a smell; a cue to look for one): Sandi Metz's rules: a class of at most 100 lines, a method of at
-  most 5, at most 4 parameters (packing more into one options object does not get round it), and a controller action
+- **Size limits** (not a smell; a prompt to look for one): Sandi Metz's rules: a class of at most 100 lines, a method of
+  at most 5, at most 4 parameters (packing more into one options object does not get round it), and a controller action
   that knows only one business object and one presenter and hands one object to its view. Any rule may be broken when
   you win over your pair. Lines a mixin brings into a class count toward the class's size. The numbers are arbitrary:
   reaching one is the cue to stop and ask whether to split, not a failure, and experienced developers should set their
