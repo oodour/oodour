@@ -8,7 +8,7 @@
       "command": "tsc -p packages/lz-oop-test-metrics/tsconfig.json",
       "inputs": [
         "default",
-        { "externalDependencies": ["typescript", "@types/node", "eslint", "@typescript-eslint/parser"] }
+        { "externalDependencies": ["typescript", "@types/node", "eslint", "@typescript-eslint/parser", "vitest"] }
       ]
     },
     "lint": {
@@ -16,7 +16,7 @@
       "inputs": [
         "default",
         "eslintConfig",
-        { "externalDependencies": ["@types/node", "eslint", "@typescript-eslint/parser"] }
+        { "externalDependencies": ["@types/node", "eslint", "@typescript-eslint/parser", "vitest"] }
       ]
     },
     "test": {
@@ -24,7 +24,9 @@
       "cache": true,
       "inputs": [
         "default",
-        { "externalDependencies": ["eslint", "@typescript-eslint/parser", "typescript"] },
+        {
+          "externalDependencies": ["eslint", "@typescript-eslint/parser", "typescript", "vitest", "@vitest/coverage-v8"]
+        },
         { "runtime": "node --version" }
       ],
       "outputs": []
