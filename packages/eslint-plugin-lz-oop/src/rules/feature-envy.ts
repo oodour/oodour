@@ -2,7 +2,7 @@ import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescr
 import type ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
-import { initializersOf } from '../initializers-of.ts';
+import { holdsOnly } from '../holds-only.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 /**
@@ -119,7 +119,7 @@ export const featureEnvy = createRule<[], 'found'>({
 
 /** Whether the variable holds a built-in collection or a literal the method creates for its own work. */
 function isTemporary(variable: TSESLint.Scope.Variable): boolean {
-  return initializersOf(variable).some(createsScratch);
+  return holdsOnly(variable, createsScratch);
 }
 
 /** Whether the value is an object literal or a built-in collection made here. */
@@ -154,10 +154,11 @@ function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
         (name.parent.type === AST_NODE_TYPES.AssignmentPattern &&
           name.parent.parent.type === AST_NODE_TYPES.TSParameterProperty),
     ) ||
-    initializersOf(variable).some(
-      (init) =>
-        init.type === AST_NODE_TYPES.ThisExpression ||
-        (init.type === AST_NODE_TYPES.MemberExpression && init.object.type === AST_NODE_TYPES.ThisExpression),
+    holdsOnly(
+      variable,
+      (value) =>
+        value.type === AST_NODE_TYPES.ThisExpression ||
+        (value.type === AST_NODE_TYPES.MemberExpression && value.object.type === AST_NODE_TYPES.ThisExpression),
     )
   );
 }

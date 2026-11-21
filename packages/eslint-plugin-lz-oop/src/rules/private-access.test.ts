@@ -26,6 +26,11 @@ test('private-access reports with a message that names the smell, the member and
 testRule(privateAccess, {
   valid: [
     {
+      name: 'an underscore member read on a local that is given this again',
+      code: 'class Account { _audit() { let self = this; self = this; return self._balance; } }',
+      options: underscore,
+    },
+    {
       name: 'an underscore member read on this',
       code: 'class Account { _audit() { return this._balance; } }',
       options: underscore,

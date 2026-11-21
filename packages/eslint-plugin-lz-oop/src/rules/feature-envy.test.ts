@@ -26,6 +26,14 @@ test('the strict preset reports feature envy with a message that names the smell
 testRule(featureEnvy, {
   valid: [
     {
+      name: 'a scratch array the method empties and fills again, which no method can move to',
+      code: 'class Queue { flush(items) { let batch = []; batch.push(items); batch.push(items); batch.push(this.a); if (batch.length > 9) { batch = []; } return batch.length; } }',
+    },
+    {
+      name: 'a local that holds a field of its own object, set on first use, whose uses count as its own',
+      code: 'class Cache { read(key) { let entry = this.entry; if (!entry) { entry = this.entry = load(key); } return entry.a + entry.b + entry.c + entry.d; } }',
+    },
+    {
       name: 'a local that holds a field of its own object, whose uses count as uses of its own object',
       code: 'class Cart { total(item) { const cache = this.cache; return item.a + item.b + item.c + cache.x + cache.y; } }',
     },
@@ -194,6 +202,16 @@ testRule(featureEnvy, {
     {
       name: "a local that holds a caller's object, or else an empty object literal",
       code: 'class Cart { total(input) { const order = input ?? {}; return order.a + order.b + order.c + this.d; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: "a parameter given an empty array in place of a missing value, which still holds the caller's object",
+      code: 'class Cart { total(order) { order = order || []; return order.a + order.b + order.c + this.d; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: "a loop variable given an empty array in place of a missing value, which still holds the collection's objects",
+      code: 'class Cart { total(orders) { for (let order of orders) { order = order || []; return order.a + order.b + order.c + this.d; } } }',
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
     {
