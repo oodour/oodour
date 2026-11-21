@@ -24,21 +24,12 @@ export const dataClumps = createRule<[], 'found'>({
   },
   create(context) {
     const reportClumps = (methods: readonly { node: TSESTree.Node; names: readonly string[] }[]): void => {
-      const clumps = new Set(
-        triplesOf(methods)
-          .map(([first, second, third]) =>
-            first.names.filter((name) => second.names.includes(name) && third.names.includes(name)),
-          )
-          .filter((shared) => shared.length >= 2)
-          .map((shared) => shared.toSorted().join(', ')),
-      );
-
-      clumps.forEach((clump) => {
-        const holders = methods.filter(({ names }) => clump.split(', ').every((name) => names.includes(name)));
+      largestClumps(methods.map(({ names }) => names)).forEach((clump) => {
+        const holders = methods.filter(({ names }) => clump.every((name) => names.includes(name)));
         const [first] = holders;
 
         if (first) {
-          context.report({ node: first.node, messageId: 'found', data: { clump, count: holders.length } });
+          context.report({ node: first.node, messageId: 'found', data: { clump: clump.join(', '), count: holders.length } });
         }
       });
     };
@@ -85,12 +76,40 @@ function moduleFunctions(program: TSESTree.Program): readonly TSESTree.FunctionL
 function parameterNames(fn: TSESTree.FunctionLike): readonly string[] {
   return fn.params
     .map((param) => (param.type === AST_NODE_TYPES.AssignmentPattern ? param.left : param))
-    .flatMap((param) => (param.type === AST_NODE_TYPES.Identifier ? [param.name] : []));
+    .flatMap((param) => (param.type === AST_NODE_TYPES.Identifier && param.name !== 'this' ? [param.name] : []));
 }
 
-/** Every way to pick three items, each in its original order. */
-function triplesOf<T>(items: readonly T[]): (readonly [T, T, T])[] {
-  return items.flatMap((first, i) =>
-    items.slice(i + 1).flatMap((second, j) => items.slice(i + j + 2).map((third) => [first, second, third] as const)),
+/**
+ * The largest groups of two or more names that three or more of the functions share, each sorted. Such a group is a
+ * pair's shared names, or those cut down by a third function, so the search never walks every triple of functions.
+ */
+function largestClumps(nameLists: readonly (readonly string[])[]): string[][] {
+  const lists = nameLists.filter((names) => names.length >= 2);
+  const pairs = new Map<string, string[]>();
+  const candidates = new Map<string, string[]>();
+  const collect = (into: Map<string, string[]>, names: string[]) => {
+    if (names.length >= 2) {
+      into.set(names.join(', '), names);
+    }
+  };
+
+  lists.forEach((first, i) => {
+    lists.slice(i + 1).forEach((second) => {
+      collect(pairs, first.filter((name) => second.includes(name)).toSorted());
+    });
+  });
+  pairs.forEach((pair) => {
+    collect(candidates, pair);
+    lists.forEach((third) => {
+      collect(candidates, pair.filter((name) => third.includes(name)));
+    });
+  });
+
+  const clumps = [...candidates.values()].filter(
+    (clump) => lists.filter((names) => clump.every((name) => names.includes(name))).length >= 3,
+  );
+
+  return clumps.filter(
+    (clump) => !clumps.some((other) => other.length > clump.length && clump.every((name) => other.includes(name))),
   );
 }

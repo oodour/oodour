@@ -21,8 +21,39 @@ testRule(dataClumps, {
         }
       `,
     },
+    {
+      name: 'a TypeScript this parameter, which declares the receiver and is not passed',
+      code: `
+        function book(this: Window, start: number) { return start; }
+        function free(this: Window, start: number) { return start; }
+        function span(this: Window, start: number) { return start; }
+      `,
+    },
   ],
   invalid: [
+    {
+      name: 'a clump that only all three methods share, each pair sharing one more name',
+      code: `
+        class Plot {
+          line(x, y, a, b) { return [x, y, a, b]; }
+          area(x, y, a, c) { return [x, y, a, c]; }
+          dots(x, y, b, c) { return [x, y, b, c]; }
+        }
+      `,
+      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 }],
+    },
+    {
+      name: 'a clump and a smaller clump inside it, reported once as the larger',
+      code: `
+        class Space {
+          move(x, y, z) { return [x, y, z]; }
+          scale(x, y, z) { return [x, y, z]; }
+          turn(x, y, z) { return [x, y, z]; }
+          flat(x, y) { return [x, y]; }
+        }
+      `,
+      errors: [{ messageId: 'found', data: { clump: 'x, y, z', count: 3 }, line: 3 }],
+    },
     {
       name: 'two parameters taken by three methods of one class',
       code: `
