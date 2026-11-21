@@ -36,6 +36,10 @@ new RuleTester({
       name: 'a parameter whose type is not a set of constants',
       code: 'function render(count: number) { if (count) { return 1; } return 2; }',
     },
+    {
+      name: 'a parameter whose named type is a union of a literal and a type that is not one',
+      code: "type Choice = 'fast' | number; function render(mode: Choice) { if (mode) { return 1; } return 2; }",
+    },
   ],
   invalid: [
     {
@@ -76,6 +80,38 @@ testRule(flagArgument, {
     {
       name: 'an untyped parameter tested by an if, which no call in the file passes a literal',
       code: 'function render(compact) { if (compact) { return 1; } return 2; } render(wide);',
+    },
+    {
+      name: 'a callback passed to a call together with other arguments',
+      code: 'rows.reduce((total, selected: boolean) => (selected ? total + 1 : total), 0);',
+    },
+    {
+      name: 'a factory with a single return',
+      code: 'function make(logged: boolean) { if (logged) { log(); } return new Report(); }',
+    },
+    {
+      name: 'a factory that holds an inner function returning something else',
+      code: 'function make(cached: boolean) { const read = () => { return 1; }; if (cached) { return new Cached(read); } return new Report(); }',
+    },
+    {
+      name: 'a parameter with a number default tested by an if',
+      code: 'function render(count = 0) { if (count) { return 1; } return 2; }',
+    },
+    {
+      name: 'a parameter typed as a union of a literal and a type that is not one',
+      code: "function render(mode: 'fast' | number) { if (mode) { return 1; } return 2; }",
+    },
+    {
+      name: 'a boolean parameter whose type an if tests, not its value',
+      code: "function render(compact: boolean) { if (typeof compact === 'boolean') { return 1; } return 2; }",
+    },
+    {
+      name: 'a boolean parameter that only supplies a fallback to the test',
+      code: 'function render(compact: boolean) { if (wide ?? compact) { return 1; } return 2; }',
+    },
+    {
+      name: 'a boolean parameter that a ternary returns but does not test',
+      code: 'function render(compact: boolean) { return wide ? compact : false; }',
     },
   ],
   invalid: [
@@ -168,6 +204,41 @@ testRule(flagArgument, {
       name: 'a method that a sibling method calls with a literal',
       code: 'class Page { show() { return this.render(true); } render(compact) { return compact ? 1 : 2; } }',
       errors: [{ messageId: 'found', data: { function: "method 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'an object literal method that a call in the file passes a literal',
+      code: 'const page = { render(compact) { return compact ? 1 : 2; } }; page.render(true);',
+      errors: [{ messageId: 'found', data: { function: "method 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a function called where it is written, which is not a callback',
+      code: '((compact: boolean) => (compact ? 1 : 2))(true);',
+      errors: [{ messageId: 'found', data: { function: 'arrow function', name: 'compact' } }],
+    },
+    {
+      name: 'a parameter of an assertion function other than the one it asserts',
+      code: 'function expect(condition: boolean, strict: boolean): asserts condition { if (strict) { log(); } if (!condition) { throw new Error(); } }',
+      errors: [{ messageId: 'found', data: { function: "function 'expect'", name: 'strict' } }],
+    },
+    {
+      name: 'a boolean parameter that the body declares again with var',
+      code: 'function render(compact: boolean) { var compact; if (compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter compared with !== in an if',
+      code: 'function render(compact: boolean) { if (compact !== false) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter compared with == in an if',
+      code: 'function render(compact: boolean) { if (compact == false) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter compared with != in an if',
+      code: 'function render(compact: boolean) { if (compact != false) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
     },
   ],
 });

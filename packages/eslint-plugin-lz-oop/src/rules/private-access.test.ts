@@ -80,6 +80,11 @@ testRule(privateAccess, {
       code: 'function settle(account) { return account.audit(); }',
       options: underscore,
     },
+    {
+      name: 'an underscore #private name read on another instance, which the language keeps private already',
+      code: 'class Money { #_cents = 0; equals(other) { return other.#_cents; } }',
+      options: underscore,
+    },
   ],
   invalid: [
     {
@@ -143,6 +148,16 @@ new RuleTester({
       name: 'a private member read through brackets on another instance of the same class',
       code: "class Money { private cents = 0; equals(other: Money) { return this.cents === other['cents']; } }",
       errors: [{ messageId: 'found', data: { member: 'cents' } }],
+    },
+    {
+      name: 'a member read through brackets on a union in which only one class keeps it private',
+      code: "class Cash { private balance = 0; } class Card { balance = 0; } function audit(source: Cash | Card) { return source['balance']; }",
+      errors: [{ messageId: 'found', data: { member: 'balance' } }],
+    },
+    {
+      name: 'a method read through brackets whose implementation is private though an overload is public',
+      code: "class Account { audit(): number; private audit(full?: boolean): number { return 0; } } function run(account: Account) { return account['audit'](); }",
+      errors: [{ messageId: 'found', data: { member: 'audit' } }],
     },
   ],
 });

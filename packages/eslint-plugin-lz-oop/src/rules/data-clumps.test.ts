@@ -1,8 +1,37 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import plugin from '../index.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { dataClumps } from './data-clumps.ts';
 
+test('the strict preset reports a data clump with a message that names the smell, the clump and the cures', () => {
+  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.strict);
+  const messages = new Linter({ configType: 'flat' })
+    .verify(
+      'export function book(start, end) {}\nexport function free(start, end) {}\nexport function span(start, end) {}\n',
+      config,
+      'schedule.ts',
+    )
+    .filter((message) => message.ruleId === `${plugin.meta.namespace}/data-clumps`)
+    .map(({ message }) => message);
+
+  assert.deepEqual(messages, [
+    'Stop and look: Data Clumps, the parameters end, start travel together through 3 functions here. Look for the ' +
+      'object they describe. Cure: Introduce Parameter Object, one object for them and the behaviour that uses them; ' +
+      'or Preserve Whole Object where a caller already holds an object that carries them. No automatic change: which ' +
+      'object the parameters become is a design decision no tool can make.',
+  ]);
+});
+
 testRule(dataClumps, {
   valid: [
+    {
+      name: 'three methods of two parameters each that share only one of them',
+      code: 'class Schedule { book(start, end) { return end; } free(start, room) { return room; } span(start, size) { return size; } }',
+    },
     {
       name: 'two parameters taken by only two methods',
       code: 'class Schedule { book(start, end) { return [start, end]; } free(start, end) { return [start, end]; } }',
@@ -96,6 +125,57 @@ testRule(dataClumps, {
         export const span = (start, end) => end - start;
       `,
       errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 2 }],
+    },
+    {
+      name: 'two parameters taken by three functions of one module, one of them a function expression',
+      code: `
+        export function book(start, end) { return [start, end]; }
+        export function free(start, end) { return [start, end]; }
+        export const span = function (start, end) { return end - start; };
+      `,
+      errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 2 }],
+    },
+    {
+      name: 'two clumps that share a name, neither inside the other',
+      code: `
+        class Grid {
+          a1(a, b) {} a2(a, b) {} a3(a, b) {}
+          c1(b, c, d) {} c2(b, c, d) {} c3(b, c, d) {}
+        }
+      `,
+      errors: [
+        { messageId: 'found', data: { clump: 'a, b', count: 3 }, line: 3 },
+        { messageId: 'found', data: { clump: 'b, c, d', count: 3 }, line: 4 },
+      ],
+    },
+    {
+      name: 'two clumps whose names would run together into the same text',
+      code: `
+        class Codes {
+          f1(ab, c) {} f2(ab, c) {} f3(ab, c) {}
+          g1(a, bc) {} g2(a, bc) {} g3(a, bc) {}
+        }
+      `,
+      errors: [
+        { messageId: 'found', data: { clump: 'ab, c', count: 3 }, line: 3 },
+        { messageId: 'found', data: { clump: 'a, bc', count: 3 }, line: 4 },
+      ],
+    },
+    {
+      name: 'two clumps that start at the same method, in the order of the methods that first share them',
+      code: `
+        class Shapes {
+          base(a, b, c, d, e) {}
+          wide(a, b, e, p) {}
+          tall(c, d, r) {}
+          deep(a, b, q) {}
+          flat(c, d, s) {}
+        }
+      `,
+      errors: [
+        { messageId: 'found', data: { clump: 'a, b', count: 3 }, line: 3 },
+        { messageId: 'found', data: { clump: 'c, d', count: 3 }, line: 3 },
+      ],
     },
   ],
 });

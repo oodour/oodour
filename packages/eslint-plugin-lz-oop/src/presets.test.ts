@@ -412,6 +412,29 @@ test('recommended lints TypeScript without type information', async () => {
   assert.deepEqual(result?.messages, []);
 });
 
+test("every config names each of its layers, so ESLint's config inspector tells them apart", () => {
+  const names = (config: readonly { readonly name: string }[]): readonly string[] => config.map(({ name }) => name);
+
+  assert.deepEqual(names(plugin.configs.recommended), [
+    'lz-oop/plugins',
+    'lz-oop/recommended',
+    'lz-oop/recommended/outside-test-files',
+    'lz-oop/duplicates',
+    'lz-oop/conflicts',
+  ]);
+  assert.deepEqual(
+    (['unicorn', 'sonarjs', 'functional'] as const).map((companion) => names(plugin.configs[companion])),
+    [['lz-oop/unicorn'], ['lz-oop/sonarjs'], ['lz-oop/functional']],
+  );
+});
+
+test('strict turns its core cues on in test files too', async () => {
+  assert.deepEqual(
+    (await ruleSettings('strict', 'cart.test.ts')).find(([id]) => id === 'no-param-reassign')?.[1],
+    [2, { props: true }],
+  );
+});
+
 test('the camelCase aliases are the same configs as their kebab-case presets', () => {
   assert.equal(plugin.configs.recommendedTypeChecked, plugin.configs['recommended-type-checked']);
   assert.equal(plugin.configs.strictTypeChecked, plugin.configs['strict-type-checked']);

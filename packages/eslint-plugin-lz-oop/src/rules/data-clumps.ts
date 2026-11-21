@@ -83,8 +83,7 @@ function parameterNames(fn: TSESTree.FunctionLike): readonly string[] {
  * The largest groups of two or more names that three or more of the functions share, each sorted. Such a group is a
  * pair's shared names, or those cut down by a third function, so the search never walks every triple of functions.
  */
-function largestClumps(nameLists: readonly (readonly string[])[]): string[][] {
-  const lists = nameLists.filter((names) => names.length >= 2);
+function largestClumps(lists: readonly (readonly string[])[]): string[][] {
   const pairs = new Map<string, string[]>();
   const candidates = new Map<string, string[]>();
   const collect = (into: Map<string, string[]>, names: string[]) => {
@@ -98,8 +97,8 @@ function largestClumps(nameLists: readonly (readonly string[])[]): string[][] {
       collect(pairs, first.filter((name) => second.includes(name)).toSorted());
     });
   });
+  // Each pair meets its own two lists among the thirds, so the pair itself is collected there.
   pairs.forEach((pair) => {
-    collect(candidates, pair);
     lists.forEach((third) => {
       collect(candidates, pair.filter((name) => third.includes(name)));
     });

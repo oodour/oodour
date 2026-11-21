@@ -231,7 +231,8 @@ function isTest(node: TSESTree.Node): boolean {
       return parent.test === node;
     }
     case AST_NODE_TYPES.SwitchStatement: {
-      return parent.discriminant === node;
+      // The discriminant is the only expression a switch holds directly; its cases are SwitchCase nodes.
+      return true;
     }
     default: {
       return false;

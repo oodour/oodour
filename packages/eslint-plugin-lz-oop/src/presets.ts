@@ -188,5 +188,9 @@ function cueEntries(): readonly PresetEntry[] {
 
 // Core rules never need type information.
 function requiresTypeChecking({ source, name }: CatalogRow): boolean {
-  return source === '@typescript-eslint' && tseslintPlugin.rules[name]?.meta.docs.requiresTypeChecking === true;
+  return (
+    tseslintPlugin.rules[name]?.meta.docs.requiresTypeChecking === true &&
+    // Stryker disable next-line ConditionalExpression: no catalog row from another source shares a typed typescript-eslint rule's name
+    source === '@typescript-eslint'
+  );
 }

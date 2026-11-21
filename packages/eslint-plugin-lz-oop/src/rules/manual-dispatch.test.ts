@@ -1,5 +1,30 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import plugin from '../index.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { manualDispatch } from './manual-dispatch.ts';
+
+test('the strict preset reports manual dispatch with a message that names the smell, the subject and the cure', () => {
+  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.strict);
+  const messages = new Linter({ configType: 'flat' })
+    .verify(
+      'function area(shape) { if (shape instanceof Circle) { return 1; } else if (shape instanceof Square) { return 2; } return 0; }',
+      config,
+      'area.ts',
+    )
+    .filter((message) => message.ruleId === `${plugin.meta.namespace}/manual-dispatch`)
+    .map(({ message }) => message);
+
+  assert.deepEqual(messages, [
+    "Stop and look: Manual Dispatch, this chain tests which class 'shape' is to decide what to do. Look for what this " +
+      'code needs from every object it tests. Cure: define the duck type, one message every one of these classes ' +
+      'answers, so the code sends it without asking. No automatic change: the message every class should answer is a ' +
+      'design decision no tool can make.',
+  ]);
+});
 
 testRule(manualDispatch, {
   valid: [
@@ -28,6 +53,10 @@ testRule(manualDispatch, {
         }
       `,
     },
+    {
+      name: 'a chain that compares one object with values rather than testing its class',
+      code: 'function label(shape) { if (shape === circle) { return 1; } else if (shape === square) { return 2; } }',
+    },
   ],
   invalid: [
     {
@@ -53,6 +82,11 @@ testRule(manualDispatch, {
         }
       `,
       errors: [{ messageId: 'found', line: 4, data: { subject: 'this.shape' } }],
+    },
+    {
+      name: 'a chain that is the unbraced body of another if',
+      code: 'function area(shape, ready) { if (ready) if (shape instanceof Circle) { return 1; } else if (shape instanceof Square) { return 2; } }',
+      errors: [{ messageId: 'found', column: 42, data: { subject: 'shape' } }],
     },
   ],
 });
