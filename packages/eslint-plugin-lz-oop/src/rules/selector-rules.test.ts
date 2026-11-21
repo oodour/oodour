@@ -50,6 +50,11 @@ const selectorCases = {
       "class Port { constructor(n) { if (n < 0) { throw new PortRangeError('negative'); } this.n = n; } }",
       'class Tally { constructor() { this.counts = new Map(); } }',
       "class Checkout { constructor(gateway = new CardGateway('live')) { this.gateway = gateway; } }",
+      'class Shapes { circle(radius) { return new Circle(radius); } }',
+      'class Invoice { lines() { return this.items.map((item) => new Line(item)); } }',
+      'class Money { static parse(text) { const money = new Money(Number(text)); money.check(); return money; } }',
+      'class Tally { #counts = new Map(); }',
+      "class Checkout { pay(gateway = new CardGateway('live')) { return gateway.charge(this.total); } }",
     ],
     invalid: [
       {
@@ -65,6 +70,18 @@ const selectorCases = {
       },
       {
         code: 'class Store { constructor(options) { this.guard = options.guard ?? new ActionGuard(options); } }',
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: 'class Report { print() { const printer = new Printer(); printer.send(this.lines); } }',
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: "class Checkout { gateway = new CardGateway('live'); }",
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: "class Checkout { gateway() { return (this.cached ??= new CardGateway('live')); } }",
         errors: [{ messageId: 'found' }],
       },
     ],

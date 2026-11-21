@@ -49,14 +49,15 @@ const selectorRows = [
   },
   {
     name: 'new-in-constructor',
-    description: 'Report a constructor that creates its own collaborator',
-    concept: 'Hidden Dependency',
+    description: 'Report a method or field initializer that creates its own collaborator',
+    concept: 'Dependency Inversion',
     tier: 'strict',
     selectors: [
-      `MethodDefinition[kind='constructor'] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${builtInConstructors}]):not(ThrowStatement > NewExpression)`,
+      `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${builtInConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression)`,
+      `PropertyDefinition > NewExpression.value:not([callee.name=${builtInConstructors}])`,
     ],
     message:
-      'Stop and look: Hidden Dependency, this constructor creates its collaborator, which ties the class to one concrete class. Look for the class it names. Cure: Dependency Injection, the collaborator as a constructor parameter, with this one as its default if most callers want it.',
+      'Stop and look: Dependency Inversion, this class creates its own collaborator, so it depends on one concrete class instead of the role it needs. Look for the class it names. Cure: Dependency Injection, the collaborator as a constructor or method parameter, with this one as its default if most callers want it.',
     because:
       'the cure adds a constructor parameter, which a person should name; a codemod that injects the collaborator is planned',
   },
