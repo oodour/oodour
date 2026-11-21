@@ -62,7 +62,7 @@ export interface WrappedRuleDefinition<TOptions extends readonly unknown[]> {
 
 /**
  * An existing rule under a message of ours: it keeps the wrapped rule's checks, options schema and message data (such
- * as `{{max}}`), and reports every finding under the one message `found`. When the wrapped rule is missing, the wrapper
+ * as `{{max}}`), and gives every report the one message `found`. When the wrapped rule is missing, the wrapper
  * still loads, and throws only when a config turns it on.
  */
 export function wrapRule<TOptions extends readonly unknown[]>(

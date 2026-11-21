@@ -73,15 +73,15 @@ Two settings are command-line flags only, with no config key:
 - `--coverage`: Istanbul or V8 coverage data. Without it Fallow estimates coverage, and on lz-gardener it estimated none
   for all 66 functions it flagged, although every module there has tests. With no coverage the CRAP score is just
   cyclomatic² + cyclomatic, so every function of cyclomatic complexity 5 or more reaches the default CRAP limit of 30
-  and gets an "add tests" finding. Read CRAP findings only from a run with `--coverage`.
+  and gets an "add tests" report. Read CRAP reports only from a run with `--coverage`.
 
 ## Run it
 
 Run Fallow twice, for two jobs:
 
-- **The gate**, on every change: `fallow health --coverage <coverage> --changed-since <base>`. It reports findings
-  only in files changed since `<base>` (a branch or commit, such as `origin/main`), scores CRAP from measured
-  coverage, and exits 1 on any finding at `error`. Write the coverage first, for example with
+- **The gate**, on every change: `fallow health --coverage <coverage> --changed-since <base>`. It reports only
+  in files changed since `<base>` (a branch or commit, such as `origin/main`), scores CRAP from measured
+  coverage, and exits 1 on any report at `error`. Write the coverage first, for example with
   `NODE_V8_COVERAGE=coverage/v8 node --test` (then pass `coverage/v8`) or your test runner's coverage option (pass its
   `coverage-final.json`). A function that no test in that coverage ran still gets the estimated CRAP score, so collect
   the coverage from the whole suite.
@@ -103,10 +103,10 @@ table and `fallowrc.json` hold the same keys and values.
 | `rules.complexity-cognitive` | `"error"` | The cognitive limit below. | Stated for the same reason. |
 | `rules.complexity-crap` | `"error"` | Complex functions that no test covers. | Stays at `error`. CRAP is cyclomatic² × (1 − coverage)³ + cyclomatic, so with the cyclomatic limit at 4 a function within that limit scores at most 20, below Fallow's CRAP limit of 30. CRAP therefore fails no function the cyclomatic limit passes; it marks which flagged functions tests leave uncovered. Read that only from a run with `--coverage`. The `overrides` row below turns it off in test files. |
 | `health.maxCyclomatic` | `4` | `lz-audit` step 2, Complexity: cyclomatic complexity is the least number of tests that covers a function's paths, and the complex functions inside hot spots are where the audit reads first. The same limit as the `complexity` rule of `eslint-plugin-lz-oop`. | The JavaScript companion code of *99 Bottles of OOP* never goes above 4 at any chapter's end; its factory method, a three-way choice with a default, sits at 4 (measured with ESLint and Fallow 3.43.2). Fallow and ESLint count the same on 97% of 25,034 functions in four repositories, and where they differ ESLint is higher (it also counts default values and every `?.`), so one number serves both and the two flagged sets overlap most (90.5%). At 4, Fallow flags 8.0 to 8.8% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 2.4% in ts-morph. Fallow's default of 20 flags under 0.2%. Each flag asks for a fix or a stated exception. A legacy repository adopts the preset through a Fallow baseline, not a raised limit. |
-| `health.maxCognitive` | `4` | Cognitive complexity, the second reading of how hard a function is to follow: nesting and runs of boolean operators weigh more than a flat branch. The same limit as the `cognitive-complexity` rule of `eslint-plugin-lz-oop`, and the same number as the cyclomatic limit. | The same companion code never goes above 2. Fallow and sonarjs count the same on 82% of functions; Fallow is almost always the higher, because it also counts runs of `\|\|` and `??`, and at 4 the flagged sets overlap 82.0%. At 4, Fallow flags 4.3 to 5.7% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 1.8% in ts-morph; nearly all of them are over the cyclomatic limit too, so the cognitive limit adds few findings of its own (1 or 2 functions per repository, 37 in ts-morph). |
+| `health.maxCognitive` | `4` | Cognitive complexity, the second reading of how hard a function is to follow: nesting and runs of boolean operators weigh more than a flat branch. The same limit as the `cognitive-complexity` rule of `eslint-plugin-lz-oop`, and the same number as the cyclomatic limit. | The same companion code never goes above 2. Fallow and sonarjs count the same on 82% of functions; Fallow is almost always the higher, because it also counts runs of `\|\|` and `??`, and at 4 the flagged sets overlap 82.0%. At 4, Fallow flags 4.3 to 5.7% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 1.8% in ts-morph; nearly all of them are over the cyclomatic limit too, so the cognitive limit adds few reports of its own (1 or 2 functions per repository, 37 in ts-morph). |
 | `health.changeCoupling.minDegree` | `0.4` | `references/smells.md`, Shotgun Surgery: files that change together with no import between them, so one change needs edits in each. | Change coupling is advisory: no rule exists for it, so it never fails the run. Measured on pairs with at least 5 shared commits, 0.25 sits below the median degree in lz-node-test (0.34) and stryker-playwright-runner (0.32) and lists most pairs, mostly a file and its own test. 0.4 keeps the strongest third: 32 of 102 pairs in stryker-playwright-runner, 5 of 18 in lz-node-test, 4 in ts-morph (all source files, among them the two runtime adapters that change together), and 10 in lz-gardener, none of them two source files. tldraw still gets 143, mostly release lockstep and sibling tools. Fallow has no setting that leaves out only the pairs of a source file and its test; see "Test files" below. |
 | `duplicates.ignore` | `["**/*.test.*","**/*.spec.*","**/__tests__/**","**/test/**","**/tests/**","**/spec/**","**/e2e/**"]` | Duplication in production code only: removing duplication pays much less in tests, where each test reads best on its own. | Fallow's own duplication ignores already skip `*.test.*`, `*.spec.*`, `__tests__` and `__mocks__`; this list adds the test folders. Fallow adds `duplicates.ignore` to its own ignores (`ignoreDefaults` stays `true`). |
-| `overrides` | `[{"files":["**/*.test.*","**/*.spec.*","**/__tests__/**","**/test/**","**/tests/**","**/spec/**","**/e2e/**"],"rules":{"complexity-crap":"off"}}]` | CRAP for production code only. | CRAP asks for tests of risky code, a question that has no answer for a test file. An `off` rule drops a finding only when every limit it exceeds is off, so a test function over the cyclomatic or cognitive limit is still reported. |
+| `overrides` | `[{"files":["**/*.test.*","**/*.spec.*","**/__tests__/**","**/test/**","**/tests/**","**/spec/**","**/e2e/**"],"rules":{"complexity-crap":"off"}}]` | CRAP for production code only. | CRAP asks for tests of risky code, a question that has no answer for a test file. An `off` rule drops a report only when every limit it exceeds is off, so a test function over the cyclomatic or cognitive limit is still reported. |
 
 <!-- preset-values:end -->
 
@@ -162,7 +162,7 @@ once, turn one tool's complexity limits off:
 - **Keep ESLint's.** In your Fallow config, set `"complexity-cyclomatic": "off"` and `"complexity-cognitive": "off"`
   under `rules`. ESLint reports while code is written, and its messages name the smell and the cure. Fallow keeps the
   CRAP score, the strict preset's file-length limit, hot spots and change coupling. Fallow's template complexity goes too, since its
-  `<template>` findings (Angular components, Vue, Svelte, Astro) come under the same two rules; in Angular,
+  `<template>` reports (Angular components, Vue, Svelte, Astro) come under the same two rules; in Angular,
   angular-eslint's `@angular-eslint/template/cyclomatic-complexity` and `@angular-eslint/template/conditional-complexity`
   rules measure templates instead.
 - **Keep Fallow's.** In your ESLint config, set `@layzee/lz-oop/complexity` and `@layzee/lz-oop/cognitive-complexity`
@@ -191,7 +191,7 @@ once, turn one tool's complexity limits off:
 
 ## What the presets do not change
 
-- `fallow health` exits 1 when it reports any finding. To read the findings without a failing exit code, run it with
+- `fallow health` exits 1 when it reports anything. To read the reports without a failing exit code, run it with
   `--report-only`, or set the `complexity-*` rules to `"warn"` in your own config. The presets keep them at `error`.
 - Fallow counts commits per path and does not follow renames, so a file renamed in the window shows less churn than
   `git log --follow` gives. On lz-gardener the three most-changed files showed 68, 66 and 40 commits against 112, 77
