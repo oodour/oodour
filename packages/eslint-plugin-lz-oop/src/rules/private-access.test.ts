@@ -1,9 +1,38 @@
+import assert from 'node:assert/strict';
 import { join } from 'node:path';
+import { test } from 'node:test';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import plugin from '../index.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { privateAccess } from './private-access.ts';
 
 const underscore = [{ underscore: true }] as const;
+const ruleId = `${plugin.meta.namespace}/private-access`;
+
+function lint(code: string, options: Record<string, unknown>): readonly string[] {
+  const config = defineConfig(plugin.configs.recommended, { rules: { [ruleId]: ['error', options] } });
+
+  return new Linter({ configType: 'flat' })
+    .verify(code, config)
+    .filter((message) => message.ruleId === ruleId)
+    .map(({ message }) => message);
+}
+
+test('private-access rejects an option it does not know', () => {
+  assert.throws(() => lint('', { underscore: true, prefix: '_' }), /additional properties/);
+});
+
+test('private-access reports with a message that names the smell, the member and the cure', () => {
+  assert.deepEqual(lint('function settle(account) { return account._audit(); }', { underscore: true }), [
+    "Stop and look: Inappropriate Intimacy, this reaches into the private member '_audit' of another object. Look " +
+      'for why this code needs it. Cure: ask its class for a public message named for that need; only when none can ' +
+      'exist, confine this access to one place. A test sends public messages and tests private code only while that ' +
+      "code's design is unsettled, apart from the public tests; settled private code that needs tests may move into a " +
+      'collaborator. No automatic change: which public message serves the need is a design decision no tool can make.',
+  ]);
+});
 
 testRule(privateAccess, {
   valid: [
@@ -27,6 +56,16 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'a computed member whose key is held in an underscore variable',
+      code: 'function read(record, _key) { return record[_key]; }',
+      options: underscore,
+    },
+    {
+      name: "a class expression's own static member reached through the name that holds it",
+      code: 'const Terminal = class { static _handles = []; static reset() { Terminal._handles = []; } };',
+      options: underscore,
+    },
+    {
       name: "a class's own static member reached through the class name inside that class",
       code: 'class Terminal { static _handles = []; static reset() { Terminal._handles = []; } }',
       options: underscore,
@@ -34,6 +73,11 @@ testRule(privateAccess, {
     {
       name: 'the __proto__ accessor',
       code: 'function prototypeOf(account) { return account.__proto__; }',
+      options: underscore,
+    },
+    {
+      name: 'a member without an underscore read on another object',
+      code: 'function settle(account) { return account.audit(); }',
       options: underscore,
     },
   ],
@@ -84,6 +128,16 @@ new RuleTester({
       name: 'a protected member read through brackets on another object',
       code: "class Account { protected audit() { return 0; } } function run(account: Account) { return account['audit'](); }",
       errors: [{ messageId: 'found', data: { member: 'audit' } }],
+    },
+    {
+      name: 'a private member read through optional brackets on a receiver that may be undefined',
+      code: "class Account { private balance = 0; } function audit(account: Account | undefined) { return account?.['balance']; }",
+      errors: [{ messageId: 'found', data: { member: 'balance' } }],
+    },
+    {
+      name: 'a private member read through brackets on a union of classes that each declare it',
+      code: "class Cash { private balance = 0; } class Card { private balance = 0; } function audit(source: Cash | Card) { return source['balance']; }",
+      errors: [{ messageId: 'found', data: { member: 'balance' } }],
     },
     {
       name: 'a private member read through brackets on another instance of the same class',

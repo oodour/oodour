@@ -35,7 +35,8 @@ export const privateAccess = createRule<Options, 'found'>({
   },
   create(context, [{ underscore }]) {
     const { program, esTreeNodeToTSNodeMap } = context.sourceCode.parserServices ?? {};
-    // A member TypeScript keeps from the top level of the file is private or protected.
+    // The compiler already rejects dot access to a private or protected member, but bracket access with a string
+    // literal gets past it, so only that form needs the type check.
     const nonPublicName = ({ object, property }: TSESTree.MemberExpression): string | undefined => {
       if (!program || !esTreeNodeToTSNodeMap || property.type !== AST_NODE_TYPES.Literal) {
         return undefined;
@@ -45,14 +46,21 @@ export const privateAccess = createRule<Options, 'found'>({
         return undefined;
       }
 
-      const type = program.getTypeChecker().getTypeAtLocation(esTreeNodeToTSNodeMap.get(object));
+      const checker = program.getTypeChecker();
+      const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(object)));
+      const name = property.value;
       const isNonPublic = (declaration: ts.Declaration): boolean =>
         (ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) !== 0;
 
-      return type.getProperty(property.value)?.declarations?.some(isNonPublic) === true ? property.value : undefined;
+      return (type.isUnion() ? type.types : [type]).some(
+        (member) => member.getProperty(name)?.declarations?.some(isNonPublic) === true,
+      )
+        ? name
+        : undefined;
     };
-    const underscoreName = ({ property }: TSESTree.MemberExpression): string | undefined =>
+    const underscoreName = ({ computed, property }: TSESTree.MemberExpression): string | undefined =>
       underscore === true &&
+      !computed &&
       property.type === AST_NODE_TYPES.Identifier &&
       property.name.startsWith('_') &&
       !property.name.startsWith('__')
@@ -61,17 +69,13 @@ export const privateAccess = createRule<Options, 'found'>({
 
     return {
       MemberExpression(node) {
-        if (
-          node.object.type === AST_NODE_TYPES.ThisExpression ||
-          node.object.type === AST_NODE_TYPES.Super ||
-          namesEnclosingClass(node.object, context.sourceCode.getAncestors(node))
-        ) {
+        if (node.object.type === AST_NODE_TYPES.ThisExpression || node.object.type === AST_NODE_TYPES.Super) {
           return;
         }
 
         const member = nonPublicName(node) ?? underscoreName(node);
 
-        if (member !== undefined) {
+        if (member !== undefined && !namesEnclosingClass(node.object, context.sourceCode.getAncestors(node))) {
           context.report({ node, messageId: 'found', data: { member } });
         }
       },
@@ -83,10 +87,22 @@ export const privateAccess = createRule<Options, 'found'>({
 function namesEnclosingClass(object: TSESTree.Expression, ancestors: TSESTree.Node[]): boolean {
   return (
     object.type === AST_NODE_TYPES.Identifier &&
-    ancestors.some(
-      (ancestor) =>
-        (ancestor.type === AST_NODE_TYPES.ClassDeclaration || ancestor.type === AST_NODE_TYPES.ClassExpression) &&
-        ancestor.id?.name === object.name,
-    )
+    ancestors.some((ancestor) => classNameOf(ancestor) === object.name)
   );
+}
+
+/** A class's own name, or for an unnamed class expression the name of the variable that holds it. */
+function classNameOf(node: TSESTree.Node): string | undefined {
+  if (node.type === AST_NODE_TYPES.ClassDeclaration || node.type === AST_NODE_TYPES.ClassExpression) {
+    const holder = node.parent;
+
+    return (
+      node.id?.name ??
+      (holder.type === AST_NODE_TYPES.VariableDeclarator && holder.id.type === AST_NODE_TYPES.Identifier
+        ? holder.id.name
+        : undefined)
+    );
+  }
+
+  return undefined;
 }
