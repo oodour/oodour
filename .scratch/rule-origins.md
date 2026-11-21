@@ -355,3 +355,16 @@ case as its own subclass. Commit messages were unreadable in both companion clon
   another object's private methods Inappropriate Intimacy (Get a Whiff of This, 2016). *99 Bottles* uses no `#`, no
   keyword and no underscore convention; privacy comes from which messages outsiders send. Oracle inference: `#`
   methods cannot be overridden, so `#` on the bottle-number methods would break the polymorphism the book builds.
+
+## Reek candidates (Claude's summary of three oracle reports, 2026-11-21; Lars: "Reek candidates: OK")
+
+| Candidate | Fowler 2e | POODR | Metz talks | Cure |
+| --- | --- | --- | --- | --- |
+| Feature Envy | named smell, Ch.3; no threshold | concept in Ch.2 and Ch.4, unnamed | named once, Get a Whiff of This (2016), no cure | Extract Function, Move Function; Strategy and Visitor are deliberate exceptions |
+| Data Clumps | named smell, Ch.3; test is "would the rest still make sense without one" | Ch.3 argument-order dependency; Ch.2 pair becomes a class | named once, Get a Whiff of This (2016); four-parameter rule hints at a hidden object (2014) | Extract Class, Introduce Parameter Object, Preserve Whole Object |
+| Flag argument | Remove Flag Argument, Ch.11: callers pass a literal and the callee branches on it | not found in five chapters | Polly Want a Message (2018, 2019): a branched-on boolean wants an injected role-player; control coupling named an anti-pattern (Go Ahead, Make a Mess, 2013 Q&A) | one named function per value; inject the role-player |
+| Repeated conditional | Repeated Switches, Ch.3 (2e narrowed the 1e Switch Statements smell to repetition) | Ch.6 type-code branching breeds checks in callers | Nothing is Something (2015), Polly (2018), Ways to Be Less Clever (2016) | Replace Conditional with Polymorphism, Introduce Special Case, factory |
+| Manual dispatch | not covered in the chapters read; Ch.10 uses `instanceof` as a temporary trap | Ch.5: class switches, kind checks and responds-to checks are clues to a hidden duck type; stable core classes and nil tolerated | eight talks 2009-2022; kind checks signal a Liskov violation (SOLID, 2009) | define the duck type; Null Object; factory holds the one choice |
+
+Tools: Reek recommended in Get a Whiff of This (2016); Reek, Flog and Flay named as Code Climate's engines in the NYCrb
+panel (2021). RuboCop and SimpleCov appear in no transcript.
