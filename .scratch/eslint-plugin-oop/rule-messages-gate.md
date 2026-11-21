@@ -55,3 +55,32 @@ returned directly, an arrow that returns one), a thrown error, a built-in value 
 > Stop and look: Dependency Inversion, this class creates its own collaborator, so it depends on one concrete class
 > instead of the role it needs. Look for the class it names. Cure: Dependency Injection, the collaborator as a
 > constructor or method parameter, with this one as its default if most callers want it.
+
+## private-access (recommended tier; underscore form strict only), gated 2026-11-21
+
+Reports a read or call of another object's private member: in TypeScript with type information, a `private` or
+`protected` member reached through brackets; with the `underscore` option, a member named with a leading underscore.
+`this` and `super` are left out; another instance of the same class is reported (Lars's ruling).
+
+Gate on POODR 2e: revise. Supported: reaching inner parts couples the caller to volatile code (Ch.4, the outward face
+versus the inner part); confine an unavoidable reach (Ch.4, pointing back to the dependency-isolation techniques);
+tests target the outward face, with an exception for unsettled messy code kept apart (Ch.9, Ch.4); many private methods
+hint at a class that does too much (Ch.9). Directives applied: confinement only when no public message can serve the
+need; the test exception restored; claim 6's reason restated (below). Same-class instance and strict-only underscore:
+declared choices, no contradiction.
+
+Gate on 99 Bottles 2e JS: revise. Supported: ask through a message named for the sender's need, adding it to the
+receiver when missing (Ch.8, the Demeter discussion); unit tests target the public API (Ch.9). Confinement, the test
+exception and the collaborator hint are not in this entry; POODR carries them. Directive applied: the message names
+the need.
+
+Claim 6 reason, corrected: the underscore form is strict only because in JavaScript a leading underscore also marks
+unused parameters, placeholders and library fields, so it is a noisier signal to detect; not because a naming marker
+carries less authority than a keyword (POODR treats a convention as a legitimate privacy signal).
+
+Shipped message (overlap check: no run of 8+ words shared with the store):
+
+> Stop and look: Inappropriate Intimacy, this reaches into the private member '{{member}}' of another object. Look for
+> why this code needs it. Cure: ask its class for a public message named for that need; only when none can exist,
+> confine this access to one place. A test sends public messages and tests private code only while that code's design
+> is unsettled, apart from the public tests; settled private code that needs tests may move into a collaborator.

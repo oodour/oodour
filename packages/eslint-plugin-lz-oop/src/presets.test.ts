@@ -281,6 +281,27 @@ test('only the strict presets turn manual-dispatch on, a rule of the strict tier
   );
 });
 
+test('every preset turns private-access on in production and test files, the strict ones with underscore members', async () => {
+  const settings = await Promise.all(
+    presetNames.map(async (preset) =>
+      Promise.all(
+        ['file.ts', 'cart.test.ts'].map(
+          async (file) => (await ruleSettings(preset, file)).find(([id]) => id === '@layzee/lz-oop/private-access')?.[1],
+        ),
+      ),
+    ),
+  );
+
+  assert.deepEqual(
+    settings,
+    presetNames.map((preset) => {
+      const setting = [2, { underscore: preset.startsWith('strict') }];
+
+      return [setting, setting];
+    }),
+  );
+});
+
 test('recommended leaves out a cue of the strict tier', async () => {
   assert.equal(await ruleSetting('recommended', 'no-param-reassign'), undefined);
 });
