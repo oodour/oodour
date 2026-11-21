@@ -187,6 +187,11 @@ testRule(featureEnvy, {
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
     {
+      name: 'a parameter with a default value, which is not a field of its own object',
+      code: 'class Cart { price(item = blank) { return item.base + item.tax - item.discount + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+    },
+    {
       name: "a local that holds a caller's object, or else an empty object literal",
       code: 'class Cart { total(input) { const order = input ?? {}; return order.a + order.b + order.c + this.d; } }',
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
