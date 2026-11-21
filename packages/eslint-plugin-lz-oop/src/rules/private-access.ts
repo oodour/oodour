@@ -35,8 +35,9 @@ export const privateAccess = createRule<Options, 'found'>({
   },
   create(context, [{ underscore }]) {
     const { program, esTreeNodeToTSNodeMap } = context.sourceCode.parserServices ?? {};
-    // The compiler already rejects dot access to a private or protected member, but bracket access with a string
-    // literal gets past it, so only that form needs the type check.
+    // Outside its class the compiler rejects dot access to a private or protected member, but bracket access with a
+    // string literal gets past it, so only that form needs the type check. Inside the class a dot read of another
+    // instance's private member compiles and stays unreported.
     const nonPublicName = ({ object, property }: TSESTree.MemberExpression): string | undefined => {
       if (!program || !esTreeNodeToTSNodeMap || property.type !== AST_NODE_TYPES.Literal) {
         return undefined;
