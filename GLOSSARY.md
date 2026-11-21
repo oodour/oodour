@@ -59,8 +59,9 @@ The most of something a size or complexity rule or check allows, such as lines p
 _Avoid_: threshold, ceiling
 
 **Stop-and-look message**:
-The form of every message of this plugin's lint rules: it names the concept the report points at, says what it found
-and what to look for, and names the cure. It asks for a decision: change the code or disable the rule with a reason.
+The form of every message of this plugin's lint rules and test reporters: it names the concept the report points at,
+says what it found and what to look for, and names the cure. It asks for a decision: change the code, or turn the rule
+or the reporter's signal off with a reason.
 
 **Remedy**:
 How a reader gets from a report to changed code, in order of preference: an automatic fix, a suggestion to accept, or
