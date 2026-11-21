@@ -1,21 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import plugin from '../index.ts';
+import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { repeatedSwitches } from './repeated-switches.ts';
 
 test('the recommended preset reports each repeated switch with a message that names the smell, the cases and the cure', () => {
-  const config = defineConfig({ files: ['**/*.js'] }, plugin.configs.recommended);
-  const messages = new Linter({ configType: 'flat' })
-    .verify(
-      'function a(n) { switch (n) { case 0: return 1; case 1: return 2; } } function b(n) { switch (n) { case 1: return 3; case 0: return 4; } }',
-      config,
-      'song.js',
-    )
-    .filter((message) => message.ruleId === `${plugin.meta.namespace}/repeated-switches`)
-    .map(({ message }) => message);
+  const messages = presetMessages(
+    'recommended',
+    'repeated-switches',
+    'function a(n) { switch (n) { case 0: return 1; case 1: return 2; } } function b(n) { switch (n) { case 1: return 3; case 0: return 4; } }',
+    'song.js',
+  );
   const expected =
     'Stop and look: Repeated Switches, this file has 2 switches on the cases 0, 1. Look for the same choice in other ' +
     'files. Cure: Replace Conditional with Polymorphism, an object per case chosen once by a factory, so each switch ' +

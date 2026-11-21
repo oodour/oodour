@@ -1,18 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import plugin from '../index.ts';
+import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { featureEnvy } from './feature-envy.ts';
 
 test('the strict preset reports feature envy with a message that names the smell, the counts and the cures', () => {
-  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.strict);
-  const messages = new Linter({ configType: 'flat' })
-    .verify('export class Cart { price(item) { return item.base + item.tax - item.discount + this.fee; } }\n', config, 'cart.ts')
-    .filter((message) => message.ruleId === `${plugin.meta.namespace}/feature-envy`)
-    .map(({ message }) => message);
+  const messages = presetMessages(
+    'strict',
+    'feature-envy',
+    'export class Cart { price(item) { return item.base + item.tax - item.discount + this.fee; } }\n',
+    'cart.ts',
+  );
 
   assert.deepEqual(messages, [
     "Stop and look: Feature Envy, this method uses 'item' 3 times and its own object 1. Look for what it asks of " +

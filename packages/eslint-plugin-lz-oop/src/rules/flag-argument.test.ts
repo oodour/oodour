@@ -2,21 +2,17 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { RuleTester } from '@typescript-eslint/rule-tester';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import plugin from '../index.ts';
+import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { flagArgument } from './flag-argument.ts';
 
-const ruleId = `${plugin.meta.namespace}/flag-argument`;
-
 test('the recommended preset reports a flag argument with a message that names the smell, the parameter and the cures', () => {
-  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.recommended);
-  const messages = new Linter({ configType: 'flat' })
-    .verify('function render(compact: boolean) { if (compact) { return 1; } return 2; }', config, 'render.ts')
-    .filter((message) => message.ruleId === ruleId)
-    .map(({ message }) => message);
+  const messages = presetMessages(
+    'recommended',
+    'flag-argument',
+    'function render(compact: boolean) { if (compact) { return 1; } return 2; }',
+    'render.ts',
+  );
 
   assert.deepEqual(messages, [
     "Stop and look: Flag Argument, the function 'render' branches on its parameter 'compact'. Look for callers that " +

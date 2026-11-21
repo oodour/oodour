@@ -1,22 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import plugin from '../index.ts';
+import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { manualDispatch } from './manual-dispatch.ts';
 
 test('the strict preset reports manual dispatch with a message that names the smell, the subject and the cure', () => {
-  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.strict);
-  const messages = new Linter({ configType: 'flat' })
-    .verify(
-      'function area(shape) { if (shape instanceof Circle) { return 1; } else if (shape instanceof Square) { return 2; } return 0; }',
-      config,
-      'area.ts',
-    )
-    .filter((message) => message.ruleId === `${plugin.meta.namespace}/manual-dispatch`)
-    .map(({ message }) => message);
+  const messages = presetMessages(
+    'strict',
+    'manual-dispatch',
+    'function area(shape) { if (shape instanceof Circle) { return 1; } else if (shape instanceof Square) { return 2; } return 0; }',
+    'area.ts',
+  );
 
   assert.deepEqual(messages, [
     "Stop and look: Manual Dispatch, this chain tests which class 'shape' is to decide what to do. Look for what this " +

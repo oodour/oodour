@@ -1,22 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import plugin from '../index.ts';
+import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { dataClumps } from './data-clumps.ts';
 
 test('the strict preset reports a data clump with a message that names the smell, the clump and the cures', () => {
-  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.strict);
-  const messages = new Linter({ configType: 'flat' })
-    .verify(
-      'export function book(start, end) {}\nexport function free(start, end) {}\nexport function span(start, end) {}\n',
-      config,
-      'schedule.ts',
-    )
-    .filter((message) => message.ruleId === `${plugin.meta.namespace}/data-clumps`)
-    .map(({ message }) => message);
+  const messages = presetMessages(
+    'strict',
+    'data-clumps',
+    'export function book(start, end) {}\nexport function free(start, end) {}\nexport function span(start, end) {}\n',
+    'schedule.ts',
+  );
 
   assert.deepEqual(messages, [
     'Stop and look: Data Clumps, the parameters end, start travel together through 3 functions here. Look for the ' +
