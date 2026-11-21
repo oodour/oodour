@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { join } from 'node:path';
 import { test } from 'node:test';
+import { RuleTester } from '@typescript-eslint/rule-tester';
 import { presetMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { featureEnvy } from './feature-envy.ts';
@@ -182,6 +184,70 @@ testRule(featureEnvy, {
       name: 'a method of a class expression inside another method, which envies its own parameter',
       code: 'class Cart { price() { return new (class { cost(part) { return part.a + part.b + part.c + this.d; } })(); } }',
       errors: [{ messageId: 'found', data: { name: 'part', count: 3, own: 1 } }],
+    },
+  ],
+});
+
+new RuleTester({
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture') },
+  },
+}).run('feature-envy with type information', featureEnvy, {
+  valid: [
+    {
+      name: 'a method that works through a string parameter, which no method can move to',
+      code: 'class Label { prefix = ""; render(text: string) { return this.prefix + text.trim() + text.at(0) + text.length; } }',
+    },
+    {
+      name: 'a method that works through a number parameter',
+      code: 'class Price { digits = 2; format(amount: number) { return amount.toFixed(this.digits) + amount.toPrecision(3) + amount.valueOf(); } }',
+    },
+    {
+      name: 'a method that works through an array parameter',
+      code: 'class Total { base = 0; sum(prices: readonly number[]) { return this.base + prices.length + prices.reduce((a, b) => a + b, 0) + prices.indexOf(0); } }',
+    },
+    {
+      name: 'a method that works through a tuple parameter',
+      code: 'class Span { offset = 0; width(range: [number, number]) { return range.at(1)! - range.at(0)! + range.length + this.offset; } }',
+    },
+    {
+      name: "a method that works through an object of the language's built-in library",
+      code: 'class Clock { zone = 0; stamp(at: Date) { return at.getHours() + at.getMinutes() + at.getSeconds() + this.zone; } }',
+    },
+    {
+      name: "a method that works through an object of a dependency's declarations",
+      code: "import type { Linter } from 'eslint'; class Check { code = ''; run(linter: Linter) { return linter.verify(this.code, []).length + linter.getTimes().passes.length + linter.version.length; } }",
+    },
+    {
+      name: 'a method that works through a string parameter that may be undefined',
+      code: 'class Label { prefix = ""; render(text?: string) { return this.prefix + text?.trim() + text?.at(0) + text?.length; } }',
+    },
+  ],
+  invalid: [
+    {
+      name: 'a method that works through an object of a class the project declares',
+      code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order: Order) { return order.base + order.tax - order.discount + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a method that works through an object of a project class that may be undefined',
+      code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order?: Order) { return order!.base + order!.tax - order!.discount + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a method that works through a value that is either a project object or a string',
+      code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order: Order | string) { return (order as Order).base + (order as Order).tax - (order as Order).discount + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: "a method that works through a library utility type over a project class, whose fields are the project's",
+      code: "class Order { base = 0; tax = 0; discount = 0; id = ''; } class Cart { fee = 0; price(order: Omit<Order, 'id'>) { return order.base + order.tax - order.discount + this.fee; } }",
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a method that works through a value whose type the checker cannot tell',
+      code: 'class Cart { fee = 0; price(order: any) { return order.base + order.tax - order.discount + this.fee; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
   ],
 });

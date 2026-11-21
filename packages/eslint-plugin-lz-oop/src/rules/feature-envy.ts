@@ -1,4 +1,5 @@
 import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
+import ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
 
@@ -7,6 +8,13 @@ import { createRule } from '../create-rule.ts';
  * of one was mostly noise: about 15% of those reports were true, and every lead-of-one report sampled was weak or false.
  */
 const minimumLead = 2;
+
+const primitive =
+  ts.TypeFlags.StringLike |
+  ts.TypeFlags.NumberLike |
+  ts.TypeFlags.BooleanLike |
+  ts.TypeFlags.BigIntLike |
+  ts.TypeFlags.ESSymbolLike;
 
 export const featureEnvy = createRule<[], 'found'>({
   name: 'feature-envy',
@@ -33,6 +41,34 @@ export const featureEnvy = createRule<[], 'found'>({
   },
   create(context) {
     const methods: { node: TSESTree.MethodDefinition; own: number; uses: Map<TSESLint.Scope.Variable, number> }[] = [];
+    const { program, esTreeNodeToTSNodeMap } = context.sourceCode.parserServices ?? {};
+    const cannotTakeAMove = (variable: TSESLint.Scope.Variable): boolean => {
+      const [definition] = variable.defs;
+
+      if (!program || !esTreeNodeToTSNodeMap || !definition) {
+        return false;
+      }
+
+      const checker = program.getTypeChecker();
+      const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(definition.name)));
+      const outsideTheProject = (member: ts.Type): boolean => {
+        const declarations = checker.getPropertiesOfType(member).flatMap((property) => property.declarations ?? []);
+
+        return (
+          (member.flags & primitive) !== 0 ||
+          checker.isArrayType(member) ||
+          checker.isTupleType(member) ||
+          (declarations.length > 0 &&
+            declarations.every(
+              (declaration) =>
+                program.isSourceFileDefaultLibrary(declaration.getSourceFile()) ||
+                declaration.getSourceFile().fileName.includes('/node_modules/'),
+            ))
+        );
+      };
+
+      return (type.isUnion() ? type.types : [type]).every(outsideTheProject);
+    };
     const localVariable = (
       method: TSESTree.MethodDefinition,
       name: TSESTree.Identifier,
@@ -58,7 +94,7 @@ export const featureEnvy = createRule<[], 'found'>({
         const variable =
           method && object.type === AST_NODE_TYPES.Identifier ? localVariable(method.node, object) : undefined;
 
-        if (!method || !variable || isTemporary(variable)) {
+        if (!method || !variable || isTemporary(variable) || cannotTakeAMove(variable)) {
           return;
         }
 
