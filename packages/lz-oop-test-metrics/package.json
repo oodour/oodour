@@ -8,5 +8,12 @@
   "exports": {
     ".": "./src/index.ts",
     "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "eslint": "^10.0.0",
+    "typescript": ">=4.8.4 <6.1.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.72.1"
   }
 }

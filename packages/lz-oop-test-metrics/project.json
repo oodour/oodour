@@ -6,16 +6,27 @@
   "targets": {
     "typecheck": {
       "command": "tsc -p packages/lz-oop-test-metrics/tsconfig.json",
-      "inputs": ["default", { "externalDependencies": ["typescript", "@types/node"] }]
+      "inputs": [
+        "default",
+        { "externalDependencies": ["typescript", "@types/node", "eslint", "@typescript-eslint/parser"] }
+      ]
     },
     "lint": {
       "command": "eslint packages/lz-oop-test-metrics",
-      "inputs": ["default", "eslintConfig", { "externalDependencies": ["@types/node"] }]
+      "inputs": [
+        "default",
+        "eslintConfig",
+        { "externalDependencies": ["@types/node", "eslint", "@typescript-eslint/parser"] }
+      ]
     },
     "test": {
       "command": "node --test \"packages/lz-oop-test-metrics/src/**/*.test.ts\"",
       "cache": true,
-      "inputs": ["default", { "runtime": "node --version" }],
+      "inputs": [
+        "default",
+        { "externalDependencies": ["eslint", "@typescript-eslint/parser", "typescript"] },
+        { "runtime": "node --version" }
+      ],
       "outputs": []
     }
   }
