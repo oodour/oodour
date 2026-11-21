@@ -35,7 +35,7 @@
       "inputs": [
         "default",
         "eslintConfig",
-        { "externalDependencies": ["@nx/devkit", "@stryker-mutator/core", "@stryker-mutator/api"] },
+        { "externalDependencies": ["@types/node", "@nx/devkit", "@stryker-mutator/core", "@stryker-mutator/api"] },
         { "runtime": "claude --version" }
       ]
     },
