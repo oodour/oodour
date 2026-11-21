@@ -27,6 +27,45 @@ test("a function's coverage is the share of its statements that ran, joined to i
   ]);
 });
 
+test('a function with no statements of its own is covered when a test called it, and uncovered when none did', () => {
+  const noop: FunctionSite = {
+    name: "Method 'reset'",
+    complexity: 1,
+    start: { line: 2, column: 7 },
+    bodyStart: { line: 2, column: 10 },
+    end: { line: 2, column: 12 },
+  };
+  const coverageWhenCalled = (calls: number) => ({
+    fnMap: { '0': { name: 'reset', loc: { start: { line: 2, column: 10 }, end: { line: 2, column: 12 } } } },
+    f: { '0': calls },
+    statementMap: {},
+    s: {},
+  });
+
+  assert.deepEqual(
+    [1, 0].map((calls) => measuredFromIstanbul('src/cart.ts', [noop], coverageWhenCalled(calls))[0]?.coverage),
+    [1, 0],
+  );
+});
+
+test('a function the coverage does not list, such as a class field initializer, gets no score', () => {
+  const initializer: FunctionSite = {
+    name: 'Class field initializer',
+    complexity: 2,
+    start: { line: 2, column: 10 },
+    bodyStart: { line: 2, column: 10 },
+    end: { line: 2, column: 39 },
+  };
+  const coverage = {
+    fnMap: {},
+    f: {},
+    statementMap: { '0': { start: { line: 2, column: 10 }, end: { line: 2, column: 39 } } },
+    s: { '0': 0 },
+  };
+
+  assert.deepEqual(measuredFromIstanbul('src/cart.ts', [initializer], coverage), []);
+});
+
 test('a statement inside a nested function counts for the nested function only', () => {
   const outer: FunctionSite = { ...settle, end: { line: 5, column: 1 } };
   const inner: FunctionSite = {

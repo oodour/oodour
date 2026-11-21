@@ -36,9 +36,20 @@ export function measuredFromIstanbul(
       ({ range }) => within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner)),
     );
 
-    return Object.values(coverage.fnMap).some(({ loc }) => samePosition(loc.start, bodyStart))
-      ? [{ file, line: start.line, name, complexity, coverage: own.filter(({ ran }) => ran).length / own.length }]
-      : [];
+    const id = Object.keys(coverage.fnMap).find((key) => {
+      const entry = coverage.fnMap[key];
+
+      return entry !== undefined && samePosition(entry.loc.start, bodyStart);
+    });
+
+    if (id === undefined) {
+      return [];
+    }
+
+    const called = (coverage.f[id] ?? 0) > 0 ? 1 : 0;
+    const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : called;
+
+    return [{ file, line: start.line, name, complexity, coverage: share }];
   });
 }
 
