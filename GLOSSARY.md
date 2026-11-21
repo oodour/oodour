@@ -50,8 +50,12 @@ How often a file changed over a period, counted in commits.
 One place in the code a lint rule or a Fallow check flags, with its message.
 _Avoid_: finding (a finding comes from a review or an audit), violation, warning
 
+**Check**:
+One measure a Fallow preset turns on, such as cyclomatic complexity, CRAP, file length or change coupling: the Fallow
+counterpart of a lint rule.
+
 **Limit**:
-The most of something a size or complexity rule allows, such as lines per function or paths through it.
+The most of something a size or complexity rule or check allows, such as lines per function or paths through it.
 _Avoid_: threshold, ceiling
 
 **Stop-and-look message**:
