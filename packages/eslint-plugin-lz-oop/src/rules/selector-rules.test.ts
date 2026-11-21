@@ -58,6 +58,23 @@ const selectorCases = {
       'class Panel { render() { this.container.addChild(new Spacer(1)); } }',
       "class Profile { name = new FormControl(''); saved = new EventEmitter(); changes = new BehaviorSubject(null); }",
       "class Upload { send(file) { const body = new FormData(); body.append('file', file); return this.http.post(body); } }",
+      `
+        class Values {
+          error = new Error(); typeError = new TypeError(); rangeError = new RangeError(); map = new Map(); set = new Set();
+          weakMap = new WeakMap(); weakSet = new WeakSet(); array = new Array(); date = new Date(); url = new URL('a:b');
+          promise = new Promise(start); regExp = new RegExp('a'); abort = new AbortController(); form = new FormData();
+          headers = new Headers(); params = new URLSearchParams(); encoder = new TextEncoder(); decoder = new TextDecoder();
+          blob = new Blob(); bytes = new Uint8Array();
+        }
+      `,
+      `
+        class FormState {
+          control = new FormControl(); group = new FormGroup({}); array = new FormArray([]); record = new FormRecord({});
+          untypedControl = new UntypedFormControl(); untypedGroup = new UntypedFormGroup({});
+          untypedArray = new UntypedFormArray([]); emitter = new EventEmitter(); subject = new Subject();
+          behavior = new BehaviorSubject(null); replay = new ReplaySubject(); async = new AsyncSubject();
+        }
+      `,
     ],
     invalid: [
       {
@@ -81,6 +98,10 @@ const selectorCases = {
       },
       {
         code: 'class App { start() { this.screen = new Screen(new Terminal()); } }',
+        errors: [{ messageId: 'found' }],
+      },
+      {
+        code: 'class Orders extends Repository { constructor() { super(new HttpGateway()); } }',
         errors: [{ messageId: 'found' }],
       },
       {

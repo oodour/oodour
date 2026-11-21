@@ -1,10 +1,6 @@
 import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
 import { builtInConstructors as builtInNames } from '../built-in-constructors.ts';
 
-/**
- * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
- * best. `selector-rules.test.ts` must hold cases for every name here, or type-checking fails.
- */
 // Framework classes for a component's own form state and event streams, which frameworks create in place.
 const frameworkStateNames = [
   'FormControl',
@@ -22,6 +18,10 @@ const frameworkStateNames = [
 ];
 const ownStateConstructors = `/^(${[...builtInNames, ...frameworkStateNames].join('|')})$/`;
 
+/**
+ * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
+ * best. `selector-rules.test.ts` must hold cases for every name here, or type-checking fails.
+ */
 const selectorRows = [
   {
     name: 'switch-on-kind',
@@ -49,7 +49,7 @@ const selectorRows = [
     concept: 'Dependency Inversion',
     tier: 'strict',
     selectors: [
-      `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${ownStateConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression):not(CallExpression > NewExpression):not(NewExpression > NewExpression)`,
+      `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${ownStateConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression):not(CallExpression[callee.type!='Super'] > NewExpression):not(NewExpression > NewExpression)`,
       `PropertyDefinition > NewExpression.value:not([callee.name=${ownStateConstructors}])`,
     ],
     message:
