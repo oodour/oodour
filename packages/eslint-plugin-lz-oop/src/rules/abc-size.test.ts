@@ -1,21 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import plugin from '../index.ts';
+import { ruleMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { abcSize } from './abc-size.ts';
 
-const ruleId = `${plugin.meta.namespace}/abc-size`;
-
-function lint(code: string, options: Record<string, unknown>): readonly string[] {
-  const config = defineConfig(plugin.configs.recommended, { rules: { [ruleId]: ['error', options] } });
-
-  return new Linter({ configType: 'flat' })
-    .verify(code, config)
-    .filter((message) => message.ruleId === ruleId)
-    .map(({ message }) => message);
-}
+const lint = ruleMessages('abc-size');
 
 test('abc-size rejects an option it does not know', () => {
   assert.throws(() => lint('', { max: 15, limit: 15 }), /additional properties/);

@@ -2,23 +2,12 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { RuleTester } from '@typescript-eslint/rule-tester';
-import { Linter } from 'eslint';
-import { defineConfig } from 'eslint/config';
-import plugin from '../index.ts';
+import { ruleMessages } from '../testing/rule-messages.ts';
 import { testRule } from '../testing/rule-testers.ts';
 import { privateAccess } from './private-access.ts';
 
 const underscore = [{ underscore: true }] as const;
-const ruleId = `${plugin.meta.namespace}/private-access`;
-
-function lint(code: string, options: Record<string, unknown>): readonly string[] {
-  const config = defineConfig(plugin.configs.recommended, { rules: { [ruleId]: ['error', options] } });
-
-  return new Linter({ configType: 'flat' })
-    .verify(code, config)
-    .filter((message) => message.ruleId === ruleId)
-    .map(({ message }) => message);
-}
+const lint = ruleMessages('private-access');
 
 test('private-access rejects an option it does not know', () => {
   assert.throws(() => lint('', { underscore: true, prefix: '_' }), /additional properties/);
