@@ -28,7 +28,8 @@ checked (Claude's decision, 2026-11-20: a named parameter type is the cure Intro
 one; an anonymous object is the options dodge). Lars, 2026-11-20: "How the parameter rule counts: Detect options
 reads and destructuring in the body." With options keys counted, the rule's default is 4 and the strict presets set
 3. Lars, 2026-11-20, "1: Option B" (recommended tier at 4, strict 3). The recommended presets now turn the rule on;
-before, only the strict ones did, at 3.
+before, only the strict ones did, at 3. The 3 in the opening paragraph, in the parameter item above and under
+Considered Options describes the rule before this update; 3 is now the strict presets' limit.
 
 ## Considered Options
 

@@ -21,3 +21,9 @@ decision: Apply a fix or disable the rule with a reason."
   must say why. Lars, 2026-11-18, on how breaking a rule maps onto an agent: "For an AI coding agent, this translates
   to disabling a rule with a reason, ideally following explicit human approval, prompted guidelines, or subagent
   review".
+
+## Update, 2026-11-20: every message says stop and look
+
+The first consequence now covers every rule, not only the size and complexity ones. Each rule's message opens with
+"Stop and look:" and its concept and names a cure, and a test fails the build on a message that does not. Lars,
+2026-11-20: "Naming the smell and the cure in lint messages: OK".
