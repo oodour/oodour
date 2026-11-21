@@ -128,7 +128,12 @@ test('in a test file, strict-type-checked leaves out exactly the rules that chec
         .map(([id]) => id),
     );
   const production = await ownRuleIds('file.ts');
-  const expected = [...selectorRules.map(({ name }) => name), 'max-lines-per-function', 'class-methods-use-this']
+  const expected = [
+    ...selectorRules.map(({ name }) => name),
+    'max-lines-per-function',
+    'class-methods-use-this',
+    'flag-argument',
+  ]
     .map((name) => `@layzee/lz-oop/${name}`)
     .sort();
 
@@ -253,6 +258,12 @@ test('recommended-type-checked turns on a typed cue of the recommended tier with
     2,
     { considerDefaultExhaustiveForUnions: false },
   ]);
+});
+
+test('every preset turns flag-argument on at error, a rule of the recommended tier', async () => {
+  const settings = await Promise.all(presetNames.map((preset) => ruleSetting(preset, '@layzee/lz-oop/flag-argument')));
+
+  assert.deepEqual(settings, presetNames.map(() => [2]));
 });
 
 test('recommended leaves out a cue of the strict tier', async () => {

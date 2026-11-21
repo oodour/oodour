@@ -1,0 +1,164 @@
+import assert from 'node:assert/strict';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import plugin from '../index.ts';
+import { testRule } from '../testing/rule-testers.ts';
+import { flagArgument } from './flag-argument.ts';
+
+const ruleId = `${plugin.meta.namespace}/flag-argument`;
+
+test('the recommended preset reports a flag argument with a message that names the smell, the parameter and the cures', () => {
+  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs.recommended);
+  const messages = new Linter({ configType: 'flat' })
+    .verify('function render(compact: boolean) { if (compact) { return 1; } return 2; }', config, 'render.ts')
+    .filter((message) => message.ruleId === ruleId)
+    .map(({ message }) => message);
+
+  assert.deepEqual(messages, [
+    "Stop and look: Flag Argument, the function 'render' branches on its parameter 'compact'. Look for callers that " +
+      'pass a constant to choose a path. Cure: Remove Flag Argument, a named function for each value, or inject the ' +
+      'object that plays the role. No automatic change: which functions or objects take over each value is a design ' +
+      'choice.',
+  ]);
+});
+
+new RuleTester({
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture') },
+  },
+}).run('flag-argument with type information', flagArgument, {
+  valid: [
+    {
+      name: 'a parameter whose type is not a set of constants',
+      code: 'function render(count: number) { if (count) { return 1; } return 2; }',
+    },
+  ],
+  invalid: [
+    {
+      name: 'a parameter whose named type is a union of literals, tested by a switch',
+      code: "type Mode = 'fast' | 'safe'; function render(mode: Mode) { switch (mode) { case 'fast': return 1; default: return 2; } }",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'a parameter whose named type is boolean, tested by an if',
+      code: 'type Compact = boolean; function render(compact: Compact) { if (compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+  ],
+});
+
+testRule(flagArgument, {
+  valid: [
+    {
+      name: 'a boolean parameter only passed on, stored or returned',
+      code: 'function render(compact: boolean) { draw(compact); const kept = compact; return compact; }',
+    },
+    {
+      name: 'a callback passed straight to a call, whose parameters the callee decides',
+      code: 'rows.map((selected: boolean) => (selected ? 1 : 2));',
+    },
+    {
+      name: 'the condition of an assertion function, which checks the value rather than choosing logic',
+      code: 'function expect(condition: boolean, field: string): asserts condition { if (!condition) { throw new Error(field); } }',
+    },
+    {
+      name: 'a this parameter',
+      code: 'function render(this: boolean) { if (this) { return 1; } return 2; }',
+    },
+    {
+      name: 'an untyped parameter tested by an if, which no call in the file passes a literal',
+      code: 'function render(compact) { if (compact) { return 1; } return 2; } render(wide);',
+    },
+  ],
+  invalid: [
+    {
+      name: 'a boolean parameter tested by an if',
+      code: 'function render(compact: boolean) { if (compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a parameter tested twice is reported once',
+      code: 'function render(compact: boolean) { if (compact) { return 1; } return compact ? 2 : 3; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a parameter with a boolean default tested by an if',
+      code: 'function render(compact = false) { if (compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter compared to a literal in an if',
+      code: 'function render(compact: boolean) { if (compact === false) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a parameter with a string default compared in an if',
+      code: "function render(mode = 'fast') { if (mode === 'safe') { return 1; } return 2; }",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'a comparison of the parameter joined with another condition in an if',
+      code: "function render(mode: 'fast' | 'safe', wide) { if (wide && mode === 'fast') { return 1; } return 2; }",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'a parameter typed as a union of string literals compared in an if',
+      code: "function render(mode: 'fast' | 'safe') { if (mode === 'fast') { return 1; } return 2; }",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'a literal-union parameter that a switch tests',
+      code: "function render(mode: 'fast' | 'safe') { switch (mode) { case 'fast': return 1; default: return 2; } }",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'a boolean parameter that a ternary tests',
+      code: 'const render = (compact: boolean) => (compact ? 1 : 2);',
+      errors: [{ messageId: 'found', data: { function: "arrow function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter that a loop tests',
+      code: 'function poll(waiting: boolean) { while (waiting) { waiting = check(); } }',
+      errors: [{ messageId: 'found', data: { function: "function 'poll'", name: 'waiting' } }],
+    },
+    {
+      name: 'a boolean parameter negated in an if',
+      code: 'function render(compact: boolean) { if (!compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a boolean parameter joined with another condition in an if',
+      code: 'function render(compact: boolean, wide) { if (wide && compact) { return 1; } return 2; }',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'an untyped parameter tested by an if, to which a call in the file passes a literal',
+      code: 'function render(compact) { if (compact) { return 1; } return 2; } render(true);',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'an untyped parameter a switch tests, to which a call in the file passes a string',
+      code: "function render(size, mode) { switch (mode) { case 'fast': return size; default: return 0; } } render(1, 'fast');",
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+    },
+    {
+      name: 'an untyped parameter compared in an if, to which a call in the file passes a number',
+      code: 'function render(level) { if (level === 2) { return 1; } return 0; } render(2);',
+      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'level' } }],
+    },
+    {
+      name: 'an arrow function held by a const, to which a call in the file passes a literal',
+      code: 'const render = (compact) => (compact ? 1 : 2); render(false);',
+      errors: [{ messageId: 'found', data: { function: "arrow function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a method that a sibling method calls with a literal',
+      code: 'class Page { show() { return this.render(true); } render(compact) { return compact ? 1 : 2; } }',
+      errors: [{ messageId: 'found', data: { function: "method 'render'", name: 'compact' } }],
+    },
+  ],
+});
