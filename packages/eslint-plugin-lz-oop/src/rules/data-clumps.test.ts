@@ -55,6 +55,21 @@ testRule(dataClumps, {
   ],
   invalid: [
     {
+      name: 'two clumps that share a name, where the larger does not hold the smaller',
+      code: `
+        function f1(a, b) {}
+        function f2(a, b) {}
+        function f3(a, b) {}
+        function g1(a, c, d) {}
+        function g2(a, c, d) {}
+        function g3(a, c, d) {}
+      `,
+      errors: [
+        { messageId: 'found', data: { clump: 'a, b', count: 3 }, line: 2 },
+        { messageId: 'found', data: { clump: 'a, c, d', count: 3 }, line: 5 },
+      ],
+    },
+    {
       name: 'a clump that a default-exported function shares with two others of its module',
       code: `
         export default function line(x, y) { return [x, y]; }

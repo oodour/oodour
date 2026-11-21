@@ -96,7 +96,8 @@ type Clump<T> = { readonly names: readonly string[]; readonly holders: readonly 
 
 /**
  * The largest groups of two or more names that three or more of the functions share, each sorted, with the functions
- * that take them in source order. Such a group is a pair's shared names, or those cut down by a third function, so the
+ * that take them, the first in the source first: lists keep the order in which their first function appears. Such a
+ * group is a pair's shared names, or those cut down by a third function, so the
  * search never walks every triple of functions. Only the largest groups are kept, unlike Reek, which also reports each
  * smaller group inside them and so reported the same function more than once.
  */
@@ -105,7 +106,7 @@ function largestClumps<T extends { readonly names: readonly string[] }>(function
   // share a name meet.
   const lists = [
     ...Map.groupBy(
-      functions.map((fn, position) => ({ fn, position, names: [...new Set(fn.names)].toSorted() })),
+      functions.map((fn) => ({ fn, names: [...new Set(fn.names)].toSorted() })),
       ({ names }) => names.join(','),
     ).values(),
   ].map((holders) => ({ names: new Set(holders[0]?.names), holders }));
@@ -121,6 +122,7 @@ function largestClumps<T extends { readonly names: readonly string[] }>(function
     const shared = new Map<number, string[]>();
 
     for (const name of names) {
+      // Stryker disable next-line ArrayDeclaration: every name searched comes from a list, so the map always holds it
       for (const index of listsHolding.get(name) ?? []) {
         append(shared, index, name);
       }
@@ -136,11 +138,9 @@ function largestClumps<T extends { readonly names: readonly string[] }>(function
     }
   };
 
-  lists.forEach(({ names, holders }, first) => {
-    sharedWith(names).forEach((shared, second) => {
-      if (second > first || (second === first && holders.length >= 2)) {
-        collect(pairs, shared);
-      }
+  lists.forEach(({ names }) => {
+    sharedWith(names).forEach((shared) => {
+      collect(pairs, shared);
     });
   });
   // Each pair meets its own two lists among the thirds, so the pair itself is collected there.
@@ -151,12 +151,11 @@ function largestClumps<T extends { readonly names: readonly string[] }>(function
   });
 
   const clumps = [...candidates.values()].flatMap((names): Clump<T>[] => {
+    // Stryker disable next-line StringLiteral,LzJsNumericLiteral: a candidate has two or more names, and the lists holding any one of them include every list the filter below keeps
     const holders = (listsHolding.get(names[0] ?? '') ?? [])
       .flatMap((index) => lists[index] ?? [])
       .filter((list) => names.every((name) => list.names.has(name)))
-      .flatMap((list) => list.holders)
-      .toSorted((a, b) => a.position - b.position)
-      .map(({ fn }) => fn);
+      .flatMap((list) => list.holders.map(({ fn }) => fn));
     const [first, ...others] = holders;
 
     return first && holders.length >= 3 ? [{ names, holders: [first, ...others] }] : [];
@@ -173,6 +172,7 @@ function largestClumps<T extends { readonly names: readonly string[] }>(function
 
   return clumps.filter(
     (clump) =>
+      // Stryker disable next-line StringLiteral,LzJsNumericLiteral: a clump has two or more names, and a larger clump that holds it holds each of them
       !(clumpsHolding.get(clump.names[0] ?? '') ?? []).some(
         (other) => other.names.size > clump.names.length && clump.names.every((name) => other.names.has(name)),
       ),
