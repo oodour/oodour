@@ -29,6 +29,11 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'an underscore member read on a local given this through a field it is stored in too',
+      code: 'class Account { _audit() { const self = (this.peer = this); return self._balance; } }',
+      options: underscore,
+    },
+    {
       name: 'an underscore member read on this',
       code: 'class Account { _audit() { return this._balance; } }',
       options: underscore,
@@ -111,6 +116,30 @@ testRule(privateAccess, {
       code: 'class Account { _audit() { const { peer: self } = this; return self._balance; } }',
       options: underscore,
       errors: [{ messageId: 'found', data: { member: '_balance' } }],
+    },
+    {
+      name: 'an underscore member read from a plain function on a module variable that a constructor gave this',
+      code: 'let instance; class Store { constructor() { instance = this; } } export function reset() { return instance._state; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_state' } }],
+    },
+    {
+      name: "an underscore member read from another class's method on a module variable that a constructor gave this",
+      code: 'let current; class A { constructor() { current = this; } } class B { peek() { return current._secret; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_secret' } }],
+    },
+    {
+      name: "an underscore member read in a field initializer on a module variable that another class's field gave this",
+      code: 'let current; class A { mine = (current = this); } class B { peek = () => current._secret; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_secret' } }],
+    },
+    {
+      name: "an underscore member read in a static block on a module variable that another class's static block gave this",
+      code: 'let current; class A { static { current = this; } } class B { static { current._secret; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_secret' } }],
     },
     {
       name: 'an underscore member read on a local that held this and now holds another object',

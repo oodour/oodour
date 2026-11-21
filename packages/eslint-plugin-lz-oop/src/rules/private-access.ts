@@ -87,7 +87,10 @@ export const privateAccess = createRule<Options, 'found'>({
           holdsOnly(
             variable,
             ({ expressions, part }) =>
-              !part && expressions.some((value) => value.type === AST_NODE_TYPES.ThisExpression),
+              !part &&
+              expressions.some(
+                (value) => value.type === AST_NODE_TYPES.ThisExpression && thisOwner(value) === thisOwner(bare),
+              ),
           ))
       );
     };
@@ -114,6 +117,26 @@ function namesEnclosingClass(object: TSESTree.Expression, ancestors: TSESTree.No
     object.type === AST_NODE_TYPES.Identifier &&
     ancestors.some((ancestor) => classNameOf(ancestor) === object.name)
   );
+}
+
+/**
+ * The node that decides what `this` means at the given node: the nearest function that is not an arrow, field
+ * initializer or static block around it, or none at the top level of a module.
+ */
+function thisOwner(node: TSESTree.Node): TSESTree.Node | undefined {
+  let owner = node.parent;
+
+  while (
+    owner &&
+    owner.type !== AST_NODE_TYPES.FunctionDeclaration &&
+    owner.type !== AST_NODE_TYPES.FunctionExpression &&
+    owner.type !== AST_NODE_TYPES.PropertyDefinition &&
+    owner.type !== AST_NODE_TYPES.StaticBlock
+  ) {
+    owner = owner.parent;
+  }
+
+  return owner;
 }
 
 /** A class's own name, or for an unnamed class expression the name of the variable that holds it. */

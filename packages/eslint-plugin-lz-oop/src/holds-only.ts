@@ -15,7 +15,8 @@ export interface HeldValue {
  * Whether the variable is given at least one value and every value passes the test. The values are those its
  * declarations, plain `=` assignments and logical assignments (`||=`, `&&=`, `??=`) give it. A variable whose value
  * comes from outside the function, as a parameter or a loop variable does, or that is written any other way, holds
- * values the rule cannot know, so it fails.
+ * values the rule cannot know, so it fails. It does not check which function declares the variable or gives it each
+ * value; a caller that cares checks that itself.
  */
 export function holdsOnly(variable: TSESLint.Scope.Variable, test: (value: HeldValue) => boolean): boolean {
   const values: HeldValue[] = [];
@@ -34,11 +35,7 @@ export function holdsOnly(variable: TSESLint.Scope.Variable, test: (value: HeldV
     if (reference.isWrite() && reference.init !== true) {
       const { parent } = reference.identifier;
 
-      if (
-        parent.type !== AST_NODE_TYPES.AssignmentExpression ||
-        parent.left !== reference.identifier ||
-        !givesItsValue(parent.operator)
-      ) {
+      if (parent.type !== AST_NODE_TYPES.AssignmentExpression || !givesItsValue(parent.operator)) {
         return false;
       }
 
