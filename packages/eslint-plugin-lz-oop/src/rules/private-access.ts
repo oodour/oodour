@@ -35,20 +35,22 @@ export const privateAccess = createRule<Options, 'found'>({
   },
   create(context, [{ underscore }]) {
     const { program, esTreeNodeToTSNodeMap } = context.sourceCode.parserServices ?? {};
-    // The compiler already rejects dot access to a private or protected member, but bracket access with a string
-    // literal gets past it, so only that form needs the type check.
-    const nonPublicName = ({ object, property }: TSESTree.MemberExpression): string | undefined => {
-      if (!program || !esTreeNodeToTSNodeMap || property.type !== AST_NODE_TYPES.Literal) {
-        return undefined;
-      }
+    // The compiler lets a class read another instance's private members through a dot, and any code read them
+    // through brackets with a string key.
+    const nonPublicName = ({ object, property, computed }: TSESTree.MemberExpression): string | undefined => {
+      const name =
+        !computed && property.type === AST_NODE_TYPES.Identifier
+          ? property.name
+          : property.type === AST_NODE_TYPES.Literal && typeof property.value === 'string'
+            ? property.value
+            : undefined;
 
-      if (typeof property.value !== 'string') {
+      if (!program || !esTreeNodeToTSNodeMap || name === undefined) {
         return undefined;
       }
 
       const checker = program.getTypeChecker();
       const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(object)));
-      const name = property.value;
       const isNonPublic = (declaration: ts.Declaration): boolean =>
         (ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) !== 0;
 
