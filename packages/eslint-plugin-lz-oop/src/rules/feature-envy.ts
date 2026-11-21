@@ -119,7 +119,7 @@ export const featureEnvy = createRule<[], 'found'>({
 
 /** Whether the variable holds a built-in collection or a literal the method creates for its own work. */
 function isTemporary(variable: TSESLint.Scope.Variable): boolean {
-  return holdsOnly(variable, createsScratch);
+  return holdsOnly(variable, ({ expressions, part }) => !part && expressions.some(createsScratch));
 }
 
 /** Whether the value is an object literal or a built-in collection made here. */
@@ -154,11 +154,12 @@ function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
         (name.parent.type === AST_NODE_TYPES.AssignmentPattern &&
           name.parent.parent.type === AST_NODE_TYPES.TSParameterProperty),
     ) ||
-    holdsOnly(
-      variable,
-      (value) =>
-        value.type === AST_NODE_TYPES.ThisExpression ||
-        (value.type === AST_NODE_TYPES.MemberExpression && value.object.type === AST_NODE_TYPES.ThisExpression),
+    holdsOnly(variable, ({ expressions }) =>
+      expressions.some(
+        (value) =>
+          value.type === AST_NODE_TYPES.ThisExpression ||
+          (value.type === AST_NODE_TYPES.MemberExpression && value.object.type === AST_NODE_TYPES.ThisExpression),
+      ),
     )
   );
 }

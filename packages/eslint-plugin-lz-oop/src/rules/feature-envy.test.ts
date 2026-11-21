@@ -32,6 +32,14 @@ testRule(featureEnvy, {
       code: 'class Cache { read(key) { let entry = this.entry; if (!entry) { entry = this.entry = load(key); } return entry.a + entry.b + entry.c + entry.d; } }',
     },
     {
+      name: 'a local that holds a field of its own object, or another field when that one is missing',
+      code: 'class Cache { read(key) { let entry = this.entry; entry ??= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
+    },
+    {
+      name: 'a local that holds a field of its own object, given an empty array first when the field is missing',
+      code: 'class Queue { add(item) { const batch = (this.batch ||= []); batch.push(item.a + item.b + item.c); return batch.length; } }',
+    },
+    {
       name: 'a local that holds a field of its own object, whose uses count as uses of its own object',
       code: 'class Cart { total(item) { const cache = this.cache; return item.a + item.b + item.c + cache.x + cache.y; } }',
     },
@@ -210,6 +218,26 @@ testRule(featureEnvy, {
     {
       name: "a loop variable given an empty array in place of a missing value, which still holds the collection's objects",
       code: 'class Cart { total(orders) { for (let order of orders) { order = order || []; return order.a + order.b + order.c + this.d; } } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: "a loop variable over an object's keys given an empty array in place of a missing value",
+      code: 'class Cart { total(orders) { for (let order in orders) { order = order || []; return order.a + order.b + order.c + this.d; } } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a local declared without a value and never given one',
+      code: 'class Cart { total() { let order; return order.a + order.b + order.c + this.d; } }',
+      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+    },
+    {
+      name: 'a local that held a field of its own object and then had more added to it, which no longer holds that field',
+      code: 'class Tag { render(item) { let label = this.label; label += this.suffix; return label.a + label.b + label.c + label.d + item.e; } }',
+      errors: [{ messageId: 'found', data: { name: 'label', count: 4, own: 2 } }],
+    },
+    {
+      name: "a local that a destructuring takes out of a new array, which holds the caller's object it was built from",
+      code: 'class Cart { total(input) { const [order] = [input]; return order.a + order.b + order.c + this.d; } }',
       errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
     },
     {

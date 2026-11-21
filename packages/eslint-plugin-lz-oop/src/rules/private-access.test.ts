@@ -107,6 +107,12 @@ testRule(privateAccess, {
       errors: [{ messageId: 'found', data: { member: '_balance' } }],
     },
     {
+      name: 'an underscore member read on a local that a destructuring takes out of this, which is a field of it',
+      code: 'class Account { _audit() { const { peer: self } = this; return self._balance; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_balance' } }],
+    },
+    {
       name: 'an underscore member read on a local that held this and now holds another object',
       code: 'class Account { _audit() { let self = this; self = this.peer; return self._balance; } }',
       options: underscore,

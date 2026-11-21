@@ -82,7 +82,13 @@ export const privateAccess = createRule<Options, 'found'>({
       return (
         bare.type === AST_NODE_TYPES.ThisExpression ||
         bare.type === AST_NODE_TYPES.Super ||
-        (variable ? holdsOnly(variable, (value) => value.type === AST_NODE_TYPES.ThisExpression) : false)
+        (variable !== null &&
+          variable !== undefined &&
+          holdsOnly(
+            variable,
+            ({ expressions, part }) =>
+              !part && expressions.some((value) => value.type === AST_NODE_TYPES.ThisExpression),
+          ))
       );
     };
 
