@@ -79,12 +79,13 @@ test("each preset turns on exactly its tier's selector rules, at error", async (
 });
 
 test('the selector rules ship in the tiers the measurements set', async () => {
-  const recommended = ['switch-on-kind', 'ts-private'];
+  const recommended = ['ts-private'];
   const strictOnly = [
     'module-let',
     'new-in-constructor',
     'optional-collaborator',
     'optional-private-field',
+    'switch-on-kind',
   ];
   const ids = (names: readonly string[]): readonly string[] => names.map((name) => `@layzee/lz-oop/${name}`).sort();
 

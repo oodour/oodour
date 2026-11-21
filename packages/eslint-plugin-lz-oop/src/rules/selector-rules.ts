@@ -14,7 +14,7 @@ const selectorRows = [
     name: 'switch-on-kind',
     description: "Report a switch on an object's kind tag",
     concept: 'Switch Statements',
-    tier: 'recommended',
+    tier: 'strict',
     selectors: ["SwitchStatement[discriminant.type='MemberExpression'][discriminant.property.name='kind']"],
     message:
       "Stop and look: Switch Statements, this switch picks behaviour by the object's kind. Look for branches that do each kind's work rather than only choose an object. Cure: Replace Conditional with Polymorphism, an object per kind, chosen once by a factory.",
