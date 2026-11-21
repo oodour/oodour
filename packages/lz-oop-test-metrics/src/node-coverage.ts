@@ -7,10 +7,14 @@ interface Counted {
   readonly count: number;
 }
 
-/** The parts of a file's `node:test` coverage the join reads: its functions and its lines. */
+/**
+ * The parts of a file's `node:test` coverage the join reads: its functions, its lines and its branches. A branch is a
+ * block that ran a different number of times than the block around it, by the line it starts on.
+ */
 export interface NodeFileCoverage {
   readonly functions: readonly (Counted & { readonly name: string })[];
   readonly lines: readonly Counted[];
+  readonly branches: readonly Counted[];
 }
 
 /**
@@ -32,18 +36,17 @@ export function measuredFromNodeCoverage(
     }
 
     const called = entries.some(({ count }) => count > 0);
-    // shortcut: no branch count from node:test yet, the next cycle joins its branches
-    const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches: 0 };
+    const nested = sites.filter((other) => other !== site && holdsLines(site, other));
+    const isOwn = ({ line }: Counted) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner));
+    const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwn(branch)).length;
+    const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches };
 
     // The first line also holds whatever ran around the function, such as `export` when the module loaded.
     if (!called) {
       return [{ ...measured, coverage: 0 }];
     }
 
-    const nested = sites.filter((other) => other !== site && holdsLines(site, other));
-    const own = coverage.lines.filter(
-      ({ line }) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner)),
-    );
+    const own = coverage.lines.filter(isOwn);
 
     return [{ ...measured, coverage: own.filter(({ count }) => count > 0).length / own.length }];
   });
