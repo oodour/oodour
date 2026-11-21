@@ -17,6 +17,12 @@ export interface MeasuredFunction extends FunctionMeasure {
   readonly file: string;
   readonly line: number;
   readonly name: string;
+  /** Whether any test ran it. */
+  readonly called: boolean;
+  /** Whether it is a method or accessor other objects may send. */
+  readonly publicMethod: boolean;
+  /** How many paths of its own branches no test took, as the coverage counts them. */
+  readonly untestedBranches: number;
 }
 
 /** A measured function with its CRAP score. */

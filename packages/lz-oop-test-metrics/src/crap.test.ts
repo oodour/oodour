@@ -15,14 +15,25 @@ test('an uncovered function adds the square of its complexity', () => {
 });
 
 test('a function whose score reaches the limit is reported, as Fallow reports it, and one below it is not', () => {
-  const atLimit = { file: 'a.ts', line: 1, name: 'settle', complexity: 5, coverage: 0 };
-  const below = { file: 'a.ts', line: 9, name: 'total', complexity: 5, coverage: 0.1 };
+  const signals = { called: true, publicMethod: false, untestedBranches: 0 };
+  const atLimit = { file: 'a.ts', line: 1, name: 'settle', complexity: 5, coverage: 0, ...signals };
+  const below = { file: 'a.ts', line: 9, name: 'total', complexity: 5, coverage: 0.1, ...signals };
 
   assert.deepEqual(reportsAtLimit([atLimit, below], 30), [{ ...atLimit, score: 30 }]);
 });
 
 test('a report reads as a stop-and-look line that names where the function is, its numbers and the cure', () => {
-  const report = { file: 'src/order.ts', line: 12, name: 'settle', complexity: 6, coverage: 0.25, score: 21.1875 };
+  const report = {
+    file: 'src/order.ts',
+    line: 12,
+    name: 'settle',
+    complexity: 6,
+    coverage: 0.25,
+    called: true,
+    publicMethod: false,
+    untestedBranches: 0,
+    score: 21.1875,
+  };
 
   assert.equal(
     reportLine(report, 20),

@@ -24,7 +24,16 @@ test("a function's coverage is the share of its lines that ran, joined to it by 
   };
 
   assert.deepEqual(measuredFromNodeCoverage('src/order.ts', [settle], coverage), [
-    { file: 'src/order.ts', line: 1, name: "Function 'settle'", complexity: 2, coverage: 0.75 },
+    {
+      file: 'src/order.ts',
+      line: 1,
+      name: "Function 'settle'",
+      complexity: 2,
+      coverage: 0.75,
+      called: true,
+      publicMethod: false,
+      untestedBranches: 0,
+    },
   ]);
 });
 

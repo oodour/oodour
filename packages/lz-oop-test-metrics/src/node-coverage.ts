@@ -23,7 +23,7 @@ export function measuredFromNodeCoverage(
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
   return sites.flatMap((site) => {
-    const { name, complexity, start } = site;
+    const { name, complexity, start, publicMethod } = site;
 
     const entries = entriesFor(site, sites, coverage.functions);
 
@@ -31,9 +31,13 @@ export function measuredFromNodeCoverage(
       return [];
     }
 
+    const called = entries.some(({ count }) => count > 0);
+    // shortcut: no branch count from node:test yet, the next cycle joins its branches
+    const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches: 0 };
+
     // The first line also holds whatever ran around the function, such as `export` when the module loaded.
-    if (entries.every(({ count }) => count === 0)) {
-      return [{ file, line: start.line, name, complexity, coverage: 0 }];
+    if (!called) {
+      return [{ ...measured, coverage: 0 }];
     }
 
     const nested = sites.filter((other) => other !== site && holdsLines(site, other));
@@ -41,7 +45,7 @@ export function measuredFromNodeCoverage(
       ({ line }) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner)),
     );
 
-    return [{ file, line: start.line, name, complexity, coverage: own.filter(({ count }) => count > 0).length / own.length }];
+    return [{ ...measured, coverage: own.filter(({ count }) => count > 0).length / own.length }];
   });
 }
 

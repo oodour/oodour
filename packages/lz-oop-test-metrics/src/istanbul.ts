@@ -7,12 +7,17 @@ export interface Range {
   readonly end: Position;
 }
 
-/** The parts of an Istanbul file coverage the join reads: functions and statements, each with its hit count. */
+/**
+ * The parts of an Istanbul file coverage the join reads: functions and statements, each with its hit count, and
+ * branches, each with a hit count per path.
+ */
 export interface IstanbulFileCoverage {
   readonly fnMap: Readonly<Record<string, { readonly name: string; readonly loc: Range }>>;
   readonly f: Readonly<Record<string, number>>;
   readonly statementMap: Readonly<Record<string, Range>>;
   readonly s: Readonly<Record<string, number>>;
+  readonly branchMap: Readonly<Record<string, { readonly loc: { readonly start: Position } }>>;
+  readonly b: Readonly<Record<string, readonly number[]>>;
 }
 
 /**
@@ -28,13 +33,18 @@ export function measuredFromIstanbul(
     range,
     ran: (coverage.s[id] ?? 0) > 0,
   }));
+  const branches = Object.entries(coverage.branchMap).map(([id, { loc }]) => ({
+    range: { start: loc.start, end: loc.start },
+    untaken: (coverage.b[id] ?? []).filter((count) => count === 0).length,
+  }));
 
   return sites.flatMap((site) => {
-    const { name, complexity, start, bodyStart } = site;
+    const { name, complexity, start, bodyStart, publicMethod } = site;
     const nested = sites.filter((other) => other !== site && within(other, site)).map(bodyOf);
-    const own = statements.filter(
-      ({ range }) => within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner)),
-    );
+    const isOwn = ({ range }: { readonly range: Range }) =>
+      within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner));
+    const own = statements.filter(isOwn);
+    const untestedBranches = branches.filter(isOwn).reduce((sum, { untaken }) => sum + untaken, 0);
 
     const id = Object.keys(coverage.fnMap).find((key) => {
       const entry = coverage.fnMap[key];
@@ -46,10 +56,10 @@ export function measuredFromIstanbul(
       return [];
     }
 
-    const called = (coverage.f[id] ?? 0) > 0 ? 1 : 0;
-    const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : called;
+    const called = (coverage.f[id] ?? 0) > 0;
+    const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : Number(called);
 
-    return [{ file, line: start.line, name, complexity, coverage: share }];
+    return [{ file, line: start.line, name, complexity, coverage: share, called, publicMethod, untestedBranches }];
   });
 }
 
@@ -85,7 +95,9 @@ function isFileCoverage(value: unknown): value is IstanbulFileCoverage {
     isRecordOf(value['fnMap'], (entry) => isRecord(entry) && typeof entry['name'] === 'string' && isRange(entry['loc'])) &&
     isRecordOf(value['f'], isCount) &&
     isRecordOf(value['statementMap'], isRange) &&
-    isRecordOf(value['s'], isCount)
+    isRecordOf(value['s'], isCount) &&
+    isRecordOf(value['branchMap'], (entry) => isRecord(entry) && isRecord(entry['loc']) && isPosition(entry['loc']['start'])) &&
+    isRecordOf(value['b'], (counts) => Array.isArray(counts) && counts.every(isCount))
   );
 }
 

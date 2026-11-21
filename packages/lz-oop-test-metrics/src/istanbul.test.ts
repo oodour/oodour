@@ -21,10 +21,21 @@ test("a function's coverage is the share of its statements that ran, joined to i
       '1': { start: { line: 3, column: 2 }, end: { line: 3, column: 21 } },
     },
     s: { '0': 1, '1': 0 },
+    branchMap: {},
+    b: {},
   };
 
   assert.deepEqual(measuredFromIstanbul('src/order.ts', [settle], coverage), [
-    { file: 'src/order.ts', line: 1, name: "Function 'settle'", complexity: 2, coverage: 0.5 },
+    {
+      file: 'src/order.ts',
+      line: 1,
+      name: "Function 'settle'",
+      complexity: 2,
+      coverage: 0.5,
+      called: true,
+      publicMethod: false,
+      untestedBranches: 0,
+    },
   ]);
 });
 
@@ -42,6 +53,8 @@ test('a function with no statements of its own is covered when a test called it,
     f: { '0': calls },
     statementMap: {},
     s: {},
+    branchMap: {},
+    b: {},
   });
 
   assert.deepEqual(
@@ -64,6 +77,8 @@ test('a function the coverage does not list, such as a class field initializer, 
     f: {},
     statementMap: { '0': { start: { line: 2, column: 10 }, end: { line: 2, column: 39 } } },
     s: { '0': 0 },
+    branchMap: {},
+    b: {},
   };
 
   assert.deepEqual(measuredFromIstanbul('src/cart.ts', [initializer], coverage), []);
@@ -91,11 +106,52 @@ test('a statement inside a nested function counts for the nested function only',
       '2': { start: { line: 3, column: 2 }, end: { line: 3, column: 20 } },
     },
     s: { '0': 1, '1': 0, '2': 1 },
+    branchMap: {},
+    b: {},
   };
 
   assert.deepEqual(
     measuredFromIstanbul('src/order.ts', [outer, inner], coverage).map(({ coverage: share }) => share),
     [1, 0],
+  );
+});
+
+test('a function counts the paths of its own branches no test took, and says whether a test called it', () => {
+  const outer: FunctionSite = { ...settle, end: { line: 6, column: 1 }, publicMethod: true };
+  const inner: FunctionSite = {
+    name: 'Arrow function',
+    complexity: 2,
+    start: { line: 4, column: 15 },
+    bodyStart: { line: 4, column: 22 },
+    end: { line: 4, column: 50 },
+    publicMethod: false,
+  };
+  const coverage = {
+    fnMap: {
+      '0': { name: 'settle', loc: { start: { line: 1, column: 37 }, end: { line: 6, column: 1 } } },
+      '1': { name: 'pick', loc: { start: { line: 4, column: 22 }, end: { line: 4, column: 50 } } },
+    },
+    f: { '0': 2, '1': 0 },
+    statementMap: { '0': { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } } },
+    s: { '0': 2 },
+    branchMap: {
+      '0': { loc: { start: { line: 2, column: 2 } } },
+      '1': { loc: { start: { line: 3, column: 9 } } },
+      '2': { loc: { start: { line: 4, column: 22 } } },
+    },
+    b: { '0': [2, 0], '1': [0, 0, 2], '2': [0, 0] },
+  };
+
+  assert.deepEqual(
+    measuredFromIstanbul('src/order.ts', [outer, inner], coverage).map(({ called, publicMethod, untestedBranches }) => ({
+      called,
+      publicMethod,
+      untestedBranches,
+    })),
+    [
+      { called: true, publicMethod: true, untestedBranches: 3 },
+      { called: false, publicMethod: false, untestedBranches: 2 },
+    ],
   );
 });
 
@@ -106,6 +162,8 @@ test("Vitest's coverage map gives each file's coverage by its path, read through
     f: { '0': 1 },
     statementMap: { '0': { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } } },
     s: { '0': 1 },
+    branchMap: { '0': { loc: { start: { line: 2, column: 2 }, end: { line: 2, column: null } } } },
+    b: { '0': [1, 0] },
   };
   const coverageMap = { toJSON: () => ({ [order.path]: order }) };
 
