@@ -8,6 +8,7 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 import plugin, { type LzOopPlugin } from './index.ts';
+import { testFileGlobs } from './presets.ts';
 import { selectorRules } from './rules/selector-rules.ts';
 
 const typeHoppingChain = '@layzee/lz-oop/type-hopping-chain';
@@ -95,8 +96,58 @@ test('the selector rules ship in the tiers the measurements set', async () => {
   );
 });
 
+const testFiles = [
+  'cart.test.ts',
+  'cart.spec.ts',
+  '__tests__/cart.ts',
+  'test/cart.ts',
+  'tests/cart.ts',
+  'spec/cart.ts',
+  'e2e/cart.ts',
+];
+
+// The same list as `testFiles` in fallow-config-lz-oop's tests: change both together.
+test('the test-file globs are the test files of RuboCop and Qlty, and declaration files', () => {
+  assert.deepEqual(testFileGlobs, [
+    '**/*.test.*',
+    '**/*.spec.*',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**',
+    '**/spec/**',
+    '**/e2e/**',
+    '**/*.d.ts',
+  ]);
+});
+
+test('in a test file, strict-type-checked leaves out exactly the rules that check production code only', async () => {
+  const ownRuleIds = async (filePath: string): Promise<ReadonlySet<string>> =>
+    new Set(
+      (await ruleSettings('strict-type-checked', filePath))
+        .filter(([id, setting]) => id.startsWith('@layzee/lz-oop/') && severityOf(setting) === 2)
+        .map(([id]) => id),
+    );
+  const production = await ownRuleIds('file.ts');
+  const expected = [...selectorRules.map(({ name }) => name), 'max-lines-per-function', 'class-methods-use-this']
+    .map((name) => `@layzee/lz-oop/${name}`)
+    .sort();
+
+  const skipped = await Promise.all(
+    testFiles.map(async (file) => {
+      const inTests = await ownRuleIds(file);
+
+      return [...production].filter((id) => !inTests.has(id)).sort();
+    }),
+  );
+
+  assert.deepEqual(
+    skipped,
+    testFiles.map(() => expected),
+  );
+});
+
 test('no preset turns a selector rule on in a test file or a declaration file', async () => {
-  const files = ['cart.test.ts', 'cart.spec.ts', '__tests__/cart.ts', 'cart.d.ts'];
+  const files = [...testFiles, 'cart.d.ts'];
 
   const settings = await Promise.all(
     presetNames.flatMap((preset) => files.map((file) => selectorRuleSettings(preset, file))),

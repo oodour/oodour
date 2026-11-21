@@ -24,6 +24,8 @@ export const classMethodsUseThis = wrapRule<Options>({
     requiresTypeChecking: false,
     remedy: { kind: 'none', because: "the method's new home is a design choice" },
     tier: 'strict',
+    // A test fake may put its behaviour on the static side.
+    skipsTestFiles: true,
   },
   message:
     'Stop and look: Feature Envy, the {{name}} uses no state of its object. Look at whose data it reads. Cure: Move ' +

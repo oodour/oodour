@@ -10,6 +10,8 @@ export const maxLinesPerFunction = wrapRule({
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',
+    // A test writes its expected values out in full, so it is long by design.
+    skipsTestFiles: true,
   },
   message:
     'Stop and look: Long Function, {{name}} has {{lineCount}} lines of code (at most {{maxLines}}). Look for steps ' +

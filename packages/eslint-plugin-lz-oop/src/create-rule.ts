@@ -20,7 +20,7 @@ export interface OopRuleDocs {
   readonly requiresTypeChecking: boolean;
   readonly remedy: Remedy;
   readonly tier: Tier;
-  /** The presets turn the rule on outside test and declaration files only, where its measured noise sits. */
+  /** The presets turn the rule on outside test and declaration files only: it checks production code alone. */
   readonly skipsTestFiles?: true;
   /**
    * The optional plugin package whose rule this one wraps. The rule is then turned on in that plugin's companion config

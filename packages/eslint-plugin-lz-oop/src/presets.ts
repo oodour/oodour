@@ -20,8 +20,20 @@ export interface OopConfig {
   readonly rules?: Readonly<Record<string, 'error' | 'off' | ['error', ...unknown[]]>>;
 }
 
-/** Where a rule with `skipsTestFiles` stays off: test files by the common naming conventions, and declaration files. */
-export const testFileGlobs = ['**/*.test.*', '**/*.spec.*', '**/__tests__/**', '**/*.d.ts'];
+/**
+ * Where a rule with `skipsTestFiles` stays off: test files by the naming conventions and test folders RuboCop and Qlty
+ * treat as tests, and declaration files. fallow-config-lz-oop uses the same test globs, without the declaration-file one.
+ */
+export const testFileGlobs = [
+  '**/*.test.*',
+  '**/*.spec.*',
+  '**/__tests__/**',
+  '**/test/**',
+  '**/tests/**',
+  '**/spec/**',
+  '**/e2e/**',
+  '**/*.d.ts',
+];
 
 // A type literal, not an interface: ESLint's `Plugin.configs` is a string-keyed record, and only a type literal is
 // assignable to one without an index signature of its own.
