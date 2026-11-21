@@ -36,6 +36,10 @@ testRule(featureEnvy, {
       code: 'class Cache { read(key) { let entry = this.entry; entry ??= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
     },
     {
+      name: 'a local given a new array that a field of its own object holds too, whose uses count as its own',
+      code: 'class Queue { add(order) { const batch = (this.batch = []); batch.push(1); batch.push(2); return order.a + order.b + order.c + order.d; } }',
+    },
+    {
       name: 'a local given a call result that a field of its own object holds too, whose uses count as its own',
       code: 'class Cache { read(key, other) { const entry = (this.entry = load(key)); return entry.a + entry.b + other.x + other.y + other.z; } }',
     },
