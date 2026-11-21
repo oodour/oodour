@@ -35,7 +35,8 @@
     "*.test.ts",
     "eslint.config.ts",
     "stryker.config.ts",
-    "stryker.*.config.ts"
+    "stryker.*.config.ts",
+    "stryker.shared.ts"
   ],
   "exclude": ["node_modules", ".oracle"]
 }

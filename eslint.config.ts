@@ -9,6 +9,7 @@ export default tseslint.config(
       '.claude/mods/*/hooks/**/*.ts',
       '.claude/mods/*/.node-test/*.ts',
       '*.test.ts',
+      'stryker*.ts',
       'packages/*/src/**/*.ts',
     ],
     extends: [tseslint.configs.strictTypeChecked],

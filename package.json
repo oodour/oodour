@@ -4,7 +4,6 @@
   "type": "module",
   "description": "Type-check, lint and test the oracle firewall's hooks, mod and tools.",
   "scripts": {
-    "test:stryker": "node --test --test-skip-pattern=\"the real (store|eval cases)\" \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\" \".claude/mods/oracle-guard/.node-test/*.test.ts\"",
     "check": "nx run-many -t typecheck lint test test-mods validate overlap citations && nx format:check --all"
   },
   "nx": {

@@ -9,8 +9,8 @@
 // Stryker finds no .ts configuration by itself, so every run names this file.
 // While iterating, add --incremental; finish with one run without it, as an incremental run copies older results into
 // the report and misses changes to test utilities, fixtures and config.
-import { pathToFileURL } from 'node:url';
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
+import { nodeTestRunnerOptions, sharedOptions } from './stryker.shared.ts';
 
 const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
 const testFiles = [
@@ -24,32 +24,18 @@ const testFiles = [
 // The sandbox holds no sealed store and no eval cases, so the tests that read the real ones are skipped.
 const skipPattern = '--test-skip-pattern=the real (store|eval cases)';
 
-async function nodeTestRunnerOptions(runner: string): Promise<PartialStrykerOptions> {
-  const packages = new URL('../../', pathToFileURL(runner));
-  const { lzNodeMutators } = await import(new URL('stryker-node-mutators/src/index.ts', packages).href);
-  const { lzJsMutators } = await import(new URL('stryker-js-mutators/src/index.ts', packages).href);
-
-  await lzNodeMutators();
-  await lzJsMutators({ LzJsNumericLiteral: true });
-
-  return {
-    testRunner: 'lz-node-test',
-    appendPlugins: [runner],
-    lzNodeTest: { testFiles, nodeArgs: [skipPattern] },
-    coverageAnalysis: 'perTest',
-  };
-}
-
 const runnerOptions: PartialStrykerOptions =
   nodeTestRunner === undefined
-    ? { testRunner: 'command', commandRunner: { command: 'npm run test:stryker' } }
-    : await nodeTestRunnerOptions(nodeTestRunner);
+    ? {
+        testRunner: 'command',
+        commandRunner: { command: ['node', '--test', skipPattern, ...testFiles].map((part) => `"${part}"`).join(' ') },
+      }
+    : { ...(await nodeTestRunnerOptions(nodeTestRunner)), lzNodeTest: { testFiles, nodeArgs: [skipPattern] } };
 
 const config: PartialStrykerOptions = {
+  ...sharedOptions,
   ...runnerOptions,
-  checkers: ['typescript'],
   tsconfigFile: 'tsconfig.json',
-  reporters: ['clear-text', 'progress', 'html'],
   mutate: [
     '.claude/hooks/*.ts',
     '!.claude/hooks/*.test.ts',
@@ -59,7 +45,6 @@ const config: PartialStrykerOptions = {
     'tools/**/*.ts',
     '!tools/**/*.test.ts',
   ],
-  ignorePatterns: ['/.oracle', '/plans', '/reports', '/dist', '/.nx', '/evals'],
   incrementalFile: 'reports/stryker-incremental/lz-oop.json',
 };
 
