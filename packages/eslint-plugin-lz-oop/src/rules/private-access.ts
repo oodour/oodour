@@ -92,6 +92,7 @@ export const privateAccess = createRule<Options, 'found'>({
               expressions.some(
                 (value) =>
                   value.type === AST_NODE_TYPES.ThisExpression &&
+                  // Stryker disable next-line MethodExpression: holdsOnly accepts only declarators, and two declarators of one variable sit in one function or static block, so some and every agree
                   variable.defs.every(({ node }) => thisOwner(node) === thisOwner(value)),
               ),
           ))

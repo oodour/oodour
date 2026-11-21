@@ -44,7 +44,10 @@ test('every rule lists the cures its report messages name, and names each in eve
     meta.docs.cures.length === 0
       ? [`${name}: no cure`]
       : Object.entries(meta.messages).flatMap(([messageId, message]) =>
-          meta.docs.cures.filter((cure) => !message.includes(cure)).map((cure) => `${name}:${messageId}: ${cure}`),
+          meta.docs.cures
+            // A blank name is in every message, so it would pass unseen.
+            .filter((cure) => cure.trim() === '' || !message.includes(cure))
+            .map((cure) => `${name}:${messageId}: '${cure}'`),
         ),
   );
 
