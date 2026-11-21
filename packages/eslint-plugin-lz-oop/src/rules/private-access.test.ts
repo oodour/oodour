@@ -93,6 +93,18 @@ testRule(privateAccess, {
       errors: [{ messageId: 'found', data: { member: '_audit' } }],
     },
     {
+      name: 'an underscore member read on a local that holds another object',
+      code: 'class Account { _audit() { const peer = this.peer; return peer._balance; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_balance' } }],
+    },
+    {
+      name: "an underscore member read at the end of a chain through another object's field",
+      code: 'function bill(order) { return order.customer._ssn; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_ssn' } }],
+    },
+    {
       name: "a class's static member reached through the class name from outside the class",
       code: 'class Emitter { static _file = null; } function track(file) { Emitter._file = file; }',
       options: underscore,

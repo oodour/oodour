@@ -20,6 +20,7 @@ test('a rule with remedy "fix" gets meta.fixable "code" and keeps its messages a
   const rule = ruleWith({ kind: 'fix' });
 
   assert.equal(rule.meta.fixable, 'code');
+  assert.equal(rule.meta.hasSuggestions, undefined);
   assert.deepEqual(rule.meta.messages, { first: 'First problem.', second: 'Second problem.' });
 });
 

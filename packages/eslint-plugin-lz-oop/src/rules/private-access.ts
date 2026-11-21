@@ -81,6 +81,7 @@ export const privateAccess = createRule<Options, 'found'>({
       return (
         bare.type === AST_NODE_TYPES.ThisExpression ||
         bare.type === AST_NODE_TYPES.Super ||
+        // Stryker disable next-line MethodExpression: a local that holds this has one definition, so some and every agree
         (variable?.defs.some(
           ({ node }) =>
             node.type === AST_NODE_TYPES.VariableDeclarator &&
