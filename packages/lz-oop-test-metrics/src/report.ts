@@ -1,4 +1,4 @@
-import { reportLine, reportsAtLimit, type MeasuredFunction } from './crap.ts';
+import { reportsAtLimit, type CrapReport, type MeasuredFunction } from './crap.ts';
 
 /** What a run prints, and whether it fails. */
 export interface TestMetricsReport {
@@ -28,7 +28,7 @@ export function testMetricsReport(
     const { publicMethod, called, untestedBranches } = measured;
 
     return [
-      ...atLimit([measured]).map((report) => reportLine(report, limit)),
+      ...atLimit([measured]).map((report) => crapLine(report, limit)),
       ...(uncalledPublicMethods && publicMethod && !called ? [uncalledLine(measured)] : []),
       ...(branches && called && untestedBranches > 0 ? [branchLine(measured)] : []),
     ];
@@ -37,18 +37,36 @@ export function testMetricsReport(
   return { lines, failed: atLimit(functions).length > 0 };
 }
 
-function branchLine({ file, line, name, untestedBranches }: MeasuredFunction): string {
-  const [paths, them] = untestedBranches === 1 ? ['path', 'it'] : ['paths', 'each of them'];
+/** How every line starts: the function's file and line, so editors and terminals link to it, then the concept. */
+function stopAndLook({ file, line, name }: MeasuredFunction): string {
+  return `${file}:${String(line)} Stop and look: Untested Code, ${name}`;
+}
+
+function crapLine(report: CrapReport, limit: number): string {
+  const rounded = String(Math.round(report.score * 10) / 10);
+  const covered = String(Math.round(report.coverage * 100));
 
   return (
-    `${file}:${String(line)} Stop and look: Untested Code, ${name} has ${String(untestedBranches)} branch ${paths} ` +
-    `no test took. Cure: a test that drives ${them} through the inputs that reach it.`
+    `${stopAndLook(report)} scores CRAP ${rounded} (limit ${String(limit)}): ${String(report.complexity)} paths, ` +
+    `${covered}% of it run by tests. Look for the paths no test takes. Cure: a test that drives each of them through ` +
+    'the inputs, or fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those ' +
+    'inputs are hard to set up.'
   );
 }
 
-function uncalledLine({ file, line, name }: MeasuredFunction): string {
+function branchLine(measured: MeasuredFunction): string {
+  const { untestedBranches } = measured;
+  const [paths, them] = untestedBranches === 1 ? ['path', 'it'] : ['paths', 'each of them'];
+
   return (
-    `${file}:${String(line)} Stop and look: Untested Code, ${name} is public and no test called it. Cure: a test ` +
-    'that sends it and checks its result, or delete it when nothing sends it.'
+    `${stopAndLook(measured)} has ${String(untestedBranches)} branch ${paths} no test took. Cure: a test that drives ` +
+    `${them} through the inputs that reach it.`
+  );
+}
+
+function uncalledLine(measured: MeasuredFunction): string {
+  return (
+    `${stopAndLook(measured)} is public and no test called it. Cure: a test that sends it and checks its result, or ` +
+    'delete it when nothing sends it.'
   );
 }

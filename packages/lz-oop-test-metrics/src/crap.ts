@@ -30,20 +30,6 @@ export interface CrapReport extends MeasuredFunction {
   readonly score: number;
 }
 
-/** One report as a stop-and-look line, led by the function's file and line so editors and terminals link to it. */
-export function reportLine({ file, line, name, complexity, coverage, score }: CrapReport, limit: number): string {
-  const where = `${file}:${String(line)}`;
-  const rounded = String(Math.round(score * 10) / 10);
-  const covered = String(Math.round(coverage * 100));
-
-  return (
-    `${where} Stop and look: Untested Code, ${name} scores CRAP ${rounded} (limit ${String(limit)}): ` +
-    `${String(complexity)} paths, ${covered}% of it run by tests. Look for the paths ` +
-    'no test takes. Cure: a test that drives each of them through the inputs, or fewer paths first (Decompose ' +
-    'Conditional, Replace Conditional with Polymorphism) when those inputs are hard to set up.'
-  );
-}
-
 /** The functions whose CRAP score reaches the limit, with their scores, in the order given. */
 export function reportsAtLimit(functions: readonly MeasuredFunction[], limit: number): CrapReport[] {
   return functions

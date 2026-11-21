@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Vitest and node:test reporters that score each function by CRAP, from the coverage of the test run.",
+  "description": "Vitest and node:test reporters that flag untested code from the coverage of the test run: CRAP scores, public methods no test called, and branch paths no test took.",
   "homepage": "https://github.com/LayZeeDK/lz-oop#readme-ov-file",
   "exports": {
     ".": "./src/index.ts",

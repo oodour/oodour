@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { crapScore, reportLine, reportsAtLimit } from './crap.ts';
+import { crapScore, reportsAtLimit } from './crap.ts';
 
 test('a function with one path that every test run covers scores its complexity', () => {
   assert.equal(crapScore({ complexity: 1, coverage: 1 }), 1);
@@ -20,27 +20,6 @@ test('a function whose score reaches the limit is reported, as Fallow reports it
   const below = { file: 'a.ts', line: 9, name: 'total', complexity: 5, coverage: 0.1, ...signals };
 
   assert.deepEqual(reportsAtLimit([atLimit, below], 30), [{ ...atLimit, score: 30 }]);
-});
-
-test('a report reads as a stop-and-look line that names where the function is, its numbers and the cure', () => {
-  const report = {
-    file: 'src/order.ts',
-    line: 12,
-    name: 'settle',
-    complexity: 6,
-    coverage: 0.25,
-    called: true,
-    publicMethod: false,
-    untestedBranches: 0,
-    score: 21.1875,
-  };
-
-  assert.equal(
-    reportLine(report, 20),
-    'src/order.ts:12 Stop and look: Untested Code, settle scores CRAP 21.2 (limit 20): 6 paths, 25% of it run by ' +
-      'tests. Look for the paths no test takes. Cure: a test that drives each of them through the inputs, or fewer ' +
-      'paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those inputs are hard to set up.',
-  );
 });
 
 test('a half-covered function adds an eighth of the square, since the uncovered part is cubed', () => {

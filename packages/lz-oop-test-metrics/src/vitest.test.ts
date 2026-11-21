@@ -16,7 +16,7 @@ test('the same Vitest run without coverage passes, so a failed run with coverage
 });
 
 for (const provider of ['v8', 'istanbul']) {
-  test(`a Vitest run with ${provider} coverage reports each function at the CRAP limit and fails, and passes the others`, () => {
+  test(`a Vitest run with ${provider} coverage reports each function at the CRAP limit and fails, and flags untested code`, () => {
     const run = spawnSync(process.execPath, [vitest, 'run', `--coverage.provider=${provider}`], {
       cwd: fixture,
       encoding: 'utf8',
@@ -31,6 +31,10 @@ for (const provider of ['v8', 'istanbul']) {
             'it run by tests. Look for the paths no test takes. Cure: a test that drives each of them through the ' +
             'inputs, or fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those ' +
             'inputs are hard to set up.',
+          "src/order.ts:26 Stop and look: Untested Code, Method 'open' is public and no test called it. Cure: a test " +
+            'that sends it and checks its result, or delete it when nothing sends it.',
+          "src/order.ts:30 Stop and look: Untested Code, Method 'charge' has 1 branch path no test took. Cure: a " +
+            'test that drives it through the inputs that reach it.',
         ],
         status: 1,
       },

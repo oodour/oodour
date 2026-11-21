@@ -21,3 +21,17 @@ export function classify(kind: string): number {
 
   return 3;
 }
+
+export class Till {
+  open(): number {
+    return 1;
+  }
+
+  charge(amount: number): number {
+    if (amount > 0) {
+      return amount;
+    }
+
+    return 0;
+  }
+}

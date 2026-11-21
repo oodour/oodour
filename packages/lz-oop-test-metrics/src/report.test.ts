@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { reportLine, type MeasuredFunction } from './crap.ts';
+import type { MeasuredFunction } from './crap.ts';
 import { testMetricsReport } from './report.ts';
 
 const settle: MeasuredFunction = {
@@ -22,16 +22,26 @@ test('a function whose CRAP score reaches the default limit of 30 gets its CRAP 
   const risky = { ...settle, coverage: 0 };
 
   assert.deepEqual(testMetricsReport([risky]), {
-    lines: [reportLine({ ...risky, score: 30 }, 30)],
+    lines: [
+      "src/order.ts:3 Stop and look: Untested Code, Method 'settle' scores CRAP 30 (limit 30): 5 paths, 0% of it " +
+        'run by tests. Look for the paths no test takes. Cure: a test that drives each of them through the inputs, or ' +
+        'fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those inputs are hard ' +
+        'to set up.',
+    ],
     failed: true,
   });
 });
 
 test('a lower limit reports a function the default would pass, and names that limit', () => {
-  const risky = { ...settle, coverage: 0.1 };
-  const [line] = testMetricsReport([risky], { limit: 20 }).lines;
+  const [line] = testMetricsReport([{ ...settle, coverage: 0.1 }], { limit: 20 }).lines;
 
-  assert.equal(line, reportLine({ ...risky, score: 23.225 }, 20));
+  assert.match(line ?? '', /scores CRAP 23\.2 \(limit 20\): 5 paths, 10% of it run by tests\./u);
+});
+
+test('a CRAP line rounds the score to a tenth and the share run to a whole percent', () => {
+  const [line] = testMetricsReport([{ ...settle, complexity: 6, coverage: 0.246 }], { limit: 20 }).lines;
+
+  assert.match(line ?? '', /scores CRAP 21\.4 \(limit 20\): 6 paths, 25% of it run by tests\./u);
 });
 
 test('a public method no test called gets a stop-and-look line of its own, and the run passes', () => {
