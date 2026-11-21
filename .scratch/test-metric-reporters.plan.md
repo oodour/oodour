@@ -65,6 +65,19 @@ One package with three entry points, so the two reporters share one core and one
 
 1. Spike the join (riskiest unknown first): the `complexity` rule's node ranges against Vitest's `fnMap` ranges and
    `node:test`'s function start lines on one fixture, for arrow functions, methods, class fields and nested functions.
+   Measured 2026-11-21 in `D:/tmp/lz-oop-reporter-spike` (Vitest 5.1.0 with `@vitest/coverage-v8`, Node.js 24.22.0, a
+   TypeScript fixture):
+   - Vitest's `fnMap` lists declarations, arrows (named after their variable), methods, getters, nested arrows and the
+     default export, each with a hit count. `decl` points at the name; `loc.start` is the first position of the body
+     (`{`, or the expression of an expression-bodied arrow, without its parentheses), which is ESLint's
+     `node.body.loc.start`. Join key: the body's start line and column. Class field initializers and static blocks have
+     no `fnMap` entry, so the Vitest reporter cannot score them.
+   - `node:test`'s `test:coverage` event gives each function's name, first line and call count, including
+     `<instance_members_initializer>` and `<static_initializer>`, and branches by line only, with no link to a function.
+     Join key: the function node's first line, with the name to tell apart two functions on one line; two anonymous
+     functions on one line stay ambiguous and are reported once, merged. Uncovered branches per function: branches whose
+     line falls inside the function's lines and outside its nested functions.
+   - Still to check: ESLint's report positions on the same fixture (step 2 starts with that test).
 2. Core, test-first (lz-tdd): score, limit, report lines.
 3. Vitest reporter with a fixture project under Vitest 5 (both coverage providers).
 4. `node:test` reporter with a fixture under Node.js 22 and 24, `--experimental-test-coverage`.
