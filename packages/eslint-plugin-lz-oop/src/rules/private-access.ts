@@ -89,7 +89,9 @@ export const privateAccess = createRule<Options, 'found'>({
             ({ expressions, part }) =>
               !part &&
               expressions.some(
-                (value) => value.type === AST_NODE_TYPES.ThisExpression && thisOwner(value) === thisOwner(bare),
+                (value) =>
+                  value.type === AST_NODE_TYPES.ThisExpression &&
+                  variable.defs.every(({ node }) => thisOwner(node) === thisOwner(value)),
               ),
           ))
       );
@@ -121,7 +123,7 @@ function namesEnclosingClass(object: TSESTree.Expression, ancestors: TSESTree.No
 
 /**
  * The node that decides what `this` means at the given node: the nearest function that is not an arrow, field
- * initializer or static block around it, or none at the top level of a module.
+ * initializer (auto-accessor fields included) or static block around it, or none at the top level of a module.
  */
 function thisOwner(node: TSESTree.Node): TSESTree.Node | undefined {
   let owner = node.parent;
@@ -131,6 +133,7 @@ function thisOwner(node: TSESTree.Node): TSESTree.Node | undefined {
     owner.type !== AST_NODE_TYPES.FunctionDeclaration &&
     owner.type !== AST_NODE_TYPES.FunctionExpression &&
     owner.type !== AST_NODE_TYPES.PropertyDefinition &&
+    owner.type !== AST_NODE_TYPES.AccessorProperty &&
     owner.type !== AST_NODE_TYPES.StaticBlock
   ) {
     owner = owner.parent;

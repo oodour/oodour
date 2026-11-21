@@ -29,6 +29,21 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'an underscore member read in a nested function on a local that holds this from the outer method',
+      code: 'class A { m() { const self = this; return function () { return self._x; }; } }',
+      options: underscore,
+    },
+    {
+      name: 'an underscore member read in a callback function on a local that holds this from the method',
+      code: 'class A { m(items) { const self = this; items.forEach(function () { self._x += 1; }); } }',
+      options: underscore,
+    },
+    {
+      name: 'an underscore member read in an object literal method on a local that holds this from the outer method',
+      code: 'class A { m() { const self = this; return { get() { return self._x; } }; } }',
+      options: underscore,
+    },
+    {
       name: 'an underscore member read on a local given this through a field it is stored in too',
       code: 'class Account { _audit() { const self = (this.peer = this); return self._balance; } }',
       options: underscore,
@@ -130,6 +145,18 @@ testRule(privateAccess, {
       errors: [{ messageId: 'found', data: { member: '_secret' } }],
     },
     {
+      name: 'an underscore member read in a function on a module variable that an auto-accessor field gave this',
+      code: 'let current; class A { accessor mine = (current = this); } function peek() { return current._secret; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_secret' } }],
+    },
+    {
+      name: 'an underscore member read on a module variable that the same method gives its this only after the read',
+      code: 'let prev; class Node { link() { if (prev) { prev._next = this; } prev = this; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_next' } }],
+    },
+    {
       name: 'an underscore member read in one function on a module variable that another function gave its this',
       code: 'let current; function bind() { current = this; } function peek() { return current._secret; }',
       options: underscore,
@@ -176,6 +203,10 @@ testRule(privateAccess, {
 
 testRuleWithTypes(privateAccess, {
   valid: [
+    {
+      name: 'a private member read in a nested function on a local that holds this from the outer method',
+      code: 'class A { private x = 0; m() { const self = this; return function () { return self.x; }; } }',
+    },
     {
       name: 'a private member read on this behind a type assertion and on a local that holds this',
       code: 'class Account { private balance = 0; audit() { const self = this; return (this as Account).balance + self.balance; } }',
