@@ -47,8 +47,19 @@ One package with three entry points, so the two reporters share one core and one
    (Claude checked the local clones), so the prefix applies; "test-metrics" is Claude's choice, named for metrics rather
    than CRAP so later columns fit without a rename.
 2. The two extra columns (public methods no test called; uncovered branches per function) ship as columns, not gates,
-   in the first version. Lars, 2026-11-21: "The two extra columns: OK", on Claude's recommendation. Their origin under
-   ADR 0003 still needs an oracle check before they ship.
+   in the first version. Lars, 2026-11-21: "The two extra columns: OK", on Claude's recommendation. Origin under
+   ADR 0003, from two oracle answers on 2026-11-21 (Claude's summary in its own words):
+   - Both columns are instances of the smell **Untested Code** (Meszaros, Ch.17, a cause of the project smell
+     Production Bugs; Ch.14 on testing the alternative paths a function takes). Cures there: stubs that drive each
+     path's inputs, or a design change that makes the code testable. Its warning is against a target on the number of
+     tests, so a column that signals and does not gate fits.
+   - Uncalled public methods: POODR Ch.9 says to test the messages an object receives by their result, to leave
+     messages it sends to itself untested, and to delete a public method no object sends. So the column counts public
+     methods only (not `#private` or TypeScript `private`), charges an untested query to the class that answers it,
+     and its message names two cures: a test of the method's result, or deleting a method nothing sends. POODR says
+     nothing on branch coverage; Ch.1 treats design metrics as proxies, which supports columns over gates.
+   - "Called" proves less than "tested": a role test can check that a method exists without calling it, and a mock
+     keeps the real code from running. The README says so.
 
 ## Steps
 
