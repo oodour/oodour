@@ -29,13 +29,22 @@ export function measuredFromIstanbul(
     ran: (coverage.s[id] ?? 0) > 0,
   }));
 
-  return sites.flatMap(({ name, complexity, start, bodyStart, end }) => {
-    const own = statements.filter(({ range }) => within(range, { start: bodyStart, end }));
+  return sites.flatMap((site) => {
+    const { name, complexity, start, bodyStart } = site;
+    const nested = sites.filter((other) => other !== site && within(other, site)).map(bodyOf);
+    const own = statements.filter(
+      ({ range }) => within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner)),
+    );
 
     return Object.values(coverage.fnMap).some(({ loc }) => samePosition(loc.start, bodyStart))
       ? [{ file, line: start.line, name, complexity, coverage: own.filter(({ ran }) => ran).length / own.length }]
       : [];
   });
+}
+
+/** From where the function's body starts to its end: the stretch whose statements are its own. */
+function bodyOf({ bodyStart, end }: FunctionSite): Range {
+  return { start: bodyStart, end };
 }
 
 function within(inner: Range, outer: Range): boolean {
