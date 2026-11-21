@@ -22,6 +22,16 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'a name with two leading underscores, a convention for meta fields and globals',
+      code: 'function kindOf(result) { return result.__typename ?? window.__pi; }',
+      options: underscore,
+    },
+    {
+      name: "a class's own static member reached through the class name inside that class",
+      code: 'class Terminal { static _handles = []; static reset() { Terminal._handles = []; } }',
+      options: underscore,
+    },
+    {
       name: 'the __proto__ accessor',
       code: 'function prototypeOf(account) { return account.__proto__; }',
       options: underscore,
@@ -33,6 +43,12 @@ testRule(privateAccess, {
       code: 'function settle(account) { return account._audit(); }',
       options: underscore,
       errors: [{ messageId: 'found', data: { member: '_audit' } }],
+    },
+    {
+      name: "a class's static member reached through the class name from outside the class",
+      code: 'class Emitter { static _file = null; } function track(file) { Emitter._file = file; }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_file' } }],
     },
     {
       name: 'an underscore member read on another instance of the same class',

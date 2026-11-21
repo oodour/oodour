@@ -55,13 +55,17 @@ export const privateAccess = createRule<Options, 'found'>({
       underscore === true &&
       property.type === AST_NODE_TYPES.Identifier &&
       property.name.startsWith('_') &&
-      property.name !== '__proto__'
+      !property.name.startsWith('__')
         ? property.name
         : undefined;
 
     return {
       MemberExpression(node) {
-        if (node.object.type === AST_NODE_TYPES.ThisExpression || node.object.type === AST_NODE_TYPES.Super) {
+        if (
+          node.object.type === AST_NODE_TYPES.ThisExpression ||
+          node.object.type === AST_NODE_TYPES.Super ||
+          namesEnclosingClass(node.object, context.sourceCode.getAncestors(node))
+        ) {
           return;
         }
 
@@ -74,3 +78,15 @@ export const privateAccess = createRule<Options, 'found'>({
     };
   },
 });
+
+/** Whether the object is the name of a class that encloses the access, which then reaches its own static member. */
+function namesEnclosingClass(object: TSESTree.Expression, ancestors: TSESTree.Node[]): boolean {
+  return (
+    object.type === AST_NODE_TYPES.Identifier &&
+    ancestors.some(
+      (ancestor) =>
+        (ancestor.type === AST_NODE_TYPES.ClassDeclaration || ancestor.type === AST_NODE_TYPES.ClassExpression) &&
+        ancestor.id?.name === object.name,
+    )
+  );
+}
