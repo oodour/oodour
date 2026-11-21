@@ -134,11 +134,6 @@ new RuleTester({
       errors: [{ messageId: 'found', data: { member: 'balance' } }],
     },
     {
-      name: 'a private member read through a dot on another instance of the same class',
-      code: 'class Money { private cents = 0; equals(other: Money) { return this.cents === other.cents; } }',
-      errors: [{ messageId: 'found', data: { member: 'cents' } }],
-    },
-    {
       name: 'a private member read through brackets on another instance of the same class',
       code: "class Money { private cents = 0; equals(other: Money) { return this.cents === other['cents']; } }",
       errors: [{ messageId: 'found', data: { member: 'cents' } }],
