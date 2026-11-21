@@ -1,6 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES, ASTUtils, type TSESTree } from '@typescript-eslint/utils';
 import ts from 'typescript';
 import { createRule } from '../create-rule.ts';
+import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 type Options = [{ readonly underscore?: boolean }];
 
@@ -70,9 +71,29 @@ export const privateAccess = createRule<Options, 'found'>({
         ? property.name
         : undefined;
 
+    const isOwnObject = (object: TSESTree.Expression): boolean => {
+      const bare = withoutTypeAssertions(object);
+      const variable =
+        bare.type === AST_NODE_TYPES.Identifier
+          ? ASTUtils.findVariable(context.sourceCode.getScope(bare), bare)
+          : undefined;
+
+      return (
+        bare.type === AST_NODE_TYPES.ThisExpression ||
+        bare.type === AST_NODE_TYPES.Super ||
+        (variable?.defs.some(
+          ({ node }) =>
+            node.type === AST_NODE_TYPES.VariableDeclarator &&
+            node.init !== null &&
+            withoutTypeAssertions(node.init).type === AST_NODE_TYPES.ThisExpression,
+        ) ??
+          false)
+      );
+    };
+
     return {
       MemberExpression(node) {
-        if (node.object.type === AST_NODE_TYPES.ThisExpression || node.object.type === AST_NODE_TYPES.Super) {
+        if (isOwnObject(node.object)) {
           return;
         }
 

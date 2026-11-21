@@ -70,6 +70,16 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'an underscore member read on this behind a type assertion',
+      code: 'class Account { _audit() { return (this as Ledger)._balance + (<Ledger>this)._fee + this!._tax; } }',
+      options: underscore,
+    },
+    {
+      name: 'an underscore member read on a local that holds this',
+      code: 'class Account { _audit() { const self = this; return () => self._balance; } }',
+      options: underscore,
+    },
+    {
       name: 'an underscore #private name read on another instance, which the language keeps private already',
       code: 'class Money { #_cents = 0; equals(other) { return other.#_cents; } }',
       options: underscore,
@@ -103,6 +113,10 @@ new RuleTester({
   },
 }).run('private-access with type information', privateAccess, {
   valid: [
+    {
+      name: 'a private member read on this behind a type assertion and on a local that holds this',
+      code: 'class Account { private balance = 0; audit() { const self = this; return (this as Account).balance + self.balance; } }',
+    },
     {
       name: 'a private member read through brackets on this',
       code: "class Account { private balance = 0; audit() { return this['balance']; } }",
