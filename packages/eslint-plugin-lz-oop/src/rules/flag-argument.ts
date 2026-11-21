@@ -6,7 +6,8 @@ import { createRule } from '../create-rule.ts';
  * Reports a parameter the body branches on when it can only hold a few constants: its declared type is `boolean` or a
  * union of literals (by the syntax, or by the checker when type information is there), its default is a boolean or a
  * string, or a call in the same file passes it a boolean, string or number literal. A callback passed straight to a call
- * is not checked, since the callee decides its parameters, nor is the parameter an assertion function asserts.
+ * is not checked, since the callee decides its parameters, nor is the parameter an assertion function asserts, nor a
+ * factory, whose every `return` creates an object.
  */
 export const flagArgument = createRule<[], 'found'>({
   name: 'flag-argument',
@@ -23,8 +24,8 @@ export const flagArgument = createRule<[], 'found'>({
     messages: {
       found:
         "Stop and look: Flag Argument, the {{function}} branches on its parameter '{{name}}'. Look for callers that " +
-        'pass a constant to choose a path. Cure: Remove Flag Argument, a named function for each value, or inject ' +
-        'the object that plays the role.',
+        'pass a constant to choose a path. Cure: Remove Flag Argument, a named function for each value; or, when ' +
+        'each value stands for a kind of behaviour, pass in an object of that kind and send it a message.',
     },
     schema: [],
     defaultOptions: [],
@@ -54,9 +55,19 @@ export const flagArgument = createRule<[], 'found'>({
       });
     };
 
+    const returnsOfEnclosingFunctions: TSESTree.ReturnStatement[][] = [];
+
     return {
-      ':function'(fn: FunctionNode) {
-        if (isCallbackArgument(fn)) {
+      ':function'() {
+        returnsOfEnclosingFunctions.push([]);
+      },
+      ReturnStatement(node) {
+        returnsOfEnclosingFunctions.at(-1)?.push(node);
+      },
+      ':function:exit'(fn: FunctionNode) {
+        const returns = returnsOfEnclosingFunctions.pop() ?? [];
+
+        if (isCallbackArgument(fn) || isFactory(returns)) {
           return;
         }
 
@@ -124,6 +135,11 @@ function isAsserted(fn: FunctionNode, name: string): boolean {
     predicate.parameterName.type === AST_NODE_TYPES.Identifier &&
     predicate.parameterName.name === name
   );
+}
+
+/** A factory branches only to choose which class to create: that choice belongs in it, and nowhere else. */
+function isFactory(returns: readonly TSESTree.ReturnStatement[]): boolean {
+  return returns.length > 0 && returns.every(({ argument }) => argument?.type === AST_NODE_TYPES.NewExpression);
 }
 
 /** A function handed straight to a call, whose parameters the callee decides. */

@@ -56,7 +56,7 @@ const selectorRows = [
       `PropertyDefinition > NewExpression.value:not([callee.name=${builtInConstructors}])`,
     ],
     message:
-      'Stop and look: Dependency Inversion, this class creates its own collaborator, so it depends on one concrete class instead of the role it needs. Look for the class it names. Cure: Dependency Injection, the collaborator as a constructor or method parameter, with this one as its default if most callers want it.',
+      'Stop and look: Dependency Inversion, this class creates its own collaborator, so it depends on one concrete class instead of the role it needs. Look for the class it names. Cure: Dependency Injection, the collaborator as a constructor or method parameter; keep this class as a default only while existing callers still need it, and let a factory be the one place that creates it when it varies.',
     because:
       'the cure adds a constructor parameter, which a person should name; a codemod that injects the collaborator is planned',
   },

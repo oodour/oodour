@@ -20,9 +20,9 @@ test('the recommended preset reports a flag argument with a message that names t
 
   assert.deepEqual(messages, [
     "Stop and look: Flag Argument, the function 'render' branches on its parameter 'compact'. Look for callers that " +
-      'pass a constant to choose a path. Cure: Remove Flag Argument, a named function for each value, or inject the ' +
-      'object that plays the role. No automatic change: which functions or objects take over each value is a design ' +
-      'choice.',
+      'pass a constant to choose a path. Cure: Remove Flag Argument, a named function for each value; or, when each ' +
+      'value stands for a kind of behaviour, pass in an object of that kind and send it a message. No automatic ' +
+      'change: which functions or objects take over each value is a design choice.',
   ]);
 });
 
@@ -70,6 +70,10 @@ testRule(flagArgument, {
       code: 'function render(this: boolean) { if (this) { return 1; } return 2; }',
     },
     {
+      name: 'a factory whose branches only choose which class to create',
+      code: "function bottleNumber(count: 0 | 1 | 2) { switch (count) { case 0: return new NoMore(); case 1: return new One(); default: return new Many(count); } }",
+    },
+    {
       name: 'an untyped parameter tested by an if, which no call in the file passes a literal',
       code: 'function render(compact) { if (compact) { return 1; } return 2; } render(wide);',
     },
@@ -79,6 +83,11 @@ testRule(flagArgument, {
       name: 'a boolean parameter tested by an if',
       code: 'function render(compact: boolean) { if (compact) { return 1; } return 2; }',
       errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+    },
+    {
+      name: 'a function that creates an object on one branch only and returns something else on another',
+      code: 'function make(cached: boolean) { if (cached) { return lastMade; } return new Report(); }',
+      errors: [{ messageId: 'found', data: { function: "function 'make'", name: 'cached' } }],
     },
     {
       name: 'a parameter tested twice is reported once',

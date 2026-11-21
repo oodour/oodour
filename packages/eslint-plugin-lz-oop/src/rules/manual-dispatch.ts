@@ -17,7 +17,7 @@ export const manualDispatch = createRule<[], 'found'>({
     messages: {
       found:
         "Stop and look: Manual Dispatch, this chain tests which class '{{subject}}' is to decide what to do. Look for " +
-        'the message each branch would send instead. Cure: define the duck type, one message every one of these ' +
+        'what this code needs from every object it tests. Cure: define the duck type, one message every one of these ' +
         'classes answers, so the code sends it without asking.',
     },
     schema: [],
