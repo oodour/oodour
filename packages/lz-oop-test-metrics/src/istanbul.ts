@@ -53,6 +53,62 @@ export function measuredFromIstanbul(
   });
 }
 
+/**
+ * Each file's coverage, by path, from the coverage map Vitest hands a reporter. Vitest types that map `unknown`; it is
+ * an Istanbul coverage map, read here through its JSON form and checked before the join trusts it.
+ */
+export function parseCoverageMap(value: unknown): Map<string, IstanbulFileCoverage> {
+  const json = hasToJSON(value) ? value.toJSON() : value;
+
+  if (!isRecord(json)) {
+    throw new Error('The coverage map is not an object of files.');
+  }
+
+  return new Map(
+    Object.entries(json).map(([path, file]) => {
+      if (!isFileCoverage(file)) {
+        throw new Error(`The coverage of ${path} is not an Istanbul file coverage.`);
+      }
+
+      return [path, file];
+    }),
+  );
+}
+
+function hasToJSON(value: unknown): value is { toJSON: () => unknown } {
+  return typeof value === 'object' && value !== null && 'toJSON' in value && typeof value.toJSON === 'function';
+}
+
+function isFileCoverage(value: unknown): value is IstanbulFileCoverage {
+  return (
+    isRecord(value) &&
+    isRecordOf(value['fnMap'], (entry) => isRecord(entry) && typeof entry['name'] === 'string' && isRange(entry['loc'])) &&
+    isRecordOf(value['f'], isCount) &&
+    isRecordOf(value['statementMap'], isRange) &&
+    isRecordOf(value['s'], isCount)
+  );
+}
+
+function isRange(value: unknown): value is Range {
+  return isRecord(value) && isPosition(value['start']) && isPosition(value['end']);
+}
+
+function isPosition(value: unknown): value is Position {
+  return isRecord(value) && isCount(value['line']) && isCount(value['column']);
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === 'number';
+}
+
+function isRecordOf(value: unknown, isEntry: (entry: unknown) => boolean): boolean {
+  return isRecord(value) && Object.values(value).every(isEntry);
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 /** From where the function's body starts to its end: the stretch whose statements are its own. */
 function bodyOf({ bodyStart, end }: FunctionSite): Range {
   return { start: bodyStart, end };

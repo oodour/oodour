@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { FunctionSite } from './functions.ts';
-import { measuredFromIstanbul } from './istanbul.ts';
+import { measuredFromIstanbul, parseCoverageMap } from './istanbul.ts';
 
 const settle: FunctionSite = {
   name: "Function 'settle'",
@@ -93,4 +93,17 @@ test('a statement inside a nested function counts for the nested function only',
     measuredFromIstanbul('src/order.ts', [outer, inner], coverage).map(({ coverage: share }) => share),
     [1, 0],
   );
+});
+
+test("Vitest's coverage map gives each file's coverage by its path, read through the map's own JSON form", () => {
+  const order = {
+    path: 'D:/app/src/order.ts',
+    fnMap: { '0': { name: 'settle', loc: { start: { line: 1, column: 37 }, end: { line: 4, column: 1 } } } },
+    f: { '0': 1 },
+    statementMap: { '0': { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } } },
+    s: { '0': 1 },
+  };
+  const coverageMap = { toJSON: () => ({ [order.path]: order }) };
+
+  assert.deepEqual([...parseCoverageMap(coverageMap)], [[order.path, order]]);
 });
