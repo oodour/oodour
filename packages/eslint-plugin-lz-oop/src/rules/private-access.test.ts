@@ -80,6 +80,11 @@ testRule(privateAccess, {
       options: underscore,
     },
     {
+      name: 'an underscore member read on a local that holds this behind a type assertion',
+      code: 'class Account { _audit() { const self = this as Ledger; return self._balance; } }',
+      options: underscore,
+    },
+    {
       name: 'an underscore #private name read on another instance, which the language keeps private already',
       code: 'class Money { #_cents = 0; equals(other) { return other.#_cents; } }',
       options: underscore,
@@ -95,6 +100,12 @@ testRule(privateAccess, {
     {
       name: 'an underscore member read on a local that holds another object',
       code: 'class Account { _audit() { const peer = this.peer; return peer._balance; } }',
+      options: underscore,
+      errors: [{ messageId: 'found', data: { member: '_balance' } }],
+    },
+    {
+      name: 'an underscore member read on a local that held this and now holds another object',
+      code: 'class Account { _audit() { let self = this; self = this.peer; return self._balance; } }',
       options: underscore,
       errors: [{ messageId: 'found', data: { member: '_balance' } }],
     },

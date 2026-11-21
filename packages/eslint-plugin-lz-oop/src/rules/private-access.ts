@@ -87,8 +87,8 @@ export const privateAccess = createRule<Options, 'found'>({
             node.type === AST_NODE_TYPES.VariableDeclarator &&
             node.init !== null &&
             withoutTypeAssertions(node.init).type === AST_NODE_TYPES.ThisExpression,
-        ) ??
-          false)
+        ) === true &&
+          variable.references.every((reference) => reference.init === true || !reference.isWrite()))
       );
     };
 
