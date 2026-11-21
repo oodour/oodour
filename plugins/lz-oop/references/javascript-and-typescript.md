@@ -268,23 +268,29 @@ Ruby returns the last expression implicitly, which blurs the line; JavaScript ne
 
 ## Private state
 
+- Follow the repository's convention for private members. Where it has none, mark them rather than lock them: TypeScript
+  `private`, or a leading underscore in JavaScript, and `#private` only where the team has chosen it. A marker tells
+  readers which members may change and leaves a later programmer, who knows more, free to depend on one at their own
+  risk. A `#` member is out of reach for every subclass, test and later caller, however good their reason.
 - `#field` is enforced at run time and is erasable syntax. TypeScript's `private` is removed at compile time, and
   `obj['field']` or a cast still reaches it.
-- The public messages are the stable surface; `#private` fields and unexported functions are free to change. A test that
+- The public messages are the stable surface; private members and unexported functions are free to change. A test that
   needs to reach private code may point to a missing collaborator: extract one when its public interface would be
-  steadier than the private code, and otherwise test through the public messages. Code still under active refactoring
-  may get a separate, temporary test. Hiding at module level, exporting only the entry points, serves the same end.
+  steadier than the private code, and otherwise test through the public messages. Messy private code whose design is not
+  settled yet may get a separate, temporary test, deleted before a refactoring starts or the first time it fails. Hiding
+  at module level, exporting only the entry points, serves the same end.
 - `#private` members cannot be spied on, and a `Proxy` around the instance cannot read them.
 - Reading your own state. Default to sending a message where that costs no more than reading the raw value, so one
   method decides what the value means and a later change to that meaning touches one place; a message also keeps a seam,
-  with no split between stored values and messages. In JavaScript a getter over a `#field` needs a second name for the
-  field, which is that cost. So: where the class already has a public getter for a value, read through it inside the
+  with no split between stored values and messages. In JavaScript a getter over a private field needs a second name for
+  the field, which is that cost. So: where the class already has a public getter for a value, read through it inside the
   class too; where a value's meaning could change or a subclass may redefine it, give it a getter that alone touches the
-  `#field`, private (`get #total()`, over a field named otherwise) when only the class reads it, and public when a
+  field, private (`private get total()`, over a field named otherwise) when only the class reads it, and public when a
   subclass may redefine it, since it is then a hook (`protected` only where no test reads it; Hooks and required steps
-  in TypeScript, below); otherwise a direct `#field` read is fine. A public field can become a getter later and no
+  in TypeScript, below); otherwise a direct read of the field is fine. A public field can become a getter later and no
   caller changes.
-- JavaScript note: `#private` is plain ES2022; a leading underscore is only a convention.
+- JavaScript note: a leading underscore is only a convention, which is what makes it a marker and not a lock; `#private`
+  is plain ES2022 for a team that wants the lock.
 
 ## Parameter lists and options objects
 
@@ -418,8 +424,8 @@ abstract class Invoice {
 
 - Make a hook a public method by default, documented as a hook. Use `protected` only where no test sends the hook; then
   test its value through the template method, on a subclass made for the test. Never make a hook `#private`: were the
-  hook `#fee`, a subclass's own `#fee` would be a second, separate member, and the parent would keep calling its own.
-  The `#private` default in Private state is for state, not for hooks.
+  hook `#fee`, a subclass's own `#fee` would be a second, separate member, and the parent would keep calling its own. A
+  repository that has chosen `#private` keeps it for state, never for hooks.
 - Mark a required step `abstract` in an `abstract` parent. The compiler then refuses a subclass that leaves it out and
   refuses `new Invoice()`. Both modifiers are erased, so the class runs under Node.js type stripping. In plain
   JavaScript, keep the parent method that throws.

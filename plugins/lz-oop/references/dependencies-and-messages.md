@@ -83,7 +83,7 @@ one, deleted the first time it fails (The message grid and Other guidance in
 For the public side, choose names that state the sender's goal rather than the receiver's procedure, names you expect to
 keep, and named arguments (an options object; Parameter lists and options objects in
 [javascript-and-typescript.md](javascript-and-typescript.md)). Make the split plain to see. In JavaScript and TypeScript
-that means everything not public is `#private` or unexported (Private state in
+that means everything not public is marked private or unexported (Private state in
 [javascript-and-typescript.md](javascript-and-typescript.md)). When a sender moves from dictating steps to stating its
 goal (Message first, above), the receiver's step methods lose their outside callers: make them private, except a method
 a subclass overrides as a hook, which stays public (`protected` only where no test sends it; Hooks and required steps in
