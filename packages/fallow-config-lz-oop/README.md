@@ -7,8 +7,8 @@ They fail the run (severity `error`, not `warn`) on a function over the complexi
 on a source file over the length limit. Checks that judge production code only (CRAP, duplication, file length) leave
 test files out. Everything else stays at Fallow's defaults.
 
-- `fallowrc.json`, the base preset: the complexity limits, CRAP and change coupling.
-- `strict.json`: the base preset plus the file-length limit.
+- `fallowrc.json`, the recommended preset: the complexity limits, CRAP and change coupling.
+- `strict.json`: the recommended preset plus the file-length limit.
 
 The limits exist so that code a person approves stays readable to that person, whoever wrote it, an agent or a human.
 
@@ -89,7 +89,7 @@ Run Fallow twice, for two jobs:
   lists files that are both complex and often changed over the year `lz-audit` counts, and never fails the run.
 
 
-## The base preset
+## The recommended preset
 
 Every key `fallowrc.json` sets, the `lz-oop` guidance it serves, and why the number. The test suite checks that this
 table and `fallowrc.json` hold the same keys and values.
@@ -112,14 +112,14 @@ table and `fallowrc.json` hold the same keys and values.
 
 ## The strict preset
 
-`strict.json` extends the base preset and adds the file-length limit. It sets these keys, which the test suite checks
+`strict.json` extends the recommended preset and adds the file-length limit. It sets these keys, which the test suite checks
 against `strict.json` the same way:
 
 <!-- strict-preset-values:start -->
 
 | Key | Value | Serves | Why this number |
 | --- | --- | --- | --- |
-| `extends` | `"./fallowrc.json"` | Everything in the base preset. | The strict preset adds to the base one and changes none of its values. |
+| `extends` | `"./fallowrc.json"` | Everything in the recommended preset. | The strict preset adds to the recommended one and changes none of its values. |
 | `rules.complexity-file-lines` | `"error"` | The file-length limit below. | Fallow turns the file-length check off until `maxFileLines` is set; with the limit set, an error fails the run like the other complexity rules. |
 | `health.maxFileLines` | `250` | `references/smells.md`, Size limits: a module that holds several jobs is long, and a person who approves code must be able to read it, whoever wrote it. | A file longer than 250 physical lines is flagged. Measured with Fallow 3.43.2 on source files: 250 flags 5.6% of lz-node-test, 4.0% of ts-morph, 14.5% of stryker-playwright-runner and 16.0% of tldraw, and 30% of lz-gardener, where the long script modules are the ones that do several jobs. At 150 to 200 the share rises to 18 to 48% and the extra files are mostly single-purpose; at 300 only one multi-job file in the four established repositories drops out. |
 | `health.thresholdOverrides` | `[{"files":["**/*.test.*","**/*.spec.*","**/__tests__/**","**/test/**","**/tests/**","**/spec/**","**/e2e/**"],"maxFileLines":0}]` | The file-length limit above, for production code only. | Test files run long for ordinary reasons: 11 to 64% of them exceed 250 lines in the same repositories. `0` turns the file-length check off for matching files; Fallow requires an override that sets `maxFileLines` to leave `functions` empty, and the cyclomatic and cognitive limits still apply to test files. |
@@ -204,5 +204,5 @@ once, turn one tool's complexity limits off:
 The complexity limits match `eslint-plugin-lz-oop`'s, so both tools hold a function to the same numbers, and there is
 no measured second set of complexity limits to back a lenient preset. The presets differ in one check instead: the
 file-length limit, which is strict only because the limit `lz-oop` takes from its sources is per class, not per file.
-The base preset leaves file length to the class limit in ESLint; the strict preset adds the 250-line backstop, which
+The recommended preset leaves file length to the class limit in ESLint; the strict preset adds the 250-line backstop, which
 holds in four of the five repositories measured.

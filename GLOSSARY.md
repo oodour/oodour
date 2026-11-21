@@ -94,7 +94,7 @@ and tighter limits. A strict preset holds both tiers; a recommended preset holds
 
 **Preset**:
 A ready-made configuration a consumer turns on whole, named for its tier: recommended or strict. Each ESLint preset also
-comes type-checked; Fallow's recommended preset is its base config.
+comes type-checked; Fallow's strict preset extends its recommended one.
 _Avoid_: profile, ruleset
 
 **Type-checked**:
