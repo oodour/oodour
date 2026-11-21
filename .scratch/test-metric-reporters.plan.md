@@ -86,3 +86,14 @@ One package with three entry points, so the two reporters share one core and one
 4. `node:test` reporter with a fixture under Node.js 22 and 24, `--experimental-test-coverage`.
 5. README with measured limits; Nx project; `npm run check` covers it.
 6. Stryker checkpoint, review round, then Lars's go-ahead for anything outward.
+
+## Found on the way
+
+- 2026-11-21 (Claude, measured on Node.js 24.22.0): an installed copy of the package stops with
+  `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, because Node.js strips no types under `node_modules` and the package
+  exports `./src/*.ts`. `eslint-plugin-lz-oop` exports `./src/index.ts` the same way (inferred to fail the same way,
+  not run). Both are private, so nothing breaks today; publishing either needs a build step that emits JavaScript and
+  exports it. Price: a `build` target and `exports` pointing at its output, per package, plus a check that the
+  installed copy loads. The README says to import by path from a checkout for now.
+- ts-morph runs its tests with mocha under Deno, so neither reporter runs there; the README's measured limits come
+  from the three `node:test` repositories (lz-node-test, stryker-playwright-runner, lz-gardener).
