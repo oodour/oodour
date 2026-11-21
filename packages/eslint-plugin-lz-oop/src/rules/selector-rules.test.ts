@@ -45,7 +45,7 @@ const selectorCases = {
       },
     ],
   },
-  'new-in-constructor': {
+  'new-collaborator': {
     valid: [
       "class Port { constructor(n) { if (n < 0) { throw new PortRangeError('negative'); } this.n = n; } }",
       'class Tally { constructor() { this.counts = new Map(); } }',
@@ -115,81 +115,6 @@ const selectorCases = {
           }
         `,
         errors: [{ messageId: 'found' }],
-      },
-    ],
-  },
-  'ts-private': {
-    valid: [
-      'class CartPage { private readonly cart = inject(CartService); }',
-      'class CartApi { constructor(private readonly http: HttpClient) {} }',
-      'class Money { private constructor(readonly cents: number) {} static of(cents: number) { return new Money(cents); } }',
-    ],
-    invalid: [
-      {
-        code: 'class Cart { private total = 0; add(n: number) { this.total += n; return this.total; } }',
-        errors: [
-          {
-            messageId: 'found',
-            suggestions: [
-              {
-                messageId: 'suggestion',
-                output: 'class Cart { #total = 0; add(n: number) { this.#total += n; return this.#total; } }',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        code: 'class Cart { private recount() { return 0; } refresh() { return this.recount(); } }',
-        errors: [
-          {
-            messageId: 'found',
-            suggestions: [
-              { messageId: 'suggestion', output: 'class Cart { #recount() { return 0; } refresh() { return this.#recount(); } }' },
-            ],
-          },
-        ],
-      },
-      {
-        code: "class Field { @Input() private label = ''; }",
-        errors: [{ messageId: 'found', suggestions: [] }],
-      },
-      {
-        code: "class Form { private label = ''; read(key: 'label') { return this[key]; } }",
-        errors: [{ messageId: 'found', suggestions: [] }],
-      },
-      {
-        code: 'class Money { private cents = 0; equals(other: Money) { return this.cents === other.cents; } }',
-        errors: [{ messageId: 'found', suggestions: [] }],
-      },
-      {
-        code: 'class Ids { private static next = 0; static take() { return Ids.next++; } }',
-        errors: [{ messageId: 'found', suggestions: [] }],
-      },
-      {
-        code: 'class Gauge { #level = 0; private level = 1; }',
-        errors: [{ messageId: 'found', suggestions: [] }],
-      },
-      {
-        code: 'class Order { private readonly lines: string[] = []; count() { return this.lines.length; } }',
-        errors: [
-          {
-            messageId: 'found',
-            suggestions: [
-              {
-                messageId: 'suggestion',
-                output: 'class Order { readonly #lines: string[] = []; count() { return this.#lines.length; } }',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        code: 'class Gauge { private get level() { return 1; } private set level(value: number) {} }',
-        errors: [
-          { messageId: 'found', suggestions: [] },
-          { messageId: 'found', suggestions: [] },
-        ],
       },
     ],
   },

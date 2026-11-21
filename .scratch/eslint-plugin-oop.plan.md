@@ -408,3 +408,10 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   ESLint plugin and which value should be the default in the recommended and strict presets? Could we make an improved
   version of the `ts-private` rule that better detects Metz/oracle conformance or is a wrapper rule with an lz-oop
   message enough?"
+- Lars, 2026-11-21, about 03:00 local: "Remove ts-private and its # fix: OK" "Build private-access as described: OK"
+  "Another instance of the same class, as in other._balance in equals: OK". Claude's proposal: one rule
+  `private-access`, concept Inappropriate Intimacy, reporting bracket access to a TypeScript `private` or `protected`
+  member from outside its class (type information) and a leading-underscore member read on another object (not
+  `this`, `super` or `__proto__`); on in test files with a test cure; the bracket form in recommended for the
+  `-type-checked` presets, the underscore form strict until a probe measures it; another instance of the same class
+  reported in production code.

@@ -1,6 +1,5 @@
 import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
 import { builtInConstructors as builtInNames } from '../built-in-constructors.ts';
-import { hashPrivateMember } from '../hash-private-member.ts';
 
 /**
  * The selector rules that two measurements over five repositories kept, each in the sharpened form that measured
@@ -20,23 +19,6 @@ const selectorRows = [
     because: 'which objects take over each branch is a design decision no tool can make',
   },
   {
-    name: 'ts-private',
-    description: 'Report the TypeScript private modifier where a #private member keeps the privacy at run time',
-    concept: 'Inappropriate Intimacy',
-    tier: 'recommended',
-    selectors: [
-      ":matches(PropertyDefinition, MethodDefinition[kind!='constructor'])[accessibility='private']:not(PropertyDefinition[value.callee.name='inject'])",
-    ],
-    message:
-      'Stop and look: Inappropriate Intimacy, TypeScript checks this private member only at compile time, so bracket access or a cast still reaches it. Look for code outside the class that reads it. Cure: make it a #private member, which the suggestion does.',
-    suggest: {
-      message: 'Make it a #private member and rename its uses through this in this class.',
-      because:
-        'a use outside the class body, through another instance, or by a computed key would break, so a person confirms the rename',
-      fix: hashPrivateMember,
-    },
-  },
-  {
     name: 'module-let',
     description: 'Report a let declared at the top level of a module',
     concept: 'Global Data',
@@ -47,7 +29,7 @@ const selectorRows = [
     because: 'the cure moves the state into an object and changes every reader, which needs a person',
   },
   {
-    name: 'new-in-constructor',
+    name: 'new-collaborator',
     description: 'Report a method or field initializer that creates its own collaborator',
     concept: 'Dependency Inversion',
     tier: 'strict',

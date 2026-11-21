@@ -79,10 +79,10 @@ test("each preset turns on exactly its tier's selector rules, at error", async (
 });
 
 test('the selector rules ship in the tiers the measurements set', async () => {
-  const recommended = ['ts-private'];
+  const recommended: readonly string[] = [];
   const strictOnly = [
     'module-let',
-    'new-in-constructor',
+    'new-collaborator',
     'optional-collaborator',
     'optional-private-field',
     'switch-on-kind',
