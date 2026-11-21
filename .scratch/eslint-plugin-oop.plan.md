@@ -388,3 +388,13 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
   `private` vs. `#` since we don't have oracle support for runtime-private to support strongly recommending `#` over
   `private`. If the opposite is true (oracle suport for compile-time private rather than runtime private), we could
   reconsider."
+- Lars, 2026-11-21, on Claude's six items: "`#` is less of an illusion, maybe except for other instances of the same
+  class being able to reach into an instance's private members." "Confirm with the oracles first: OK" "What happens to
+  the rule now: OK" (ts-private out of every preset, opt-in only; members a subclass overrides or reads exempt; skills
+  follow the repo's `private`/`#` convention, preferring `#` where it has none). new-in-constructor "Its concept: OK"
+  (Dependency Inversion) and "Its reach: OK" (any method that creates a collaborator with `new`; factories and value
+  objects exempt). class-methods-use-this "Its tier and overrides: OK" (strict, `ignoreOverrideMethods`). Change
+  coupling "Its catalogue concept: OK" (Shotgun Surgery).
+- Lars, 2026-11-21, about 01:45 local: "Usage limit has been reset but you are back on the Pro plan so use a 2-agent
+  cap and coordinate a token spend (tool use, subagent, eval, headless session) pause with other sessions when you need
+  a heavy spend like an eval round."
