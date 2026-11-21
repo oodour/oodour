@@ -6,7 +6,7 @@ test('a source ESLint cannot parse stops the count with the file and the parse e
   assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);
 });
 
-test("each function's complexity is the count ESLint's complexity rule gives, with where it and its body start", () => {
+test("each function's complexity is the count ESLint's complexity rule gives, with where it starts, its body starts and it ends", () => {
   const source = [
     'export function settle(order: Order) {',
     '  if (order.paid) { return 0; }',
@@ -26,20 +26,35 @@ test("each function's complexity is the count ESLint's complexity rule gives, wi
       complexity: 2,
       start: { line: 1, column: 7 },
       bodyStart: { line: 1, column: 37 },
+      end: { line: 4, column: 1 },
     },
     {
       name: 'Arrow function',
       complexity: 1,
       start: { line: 5, column: 22 },
       bodyStart: { line: 5, column: 37 },
+      end: { line: 5, column: 42 },
     },
     {
       name: 'Class field initializer',
       complexity: 2,
       start: { line: 7, column: 10 },
       bodyStart: { line: 7, column: 10 },
+      end: { line: 7, column: 39 },
     },
-    { name: 'Class static block', complexity: 2, start: { line: 8, column: 2 }, bodyStart: { line: 8, column: 2 } },
-    { name: "Getter 'size'", complexity: 1, start: { line: 9, column: 10 }, bodyStart: { line: 9, column: 13 } },
+    {
+      name: 'Class static block',
+      complexity: 2,
+      start: { line: 8, column: 2 },
+      bodyStart: { line: 8, column: 2 },
+      end: { line: 8, column: 38 },
+    },
+    {
+      name: "Getter 'size'",
+      complexity: 1,
+      start: { line: 9, column: 10 },
+      bodyStart: { line: 9, column: 13 },
+      end: { line: 9, column: 26 },
+    },
   ]);
 });

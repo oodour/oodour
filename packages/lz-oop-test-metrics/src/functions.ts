@@ -17,6 +17,8 @@ export interface FunctionSite {
   readonly complexity: number;
   readonly start: Position;
   readonly bodyStart: Position;
+  /** Just past its last character. */
+  readonly end: Position;
 }
 
 const functionTypes = new Set(['ArrowFunctionExpression', 'FunctionDeclaration', 'FunctionExpression']);
@@ -82,6 +84,7 @@ function siteOf(descriptor: Rule.ReportDescriptor): FunctionSite {
     complexity,
     start: positionOf(node.loc.start),
     bodyStart: positionOf((bodyOf(node).loc ?? node.loc).start),
+    end: positionOf(node.loc.end),
   };
 }
 
