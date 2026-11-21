@@ -182,12 +182,12 @@ test('the command lists the chapter numbers and stand-ins of a file together, by
 });
 
 test('ATTRIBUTION.md is found wherever it stands among the files', () => {
-  const dir = tempDir('citations-');
-  const skill = join(dir, 'SKILL.md');
-  const attribution = join(dir, 'ATTRIBUTION.md');
-  writeFileSync(skill, 'Start plain (Plain Old Objects).\n');
-  writeFileSync(attribution, '- Jo Ash: Plain Old Objects (2014).\n');
+  const [skill, attribution] = files({
+    'SKILL.md': 'Start plain (Plain Old Objects).\n',
+    'ATTRIBUTION.md': '- Jo Ash: Plain Old Objects (2014).\n',
+  });
   const lines: string[] = [];
+  assert.ok(skill && attribution);
 
   assert.equal(main([skill, attribution], (line) => lines.push(line)), 1);
   assert.deepEqual(lines, [
