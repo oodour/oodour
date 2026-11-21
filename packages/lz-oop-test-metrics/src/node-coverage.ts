@@ -25,7 +25,7 @@ export function measuredFromNodeCoverage(
   return sites.flatMap((site) => {
     const { name, complexity, start } = site;
 
-    const entries = coverage.functions.filter(({ line }) => line === start.line);
+    const entries = entriesFor(site, sites, coverage.functions);
 
     if (entries.length === 0) {
       return [];
@@ -43,6 +43,21 @@ export function measuredFromNodeCoverage(
 
     return [{ file, line: start.line, name, complexity, coverage: own.filter(({ count }) => count > 0).length / own.length }];
   });
+}
+
+/**
+ * The coverage entries on the line the function starts on. `node:test` lists the functions of one line in source order
+ * and gives no column, so when the line holds as many functions as entries, each function takes the entry in its place;
+ * otherwise it takes them all.
+ */
+function entriesFor(site: FunctionSite, sites: readonly FunctionSite[], functions: NodeFileCoverage['functions']) {
+  const onLine = functions.filter(({ line }) => line === site.start.line);
+  const neighbours = sites
+    .filter(({ start }) => start.line === site.start.line)
+    .toSorted((first, second) => first.start.column - second.start.column);
+  const entry = neighbours.length === onLine.length ? onLine[neighbours.indexOf(site)] : undefined;
+
+  return entry === undefined ? onLine : [entry];
 }
 
 /** Whether the function's lines take in every line of the other one, other than itself. */

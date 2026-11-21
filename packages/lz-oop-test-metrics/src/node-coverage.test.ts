@@ -58,3 +58,33 @@ test('the lines of a nested function count for the nested function only', () => 
     [1, 0],
   );
 });
+
+test('functions that start on one line join the entries of that line in source order', () => {
+  // export const signs = (xs) => xs.map((x) => (x > 0 ? 1 : -1));
+  const signs: FunctionSite = {
+    name: 'Arrow function',
+    complexity: 1,
+    start: { line: 1, column: 21 },
+    bodyStart: { line: 1, column: 29 },
+    end: { line: 1, column: 62 },
+  };
+  const callback: FunctionSite = {
+    name: 'Arrow function',
+    complexity: 2,
+    start: { line: 1, column: 37 },
+    bodyStart: { line: 1, column: 44 },
+    end: { line: 1, column: 61 },
+  };
+  const coverage = {
+    functions: [
+      { name: 'signs', line: 1, count: 1 },
+      { name: '', line: 1, count: 0 },
+    ],
+    lines: [{ line: 1, count: 1 }],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [callback, signs], coverage).map(({ coverage: share }) => share),
+    [0, 1],
+  );
+});
