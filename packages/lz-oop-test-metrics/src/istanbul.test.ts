@@ -107,3 +107,15 @@ test("Vitest's coverage map gives each file's coverage by its path, read through
 
   assert.deepEqual([...parseCoverageMap(coverageMap)], [[order.path, order]]);
 });
+
+test('a coverage map that is not files of Istanbul coverage stops the reporter, naming the file it could not read', () => {
+  const statementWithoutEnd = {
+    fnMap: {},
+    f: {},
+    statementMap: { '0': { start: { line: 2, column: 2 } } },
+    s: { '0': 1 },
+  };
+
+  assert.throws(() => parseCoverageMap({ 'D:/app/src/order.ts': statementWithoutEnd }), /D:\/app\/src\/order\.ts/u);
+  assert.throws(() => parseCoverageMap([]), /not an object of files/u);
+});
