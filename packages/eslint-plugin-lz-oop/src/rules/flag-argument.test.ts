@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
 import { test } from 'node:test';
-import { RuleTester } from '@typescript-eslint/rule-tester';
 import { presetMessages } from '../testing/rule-messages.ts';
-import { testRule } from '../testing/rule-testers.ts';
+import { testRule, testRuleWithTypes } from '../testing/rule-testers.ts';
 import { flagArgument } from './flag-argument.ts';
 
 test('the recommended preset reports a flag argument with a message that names the smell, the parameter and the cures', () => {
@@ -22,11 +20,7 @@ test('the recommended preset reports a flag argument with a message that names t
   ]);
 });
 
-new RuleTester({
-  languageOptions: {
-    parserOptions: { projectService: true, tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture') },
-  },
-}).run('flag-argument with type information', flagArgument, {
+testRuleWithTypes(flagArgument, {
   valid: [
     {
       name: 'a parameter whose type is not a set of constants',

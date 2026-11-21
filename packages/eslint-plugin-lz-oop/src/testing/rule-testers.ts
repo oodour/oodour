@@ -112,17 +112,32 @@ export function testRule<TMessageIds extends string, TOptions extends readonly u
   new RuleTester(testerConfigFor(rule)).run(rule.name, rule, cases);
 }
 
-/** The tester configuration a rule's own `requiresTypeChecking` asks for. */
-export function testerConfigFor(rule: OopRuleModule): RuleTesterConfig {
-  if (!rule.meta.docs.requiresTypeChecking) {
-    return {};
+/**
+ * Runs RuleTester cases against one of this plugin's rules with type information, whatever its `requiresTypeChecking`
+ * says, for a rule that reports without types and narrows its reports when they are there.
+ */
+export function testRuleWithTypes<TMessageIds extends string, TOptions extends readonly unknown[]>(
+  rule: OopRuleModule<TMessageIds, TOptions>,
+  cases: RunTests<TMessageIds, TOptions>,
+): void {
+  const problem = cureContractProblem(rule, cases);
+
+  if (problem !== undefined) {
+    throw new Error(problem);
   }
 
-  return {
-    languageOptions: {
-      parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
-    },
-  };
+  new RuleTester(typedTesterConfig).run(`${rule.name} with type information`, rule, cases);
+}
+
+const typedTesterConfig: RuleTesterConfig = {
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
+  },
+};
+
+/** The tester configuration a rule's own `requiresTypeChecking` asks for. */
+export function testerConfigFor(rule: OopRuleModule): RuleTesterConfig {
+  return rule.meta.docs.requiresTypeChecking ? typedTesterConfig : {};
 }
 
 function showsOutput({ invalid }: RunTests<string, readonly unknown[]>): boolean {

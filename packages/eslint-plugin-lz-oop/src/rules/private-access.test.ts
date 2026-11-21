@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
 import { test } from 'node:test';
-import { RuleTester } from '@typescript-eslint/rule-tester';
 import { ruleMessages } from '../testing/rule-messages.ts';
-import { testRule } from '../testing/rule-testers.ts';
+import { testRule, testRuleWithTypes } from '../testing/rule-testers.ts';
 import { privateAccess } from './private-access.ts';
 
 const underscore = [{ underscore: true }] as const;
@@ -135,11 +133,7 @@ testRule(privateAccess, {
   ],
 });
 
-new RuleTester({
-  languageOptions: {
-    parserOptions: { projectService: true, tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture') },
-  },
-}).run('private-access with type information', privateAccess, {
+testRuleWithTypes(privateAccess, {
   valid: [
     {
       name: 'a private member read on this behind a type assertion and on a local that holds this',

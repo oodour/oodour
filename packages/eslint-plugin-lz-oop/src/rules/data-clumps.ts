@@ -97,9 +97,9 @@ type Clump<T> = { readonly names: readonly string[]; readonly holders: readonly 
 /**
  * The largest groups of two or more names that three or more of the functions share, each sorted, with the functions
  * that take them, the first in the source first: lists keep the order in which their first function appears. Such a
- * group is a pair's shared names, or those cut down by a third function, so the
- * search never walks every triple of functions. Only the largest groups are kept, unlike Reek, which also reports each
- * smaller group inside them and so reported the same function more than once.
+ * group is a pair's shared names, or those cut down by a third function, so the search never walks every triple of
+ * functions. Only the largest groups are kept, unlike Reek, which also reports each smaller group inside them and so
+ * reported the same function more than once.
  */
 function largestClumps<T extends { readonly names: readonly string[] }>(functions: readonly T[]): Clump<T>[] {
   // Functions with the same names are compared once, and a name leads to the lists that hold it, so only lists that

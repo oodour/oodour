@@ -230,7 +230,7 @@ test('strict turns on max-class-lines at 110 lines, not counting blank lines and
   ]);
 });
 
-test('every preset turns off the size limits it wraps, so each problem is reported once, under our message', async () => {
+test('every preset turns off the size limits it wraps, so each place gets one report, under our message', async () => {
   const wrapped = [...Object.keys(sizeLimits), '@typescript-eslint/max-params', 'sonarjs/cognitive-complexity'];
 
   const settings = await Promise.all(

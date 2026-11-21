@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
 import { test } from 'node:test';
-import { RuleTester } from '@typescript-eslint/rule-tester';
 import { presetMessages } from '../testing/rule-messages.ts';
-import { testRule } from '../testing/rule-testers.ts';
+import { testRule, testRuleWithTypes } from '../testing/rule-testers.ts';
 import { featureEnvy } from './feature-envy.ts';
 
 test('the strict preset reports feature envy with a message that names the smell, the counts and the cures', () => {
@@ -237,11 +235,7 @@ testRule(featureEnvy, {
   ],
 });
 
-new RuleTester({
-  languageOptions: {
-    parserOptions: { projectService: true, tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture') },
-  },
-}).run('feature-envy with type information', featureEnvy, {
+testRuleWithTypes(featureEnvy, {
   valid: [
     {
       name: 'a method that works through a string parameter, which no method can move to',
