@@ -190,6 +190,8 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
   2026-11-15: "block on me before each round of runs so that I may check remaining token budget in our Claude
   plan").
 - `test` and `overlap` are never cached: both read the git-ignored store, which Nx cannot hash.
+- After editing `tools/nx/claude-plugin.ts`, run `npm exec -- nx daemon --stop`. The daemon keeps the plugin it loaded
+  and serves the old inferred `lz-oop` targets until it restarts; the next Nx command starts a fresh one.
 - Never set `NX_DAEMON=false` or pass `--skip-nx-cache` (Lars, 2026-11-15: "this Nx workspace may never use
   `NX_DAEMON=false` or `--skip-nx-cache` which is always a smell indicating a misconfigured workspace or
   environment"). Fix the configuration instead.
