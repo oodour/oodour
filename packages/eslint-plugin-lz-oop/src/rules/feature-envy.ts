@@ -86,14 +86,14 @@ export const featureEnvy = createRule<[], 'found'>({
         const variable =
           method && object.type === AST_NODE_TYPES.Identifier ? localVariable(method.node, object) : undefined;
 
-        if (!method || !variable || isTemporary(variable)) {
+        if (!method || !variable) {
           return;
         }
 
         // The types only drop a variable that would be envied; an own field of any type still counts as own.
         if (holdsOwnField(variable)) {
           method.own += 1;
-        } else if (!cannotTakeAMove(variable)) {
+        } else if (!isTemporary(variable) && !cannotTakeAMove(variable)) {
           method.uses.set(variable, (method.uses.get(variable) ?? 0) + 1);
         }
       },
@@ -118,9 +118,15 @@ export const featureEnvy = createRule<[], 'found'>({
   },
 });
 
-/** Whether the variable holds a built-in collection or a literal the method creates for its own work. */
+/**
+ * Whether the variable holds a built-in collection or a literal the method creates for its own work, or such a value
+ * in place of its own field, as in `let batch = this.batch; batch ??= []`.
+ */
 function isTemporary(variable: TSESLint.Scope.Variable): boolean {
-  return holdsOnly(variable, ({ expressions, part }) => !part && expressions.some(createsScratch));
+  return holdsOnly(
+    variable,
+    ({ expressions, part }) => !part && expressions.some((value) => createsScratch(value) || isOwnField(value)),
+  );
 }
 
 /** Whether the value is an object literal or a built-in collection made here. */
@@ -155,12 +161,14 @@ function holdsOwnField(variable: TSESLint.Scope.Variable): boolean {
         (name.parent.type === AST_NODE_TYPES.AssignmentPattern &&
           name.parent.parent.type === AST_NODE_TYPES.TSParameterProperty),
     ) ||
-    holdsOnly(variable, ({ expressions }) =>
-      expressions.some(
-        (value) =>
-          value.type === AST_NODE_TYPES.ThisExpression ||
-          (value.type === AST_NODE_TYPES.MemberExpression && value.object.type === AST_NODE_TYPES.ThisExpression),
-      ),
-    )
+    holdsOnly(variable, ({ expressions }) => expressions.some(isOwnField))
+  );
+}
+
+/** Whether the value is the method's own object or one of its fields. */
+function isOwnField(value: TSESTree.Expression): boolean {
+  return (
+    value.type === AST_NODE_TYPES.ThisExpression ||
+    (value.type === AST_NODE_TYPES.MemberExpression && value.object.type === AST_NODE_TYPES.ThisExpression)
   );
 }

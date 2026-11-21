@@ -36,8 +36,24 @@ testRule(featureEnvy, {
       code: 'class Cache { read(key) { let entry = this.entry; entry ??= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
     },
     {
+      name: 'a local that holds a field of its own object, or another field when that one is set',
+      code: 'class Cache { read(key) { let entry = this.entry; entry &&= this.spare; return entry.a + entry.b + entry.c + entry.d + key.e; } }',
+    },
+    {
+      name: "a local given a new array that a parameter's field is given too",
+      code: 'class Queue { add(order) { const batch = (order.cache = []); batch.push(1); batch.push(2); batch.push(3); return batch.length + this.size; } }',
+    },
+    {
       name: 'a local that holds a field of its own object, given an empty array first when the field is missing',
       code: 'class Queue { add(item) { const batch = (this.batch ||= []); batch.push(item.a + item.b + item.c); return batch.length; } }',
+    },
+    {
+      name: 'a local that holds a field of its own object, or an empty array the method makes when the field is missing',
+      code: 'class Queue { add() { let batch = this.batch; batch ??= []; batch.push(1); batch.push(2); batch.push(3); return batch.length; } }',
+    },
+    {
+      name: 'a local that holds a field of its own object, or a new map the method makes when the field is empty',
+      code: 'class Cache { add() { let entry = this.entry; entry ||= new Map(); entry.set(1); entry.set(2); entry.set(3); return entry.size; } }',
     },
     {
       name: 'a local that holds a field of its own object, whose uses count as uses of its own object',
