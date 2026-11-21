@@ -34,6 +34,7 @@ export const halsteadVolume = createRule<Options, 'found'>({
     docs: {
       description: 'Report a function whose Halstead volume is above the limit',
       concept: 'Long Function',
+      cures: ['Extract Function', 'Replace Temp with Query', 'Introduce Parameter Object'],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',

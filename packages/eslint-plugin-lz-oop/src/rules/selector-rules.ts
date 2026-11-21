@@ -27,6 +27,7 @@ const selectorRows = [
     name: 'switch-on-kind',
     description: "Report a switch on an object's kind tag",
     concept: 'Switch Statements',
+    cures: ['Replace Conditional with Polymorphism'],
     tier: 'strict',
     selectors: ["SwitchStatement[discriminant.type='MemberExpression'][discriminant.property.name='kind']"],
     message:
@@ -37,6 +38,7 @@ const selectorRows = [
     name: 'module-let',
     description: 'Report a let declared at the top level of a module',
     concept: 'Global Data',
+    cures: ['Encapsulate Variable'],
     tier: 'strict',
     selectors: ["Program > VariableDeclaration[kind='let']"],
     message:
@@ -47,6 +49,7 @@ const selectorRows = [
     name: 'new-collaborator',
     description: 'Report a method or field initializer that creates its own collaborator',
     concept: 'Dependency Inversion',
+    cures: ['Dependency Injection'],
     tier: 'strict',
     selectors: [
       `MethodDefinition[static=false] > FunctionExpression > BlockStatement NewExpression:not([callee.name=${ownStateConstructors}]):not(ThrowStatement > NewExpression):not(ReturnStatement > NewExpression):not(ArrowFunctionExpression > NewExpression):not(CallExpression[callee.type!='Super'] > NewExpression):not(NewExpression > NewExpression)`,
@@ -61,6 +64,7 @@ const selectorRows = [
     name: 'optional-collaborator',
     description: 'Report optional chaining on a field of `this`',
     concept: 'Conditional Complexity',
+    cures: ['Introduce Special Case'],
     tier: 'strict',
     selectors: ["MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']"],
     message:
@@ -71,6 +75,7 @@ const selectorRows = [
     name: 'optional-private-field',
     description: 'Report an optional #private field',
     concept: 'Temporary Field',
+    cures: ['Extract Class'],
     tier: 'strict',
     selectors: ["PropertyDefinition[optional=true][key.type='PrivateIdentifier']"],
     message:

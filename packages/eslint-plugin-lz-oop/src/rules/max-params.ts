@@ -32,6 +32,7 @@ export const maxParams = createRule<Options, 'found' | 'foundKeys'>({
         'Report a function that depends on more values than allowed, counting the keys read from an untyped or ' +
         'inline-typed options object',
       concept: 'Long Parameter List',
+      cures: ['Introduce Parameter Object', 'Preserve Whole Object', 'Remove Flag Argument'],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',

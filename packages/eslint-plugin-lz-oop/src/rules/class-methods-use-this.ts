@@ -21,6 +21,7 @@ export const classMethodsUseThis = wrapRule<Options>({
   docs: {
     description: 'Report a class method that uses no state of its object',
     concept: 'Feature Envy',
+    cures: ['Move Function'],
     requiresTypeChecking: false,
     remedy: { kind: 'none', because: "the method's new home is a design choice" },
     tier: 'strict',

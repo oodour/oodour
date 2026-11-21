@@ -40,6 +40,13 @@ export const abcSize = createRule<Options, 'found'>({
     docs: {
       description: 'Report a function whose ABC size is above the limit',
       concept: 'Long Function',
+      cures: [
+        'Extract Function',
+        'Replace Temp with Query',
+        'Inline Variable',
+        'Decompose Conditional',
+        'Replace Conditional with Polymorphism',
+      ],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
@@ -50,7 +57,7 @@ export const abcSize = createRule<Options, 'found'>({
         'Stop and look: Long Function, {{name}} has ABC size {{size}} (at most {{max}}) from {{a}} assignments, ' +
         '{{b}} sends and {{c}} conditions, more than a reader holds at once. Look at the largest count: ' +
         'assignments are often temporaries, sends are steps or collaborators, conditions are choices. Cure: Extract ' +
-        'Function for each step, Replace Temp with Query or Inline Temp, Decompose Conditional, or Replace ' +
+        'Function for each step, Replace Temp with Query or Inline Variable, Decompose Conditional, or Replace ' +
         'Conditional with Polymorphism.',
     },
     schema: [

@@ -132,14 +132,14 @@ chain but still leak it, since its name says nothing about the goal.
 
 1. Treat creating an object as a message too: a class that creates its collaborators is coupled to their concrete
    classes.
-2. Pass the collaborator in, and keep a lasting default for it only when the class itself can justify that player
-   without reference to where the class came from; how many callers want it is not the test. A default parameter value
-   keeps existing callers unchanged while you make the move; treat that default as a step in the refactoring and remove
-   it later. The reason: a default chosen for the first caller ties the class to the place it came from, suggests that
-   place still matters, and the class has no basis for choosing one, so once every test passes the collaborator
-   explicitly, callers always supply it. Drop the default when it names something from the class's original setting, or
-   exists only so the tests can run, and keep one the class can justify on its own, such as a system clock. A kept
-   default goes in an options object when the constructor has several optional settings.
+2. Pass the collaborator in (Dependency Injection), and keep a lasting default for it only when the class itself can
+   justify that player without reference to where the class came from; how many callers want it is not the test. A
+   default parameter value keeps existing callers unchanged while you make the move; treat that default as a step in the
+   refactoring and remove it later. The reason: a default chosen for the first caller ties the class to the place it
+   came from, suggests that place still matters, and the class has no basis for choosing one, so once every test passes
+   the collaborator explicitly, callers always supply it. Drop the default when it names something from the class's
+   original setting, or exists only so the tests can run, and keep one the class can justify on its own, such as a
+   system clock. A kept default goes in an options object when the constructor has several optional settings.
 3. Name the parameter for the role the collaborator plays (a formatter, a clock, a gateway), not for the class that
    plays it today.
 4. Where you can, pass in a ready instance rather than a class for the receiver to instantiate.

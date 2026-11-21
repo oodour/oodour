@@ -180,8 +180,9 @@ fewer than thirty steps, each ending on green and each committed on its own.
    that kind of isolation makes for fast tests.
 2. Extract one piece: add an empty method named for what the piece is, not how it is computed; copy the lines in. Where
    a local variable is built up across those lines, prefer making the new method a query that returns its part over
-   passing the variable in or storing it in a field. In the original, use the query's result and delete the temporaries
-   nothing reads any more. Run the tests.
+   passing the variable in or storing it in a field (Replace Temp with Query). In the original, use the query's result
+   and delete the temporaries nothing reads any more; a temporary whose name says no more than its expression goes too,
+   its expression written where it was read (Inline Variable). Run the tests.
 3. Choose the next piece. The order is a free choice; one that works is the largest chunk first, then whichever line is
    now longest.
 4. Remove code junk whenever you meet it, and sweep for the rest when the extractions are done: noise that adds nothing

@@ -12,6 +12,7 @@ export const repeatedSwitches = createRule<[], 'found'>({
     docs: {
       description: 'Report switches in one file that choose among the same cases',
       concept: 'Repeated Switches',
+      cures: ['Replace Conditional with Polymorphism'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'which objects take over each case is a design decision no tool can make' },
       tier: 'recommended',

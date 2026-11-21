@@ -7,6 +7,7 @@ export const complexity = wrapRule({
   docs: {
     description: 'Report a function with more paths through it than allowed',
     concept: 'Conditional Complexity',
+    cures: ['Decompose Conditional', 'Replace Conditional with Polymorphism', 'Introduce Special Case'],
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',

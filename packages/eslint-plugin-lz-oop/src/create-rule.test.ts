@@ -7,7 +7,14 @@ function ruleWith(remedy: Remedy) {
     name: 'some-rule',
     meta: {
       type: 'suggestion',
-      docs: { description: 'Some rule', concept: 'Some concept', requiresTypeChecking: false, remedy, tier: 'strict' },
+      docs: {
+        description: 'Some rule',
+        concept: 'Some concept',
+        cures: ['Some cure'],
+        requiresTypeChecking: false,
+        remedy,
+        tier: 'strict',
+      },
       messages: { first: 'First problem.', second: 'Second problem.' },
       schema: [],
       defaultOptions: [],

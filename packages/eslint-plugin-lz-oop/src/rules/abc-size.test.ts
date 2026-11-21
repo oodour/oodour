@@ -20,7 +20,7 @@ test('abc-size reports with a message that names the smell, the counts and the c
     "Stop and look: Long Function, function 'f' has ABC size 1.0 (at most 0) from 0 assignments, 1 sends and 0 " +
       'conditions, more than a reader holds at once. Look at the largest count: assignments are often temporaries, ' +
       'sends are steps or collaborators, conditions are choices. Cure: Extract Function for each step, Replace Temp ' +
-      'with Query or Inline Temp, Decompose Conditional, or Replace Conditional with Polymorphism. No automatic ' +
+      'with Query or Inline Variable, Decompose Conditional, or Replace Conditional with Polymorphism. No automatic ' +
       'change: which pieces to split out, and their names, are for a person to choose.',
   ]);
 });

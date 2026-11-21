@@ -13,6 +13,7 @@ export const privateAccess = createRule<Options, 'found'>({
     docs: {
       description: "Report code that reaches into another object's private member",
       concept: 'Inappropriate Intimacy',
+      cures: ['public message'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'which public message serves the need is a design decision no tool can make' },
       tier: 'recommended',

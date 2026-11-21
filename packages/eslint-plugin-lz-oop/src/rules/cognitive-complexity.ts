@@ -7,6 +7,7 @@ export const cognitiveComplexity = wrapRule({
   docs: {
     description: 'Report a function that is harder to follow than allowed, by its cognitive complexity',
     concept: 'Long Function',
+    cures: ['Replace Nested Conditional with Guard Clauses', 'Extract Function'],
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',

@@ -7,6 +7,7 @@ export const maxStatements = wrapRule({
   docs: {
     description: 'Report a function with more statements than allowed',
     concept: 'Long Function',
+    cures: ['Extract Function'],
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',

@@ -16,6 +16,11 @@ export type Tier = 'recommended' | 'strict';
 export interface OopRuleDocs {
   /** The concept the rule prompts a look at, a smell, a principle or a practice, which its message names first. */
   readonly concept: string;
+  /**
+   * The cures its message names: refactorings, or a practice where no refactoring fits. Each is explained in the
+   * plugin's references.
+   */
+  readonly cures: readonly [string, ...string[]];
   /** Decides whether the rule lands in a `-type-checked` preset and which tester `testRule` runs it under. */
   readonly requiresTypeChecking: boolean;
   readonly remedy: Remedy;

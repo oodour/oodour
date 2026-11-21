@@ -24,7 +24,14 @@ const wrapperOfMissingRule: unknown = wrapRule({
   name: 'some-limit',
   wraps: 'absent/some-limit',
   upstream: optionalPluginRule('eslint-plugin-absent', 'some-limit', notInstalled),
-  docs: { description: 'Some limit', concept: 'Some smell', requiresTypeChecking: false, remedy: sizeRemedy, tier: 'strict' },
+  docs: {
+    description: 'Some limit',
+    concept: 'Some smell',
+    cures: ['Some cure'],
+    requiresTypeChecking: false,
+    remedy: sizeRemedy,
+    tier: 'strict',
+  },
   message: 'Some message.',
   defaultOptions: [5],
 });

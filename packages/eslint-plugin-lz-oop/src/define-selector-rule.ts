@@ -22,6 +22,7 @@ export type SelectorRow = {
   readonly name: string;
   readonly description: string;
   readonly concept: string;
+  readonly cures: readonly [string, ...string[]];
   readonly tier: Tier;
   readonly selectors: readonly [string, ...string[]];
   readonly message: string;
@@ -57,6 +58,7 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
       docs: {
         description: row.description,
         concept: row.concept,
+        cures: row.cures,
         requiresTypeChecking: false,
         remedy: remedyOf(row),
         tier: row.tier,

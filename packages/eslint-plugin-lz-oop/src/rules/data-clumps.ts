@@ -8,6 +8,7 @@ export const dataClumps = createRule<[], 'found'>({
     docs: {
       description: 'Report a group of parameters that travels together through three or more functions of one scope',
       concept: 'Data Clumps',
+      cures: ['Introduce Parameter Object', 'Preserve Whole Object'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'which object the parameters become is a design decision no tool can make' },
       tier: 'strict',

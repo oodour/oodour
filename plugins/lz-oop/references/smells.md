@@ -140,7 +140,11 @@ Where a smell is known by two names, both are given.
   something outside, often named with an "And" joining the two jobs. A caller that only wants the answer gets the change
   too. A description of what it does that needs "and" is the cue. Cure: Separate Query from Modifier, a function that
   only answers and one that only changes.
-- **Mysterious Name**, **Global Data**, **Mutable Data** and **Loops** are smells too. For names, see Naming in
+- **Global Data**: state any code can change, a module-level variable, class-level state or a singleton, so when it
+  holds a wrong value nothing points to the code that wrote it. Cure: Encapsulate Variable, every read and write through
+  functions you can find, then narrow its reach until one class or module alone touches the state. Going further, a
+  separate option: pass that object to the code that needs it, rather than have that code reach for it.
+- **Mysterious Name**, **Mutable Data** and **Loops** are smells too. For names, see Naming in
   [duplication-and-abstraction.md](duplication-and-abstraction.md).
 
 Done looks like: each finding names one smell, says what change it makes expensive, and names the cure from the leaf

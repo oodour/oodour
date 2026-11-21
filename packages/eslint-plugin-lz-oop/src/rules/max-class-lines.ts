@@ -19,6 +19,7 @@ export const maxClassLines = createRule<Options, 'found'>({
     docs: {
       description: 'Report a class with more lines than allowed, not counting blank lines and comments',
       concept: 'Large Class',
+      cures: ['Extract Class'],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'strict',

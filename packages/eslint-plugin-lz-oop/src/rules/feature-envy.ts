@@ -18,6 +18,7 @@ export const featureEnvy = createRule<[], 'found'>({
     docs: {
       description: 'Report a method that uses another object more than its own',
       concept: 'Feature Envy',
+      cures: ['Move Function', 'Extract Function'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'which class should own the behaviour is a design decision no tool can make' },
       tier: 'strict',

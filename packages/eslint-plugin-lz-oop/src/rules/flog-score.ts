@@ -250,6 +250,7 @@ export const flogScore = createRule<Options, 'found'>({
     docs: {
       description: 'Report a function whose Flog score is above the limit',
       concept: 'Long Function',
+      cures: ['Extract Function', 'Replace Nested Conditional with Guard Clauses', 'Decompose Conditional'],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',

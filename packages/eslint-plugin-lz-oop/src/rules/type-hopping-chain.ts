@@ -47,6 +47,7 @@ export const typeHoppingChain = createRule<Options, 'chain'>({
     docs: {
       description: 'Report a chain that steps through more distinct types than allowed',
       concept: 'Message Chains',
+      cures: ['Hide Delegate'],
       requiresTypeChecking: true,
       remedy: {
         kind: 'none',

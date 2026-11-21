@@ -51,7 +51,14 @@ function ruleWith(remedy: Remedy, requiresTypeChecking = false) {
     name: 'some-rule',
     meta: {
       type: 'suggestion',
-      docs: { description: 'Some rule', concept: 'Some concept', requiresTypeChecking, remedy, tier: 'strict' },
+      docs: {
+        description: 'Some rule',
+        concept: 'Some concept',
+        cures: ['Some cure'],
+        requiresTypeChecking,
+        remedy,
+        tier: 'strict',
+      },
       messages: { problem: 'A problem.' },
       schema: [],
       defaultOptions: [],
@@ -130,6 +137,7 @@ test('testRule runs the cases against the rule as node:test subtests', () => {
       docs: {
         description: 'Reports every program',
         concept: 'Some concept',
+        cures: ['Some cure'],
         requiresTypeChecking: false,
         remedy: { kind: 'none', because: 'a person decides' },
         tier: 'strict',

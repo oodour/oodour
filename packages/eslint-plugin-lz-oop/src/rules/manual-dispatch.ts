@@ -9,6 +9,7 @@ export const manualDispatch = createRule<[], 'found'>({
     docs: {
       description: 'Report an if chain that picks what to do by testing which class an object is',
       concept: 'Manual Dispatch',
+      cures: ['duck type'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'the message every class should answer is a design decision no tool can make' },
       tier: 'strict',

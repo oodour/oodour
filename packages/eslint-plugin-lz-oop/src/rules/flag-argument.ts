@@ -16,6 +16,7 @@ export const flagArgument = createRule<[], 'found'>({
     docs: {
       description: 'Report a parameter whose value the function branches on to pick which logic runs',
       concept: 'Flag Argument',
+      cures: ['Remove Flag Argument'],
       requiresTypeChecking: false,
       remedy: { kind: 'none', because: 'which functions or objects take over each value is a design choice' },
       tier: 'recommended',

@@ -7,6 +7,7 @@ export const maxLinesPerFunction = wrapRule({
   docs: {
     description: 'Report a function with more lines than allowed, not counting blank lines and comments',
     concept: 'Long Function',
+    cures: ['Extract Function'],
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',
