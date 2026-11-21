@@ -25,7 +25,14 @@
       "inputs": [
         "default",
         {
-          "externalDependencies": ["eslint", "@typescript-eslint/parser", "typescript", "vitest", "@vitest/coverage-v8"]
+          "externalDependencies": [
+            "eslint",
+            "@typescript-eslint/parser",
+            "typescript",
+            "vitest",
+            "@vitest/coverage-v8",
+            "@vitest/coverage-istanbul"
+          ]
         },
         { "runtime": "node --version" }
       ],
