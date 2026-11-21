@@ -60,11 +60,11 @@ const selectorRows = [
   {
     name: 'optional-collaborator',
     description: 'Report optional chaining on a field of `this`',
-    concept: 'Repeated Absence Check',
+    concept: 'Conditional Complexity',
     tier: 'strict',
     selectors: ["MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']"],
     message:
-      'Stop and look: Repeated Absence Check, this asks whether a collaborator is there before talking to it. Look for the same check in other methods. Cure: Introduce Special Case, a Null Object set when this object is built, so the code just sends the message.',
+      'Stop and look: Conditional Complexity, this asks whether a collaborator is there before talking to it. Look for the same check in other methods. Cure: Introduce Special Case, a Null Object set when this object is built, so the code just sends the message.',
     because: 'the cure needs a stand-in object whose behaviour a person decides',
   },
   {

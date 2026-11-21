@@ -180,8 +180,8 @@ changing.
    proved steady, the indirection can come back out. A pair that keeps stalling, or a requirement nobody can state
    clearly, marks the code to keep easy to change.
 
-Dependency Inversion is the name for the end state: neither the higher-level class nor its collaborator depends on the
-other's concrete class; both depend on a role, favouring abstractions over concrete classes. Done: the receiver's
+**Dependency Inversion** is the name for the end state: neither the higher-level class nor its collaborator depends on
+the other's concrete class; both depend on a role, favouring abstractions over concrete classes. Done: the receiver's
 methods name no concrete player of an injected role, any class they still need is reached through a factory, and the
 concrete choice is made where objects are assembled. Keeping concrete class names out of instance methods is a
 guideline, not a law.

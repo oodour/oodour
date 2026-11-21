@@ -263,9 +263,9 @@ conditional it adds doubles the paths through the code. Do not add another. This
 up making a choice that belongs with the caller, which already knows enough to hand over the collaborator that does the
 work. Sometimes only the receiver holds what the choice needs.
 
-When a finding uses the name Flag Argument, keep to its narrower test: a caller passes a literal to pick which branch
-runs. A value computed at run time and passed along is not one, and an option stored on an object and tested in many of
-its methods is Repeated Switches.
+When a finding uses the name **Flag Argument**, keep to its narrower test: a caller passes a literal to pick which
+branch runs. A value computed at run time and passed along is not one, and an option stored on an object and tested in
+many of its methods is Repeated Switches.
 
 1. Name the flag list as the problem, not its length: the shared code is doing several jobs and the callers pick between
    them.

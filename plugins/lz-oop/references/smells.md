@@ -14,8 +14,8 @@ Where a smell is known by two names, both are given.
 
 ## Bloaters: code grown too large to handle
 
-- **Long Method** (also Long Function): what matters is the gap between what a function is for and how it does it, not
-  its line count. Cure and steps: Taking a long method apart in [changing-in-steps.md](changing-in-steps.md); Size
+- **Long Method** (also **Long Function**): what matters is the gap between what a function is for and how it does it,
+  not its line count. Cure and steps: Taking a long method apart in [changing-in-steps.md](changing-in-steps.md); Size
   limits, at the end of this family, say when to stop and look.
 - **Large Class**: too many fields or too much code. Callers that each use only part of it show where to split it;
   Extract Class. Steps: Does it do one job? in [judging-design.md](judging-design.md).
@@ -39,8 +39,24 @@ Where a smell is known by two names, both are given.
 ## Object-oriented tools misused
 
 - **Switch Statements**: [variants-and-conditionals.md](variants-and-conditionals.md), Choosing versus doing. Its
-  narrower form, Repeated Switches, is the same branching copied in several places; that leaf also reads a single switch
-  that does each kind's work as this smell.
+  narrower form, **Repeated Switches**, is the same branching copied in several places; that leaf also reads a single
+  switch that does each kind's work as this smell.
+- **Conditional Complexity**: conditional logic that has grown hard to follow and grows again with each new case: many
+  paths through one function, blocks nested inside blocks, or the same check for a missing collaborator before each
+  message to it. The cure depends on what the branches do. To untangle the conditions themselves, use Decompose
+  Conditional, Consolidate Conditional Expression, guard clauses that return early in place of the nesting, or Extract
+  Function for an inner block that does one job; try these first. A pattern pays off only once the branching stays
+  complex after them, and each of the following is an option to weigh, not a rule. Branches that choose behaviour by
+  kind point to Replace Conditional with Polymorphism or Replace Conditional Logic with Strategy. Branches that follow
+  an object's changes of state point to the State pattern, one object per state that decides which state comes next, and
+  branches that add optional extras to a class with a small interface point to Move Embellishment to Decorator. The same
+  check for a missing collaborator, repeated in several places, points to Introduce Special Case, of which a Null Object
+  is one form. Steps: [variants-and-conditionals.md](variants-and-conditionals.md), What a conditional's form tells the
+  reader.
+- **Manual Dispatch**: code that tests which class an object is, or whether it has a method, to decide what to send it,
+  making by hand the choice that polymorphism would make. Cure: name the role (the duck type) that every one of those
+  objects plays, give each the one message the code needs, and send it without asking (Replace Conditional with
+  Polymorphism). Steps: [variants-and-conditionals.md](variants-and-conditionals.md), Signs of a role nobody named.
 - **Refused Bequest**: [inheritance.md](inheritance.md), When a hierarchy is safe to keep. The smell is usually faint
   when a subclass skips some inherited behaviour, and serious when it rejects the parent's interface; then replace the
   inheritance with delegation.

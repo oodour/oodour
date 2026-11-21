@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { rules } from './index.ts';
 import { selectorRules } from './selector-rules.ts';
@@ -23,6 +24,19 @@ test('every rule names the concept it prompts a look at and describes itself', (
   );
 
   assert.deepEqual(undocumented, []);
+});
+
+test("every rule's concept is an entry, a name in bold, in the plugin's references", () => {
+  const referencesDir = join(import.meta.dirname, '..', '..', '..', '..', 'plugins', 'lz-oop', 'references');
+  const references = readdirSync(referencesDir)
+    .filter((file) => file.endsWith('.md'))
+    .map((file) => readFileSync(join(referencesDir, file), 'utf8'))
+    .join('\n');
+  const uncatalogued = Object.entries(rules).flatMap(([name, { meta }]) =>
+    references.includes(`**${meta.docs.concept}**`) ? [] : [`${name}: ${meta.docs.concept}`],
+  );
+
+  assert.deepEqual(uncatalogued, []);
 });
 
 test('every report message is a stop-and-look message that names its concept and a cure', () => {
