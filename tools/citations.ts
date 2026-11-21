@@ -32,7 +32,11 @@ export function attributedTitles(text: string): string[] {
     .replace(/\n {2,}/g, ' ')
     .split('\n')
     .flatMap((line) => {
-      const books = [...line.matchAll(/_([^_]+)_/g)].map((match) => (match[1] ?? '').split(':')[0] ?? '');
+      const books = [...line.matchAll(/_([^_]+)_/g)].map(
+        // Stryker disable next-line StringLiteral: the group always takes part in a match, so the default never applies
+        ([, title = '']) =>
+          title.replace(/:.*/, ''),
+      );
 
       if (books.length > 0) {
         return books;
@@ -40,7 +44,7 @@ export function attributedTitles(text: string): string[] {
 
       const works = line.slice(line.indexOf(': ') + 2).split('; ');
 
-      return works.flatMap((work) => /^(.+) \(\d{4}\)\.?$/.exec(work.trim())?.[1] ?? []);
+      return works.flatMap((work) => /(.+) \(\d{4}\)\.?$/.exec(work.trim())?.[1] ?? []);
     })
     .map((title) => title.trim())
     .filter((title) => /\s/.test(title));
@@ -72,6 +76,7 @@ function citationsIn(file: string, titles: readonly string[] | undefined): Chapt
 // you write").
 export function main(files: readonly string[], print: (line: string) => void): number {
   const attribution = files.find((file) => basename(file) === 'ATTRIBUTION.md');
+  // Stryker disable next-line ArrayDeclaration: a seeded title differs only for a file that quotes the seeded text itself
   const titles = attribution === undefined ? [] : attributedTitles(readFileSync(attribution, 'utf8'));
   let count = 0;
 

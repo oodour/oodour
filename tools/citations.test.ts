@@ -69,6 +69,32 @@ test('titles come from the attribution list: book titles before a subtitle, date
   ]);
 });
 
+test('titles and stand-ins on one line are reported in the order they appear', () => {
+  assert.deepEqual(
+    sourceMentions('Read Plain Old Objects, as she says, then Tested Code.', ['Plain Old Objects', 'Tested Code']),
+    [
+      { line: 1, column: 6, citation: 'Plain Old Objects' },
+      { line: 1, column: 28, citation: 'she' },
+      { line: 1, column: 43, citation: 'Tested Code' },
+    ],
+  );
+});
+
+test('a dated title is taken only when the date ends its entry, and with no author it is taken whole', () => {
+  const attribution = [
+    '- Jo Ash: Plain Old Objects (2014) revised; Tested Code (2015)',
+    '- Quiet Small Things (2016).',
+  ].join('\n');
+
+  assert.deepEqual(attributedTitles(attribution), ['Tested Code', 'Quiet Small Things']);
+});
+
+test('a title is taken without the spaces around it', () => {
+  const attribution = ['- Jo Ash, _Plain Objects : A Primer_ (2018).', '- Jo Ash: Tested  Code  (2015).  '].join('\n');
+
+  assert.deepEqual(attributedTitles(attribution), ['Plain Objects', 'Tested  Code']);
+});
+
 test('a list item wrapped over several lines keeps its titles whole', () => {
   const attribution = '- Jo Ash: Go Ahead, Make a\n  Mess (2012); Why We Argue:\n  Style (2017).';
 
@@ -138,6 +164,35 @@ test('the command reports titles named in ATTRIBUTION.md and stand-ins in every 
     `${skill}:1:14: Plain Old Objects`,
     `${skill}:2:4: she`,
     '[ERROR] 2 citation(s); name the practice instead and credit the work in ATTRIBUTION.md',
+  ]);
+});
+
+test('the command lists the chapter numbers and stand-ins of a file together, by line and then column', () => {
+  const [skill] = files({ 'SKILL.md': 'As she says (Ch.3).\nSee Ch.4.\n' });
+  const lines: string[] = [];
+  assert.ok(skill);
+
+  assert.equal(main([skill], (line) => lines.push(line)), 1);
+  assert.deepEqual(lines, [
+    `${skill}:1:4: she`,
+    `${skill}:1:14: Ch.3`,
+    `${skill}:2:5: Ch.4`,
+    '[ERROR] 3 citation(s); name the practice instead and credit the work in ATTRIBUTION.md',
+  ]);
+});
+
+test('ATTRIBUTION.md is found wherever it stands among the files', () => {
+  const dir = tempDir('citations-');
+  const skill = join(dir, 'SKILL.md');
+  const attribution = join(dir, 'ATTRIBUTION.md');
+  writeFileSync(skill, 'Start plain (Plain Old Objects).\n');
+  writeFileSync(attribution, '- Jo Ash: Plain Old Objects (2014).\n');
+  const lines: string[] = [];
+
+  assert.equal(main([skill, attribution], (line) => lines.push(line)), 1);
+  assert.deepEqual(lines, [
+    `${skill}:1:14: Plain Old Objects`,
+    '[ERROR] 1 citation(s); name the practice instead and credit the work in ATTRIBUTION.md',
   ]);
 });
 
