@@ -382,3 +382,9 @@ words, `source-overlap` on prose, oracle-reviewer gate on the README.
 - Lars, 2026-11-21: "Reek-derived rules: OK" (flag-argument and repeated-switches recommended, manual-dispatch,
   data-clumps and feature-envy strict, switch-on-kind to strict, Data Clumps and Feature Envy limits from probe runs)
   and "Full Grit keynote: OK" (stop at the highlights clip).
+- Lars, 2026-11-21, on ts-private: "I would still prefer `#` when it doesn't conflict with oracle, seeing that it wasn't
+  ratified and baseline/widely available when 99 Bottles was written and that it works for both TypeScript and
+  JavaScript (has no other access modifiers). Of course, the lz-oop plugin should follow existing repo conventions for
+  `private` vs. `#` since we don't have oracle support for runtime-private to support strongly recommending `#` over
+  `private`. If the opposite is true (oracle suport for compile-time private rather than runtime private), we could
+  reconsider."
