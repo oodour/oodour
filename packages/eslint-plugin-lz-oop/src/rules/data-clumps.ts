@@ -82,6 +82,8 @@ function parameterNames(fn: TSESTree.FunctionLike): readonly string[] {
 /**
  * The largest groups of two or more names that three or more of the functions share, each sorted. Such a group is a
  * pair's shared names, or those cut down by a third function, so the search never walks every triple of functions.
+ * Only the largest groups are kept, unlike Reek, which also reports each smaller group inside them and so reported the
+ * same function more than once.
  */
 function largestClumps(lists: readonly (readonly string[])[]): string[][] {
   const pairs = new Map<string, string[]>();

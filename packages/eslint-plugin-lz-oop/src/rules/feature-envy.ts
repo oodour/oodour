@@ -2,7 +2,10 @@ import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescr
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
 
-/** How many more uses another object needs than the method's own object; a lead of one was mostly noise in the probe. */
+/**
+ * How many more uses another object needs than the method's own object. Reek reports any lead, but on real code a lead
+ * of one was mostly noise: about 15% of those reports were true, and every lead-of-one report sampled was weak or false.
+ */
 const minimumLead = 2;
 
 export const featureEnvy = createRule<[], 'found'>({
@@ -73,6 +76,7 @@ export const featureEnvy = createRule<[], 'found'>({
         }
 
         // A spread of every count would pass one argument per local and overflow the stack in generated code.
+        // Stryker disable next-line LzJsNumericLiteral: every count is at least 1, so a start of 1 or below finds the same highest count
         const most = [...method.uses.values()].reduce((highest, count) => Math.max(highest, count), 0);
 
         [...method.uses]
