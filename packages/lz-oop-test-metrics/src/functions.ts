@@ -47,7 +47,7 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
     },
   };
 
-  new Linter().verify(
+  const [fatal] = new Linter().verify(
     source,
     [
       {
@@ -59,6 +59,11 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
     ],
     file,
   );
+
+  // The counting rule reports through `sites`, never as a message, so any message is a parse failure.
+  if (fatal) {
+    throw new Error(`${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`);
+  }
 
   return sites;
 }

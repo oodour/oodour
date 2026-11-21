@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { functionsIn } from './functions.ts';
 
+test('a source ESLint cannot parse stops the count with the file and the parse error, rather than counting nothing', () => {
+  assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);
+});
+
 test("each function's complexity is the count ESLint's complexity rule gives, with where it and its body start", () => {
   const source = [
     'export function settle(order: Order) {',
