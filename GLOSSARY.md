@@ -38,7 +38,7 @@ The named refactoring or practice that removes a smell, as a finding or a lint m
 _Avoid_: fix (a fix is one kind of remedy), solution
 
 **Hot spot**:
-A file that both changes often and is complex, where an audit reads first.
+A file that both changes often and is complex.
 _Avoid_: hotspot (except as the name of a tool's flag)
 
 **Churn**:
@@ -51,12 +51,12 @@ The most of something a size or complexity rule allows, such as lines per functi
 _Avoid_: threshold, ceiling
 
 **Stop-and-look message**:
-A lint message that names the smell a report points at, what to look for, and its cure, for a rule that cannot tell a
-real problem from a harmless one. It asks for a decision: change the code or disable the rule with a reason.
+The form of every message of this plugin's lint rules: it names the concept the report points at, says what it found
+and what to look for, and names the cure. It asks for a decision: change the code or disable the rule with a reason.
 
 **Remedy**:
 How a reader gets from a report to changed code, in order of preference: an automatic fix, a suggestion to accept, or
-none. A remedy other than a fix says why nothing earlier in that order is possible.
+none.
 _Avoid_: cure (the cure is the refactoring; the remedy is how the rule helps apply it)
 
 **Wrapped rule**:
@@ -72,21 +72,26 @@ The plugin's list of existing rules from ESLint, typescript-eslint and third-par
 or a duplicate.
 
 **Cue**:
-An existing rule the presets turn on because it points at a concept.
+An existing rule a preset or a companion config turns on because it points at a concept.
 
 **Conflict**:
-An existing rule that works against a concept, off in every preset.
+An existing rule that works against a concept, off in every preset and available as a config of its own.
 
 **Duplicate**:
 An existing rule that one of this plugin's own rules replaces, off in every preset so one problem is reported once.
 
 **Tier**:
-Which presets turn a rule on: recommended rules are on in every preset, strict rules only in the strict presets.
+The level of guidance a rule belongs to: recommended, for every consumer, or strict, for a team that wants more rules
+and tighter limits. A strict preset holds both tiers; a recommended preset holds only the first.
 
 **Preset**:
-A ready-made configuration a consumer turns on whole: recommended or strict, each with a variant that needs type
-information.
+A ready-made configuration a consumer turns on whole, named for its tier: recommended or strict. Each ESLint preset also
+comes type-checked; Fallow's recommended preset is its base config.
 _Avoid_: profile, ruleset
+
+**Type-checked**:
+Said of a preset that gives its rules the type information of the TypeScript program, and of a rule that needs it. A
+rule that needs type information runs only in the type-checked presets; the other presets are plain.
 
 **Companion config**:
 A configuration that turns on the rules that wrap or cue an optional third-party plugin, for a consumer who has
@@ -112,5 +117,5 @@ entry; the **curator** is the only agent that adds to or changes the store.
 The rules and checks that keep the store's wording out of every session's context and everything it writes.
 
 **Overlap**:
-A run of six or more words a text shares with the store.
+A run of words a text shares with the store, long enough that chance does not explain it.
 _Avoid_: copy, match
