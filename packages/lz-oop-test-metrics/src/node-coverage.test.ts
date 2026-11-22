@@ -259,6 +259,33 @@ test('a callback that starts on the first line of the function around it keeps i
   );
 });
 
+test('the line a callback starts on, when it is also the first line of the function around it, counts for both', () => {
+  // export const pick = (xs, a) => (a ? xs.map((x) => {
+  //   return x;
+  // }) : []);
+  const pick: FunctionSite = { ...settle, start: { line: 1, column: 20 }, end: { line: 3, column: 9 } };
+  const callback: FunctionSite = { ...settle, start: { line: 1, column: 43 }, end: { line: 3, column: 1 } };
+  const coverage = {
+    functions: [
+      { name: 'pick', line: 1, count: 1 },
+      { name: '', line: 1, count: 0 },
+    ],
+    lines: [1, 0, 0].map((count, index) => ({ line: index + 1, count })),
+    branches: [{ line: 1, count: 0 }],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [pick, callback], coverage).map(({ called, untestedBranches }) => [
+      called,
+      untestedBranches,
+    ]),
+    [
+      [true, 1],
+      [false, 1],
+    ],
+  );
+});
+
 test('functions that start on one line join its entries in source order, whatever starts on other lines', () => {
   const signs: FunctionSite = {
     name: 'Arrow function',

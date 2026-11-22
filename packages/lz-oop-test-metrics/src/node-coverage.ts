@@ -42,7 +42,9 @@ export function measuredFromNodeCoverage(
 
     const called = entries.some(({ count }) => count > 0);
     const nested = sites.filter((other) => other !== site && within(other, site));
-    const isOwn = ({ line }: Counted) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner));
+    // A line holds no columns, so the first line stays the function's own when a function inside it starts there too.
+    const isOwn = ({ line }: Counted) =>
+      isOnLines(line, site) && (line === start.line || !nested.some((inner) => isOnLines(line, inner)));
     const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwn(branch)).length;
     const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches };
 
