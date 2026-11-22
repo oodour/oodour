@@ -66,7 +66,7 @@ function branchLine(measured: MeasuredFunction): string {
 
 function uncalledLine(measured: MeasuredFunction): string {
   return (
-    `${stopAndLook(measured)} is public and no test called it. Cure: a test that sends it and checks its result, or ` +
-    'delete it when nothing sends it.'
+    `${stopAndLook(measured)} is public and no test called it. Cure: a test that sends it and checks what it ` +
+    'returns or the message it passes on, or delete it when nothing sends it.'
   );
 }

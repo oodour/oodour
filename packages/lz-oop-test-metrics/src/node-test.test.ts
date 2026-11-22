@@ -37,7 +37,7 @@ test('a node:test run with coverage reports each function at the CRAP limit and 
           'inputs, or fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those ' +
           'inputs are hard to set up.',
         "src/order.ts:26 Stop and look: Untested Code, Method 'open' is public and no test called it. Cure: a test " +
-          'that sends it and checks its result, or delete it when nothing sends it.',
+          'that sends it and checks what it returns or the message it passes on, or delete it when nothing sends it.',
         "src/order.ts:30 Stop and look: Untested Code, Method 'charge' has 1 branch path no test took. Cure: a test " +
           'that drives it through the inputs that reach it.',
       ],
