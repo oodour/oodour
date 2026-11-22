@@ -40,22 +40,18 @@ export function measuredFromIstanbul(
 
   return sites.flatMap((site) => {
     const { name, complexity, start, bodyStart, publicMethod } = site;
+    const listed = Object.entries(coverage.fnMap).find(([, { loc }]) => samePosition(loc.start, bodyStart));
+
+    if (listed === undefined) {
+      return [];
+    }
+
+    const [id] = listed;
     const nested = sites.filter((other) => other !== site && within(other, site)).map(bodyOf);
     const isOwn = ({ range }: { readonly range: Range }) =>
       within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner));
     const own = statements.filter(isOwn);
     const untestedBranches = branches.filter(isOwn).reduce((sum, { untaken }) => sum + untaken, 0);
-
-    const id = Object.keys(coverage.fnMap).find((key) => {
-      const entry = coverage.fnMap[key];
-
-      return entry !== undefined && samePosition(entry.loc.start, bodyStart);
-    });
-
-    if (id === undefined) {
-      return [];
-    }
-
     const called = (coverage.f[id] ?? 0) > 0;
     const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : Number(called);
 
