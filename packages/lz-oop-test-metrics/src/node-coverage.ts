@@ -1,5 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import type { FunctionSite } from './functions.ts';
+import { isBefore, type FunctionSite } from './functions.ts';
 
 /** A line, or a function by the line it starts on, with how many times the tests ran it. */
 interface Counted {
@@ -50,8 +50,10 @@ export function measuredFromNodeCoverage(
     }
 
     const own = coverage.lines.filter(isOwn);
+    // A function whose every line it shares with a function inside it has no line of its own, so a call covers it.
+    const share = own.length > 0 ? own.filter(({ count }) => count > 0).length / own.length : 1;
 
-    return [{ ...measured, coverage: own.filter(({ count }) => count > 0).length / own.length }];
+    return [{ ...measured, coverage: share }];
   });
 }
 
@@ -70,9 +72,9 @@ function entriesFor(site: FunctionSite, sites: readonly FunctionSite[], function
   return entry === undefined ? onLine : [entry];
 }
 
-/** Whether the function's lines take in every line of the other one, other than itself. */
+/** Whether the other function starts after this one, by line and column, and ends no later: one inside it. */
 function holdsLines(outer: FunctionSite, inner: FunctionSite): boolean {
-  return isOnLines(inner.start.line, outer) && isOnLines(inner.end.line, outer) && inner.start.line > outer.start.line;
+  return isBefore(outer.start, inner.start) && !isBefore(outer.end, inner.end);
 }
 
 function isOnLines(line: number, { start, end }: FunctionSite): boolean {

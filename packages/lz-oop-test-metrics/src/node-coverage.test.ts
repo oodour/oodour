@@ -207,6 +207,34 @@ test('functions that start on one line join the entries of that line in source o
   );
 });
 
+test('a callback that starts on the first line of the function around it keeps its lines and branches to itself', () => {
+  // export const signs = (xs) => xs.map((x) => {
+  //   if (x > 0) { return 1; }
+  //   return -1;
+  // });
+  const signs: FunctionSite = { ...settle, start: { line: 1, column: 21 }, end: { line: 4, column: 2 } };
+  const callback: FunctionSite = { ...settle, start: { line: 1, column: 37 }, end: { line: 4, column: 1 } };
+  const coverage = {
+    functions: [
+      { name: 'signs', line: 1, count: 1 },
+      { name: '', line: 1, count: 1 },
+    ],
+    lines: [1, 1, 0, 1].map((count, index) => ({ line: index + 1, count })),
+    branches: [{ line: 3, count: 0 }],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [signs, callback], coverage).map(({ coverage: share, untestedBranches }) => [
+      share,
+      untestedBranches,
+    ]),
+    [
+      [1, 0],
+      [0.75, 1],
+    ],
+  );
+});
+
 test('functions that start on one line join its entries in source order, whatever starts on other lines', () => {
   const signs: FunctionSite = {
     name: 'Arrow function',

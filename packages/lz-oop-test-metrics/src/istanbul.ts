@@ -1,5 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import type { FunctionSite, Position } from './functions.ts';
+import { isBefore, type FunctionSite, type Position } from './functions.ts';
 
 /** A stretch of source, from its first character to just past its last. */
 export interface Range {
@@ -128,10 +128,6 @@ function bodyOf({ bodyStart, end }: FunctionSite): Range {
 
 function within(inner: Range, outer: Range): boolean {
   return !isBefore(inner.start, outer.start) && !isBefore(outer.end, inner.end);
-}
-
-function isBefore(a: Position, b: Position): boolean {
-  return a.line < b.line || (a.line === b.line && a.column < b.column);
 }
 
 function samePosition(a: Position, b: Position): boolean {

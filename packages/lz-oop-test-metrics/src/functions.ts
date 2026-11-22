@@ -9,6 +9,11 @@ export interface Position {
   readonly column: number;
 }
 
+/** Whether the first position comes before the second in the source. */
+export function isBefore(a: Position, b: Position): boolean {
+  return a.line < b.line || (a.line === b.line && a.column < b.column);
+}
+
 /**
  * A function as ESLint's `complexity` rule sees it: its name and count, where it starts, and where its body starts.
  * Class field initializers and static blocks count as functions of their own, as the rule counts them.
