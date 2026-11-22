@@ -16,6 +16,9 @@ const testRun = [
   'src/order.test.ts',
 ];
 
+/** Where `classify` starts and ends in the fixture's `src/order.ts`. */
+const classifyLines = { first: 13, last: 23 };
+
 /** The coverage of the fixture when no test called `classify`, its one listed function. */
 function uncalledClassify(): TestEvent {
   const path = join(fixture, 'src', 'order.ts');
@@ -43,9 +46,12 @@ function uncalledClassify(): TestEvent {
           {
             path,
             ...totals,
-            functions: [{ name: 'classify', line: 13, count: 0 }],
+            functions: [{ name: 'classify', line: classifyLines.first, count: 0 }],
             branches: [],
-            lines: Array.from({ length: 11 }, (_, index) => ({ line: 13 + index, count: 0 })),
+            lines: Array.from({ length: classifyLines.last - classifyLines.first + 1 }, (_, index) => ({
+              line: classifyLines.first + index,
+              count: 0,
+            })),
           },
         ],
       },
