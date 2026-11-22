@@ -6,6 +6,15 @@ import type { TestEvent } from 'node:test/reporters';
 import { createTestMetricsReporter } from './node-test.ts';
 
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'node-test');
+// A run started from inside `node --test` inherits NODE_TEST_CONTEXT and reports to its parent instead of running alone.
+const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'));
+const testRun = [
+  '--test',
+  '--test-reporter=./reporter.ts',
+  '--test-reporter-destination=stdout',
+  '--test-coverage-include=src/order.ts',
+  'src/order.test.ts',
+];
 
 /** The coverage of the fixture when no test called `classify`, its one listed function. */
 function uncalledClassify(): TestEvent {
@@ -76,15 +85,6 @@ test('the reporter writes nothing and leaves the run passing when it finds nothi
 
   assert.deepEqual({ lines, exitCode: process.exitCode }, { lines: [], exitCode: before });
 });
-// A run started from inside `node --test` inherits NODE_TEST_CONTEXT and reports to its parent instead of running alone.
-const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'));
-const testRun = [
-  '--test',
-  '--test-reporter=./reporter.ts',
-  '--test-reporter-destination=stdout',
-  '--test-coverage-include=src/order.ts',
-  'src/order.test.ts',
-];
 
 test('the same node:test run without coverage passes, so a failed run with coverage is the reporter failing it', () => {
   const run = spawnSync(process.execPath, testRun, { cwd: fixture, env, encoding: 'utf8' });
