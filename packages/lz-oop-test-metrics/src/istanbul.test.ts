@@ -63,6 +63,53 @@ test('a function with no statements of its own is covered when a test called it,
   );
 });
 
+test('a called function whose one statement never ran is uncovered', () => {
+  const coverage = {
+    fnMap: { '0': { name: 'settle', loc: { start: { line: 1, column: 37 }, end: { line: 4, column: 1 } } } },
+    f: { '0': 1 },
+    statementMap: { '0': { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } } },
+    s: { '0': 0 },
+    branchMap: {},
+    b: {},
+  };
+
+  assert.equal(measuredFromIstanbul('src/order.ts', [settle], coverage)[0]?.coverage, 0);
+});
+
+test('a function or statement the coverage gives no hit count counts as not run', () => {
+  const coverage = {
+    fnMap: { '0': { name: 'settle', loc: { start: { line: 1, column: 37 }, end: { line: 4, column: 1 } } } },
+    f: {},
+    statementMap: {
+      '0': { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } },
+      '1': { start: { line: 3, column: 2 }, end: { line: 3, column: 21 } },
+    },
+    s: { '0': 1 },
+    branchMap: {},
+    b: {},
+  };
+
+  const [measured] = measuredFromIstanbul('src/order.ts', [settle], coverage);
+
+  assert.deepEqual([measured?.called, measured?.coverage], [false, 0.5]);
+});
+
+test('a function joins the coverage entry that starts exactly where its body starts, by line and column', () => {
+  const coverage = {
+    fnMap: {
+      '0': { name: 'other', loc: { start: { line: 1, column: 10 }, end: { line: 1, column: 20 } } },
+      '1': { name: 'later', loc: { start: { line: 5, column: 37 }, end: { line: 6, column: 1 } } },
+    },
+    f: { '0': 1, '1': 1 },
+    statementMap: {},
+    s: {},
+    branchMap: {},
+    b: {},
+  };
+
+  assert.deepEqual(measuredFromIstanbul('src/order.ts', [settle], coverage), []);
+});
+
 test('a function the coverage does not list, such as a class field initializer, gets no score', () => {
   const initializer: FunctionSite = {
     name: 'Class field initializer',
@@ -180,4 +227,34 @@ test('a coverage map that is not files of Istanbul coverage stops the reporter, 
 
   assert.throws(() => parseCoverageMap({ 'D:/app/src/order.ts': statementWithoutEnd }), /D:\/app\/src\/order\.ts/u);
   assert.throws(() => parseCoverageMap([]), /not an object of files/u);
+});
+
+test('a file coverage missing a field the join reads, or holding one of the wrong type, stops the reporter', () => {
+  const statement = { start: { line: 2, column: 2 }, end: { line: 2, column: 31 } };
+  const valid = {
+    fnMap: { '0': { name: 'settle', loc: { start: { line: 1, column: 37 }, end: { line: 4, column: 1 } } } },
+    f: { '0': 1 },
+    statementMap: { '0': statement },
+    s: { '0': 1 },
+    branchMap: { '0': { loc: { start: { line: 2, column: 2 } } } },
+    b: { '0': [1, 0] },
+  };
+  const broken = [
+    null,
+    { ...valid, fnMap: { '0': { loc: valid.fnMap['0'].loc } } },
+    { ...valid, branchMap: { '0': { loc: {} } } },
+    { ...valid, b: { '0': [1, 'none'] } },
+    { ...valid, statementMap: { '0': { ...statement, start: { line: '2', column: 2 } } } },
+    { ...valid, statementMap: { '0': statement, '1': { start: statement.start } } },
+  ];
+
+  assert.deepEqual([...parseCoverageMap({ 'src/order.ts': valid })], [['src/order.ts', valid]]);
+
+  for (const file of broken) {
+    assert.throws(() => parseCoverageMap({ 'src/order.ts': file }), /The coverage of src\/order\.ts is not/u);
+  }
+});
+
+test('a coverage map with a toJSON entry that is not a function is read as a plain object of files', () => {
+  assert.throws(() => parseCoverageMap({ toJSON: 'src/order.ts' }), /The coverage of toJSON is not/u);
 });

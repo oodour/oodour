@@ -86,6 +86,7 @@ test('a public method or accessor of a class is marked as one; private, protecte
     '  protected kept() { return 1; }',
     '}',
     'export function label() { return 1; }',
+    'export const till = { open() { return 1; } };',
   ].join('\n');
 
   assert.deepEqual(
@@ -99,6 +100,16 @@ test('a public method or accessor of a class is marked as one; private, protecte
       ["Method 'hidden'", false],
       ["Method 'kept'", false],
       ["Function 'label'", false],
+      ["Method 'open'", false],
     ],
+  );
+});
+
+test('an unnamed function takes the name of the variable it is the value of, and of nothing else that has a name', () => {
+  const source = ['export const double = (n: number) => n * 2;', 'class Base extends (function () {}) {}'].join('\n');
+
+  assert.deepEqual(
+    functionsIn('base.ts', source).map(({ name }) => name),
+    ["Arrow function 'double'", 'Function'],
   );
 });

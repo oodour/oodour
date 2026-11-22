@@ -51,6 +51,54 @@ test('a called function counts each block on its lines that no test ran as an un
   assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 1);
 });
 
+test('a function the coverage lists no entry for is left out', () => {
+  const coverage = { functions: [{ name: 'other', line: 9, count: 1 }], lines: [], branches: [] };
+
+  assert.deepEqual(measuredFromNodeCoverage('src/order.ts', [settle], coverage), []);
+});
+
+test('a function counts only the lines from the one it starts on to the one it ends on', () => {
+  const later: FunctionSite = { ...settle, start: { line: 3, column: 7 }, end: { line: 4, column: 1 } };
+  const coverage = {
+    functions: [{ name: 'settle', line: 3, count: 1 }],
+    lines: [0, 0, 1, 1, 0, 0].map((count, index) => ({ line: index + 1, count })),
+    branches: [],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [later], coverage)[0]?.coverage, 1);
+});
+
+test('a function joins only the coverage entries of the line it starts on', () => {
+  const first: FunctionSite = { ...settle, end: { line: 2, column: 1 } };
+  const second: FunctionSite = { ...settle, start: { line: 4, column: 7 }, end: { line: 5, column: 1 } };
+  const coverage = {
+    functions: [
+      { name: 'settle', line: 1, count: 0 },
+      { name: 'settle', line: 4, count: 1 },
+    ],
+    lines: [0, 0, 1, 1, 1].map((count, index) => ({ line: index + 1, count })),
+    branches: [],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [first, second], coverage).map(({ called }) => called),
+    [false, true],
+  );
+});
+
+test('a function on a line with more coverage entries than functions counts as called when any of them ran', () => {
+  const coverage = {
+    functions: [
+      { name: '', line: 1, count: 0 },
+      { name: 'settle', line: 1, count: 1 },
+    ],
+    lines: [1, 1, 1, 1].map((count, index) => ({ line: index + 1, count })),
+    branches: [],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.called, true);
+});
+
 test('a function no test called is uncovered, though its first line ran when the module loaded', () => {
   const coverage = {
     functions: [{ name: 'settle', line: 1, count: 0 }],
@@ -141,5 +189,32 @@ test('functions that start on one line join the entries of that line in source o
   assert.deepEqual(
     measuredFromNodeCoverage('src/order.ts', [callback, signs], coverage).map(({ coverage: share }) => share),
     [0, 1],
+  );
+});
+
+test('functions that start on one line join its entries in source order, whatever starts on other lines', () => {
+  const signs: FunctionSite = {
+    name: 'Arrow function',
+    complexity: 1,
+    start: { line: 1, column: 21 },
+    bodyStart: { line: 1, column: 29 },
+    end: { line: 1, column: 62 },
+    publicMethod: false,
+  };
+  const callback: FunctionSite = { ...signs, complexity: 2, start: { line: 1, column: 37 }, end: { line: 1, column: 61 } };
+  const later: FunctionSite = { ...settle, start: { line: 3, column: 1 }, end: { line: 3, column: 20 } };
+  const coverage = {
+    functions: [
+      { name: 'signs', line: 1, count: 1 },
+      { name: '', line: 1, count: 0 },
+      { name: 'later', line: 3, count: 1 },
+    ],
+    lines: [1, 1, 1].map((count, index) => ({ line: index + 1, count })),
+    branches: [],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [callback, signs, later], coverage).map(({ called }) => called),
+    [false, true, true],
   );
 });

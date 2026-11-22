@@ -2,8 +2,72 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import type { TestEvent } from 'node:test/reporters';
+import { createTestMetricsReporter } from './node-test.ts';
 
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'node-test');
+
+/** The coverage of the fixture when no test called `classify`, its one listed function. */
+function uncalledClassify(): TestEvent {
+  const path = join(fixture, 'src', 'order.ts');
+  const totals = {
+    totalLineCount: 0,
+    totalBranchCount: 0,
+    totalFunctionCount: 1,
+    coveredLineCount: 0,
+    coveredBranchCount: 0,
+    coveredFunctionCount: 0,
+    coveredLinePercent: 0,
+    coveredBranchPercent: 0,
+    coveredFunctionPercent: 0,
+  };
+
+  return {
+    type: 'test:coverage',
+    data: {
+      nesting: 0,
+      summary: {
+        workingDirectory: fixture,
+        totals,
+        thresholds: { line: 0, branch: 0, function: 0 },
+        files: [{ path, ...totals, functions: [{ name: 'classify', line: 13, count: 0 }], branches: [], lines: [] }],
+      },
+    },
+  };
+}
+
+async function linesOf(reporter: ReturnType<typeof createTestMetricsReporter>): Promise<string[]> {
+  const events: TestEvent[] = [{ type: 'test:diagnostic', data: { nesting: 0, message: 'tests 1', level: 'info' } }, uncalledClassify()];
+  const lines: string[] = [];
+
+  for await (const line of reporter(ReadableStream.from(events))) {
+    lines.push(line);
+  }
+
+  return lines;
+}
+
+test('the reporter writes one line per finding from the coverage event and fails the run on a CRAP line', async () => {
+  const before = process.exitCode;
+
+  try {
+    const lines = await linesOf(createTestMetricsReporter({ limit: 6 }));
+
+    assert.deepEqual(
+      { lines: lines.map((line) => /order\.ts:13 Stop and look: .+ scores CRAP 12 /u.test(line)), exitCode: process.exitCode },
+      { lines: [true], exitCode: 1 },
+    );
+  } finally {
+    process.exitCode = before;
+  }
+});
+
+test('the reporter writes nothing and leaves the run passing when it finds nothing', async () => {
+  const before = process.exitCode;
+  const lines = await linesOf(createTestMetricsReporter());
+
+  assert.deepEqual({ lines, exitCode: process.exitCode }, { lines: [], exitCode: before });
+});
 // A run started from inside `node --test` inherits NODE_TEST_CONTEXT and reports to its parent instead of running alone.
 const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'));
 const testRun = [
