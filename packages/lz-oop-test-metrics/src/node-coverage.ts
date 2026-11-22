@@ -33,8 +33,10 @@ export function measuredFromNodeCoverage(
     const { name, complexity, start, publicMethod } = site;
 
     const entries = entriesFor(site, sites, coverage.functions);
+    // `node:test` drops the lines a `node:coverage ignore` comment covers from the coverage.
+    const ignored = !coverage.lines.some(({ line }) => isOnLines(line, site));
 
-    if (entries.length === 0) {
+    if (entries.length === 0 || ignored) {
       return [];
     }
 

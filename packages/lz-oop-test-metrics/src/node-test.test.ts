@@ -30,7 +30,15 @@ function uncalledClassify(): TestEvent {
         workingDirectory: fixture,
         totals,
         thresholds: { line: 0, branch: 0, function: 0 },
-        files: [{ path, ...totals, functions: [{ name: 'classify', line: 13, count: 0 }], branches: [], lines: [] }],
+        files: [
+          {
+            path,
+            ...totals,
+            functions: [{ name: 'classify', line: 13, count: 0 }],
+            branches: [],
+            lines: Array.from({ length: 11 }, (_, index) => ({ line: 13 + index, count: 0 })),
+          },
+        ],
       },
     },
   };

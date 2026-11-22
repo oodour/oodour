@@ -57,6 +57,16 @@ test('a function the coverage lists no entry for is left out', () => {
   assert.deepEqual(measuredFromNodeCoverage('src/order.ts', [settle], coverage), []);
 });
 
+test('a function whose lines the coverage leaves out, as a node:coverage ignore comment does, is left out', () => {
+  const coverage = {
+    functions: [{ name: 'settle', line: 1, count: 0 }],
+    lines: [5, 6].map((line) => ({ line, count: 1 })),
+    branches: [],
+  };
+
+  assert.deepEqual(measuredFromNodeCoverage('src/order.ts', [settle], coverage), []);
+});
+
 test('a function counts only the lines from the one it starts on to the one it ends on', () => {
   const later: FunctionSite = { ...settle, start: { line: 3, column: 7 }, end: { line: 4, column: 1 } };
   const coverage = {
