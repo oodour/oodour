@@ -83,6 +83,7 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
       {
         files: ['**'],
         languageOptions: { parser },
+        linterOptions: { noInlineConfig: true },
         plugins: { metrics: { rules: { complexity: counting } } },
         rules: { 'metrics/complexity': ['error', 0] },
       },
@@ -90,7 +91,8 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
     file,
   ).find((message) => message.fatal === true);
 
-  // The counting rule reports through `sites`, never as a message; the other messages are notes on disable comments.
+  // The counting rule reports through `sites`, never as a message; the other messages are notes on the inline config
+  // comments the count ignores.
   if (fatal) {
     throw new Error(`${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`);
   }
