@@ -24,6 +24,12 @@ function uncalledClassify() {
   return { [path]: file };
 }
 
+test('the Vitest and node:test fixtures measure the same source, so both runs can expect the same lines', () => {
+  const source = (runner: string) => readFileSync(join(fixture, '..', runner, 'src', 'order.ts'), 'utf8');
+
+  assert.equal(source('vitest'), source('node-test'));
+});
+
 test('the reporter prints one line per finding and fails the run when a CRAP line is among them', (t) => {
   const log = t.mock.method(console, 'log', () => undefined);
   const before = process.exitCode;
