@@ -52,10 +52,10 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
   }
 
   const sites: FunctionSite[] = [];
-  const reported = new Set<unknown>();
+  const reported = new Set<ReturnType<typeof nodeOf>>();
   // A class field whose value is a function is reported for the function, then for the initializer, on one node.
   const count = (descriptor: Rule.ReportDescriptor) => {
-    const node = 'node' in descriptor ? descriptor.node : undefined;
+    const node = nodeOf(descriptor);
 
     if (!reported.has(node)) {
       reported.add(node);
@@ -98,8 +98,12 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
   return sites;
 }
 
+function nodeOf(descriptor: Rule.ReportDescriptor) {
+  return 'node' in descriptor ? descriptor.node : undefined;
+}
+
 function siteOf(descriptor: Rule.ReportDescriptor): FunctionSite {
-  const node = 'node' in descriptor ? descriptor.node : undefined;
+  const node = nodeOf(descriptor);
   const name = descriptor.data?.['name'];
   const complexity = descriptor.data?.['complexity'];
 
