@@ -37,6 +37,11 @@
         { "runtime": "node --version" }
       ],
       "outputs": []
+    },
+    "mutate": {
+      "command": "node --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.lz-oop-test-metrics.config.ts",
+      "cache": false,
+      "parallelism": false
     }
   }
 }
