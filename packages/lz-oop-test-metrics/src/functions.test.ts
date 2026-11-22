@@ -12,6 +12,20 @@ test('a file outside the folder the run started in is counted too, as a coverage
   );
 });
 
+test('a source that switches lint rules off in a comment is counted, whichever rules the comment names', () => {
+  const source = [
+    '// eslint-disable-next-line no-console',
+    'export function settle() { return 1; }',
+    '/* eslint-disable @typescript-eslint/no-explicit-any */',
+    'export function total() { return 2; }',
+  ].join('\n');
+
+  assert.deepEqual(
+    functionsIn('src/order.ts', source).map(({ name }) => name),
+    ["Function 'settle'", "Function 'total'"],
+  );
+});
+
 test('a source ESLint cannot parse stops the count with the file and the parse error, rather than counting nothing', () => {
   assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);
 });

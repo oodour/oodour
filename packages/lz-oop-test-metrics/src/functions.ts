@@ -53,7 +53,7 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
   };
 
   // ESLint matches `files` against the path below its cwd, so a file outside the run's folder would match no config.
-  const [fatal] = new Linter({ cwd: dirname(resolve(file)) }).verify(
+  const fatal = new Linter({ cwd: dirname(resolve(file)) }).verify(
     source,
     [
       {
@@ -64,9 +64,9 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
       },
     ],
     file,
-  );
+  ).find((message) => message.fatal === true);
 
-  // The counting rule reports through `sites`, never as a message, so any message is a parse failure.
+  // The counting rule reports through `sites`, never as a message; the other messages are notes on disable comments.
   if (fatal) {
     throw new Error(`${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`);
   }
