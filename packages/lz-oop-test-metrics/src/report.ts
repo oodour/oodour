@@ -1,4 +1,4 @@
-import { reportsAtLimit, type CrapReport, type MeasuredFunction } from './crap.ts';
+import { crapScore, type MeasuredFunction } from './crap.ts';
 
 /** What a run prints, and whether it fails. */
 export interface TestMetricsReport {
@@ -23,18 +23,22 @@ export function testMetricsReport(
   functions: readonly MeasuredFunction[],
   { limit = 30, crap = true, uncalledPublicMethods = true, untestedBranches: branches = true }: TestMetricsOptions = {},
 ): TestMetricsReport {
-  const atLimit = (some: readonly MeasuredFunction[]) => (crap ? reportsAtLimit(some, limit) : []);
-  const lines = functions.flatMap((measured) => {
+  const reports = functions.map((measured) => {
     const { publicMethod, called, untestedBranches } = measured;
+    const score = crapScore(measured);
+    const atLimit = crap && score >= limit;
 
-    return [
-      ...atLimit([measured]).map((report) => crapLine(report, limit)),
-      ...(uncalledPublicMethods && publicMethod && !called ? [uncalledLine(measured)] : []),
-      ...(branches && called && untestedBranches > 0 ? [branchLine(measured)] : []),
-    ];
+    return {
+      atLimit,
+      lines: [
+        ...(atLimit ? [crapLine(measured, score, limit)] : []),
+        ...(uncalledPublicMethods && publicMethod && !called ? [uncalledLine(measured)] : []),
+        ...(branches && called && untestedBranches > 0 ? [branchLine(measured)] : []),
+      ],
+    };
   });
 
-  return { lines, failed: atLimit(functions).length > 0 };
+  return { lines: reports.flatMap(({ lines }) => lines), failed: reports.some(({ atLimit }) => atLimit) };
 }
 
 /** How every line starts: the function's file and line, so editors and terminals link to it, then the concept. */
@@ -42,12 +46,12 @@ function stopAndLook({ file, line, name }: MeasuredFunction): string {
   return `${file}:${String(line)} Stop and look: Untested Code, ${name}`;
 }
 
-function crapLine(report: CrapReport, limit: number): string {
-  const rounded = String(Math.round(report.score * 10) / 10);
-  const covered = String(Math.round(report.coverage * 100));
+function crapLine(measured: MeasuredFunction, score: number, limit: number): string {
+  const rounded = String(Math.round(score * 10) / 10);
+  const covered = String(Math.round(measured.coverage * 100));
 
   return (
-    `${stopAndLook(report)} scores CRAP ${rounded} (limit ${String(limit)}): ${String(report.complexity)} paths, ` +
+    `${stopAndLook(measured)} scores CRAP ${rounded} (limit ${String(limit)}): ${String(measured.complexity)} paths, ` +
     `${covered}% of it run by tests. Look for the paths no test takes. Cure: a test that drives each of them through ` +
     'the inputs, or fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those ' +
     'inputs are hard to set up.'

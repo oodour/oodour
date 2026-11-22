@@ -24,15 +24,3 @@ export interface MeasuredFunction extends FunctionMeasure {
   /** How many paths of its own branches no test took, as the coverage counts them. */
   readonly untestedBranches: number;
 }
-
-/** A measured function with its CRAP score. */
-export interface CrapReport extends MeasuredFunction {
-  readonly score: number;
-}
-
-/** The functions whose CRAP score reaches the limit, with their scores, in the order given. */
-export function reportsAtLimit(functions: readonly MeasuredFunction[], limit: number): CrapReport[] {
-  return functions
-    .map((measured) => ({ ...measured, score: crapScore(measured) }))
-    .filter(({ score }) => score >= limit);
-}

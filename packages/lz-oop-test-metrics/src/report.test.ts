@@ -32,6 +32,10 @@ test('a function whose CRAP score reaches the default limit of 30 gets its CRAP 
   });
 });
 
+test('a function whose CRAP score stays below the limit gets no CRAP line, and the run passes', () => {
+  assert.deepEqual(testMetricsReport([{ ...settle, coverage: 0.1 }]), { lines: [], failed: false });
+});
+
 test('a lower limit reports a function the default would pass, and names that limit', () => {
   const [line] = testMetricsReport([{ ...settle, coverage: 0.1 }], { limit: 20 }).lines;
 
