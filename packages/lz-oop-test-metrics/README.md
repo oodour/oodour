@@ -136,8 +136,9 @@ The two runners measure coverage in different units, so one function can get dif
   total. On the fixture, both count one untaken path in `charge`. On other code the counts can differ.
 - **Which functions.** Each reporter scores the functions that its coverage lists. With the `v8` provider, Vitest's
   coverage lists no class field initializers and no static blocks. With the `istanbul` provider, it lists no `#private`
-  methods. `node:test` coverage gives a class's field initializers and static members one count each for the whole
-  class, so the `node:test` reporter scores neither. Under both runners, a function that a coverage ignore comment
+  methods. `node:test` coverage gives a class's instance field initializers one count for the whole class, and its
+  static field initializers and static blocks another, so the `node:test` reporter scores none of them. It scores
+  static methods. Under both runners, a function that a coverage ignore comment
   covers is left out.
 
 The first line of a function in `node:test` coverage also holds what ran around the function, such as the `export`
