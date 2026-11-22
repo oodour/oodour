@@ -36,13 +36,21 @@ export function functionsIn(file: string, source: string): FunctionSite[] {
   }
 
   const sites: FunctionSite[] = [];
+  const reported = new Set<unknown>();
+  // A class field whose value is a function is reported for the function, then for the initializer, on one node.
+  const count = (descriptor: Rule.ReportDescriptor) => {
+    const node = 'node' in descriptor ? descriptor.node : undefined;
+
+    if (!reported.has(node)) {
+      reported.add(node);
+      sites.push(siteOf(descriptor));
+    }
+  };
   const counting: Rule.RuleModule = {
     meta: complexity.meta,
     create(context) {
       // ESLint freezes the context, so an object that inherits from it shadows `report` instead.
-      const listening: unknown = Object.create(context, {
-        report: { value: (descriptor: Rule.ReportDescriptor) => sites.push(siteOf(descriptor)) },
-      });
+      const listening: unknown = Object.create(context, { report: { value: count } });
 
       if (!isRuleContext(listening)) {
         throw new Error('The listening context lost the rule context it inherits from.');

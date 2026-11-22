@@ -26,6 +26,15 @@ test('a source that switches lint rules off in a comment is counted, whichever r
   );
 });
 
+test('a class field whose value is a function is counted once, as that function', () => {
+  const source = ['export class Till {', '  handle = (kind: string) => {', "    if (kind === 'a') { return 1; }", '    return 0;', '  };', '}'].join('\n');
+
+  assert.deepEqual(
+    functionsIn('src/till.ts', source).map(({ name, complexity }) => [name, complexity]),
+    [["Method 'handle'", 2]],
+  );
+});
+
 test('a source ESLint cannot parse stops the count with the file and the parse error, rather than counting nothing', () => {
   assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);
 });
