@@ -52,9 +52,23 @@ test('a called function counts each block on its lines that no test ran as an un
 });
 
 test('a function the coverage lists no entry for is left out', () => {
-  const coverage = { functions: [{ name: 'other', line: 9, count: 1 }], lines: [], branches: [] };
+  const coverage = {
+    functions: [{ name: 'other', line: 9, count: 1 }],
+    lines: [1, 2, 3, 4].map((line) => ({ line, count: 1 })),
+    branches: [],
+  };
 
   assert.deepEqual(measuredFromNodeCoverage('src/order.ts', [settle], coverage), []);
+});
+
+test('a called function whose one line of coverage did not run is 0% covered', () => {
+  const coverage = {
+    functions: [{ name: 'settle', line: 1, count: 1 }],
+    lines: [{ line: 1, count: 0 }],
+    branches: [],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.coverage, 0);
 });
 
 test('a function whose lines the coverage leaves out, as a node:coverage ignore comment does, is left out', () => {
