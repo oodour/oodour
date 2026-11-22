@@ -39,9 +39,9 @@ test('a lower limit reports a function the default would pass, and names that li
 });
 
 test('a CRAP line rounds the score to a tenth and the share run to a whole percent', () => {
-  const [line] = testMetricsReport([{ ...settle, complexity: 6, coverage: 0.246 }], { limit: 20 }).lines;
+  const [line] = testMetricsReport([{ ...settle, complexity: 6, coverage: 0.244 }], { limit: 20 }).lines;
 
-  assert.match(line ?? '', /scores CRAP 21\.4 \(limit 20\): 6 paths, 25% of it run by tests\./u);
+  assert.match(line ?? '', /scores CRAP 21\.6 \(limit 20\): 6 paths, 24% of it run by tests\./u);
 });
 
 test('a public method no test called gets a stop-and-look line of its own, and the run passes', () => {
