@@ -26,6 +26,9 @@ const config: PartialStrykerOptions = {
   tsconfigFile: 'packages/lz-oop-test-metrics/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/lz-oop-test-metrics.html' },
   mutate: ['packages/lz-oop-test-metrics/src/**/*.ts', '!packages/lz-oop-test-metrics/src/**/*.test.ts'],
+  // The default puts `// @ts-nocheck` atop every file in the sandbox, which moves each fixture line the end-to-end
+  // tests expect down by one.
+  disableTypeChecks: 'packages/lz-oop-test-metrics/src/**/*.ts',
   incrementalFile: 'reports/stryker-incremental/lz-oop-test-metrics.json',
 };
 
