@@ -9,9 +9,20 @@ export interface Position {
   readonly column: number;
 }
 
+/** A stretch of source, from its first character to just past its last. */
+export interface Range {
+  readonly start: Position;
+  readonly end: Position;
+}
+
 /** Whether the first position comes before the second in the source. */
 export function isBefore(a: Position, b: Position): boolean {
   return a.line < b.line || (a.line === b.line && a.column < b.column);
+}
+
+/** Whether the inner stretch starts no earlier and ends no later than the outer one. */
+export function within(inner: Range, outer: Range): boolean {
+  return !isBefore(inner.start, outer.start) && !isBefore(outer.end, inner.end);
 }
 
 /**

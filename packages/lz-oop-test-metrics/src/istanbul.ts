@@ -1,11 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import { isBefore, type FunctionSite, type Position } from './functions.ts';
-
-/** A stretch of source, from its first character to just past its last. */
-export interface Range {
-  readonly start: Position;
-  readonly end: Position;
-}
+import { within, type FunctionSite, type Position, type Range } from './functions.ts';
 
 /**
  * The parts of an Istanbul file coverage the join reads: functions and statements, each with its hit count, and
@@ -120,10 +114,6 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 /** From where the function's body starts to its end: the stretch whose statements are its own. */
 function bodyOf({ bodyStart, end }: FunctionSite): Range {
   return { start: bodyStart, end };
-}
-
-function within(inner: Range, outer: Range): boolean {
-  return !isBefore(inner.start, outer.start) && !isBefore(outer.end, inner.end);
 }
 
 function samePosition(a: Position, b: Position): boolean {

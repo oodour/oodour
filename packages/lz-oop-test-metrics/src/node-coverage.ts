@@ -1,5 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import { isBefore, type FunctionSite } from './functions.ts';
+import { within, type FunctionSite } from './functions.ts';
 
 /** A line, or a function by the line it starts on, with how many times the tests ran it. */
 interface Counted {
@@ -41,7 +41,7 @@ export function measuredFromNodeCoverage(
     }
 
     const called = entries.some(({ count }) => count > 0);
-    const nested = sites.filter((other) => holdsLines(site, other));
+    const nested = sites.filter((other) => other !== site && within(other, site));
     const isOwn = ({ line }: Counted) => isOnLines(line, site) && !nested.some((inner) => isOnLines(line, inner));
     const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwn(branch)).length;
     const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches };
@@ -72,11 +72,6 @@ function entriesFor(site: FunctionSite, sites: readonly FunctionSite[], function
   const entry = neighbours.length === onLine.length ? onLine[neighbours.indexOf(site)] : undefined;
 
   return entry === undefined ? onLine : [entry];
-}
-
-/** Whether the other function starts after this one, by line and column, and ends no later: one inside it. */
-function holdsLines(outer: FunctionSite, inner: FunctionSite): boolean {
-  return isBefore(outer.start, inner.start) && !isBefore(outer.end, inner.end);
 }
 
 function isOnLines(line: number, { start, end }: FunctionSite): boolean {
