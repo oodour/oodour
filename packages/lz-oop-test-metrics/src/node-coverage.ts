@@ -17,6 +17,9 @@ export interface NodeFileCoverage {
   readonly branches: readonly Counted[];
 }
 
+/** V8's entries for a class's field initializers and static members: one each for the whole class, on its first one. */
+const memberInitializers = new Set(['<instance_members_initializer>', '<static_initializer>']);
+
 /**
  * Each function the coverage lists, with the share of its lines that ran. A function joins its coverage entry by the
  * line it starts on, the only position `node:test` gives a function.
@@ -58,7 +61,7 @@ export function measuredFromNodeCoverage(
  * otherwise it takes them all.
  */
 function entriesFor(site: FunctionSite, sites: readonly FunctionSite[], functions: NodeFileCoverage['functions']) {
-  const onLine = functions.filter(({ line }) => line === site.start.line);
+  const onLine = functions.filter(({ line, name }) => line === site.start.line && !memberInitializers.has(name));
   const neighbours = sites
     .filter(({ start }) => start.line === site.start.line)
     .toSorted((first, second) => first.start.column - second.start.column);

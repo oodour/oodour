@@ -99,6 +99,21 @@ test('a function on a line with more coverage entries than functions counts as c
   assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.called, true);
 });
 
+test("V8's entries for a class's member initializers, which cover all its fields at once, join no function", () => {
+  // class Panel { handle = (kind) => ...; static rate = 1; }, constructed by a test that never calls handle
+  const coverage = {
+    functions: [
+      { name: '<instance_members_initializer>', line: 1, count: 1 },
+      { name: '<static_initializer>', line: 1, count: 1 },
+      { name: 'handle', line: 1, count: 0 },
+    ],
+    lines: [1, 0, 0, 0].map((count, index) => ({ line: index + 1, count })),
+    branches: [],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/panel.ts', [settle], coverage)[0]?.called, false);
+});
+
 test('a function no test called is uncovered, though its first line ran when the module loaded', () => {
   const coverage = {
     functions: [{ name: 'settle', line: 1, count: 0 }],
