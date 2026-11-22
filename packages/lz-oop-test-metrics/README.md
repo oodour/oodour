@@ -38,6 +38,9 @@ export default defineConfig({
 });
 ```
 
+Keep `coverage.include` to JavaScript and TypeScript files. The reporter parses each covered file, and a file it cannot
+parse, such as a `.vue` file, stops the report with the parse error.
+
 ## Use it with `node:test`
 
 Run the tests with coverage and add the reporter beside your usual one. Each reporter needs its own destination:
@@ -132,7 +135,10 @@ The two runners measure coverage in different units, so one function can get dif
   paths. `node:test` lists the blocks of code that ran a different number of times than the block around them, with no
   total. On the fixture, both count one untaken path in `charge`. On other code the counts can differ.
 - **Which functions.** Each reporter scores the functions that its coverage lists. With the `v8` provider, Vitest's
-  coverage lists no class field initializers and no static blocks, so the Vitest reporter cannot score them there.
+  coverage lists no class field initializers and no static blocks. With the `istanbul` provider, it lists no `#private`
+  methods. `node:test` coverage gives a class's field initializers and static members one count each for the whole
+  class, so the `node:test` reporter scores neither. Under both runners, a function that a coverage ignore comment
+  covers is left out.
 
 The first line of a function in `node:test` coverage also holds what ran around the function, such as the `export`
 that ran when the module loaded. The reporter counts a function that no test called as 0% run, whatever its first line
