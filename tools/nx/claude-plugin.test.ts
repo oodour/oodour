@@ -108,6 +108,23 @@ test('an eval case folder that does not exist is left out of the overlap check',
   assert.equal(overlap?.command, 'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo-real');
 });
 
+test("a plugin's scripts folder is type-checked, linted and tested, the tests cached on the Node.js version", () => {
+  const targets = pluginTargets('plugins/demo', 'demo', [], (folder) => folder === 'plugins/demo/scripts');
+
+  assert.equal(targets['typecheck']?.command, 'tsc -p plugins/demo/scripts/tsconfig.json');
+  assert.equal(targets['lint']?.command, 'eslint plugins/demo/scripts');
+  assert.equal(targets['test']?.command, 'node --test "plugins/demo/scripts/*.test.ts"');
+  assert.equal(targets['test'].cache, true);
+  assert.deepEqual(targets['test'].inputs, ['default', { externalDependencies: ['eslint', '@typescript-eslint/parser', 'typescript'] }, { runtime: 'node --version' }]);
+  assert.deepEqual(targets['test'].outputs, []);
+});
+
+test('a plugin without a scripts folder gets no typecheck, lint or test target', () => {
+  const targets = pluginTargets('plugins/demo', 'demo', [], noFolders);
+
+  assert.deepEqual([targets['typecheck'], targets['lint'], targets['test']], [undefined, undefined, undefined]);
+});
+
 test('a manifest without a name is refused', () => {
   const workspaceRoot = tempDir('nodes-');
   writeTree(workspaceRoot, { 'plugins/demo/.claude-plugin/plugin.json': '{}' });

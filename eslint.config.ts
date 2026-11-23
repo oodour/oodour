@@ -11,6 +11,7 @@ export default tseslint.config(
       '*.test.ts',
       'stryker*.ts',
       'packages/*/src/**/*.ts',
+      'plugins/*/scripts/*.ts',
     ],
     extends: [tseslint.configs.strictTypeChecked],
     languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },

@@ -55,6 +55,25 @@ function assembleTarget(root: string, evals: string, assembled: string): TargetC
   };
 }
 
+// The scripts' packages come from the plugin's own package.json; in this workspace they resolve to the root's copies.
+function scriptTargets(scripts: string): Record<string, TargetConfiguration> {
+  const packages = { externalDependencies: ['eslint', '@typescript-eslint/parser', 'typescript'] };
+
+  return {
+    typecheck: {
+      command: `tsc -p ${scripts}/tsconfig.json`,
+      inputs: ['default', { externalDependencies: [...packages.externalDependencies, '@types/node'] }],
+    },
+    lint: { command: `eslint ${scripts}` },
+    test: {
+      command: `node --test "${scripts}/*.test.ts"`,
+      cache: true,
+      inputs: ['default', packages, { runtime: 'node --version' }],
+      outputs: [],
+    },
+  };
+}
+
 export function pluginTargets(
   root: string,
   name: string,
@@ -64,8 +83,10 @@ export function pluginTargets(
   const evals = `evals/${name}`;
   const assembled = `dist/eval/${name}`;
   const evalFolders = [evals, `${evals}-real`].filter(exists);
+  const scripts = `${root}/scripts`;
 
   return {
+    ...(exists(scripts) ? scriptTargets(scripts) : {}),
     'pre-eval': assembleTarget(root, evals, assembled),
     'pre-eval-real': assembleTarget(root, `${evals}-real`, `${assembled}-real`),
     eval: {

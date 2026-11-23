@@ -1,0 +1,14 @@
+{
+  "name": "lz-oop-plugin-scripts",
+  "private": true,
+  "type": "module",
+  "description": "The lz-oop plugin's scripts: measures a design audit starts from.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "8.72.1",
+    "eslint": "10.13.0",
+    "typescript": "6.0.3"
+  }
+}

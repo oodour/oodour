@@ -31,7 +31,7 @@
       ]
     },
     "lint": {
-      "command": "eslint . --ignore-pattern \"packages/\"",
+      "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\"",
       "inputs": [
         "default",
         "eslintConfig",
