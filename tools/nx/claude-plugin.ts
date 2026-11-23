@@ -13,6 +13,19 @@ function manifestName(workspaceRoot: string, manifest: string): string {
   return name;
 }
 
+function dependencyNames(workspaceRoot: string, root: string): string[] {
+  const manifest = join(workspaceRoot, root, 'package.json');
+
+  if (!existsSync(manifest)) {
+    return [];
+  }
+
+  const plugin: unknown = JSON.parse(readFileSync(manifest, 'utf8'));
+  const dependencies = typeof plugin === 'object' && plugin !== null && 'dependencies' in plugin ? plugin.dependencies : {};
+
+  return typeof dependencies === 'object' && dependencies !== null ? Object.keys(dependencies) : [];
+}
+
 export const createNodes: CreateNodes = [
   'plugins/*/.claude-plugin/plugin.json',
   (manifests, _options, { workspaceRoot }) =>
@@ -24,7 +37,9 @@ export const createNodes: CreateNodes = [
         .sort();
       const exists = (folder: string): boolean => existsSync(join(workspaceRoot, folder));
 
-      return [manifest, { projects: { [root]: { name, targets: pluginTargets(root, name, markdown, exists) } } }] as const;
+      const targets = pluginTargets(root, name, markdown, exists, dependencyNames(workspaceRoot, root));
+
+      return [manifest, { projects: { [root]: { name, targets } } }] as const;
     }),
 ];
 
@@ -55,14 +70,13 @@ function assembleTarget(root: string, evals: string, assembled: string): TargetC
   };
 }
 
-// The scripts' packages come from the plugin's own package.json; in this workspace they resolve to the root's copies.
-function scriptTargets(scripts: string): Record<string, TargetConfiguration> {
-  const packages = { externalDependencies: ['eslint', '@typescript-eslint/parser', 'typescript'] };
+function scriptTargets(scripts: string, dependencies: readonly string[]): Record<string, TargetConfiguration> {
+  const packages = { externalDependencies: [...dependencies] };
 
   return {
     typecheck: {
       command: `tsc -p ${scripts}/tsconfig.json`,
-      inputs: ['default', { externalDependencies: [...packages.externalDependencies, '@types/node'] }],
+      inputs: ['default', { externalDependencies: [...dependencies, '@types/node'] }],
     },
     lint: { command: `eslint ${scripts}` },
     test: {
@@ -79,6 +93,7 @@ export function pluginTargets(
   name: string,
   markdown: readonly string[],
   exists: (folder: string) => boolean,
+  dependencies: readonly string[],
 ): Record<string, TargetConfiguration> {
   const evals = `evals/${name}`;
   const assembled = `dist/eval/${name}`;
@@ -86,7 +101,7 @@ export function pluginTargets(
   const scripts = `${root}/scripts`;
 
   return {
-    ...(exists(scripts) ? scriptTargets(scripts) : {}),
+    ...(exists(scripts) ? scriptTargets(scripts, dependencies) : {}),
     'pre-eval': assembleTarget(root, evals, assembled),
     'pre-eval-real': assembleTarget(root, `${evals}-real`, `${assembled}-real`),
     eval: {
