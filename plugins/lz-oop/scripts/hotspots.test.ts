@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { folderWith, outsideAnyRepository, repositoryWith } from './fixtures.ts';
+import { folderWith, outsideAnyRepository, partialCloneOf, repositoryWith } from './fixtures.ts';
 import { type FileMeasures, measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
 
 function measures(file: string, values: Partial<FileMeasures> = {}): FileMeasures {
@@ -200,4 +200,15 @@ test('a full history is stated as such', (context) => {
   const measured = measureScope(root, '12 months ago');
 
   assert.match(renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)), /\nHistory: the full history of the period\.\n/);
+});
+
+test("a partial clone's history says renames are not followed", (context) => {
+  const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]));
+
+  const measured = measureScope(clone, '12 months ago');
+
+  assert.match(
+    renderHotspots(clone, '12 months ago', measured, rankHotspots(measured.files, 30)),
+    /\nHistory: a partial clone, so renames are not followed and a renamed file's older commits count for its old path\.\n/,
+  );
 });

@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict';
+import { copyFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, outsideAnyRepository, refusedByGit, repositoryWith, setForTest } from './fixtures.ts';
 import { gitIn } from './git.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
+
+  assert.equal(gitIn(`${root}/lib`)?.(['rev-parse', '--show-prefix']), 'lib/\n');
+});
+
+test('a git program in the folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {
+  const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
+  copyFileSync(join(process.env['SystemRoot'] ?? 'C:/Windows', 'System32', 'hostname.exe'), join(root, 'lib', 'git.exe'));
+  setForTest(context, 'NoDefaultCurrentDirectoryInExePath', undefined);
 
   assert.equal(gitIn(`${root}/lib`)?.(['rev-parse', '--show-prefix']), 'lib/\n');
 });

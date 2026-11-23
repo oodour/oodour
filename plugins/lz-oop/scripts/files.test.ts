@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { rmSync } from 'node:fs';
+import { existsSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, outsideAnyRepository, repositoryWith, runGit } from './fixtures.ts';
@@ -33,6 +33,35 @@ test('a file Git still lists but the working tree no longer has is no source', (
   rmSync(join(root, 'b.ts'));
 
   assert.deepEqual(sources(root, gitIn(root)).all, ['a.ts']);
+});
+
+test("listing the sources runs no program the repository's own config names", (context) => {
+  const hook = folderWith(context, { 'hook.sh': 'touch "$(dirname "$0")/ran"\n' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  runGit(root, ['config', 'core.fsmonitor', `sh "${hook.replaceAll('\\', '/')}/hook.sh"`]);
+
+  sources(root, gitIn(root));
+
+  assert.equal(existsSync(join(hook, 'ran')), false);
+});
+
+test('a linked file or folder is no source, so nothing outside the repository is read', (context) => {
+  const outside = folderWith(context, { 'b.ts': '', 'lib/c.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  symlinkSync(join(outside, 'b.ts'), join(root, 'b.ts'), 'file');
+  symlinkSync(join(outside, 'lib'), join(root, 'lib'), 'junction');
+
+  assert.deepEqual(sources(root, gitIn(root)).all, ['a.ts']);
+});
+
+test('outside a repository a linked file or folder is no source either', (context) => {
+  const outside = folderWith(context, { 'b.ts': '', 'lib/c.ts': '' });
+  const root = folderWith(context, { 'a.ts': '' });
+  symlinkSync(join(outside, 'b.ts'), join(root, 'b.ts'), 'file');
+  symlinkSync(join(outside, 'lib'), join(root, 'lib'), 'junction');
+  outsideAnyRepository(context);
+
+  assert.deepEqual(sources(root, undefined).all, ['a.ts']);
 });
 
 test('a test file is named .test or .spec, or sits in a __tests__ folder', () => {

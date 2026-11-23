@@ -2,13 +2,38 @@ import type { Git } from './git.ts';
 
 export interface Churn {
   readonly commits: ReadonlyMap<string, number>;
-  readonly shallow: boolean;
+  readonly history: 'full' | 'shallow' | 'partial' | 'shallow and partial';
 }
 
 export function churn(git: Git, since: string): Churn {
-  const log = git(['log', '--ignore-missing', 'HEAD', `--since=${since}`, '--format=%H', '--name-status', '-M']);
+  // Finding a rename compares file contents, and a partial clone would fetch the old ones from its remote.
+  const partial = /^(?:remote\..+\.promisor=true|extensions\.partialclone=.+)$/m.test(git(['config', '--list']));
+  const log = git([
+    'log',
+    '--ignore-missing',
+    'HEAD',
+    `--since=${since}`,
+    '--format=%H',
+    '--name-status',
+    partial ? '--no-renames' : '-M',
+    '--',
+  ]);
 
-  return { commits: commitsPerCurrentPath(log), shallow: git(['rev-parse', '--is-shallow-repository']).trim() === 'true' };
+  const shallow = git(['rev-parse', '--is-shallow-repository']).trim() === 'true';
+
+  return { commits: commitsPerCurrentPath(log), history: historyOf(shallow, partial) };
+}
+
+function historyOf(shallow: boolean, partial: boolean): Churn['history'] {
+  if (shallow && partial) {
+    return 'shallow and partial';
+  }
+
+  if (shallow) {
+    return 'shallow';
+  }
+
+  return partial ? 'partial' : 'full';
 }
 
 export function commitsPerCurrentPath(newestFirstLog: string): Map<string, number> {

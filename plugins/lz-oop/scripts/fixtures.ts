@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { TestContext } from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 type Files = Readonly<Record<string, string>>;
 
@@ -48,6 +49,15 @@ export function repositoryWith(context: TestContext, commits: readonly Files[]):
   return root;
 }
 
+export function partialCloneOf(context: TestContext, origin: string): string {
+  runGit(origin, ['config', 'uploadpack.allowFilter', 'true']);
+  const clone = folderWith(context, {});
+  runGit(clone, ['clone', '-q', '--filter=blob:none', pathToFileURL(origin).href, '.']);
+  rmSync(origin, { recursive: true, force: true });
+
+  return clone;
+}
+
 export function outsideAnyRepository(context: TestContext): void {
   setForTest(context, 'GIT_CEILING_DIRECTORIES', tmpdir());
 }
@@ -56,14 +66,18 @@ export function refusedByGit(context: TestContext): void {
   setForTest(context, 'GIT_TEST_ASSUME_DIFFERENT_OWNER', '1');
 }
 
-export function setForTest(context: TestContext, variable: string, value: string): void {
+export function setForTest(context: TestContext, variable: string, value: string | undefined): void {
   const previous = process.env[variable];
-  process.env[variable] = value;
+  setVariable(variable, value);
   context.after(() => {
-    if (previous === undefined) {
-      Reflect.deleteProperty(process.env, variable);
-    } else {
-      process.env[variable] = previous;
-    }
+    setVariable(variable, previous);
   });
+}
+
+function setVariable(variable: string, value: string | undefined): void {
+  if (value === undefined) {
+    Reflect.deleteProperty(process.env, variable);
+  } else {
+    process.env[variable] = value;
+  }
 }

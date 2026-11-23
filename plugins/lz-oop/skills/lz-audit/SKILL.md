@@ -35,8 +35,8 @@ for another period) and prints 30 rows (`--limit <count>` for more). Lines above
 and the thresholds; the table has one row per production file:
 
 - **Commits**: commits in the period, a renamed file counted with its old paths. The history line says when a shallow
-  clone or a missing repository limits this measure; say so in the report, and say so too when the period is longer than
-  the history.
+  clone, a partial clone (renames not followed) or a missing repository limits this measure; say so in the report, and
+  say so too when the period is longer than the history.
 - **Dependents**: the production and test files that import it, by any form of import, path alias or package name,
   counted through files that only re-export it. Files that only re-export are left out of the rows, since their commits
   and dependents belong to the code they pass on.

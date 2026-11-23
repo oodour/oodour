@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { churn } from './churn.ts';
+import { type Churn, churn } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
@@ -34,7 +34,7 @@ export interface Ranked {
 
 export interface Measured {
   readonly files: readonly FileMeasures[];
-  readonly history: 'full' | 'shallow' | 'none';
+  readonly history: Churn['history'] | 'none';
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
 }
@@ -42,7 +42,7 @@ export interface Measured {
 export function measureScope(scope: string, since: string): Measured {
   const git = gitIn(scope);
   const { root, all, inScope } = sources(scope, git);
-  const history = git && churn(git, since);
+  const counted = git && churn(git, since);
   const modules = readModules(root, all);
   const dependents = dependentsThroughReexports(modules);
   const production = inScope.filter((file) => !isTest(file));
@@ -58,7 +58,7 @@ export function measureScope(scope: string, since: string): Measured {
         ? complexity
         : {
             file,
-            commits: history?.commits.get(file) ?? 0,
+            commits: counted?.commits.get(file) ?? 0,
             dependents: {
               production: importers.filter((importer) => !isTest(importer)).length,
               test: importers.filter(isTest).length,
@@ -74,7 +74,7 @@ export function measureScope(scope: string, since: string): Measured {
 
   return {
     files: measured.flatMap((result) => ('parseError' in result ? [] : [result])),
-    history: history === undefined ? 'none' : history.shallow ? 'shallow' : 'full',
+    history: counted?.history ?? 'none',
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
   };
@@ -83,6 +83,9 @@ export function measureScope(scope: string, since: string): Measured {
 const historyLines: Readonly<Record<Measured['history'], string>> = {
   full: 'the full history of the period.',
   shallow: 'a shallow clone, so the commit counts are too low.',
+  partial: "a partial clone, so renames are not followed and a renamed file's older commits count for its old path.",
+  'shallow and partial':
+    "a shallow partial clone, so the commit counts are too low, and renames are not followed, so a renamed file's older commits count for its old path.",
   none: 'no Git repository, or git is not installed, so no commit counts, and no file counts as often changed.',
 };
 
