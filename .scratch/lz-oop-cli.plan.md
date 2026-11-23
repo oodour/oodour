@@ -59,6 +59,74 @@ Node.js type stripping runs from the plugin cache path.
 Consequence for the open question: bundling works without a publish step; the only cost is the install step for
 in-place runs.
 
+## Design, 2026-11-23 (Claude's, after Lars's "Where the CLI lives: Bundle with plugin")
+
+pstack:architect in the main context, two candidates, no arena (lars-principle-cap-fan-out: a mid-size design with
+the shape already researched; the one contested point, the complexity source, is settled by measurement below).
+
+### Usage (caller's view)
+
+lz-audit step 2 runs one command and reads one table:
+
+```text
+node ${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts hotspots <scope> [--since "12 months ago"] [--limit 30]
+```
+
+It prints a Markdown table the report can lead with, above a few lines that state the period, whether the history is
+shallow, the thresholds each axis used and what was left out. One row per production file: commits in the period
+(renames folded into the current path), dependents (production and test, counted through files that re-export it),
+the largest function complexity, concrete classes it names, and the quadrant. Rows: every file in the two quadrants
+to audit first, then the rest by churn, up to `--limit`.
+
+### Shape
+
+Candidate A (the plan's four subcommands `churn`, `imports`, `concrete`, `hotspots`): four public commands, and the
+skill coordinates them, so it learns each one's output and joins them itself, which is the prose this replaces.
+Candidate B (one `hotspots` command over internal modules): one command hides the git parsing, module resolution,
+complexity count and the join. B wins on interface depth and keeps one way to get the table. Rejected from A: the
+separate commands. Kept from A: one module per measure, each with its own tests.
+
+Modules in `plugins/lz-oop/scripts/`:
+
+- `lz-oop.ts`: arguments (`node:util` `parseArgs`), runs `hotspots`, prints; usage and exit 2 on bad arguments.
+- `files.ts`: JS/TS files in scope (`git ls-files`, else a folder walk without `node_modules`), and which are tests
+  (`*.test.*`, `*.spec.*`, `__tests__/`).
+- `churn.ts`: one `git log --name-status -M` over the whole history in the period, renames folded newest-first into
+  the current path; the shallow flag; no repository means no churn column.
+- `modules.ts`: one TypeScript parse per file: imports (static, `import()`, `require()`, `export ... from`) resolved
+  with `ts.resolveModuleName` and the nearest `tsconfig.json` (paths, package names through symlinks), whether the
+  file only re-exports, the concrete classes it exports and the classes it names (imports and `new`).
+- `complexity.ts`: ESLint's own `complexity` rule through `Linter` with `@typescript-eslint/parser`, as
+  `lz-oop-test-metrics` counts it, so the number is the lint rule's by construction. No repository config runs.
+- `hotspots.ts`: the join, the thresholds, the quadrant and the table.
+
+Quadrants follow lz-audit step 2: often changed and complex; many dependents and either often changed or holding a
+concrete class; complex but unchanged; simple. "Often changed" is at least the 75th percentile of commits among
+production files with a commit, and at least 2; "complex" is at least the 75th percentile of largest-function
+complexity, and above 4 (the plugin's `complexity` limit); "many dependents" is a tenth or more of the production files
+in scope, the skill's own cut. Re-export-only files are left out of the rows.
+
+Dependencies (plugin `package.json`, exact pins equal to the root's, lockfile committed): `typescript` 6.0.3,
+`eslint` 10.13.0, `@typescript-eslint/parser` 8.72.1. Measured 2026-11-23: 92 packages, installed in 2 s with a warm
+npm cache (Claude Code's limit is 60 s; cold not measured).
+
+Nx: the inferred `lz-oop` project gains `typecheck`, `lint` and `test` targets when the plugin has a `scripts/`
+folder, so the plugin's code is checked with its project; `tooling`'s lint leaves `plugins/` out.
+
+### Tradeoffs accepted
+
+- The complexity count copies about 40 lines of `lz-oop-test-metrics` (the plugin ships alone and cannot import an
+  unpublished package), in exchange for the lint rule's number by construction. Price of one copy: a shared package
+  once either is published.
+- ESLint is a plugin dependency (install size) in exchange for no hand-written counter and no run of the audited
+  repository's ESLint config, which would execute its code.
+- Percentile thresholds are relative to the scope, in exchange for a quadrant that works on any repository; the table
+  prints them so the report can say so.
+
+### Next implementation step
+
+`files.ts` and `churn.ts` test-first against a temporary Git repository.
+
 ## Dogfooding
 
 Lars, 2026-11-20: "When the plugin is proven, dogfood it on this plugin's own CLI, scripts, ESLint, and Fallow
