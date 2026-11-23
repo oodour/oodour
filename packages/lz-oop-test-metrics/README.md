@@ -135,7 +135,8 @@ The two runners measure coverage in different units, so one function can get dif
   paths. `node:test` lists the blocks of code that ran a different number of times than the block around them, with no
   total. On the fixture, both count one untaken path in `charge`. On other code the counts can differ. `node:test`
   gives a block its line but no column, so an untaken block on the line where a callback starts inside a function's
-  first line counts for both functions.
+  first line counts for both functions. A function no test called gets no branch line, so under `node:test` the
+  untaken blocks on its lines count for the called function around it.
 - **Which functions.** Each reporter scores the functions that its coverage lists. With the `v8` provider, Vitest's
   coverage lists no class field initializers and no static blocks. With the `istanbul` provider, it lists no `#private`
   methods. `node:test` coverage gives a class's instance field initializers one count for the whole class, and its

@@ -29,10 +29,13 @@ export function measuredFromNodeCoverage(
   sites: readonly FunctionSite[],
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
+  const entriesOf = new Map(sites.map((site) => [site, entriesFor(site, sites, coverage.functions)]));
+  const isCalled = (site: FunctionSite) => (entriesOf.get(site) ?? []).some(({ count }) => count > 0);
+
   return sites.flatMap((site) => {
     const { name, complexity, start, publicMethod } = site;
 
-    const entries = entriesFor(site, sites, coverage.functions);
+    const entries = entriesOf.get(site) ?? [];
     // `node:test` drops the lines a `node:coverage ignore` comment covers from the coverage.
     const ignored = !coverage.lines.some(({ line }) => isOnLines(line, site));
 
@@ -40,12 +43,15 @@ export function measuredFromNodeCoverage(
       return [];
     }
 
-    const called = entries.some(({ count }) => count > 0);
+    const called = isCalled(site);
     const nested = nestedIn(site, sites);
     // A line holds no columns, so the first line stays the function's own when a function inside it starts there too.
-    const isOwn = ({ line }: Counted) =>
-      isOnLines(line, site) && (line === start.line || !nested.some((inner) => isOnLines(line, inner)));
-    const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwn(branch)).length;
+    const isOwnAmong = (inners: readonly FunctionSite[]) => ({ line }: Counted) =>
+      isOnLines(line, site) && (line === start.line || !inners.some((inner) => isOnLines(line, inner)));
+    const isOwn = isOwnAmong(nested);
+    // A function no test called prints no branch line, so the blocks on its lines count for the function around it.
+    const isOwnBranch = isOwnAmong(nested.filter(isCalled));
+    const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwnBranch(branch)).length;
     const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches };
 
     // The first line also holds whatever ran around the function, such as `export` when the module loaded.

@@ -305,6 +305,36 @@ test('the line a callback starts on, when it is also the first line of the funct
   );
 });
 
+test('a block on the lines of a callback no test called counts for the function around it', () => {
+  // export const doubled = (xs) =>
+  //   xs.length > 0 ? xs.map((x) => {
+  //     return x * 2;
+  //   }) : [];
+  const doubled: FunctionSite = { ...settle, start: { line: 1, column: 23 }, end: { line: 4, column: 9 } };
+  const callback: FunctionSite = { ...settle, start: { line: 2, column: 25 }, end: { line: 4, column: 3 } };
+  const coverage = {
+    functions: [
+      { name: 'doubled', line: 1, count: 1 },
+      { name: '', line: 2, count: 0 },
+    ],
+    lines: [1, 1, 0, 1].map((count, index) => ({ line: index + 1, count })),
+    branches: [
+      { line: 1, count: 1 },
+      { line: 2, count: 0 },
+    ],
+  };
+
+  assert.deepEqual(
+    measuredFromNodeCoverage('src/order.ts', [doubled, callback], coverage).map(
+      ({ called, coverage: share, untestedBranches }) => [called, share, untestedBranches],
+    ),
+    [
+      [true, 1, 1],
+      [false, 0, 1],
+    ],
+  );
+});
+
 test('functions that start on one line join its entries in source order, whatever starts on other lines', () => {
   const signs: FunctionSite = {
     name: 'Arrow function',
