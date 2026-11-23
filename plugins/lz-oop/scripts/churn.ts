@@ -21,7 +21,7 @@ export function churn(git: Git, since: string): Churn | Uncountable {
   const partial = promisorIn(config) || /^extensions\.partialclone=./m.test(config);
   // Finding a rename reads the attributes of the files it compares, from the work tree unless attr.tree names a tree,
   // and a link in the work tree can lead to a share. The empty tree holds none; with no input, hash-object names it in
-  // the repository's own hash. Git before 2.45 has no attr.tree and still reads the work tree.
+  // the repository's own hash. Git before 2.43 has no attr.tree and still reads the work tree.
   const emptyTree = git(['hash-object', '-t', 'tree', '--stdin']).trim();
   const log = git([
     '-c',

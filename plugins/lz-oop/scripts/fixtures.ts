@@ -7,8 +7,6 @@ import { pathToFileURL } from 'node:url';
 
 type Files = Readonly<Record<string, string>>;
 
-// A share on a host that cannot exist, in the form the system names one; elsewhere than Windows a backslash is part of
-// a name, so a link to `\\host\share` would be an ordinary relative link.
 const [gitMajor = 0, gitMinor = 0] = (/(\d+)\.(\d+)/.exec(execFileSync('git', ['--version'], { encoding: 'utf8' })) ?? [])
   .slice(1)
   .map(Number);
@@ -17,6 +15,8 @@ const [gitMajor = 0, gitMinor = 0] = (/(\d+)\.(\d+)/.exec(execFileSync('git', ['
 export const gitAtLeast = (major: number, minor: number): boolean =>
   gitMajor > major || (gitMajor === major && gitMinor >= minor);
 
+// A share on a host that cannot exist, in the form the system names one; elsewhere than Windows a backslash is part of
+// a name, so a link to `\\host\share` would be an ordinary relative link.
 export const networkShare = process.platform === 'win32' ? '\\\\lz-oop-test.invalid\\share' : '//lz-oop-test.invalid/share';
 
 export function folderWith(context: TestContext, files: Files): string {

@@ -177,8 +177,8 @@ test('counting the commits reads no pack that the multi-pack-index names outside
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), limits: [] });
 });
 
-// attr.tree, which keeps Git from reading attributes from the work tree, came with Git 2.45.
-test('counting the commits reads no attributes file in the work tree, which a link could lead to a share', { skip: !gitAtLeast(2, 45) }, (context) => {
+// attr.tree, which keeps Git from reading attributes from the work tree, came with Git 2.43.
+test('counting the commits reads no attributes file in the work tree, which a link could lead to a share', { skip: !gitAtLeast(2, 43) }, (context) => {
   const root = repositoryWith(context, [{ 'a/b/x.ts': 'one\ntwo\nthree\nfour\nfive\nsix\n' }]);
   renameSync(join(root, 'a', 'b', 'x.ts'), join(root, 'a', 'b', 'y.ts'));
   commitFiles(root, { 'a/b/y.ts': 'one\ntwo\nthree\nfour\nfive\nsix\nseven\n' });
