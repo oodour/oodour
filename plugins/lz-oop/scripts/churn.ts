@@ -45,7 +45,8 @@ export function churn(git: Git, since: string): Churn | Uncountable {
 }
 
 // Git before 2.54 lists a value as written, whatever --type says, so a remote is a promisor by any spelling Git reads as
-// true: a key with no value, true, yes, on, or a number other than 0 (with a k, m or g after it).
+// true: a key with no value, true, yes, on, or a number other than 0, read in base 0 as C reads it (hex after 0x), with
+// a k, m or g after it.
 const promisorIn = (config: string): boolean =>
   config
     .split('\n')
@@ -53,7 +54,7 @@ const promisorIn = (config: string): boolean =>
     .some((entry) => {
       const value = entry?.[1];
 
-      return entry !== null && (value === undefined || /^(?:true|yes|on|[-+]?0*[1-9]\d*[kmg]?)$/i.test(value));
+      return entry !== null && (value === undefined || /^(?:true|yes|on|[-+]?(?:0x0*[1-9a-f][\da-f]*|0*[1-9]\d*)[kmg]?)$/i.test(value));
     });
 
 export function commitsPerCurrentPath(newestFirstLog: string): Map<string, number> {

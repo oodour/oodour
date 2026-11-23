@@ -86,7 +86,7 @@ test('a partial clone is known by any spelling Git reads as true', (context) => 
   commitFiles(origin, { 'b.ts': 'one\ntwo\nthree\nfour\nfive\n' });
   const clone = partialCloneOf(context, origin);
 
-  for (const spelling of ['ON', 'yes', '1', '2k']) {
+  for (const spelling of ['ON', 'yes', '1', '2k', '0x1a', '-010']) {
     runGit(clone, ['config', 'remote.origin.promisor', spelling]);
 
     assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 2], ['b.ts', 1]]), limits: ['partial'] }, spelling);
