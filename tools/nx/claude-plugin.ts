@@ -2,9 +2,14 @@ import { cpSync, existsSync, globSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join, posix, sep } from 'node:path';
 import type { CreateNodes, TargetConfiguration } from '@nx/devkit';
 
+function jsonField(path: string, field: string): unknown {
+  const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
+
+  return typeof parsed === 'object' && parsed !== null ? Object.entries(parsed).find(([key]) => key === field)?.[1] : undefined;
+}
+
 function manifestName(workspaceRoot: string, manifest: string): string {
-  const plugin: unknown = JSON.parse(readFileSync(join(workspaceRoot, manifest), 'utf8'));
-  const name = typeof plugin === 'object' && plugin !== null && 'name' in plugin ? plugin.name : undefined;
+  const name = jsonField(join(workspaceRoot, manifest), 'name');
 
   if (typeof name !== 'string') {
     throw new Error(`${manifest} names no plugin`);
@@ -15,13 +20,7 @@ function manifestName(workspaceRoot: string, manifest: string): string {
 
 function dependencyNames(workspaceRoot: string, root: string): string[] {
   const manifest = join(workspaceRoot, root, 'package.json');
-
-  if (!existsSync(manifest)) {
-    return [];
-  }
-
-  const plugin: unknown = JSON.parse(readFileSync(manifest, 'utf8'));
-  const dependencies = typeof plugin === 'object' && plugin !== null && 'dependencies' in plugin ? plugin.dependencies : {};
+  const dependencies = existsSync(manifest) ? jsonField(manifest, 'dependencies') : undefined;
 
   return typeof dependencies === 'object' && dependencies !== null ? Object.keys(dependencies) : [];
 }
@@ -37,7 +36,11 @@ export const createNodes: CreateNodes = [
         .sort();
       const exists = (folder: string): boolean => existsSync(join(workspaceRoot, folder));
 
-      const targets = pluginTargets(root, name, markdown, exists, dependencyNames(workspaceRoot, root));
+      const scripts = `${root}/scripts`;
+      const targets = {
+        ...(exists(scripts) ? scriptTargets(scripts, dependencyNames(workspaceRoot, root)) : {}),
+        ...pluginTargets(root, name, markdown, exists),
+      };
 
       return [manifest, { projects: { [root]: { name, targets } } }] as const;
     }),
@@ -70,19 +73,19 @@ function assembleTarget(root: string, evals: string, assembled: string): TargetC
   };
 }
 
-function scriptTargets(scripts: string, dependencies: readonly string[]): Record<string, TargetConfiguration> {
-  const packages = { externalDependencies: [...dependencies] };
+export function scriptTargets(scripts: string, dependencies: readonly string[]): Record<string, TargetConfiguration> {
+  const files = [`{workspaceRoot}/${scripts}/**/*`, '{projectRoot}/package.json', 'sharedGlobals'];
 
   return {
     typecheck: {
       command: `tsc -p ${scripts}/tsconfig.json`,
-      inputs: ['default', { externalDependencies: [...dependencies, '@types/node'] }],
+      inputs: [...files, { externalDependencies: [...dependencies, '@types/node'] }],
     },
     lint: { command: `eslint ${scripts}` },
     test: {
       command: `node --test "${scripts}/*.test.ts"`,
       cache: true,
-      inputs: ['default', packages, { runtime: 'node --version' }],
+      inputs: [...files, { externalDependencies: [...dependencies] }, { runtime: 'node --version' }],
       outputs: [],
     },
   };
@@ -93,15 +96,12 @@ export function pluginTargets(
   name: string,
   markdown: readonly string[],
   exists: (folder: string) => boolean,
-  dependencies: readonly string[],
 ): Record<string, TargetConfiguration> {
   const evals = `evals/${name}`;
   const assembled = `dist/eval/${name}`;
   const evalFolders = [evals, `${evals}-real`].filter(exists);
-  const scripts = `${root}/scripts`;
 
   return {
-    ...(exists(scripts) ? scriptTargets(scripts, dependencies) : {}),
     'pre-eval': assembleTarget(root, evals, assembled),
     'pre-eval-real': assembleTarget(root, `${evals}-real`, `${assembled}-real`),
     eval: {
