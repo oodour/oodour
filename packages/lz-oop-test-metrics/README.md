@@ -138,8 +138,10 @@ The two runners measure coverage in different units, so one function can get dif
   first line counts for both functions. V8 lists no blocks inside a function that never ran, so under `node:test` an
   untaken block on the lines of a function no test called belongs to the called function around it, and counts for
   that function. `node:test` keeps the blocks on the lines that a `node:coverage ignore` comment covers, by their first
-  line only. The reporter counts no block whose first two lines the comment covers, so an untaken one-line block
-  under the comment still counts.
+  line only, and leaves a block out of its own count only when the comment covers all its lines. The reporter cannot
+  see where a block ends, so it leaves out a block when the comment covers its first two lines. Where the two differ,
+  an untaken one-line block under the comment still counts, unless it is on the file's last line, and a longer block
+  whose first two lines alone the comment covers does not.
 - **Which functions.** Each reporter scores the functions that its coverage lists. With the `v8` provider, Vitest's
   coverage lists no class field initializers and no static blocks. With the `istanbul` provider, it lists no `#private`
   methods. `node:test` coverage gives a class's instance field initializers one count for the whole class, and its

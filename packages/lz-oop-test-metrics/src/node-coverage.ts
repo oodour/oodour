@@ -29,21 +29,22 @@ export function measuredFromNodeCoverage(
   sites: readonly FunctionSite[],
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
-  const listed = sites.flatMap((site) => {
+  const joined = sites.flatMap((site) => {
     const entries = entriesFor(site, sites, coverage.functions);
 
     return entries.length > 0 ? [{ site, called: entries.some(({ count }) => count > 0) }] : [];
   });
-  const calledSites = new Set(listed.filter(({ called }) => called).map(({ site }) => site));
+  const calledSites = new Set(joined.filter(({ called }) => called).map(({ site }) => site));
   // `node:test` drops the lines a `node:coverage ignore` comment covers, but keeps the blocks on them by their first
-  // line alone, and counts a block as ignored only when all its lines are. A block whose next line is listed may have
-  // run none of it, so only a block with its first two lines left out counts as ignored.
+  // line alone, and counts a block as ignored only when all its lines are. With no end line to go by, a block counts as
+  // ignored when its first two lines are left out: an ignored one-line block still counts, and a longer block ignored
+  // in its first two lines alone does not.
   const listedLines = new Set(coverage.lines.map(({ line }) => line));
   const untakenBlocks = coverage.branches.filter(
     ({ line, count }) => count === 0 && (listedLines.has(line) || listedLines.has(line + 1)),
   );
 
-  return listed.flatMap(({ site, called }) => {
+  return joined.flatMap(({ site, called }) => {
     const { name, complexity, start, publicMethod } = site;
 
     if (!coverage.lines.some(({ line }) => isOnLines(line, site))) {

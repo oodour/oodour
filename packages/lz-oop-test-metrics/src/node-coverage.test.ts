@@ -54,14 +54,17 @@ test('a called function counts each block on its lines that no test ran as an un
 test('a block whose first two lines the coverage leaves out, as a node:coverage ignore comment over it does, is untested for no function', () => {
   const coverage = {
     functions: [{ name: 'settle', line: 1, count: 1 }],
-    lines: [1, 2].map((line) => ({ line, count: 1 })),
+    lines: [1, 2, 5].map((line) => ({ line, count: 1 })),
     branches: [{ line: 3, count: 0 }],
   };
 
-  assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 0);
+  assert.equal(
+    measuredFromNodeCoverage('src/order.ts', [{ ...settle, end: { line: 5, column: 1 } }], coverage)[0]?.untestedBranches,
+    0,
+  );
 });
 
-test('a block whose first line alone the coverage leaves out is untested, since its other lines did not run', () => {
+test('a block whose first line alone the coverage leaves out still counts as untested', () => {
   // export function settle(x) {
   //   /* node:coverage ignore next */
   //   if (x) {
