@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { lstatSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
+import { gitText } from './git-text.ts';
 import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
 
 export type Git = (args: readonly string[]) => string;
@@ -44,7 +45,13 @@ export interface Repository {
 
 // Read with no includes followed, so a file an include names is checked before git opens it.
 const readConfig: ConfigReader = (file) =>
-  execFileSync('git', ['config', '--file', file, '--list', '-z'], { ...childOptions(), stdio: ['ignore', 'pipe', 'pipe'] });
+  gitText(
+    execFileSync('git', ['config', '--file', file, '--list', '-z'], {
+      ...childOptions(),
+      encoding: 'buffer',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }),
+  );
 
 export function gitIn(folder: string): Repository | undefined {
   const installed = spawnSync('git', ['--version'], childOptions());

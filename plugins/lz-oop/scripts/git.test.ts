@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
+import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
@@ -100,6 +100,14 @@ test('a config file an include names is checked like the config itself', (contex
   runGit(root, ['config', 'include.path', join(elsewhere, 'included')]);
 
   assert.throws(() => gitIn(root), /^Error: git: mailmap\.file in .+included names a network path/);
+});
+
+test('an include whose name is not UTF-8 is read as Git reads it', { skip: process.platform !== 'win32' }, (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  appendFileSync(join(root, '.git', 'config'), Buffer.from('[include]\n\tpath = \xE9vil\n', 'latin1'));
+  writeFiles(join(root, '.git'), { 'évil': `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n` });
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+évil names a network path/);
 });
 
 test('a relative include in a config file that is a link is read from where Git reads it', (context) => {

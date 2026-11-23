@@ -2,6 +2,7 @@ import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, normalize, parse, resolve, sep } from 'node:path';
 import { localPath, namesNetworkPath } from './below.ts';
+import { gitText } from './git-text.ts';
 
 export type ConfigReader = (file: string) => string;
 
@@ -108,7 +109,7 @@ function linesOf(file: string): readonly string[] {
   const local = localPath(file) ?? refuse(`${file} leads to a network path`);
 
   return lstatSync(local, { throwIfNoEntry: false })?.isFile() === true
-    ? readFileSync(local, 'utf8').split(/\r?\n/).filter((line) => line !== '')
+    ? gitText(readFileSync(local)).split(/\r?\n/).filter((line) => line !== '')
     : [];
 }
 
@@ -184,7 +185,7 @@ function pointedFolders(
   base: string,
   cwds: readonly string[],
 ): readonly string[] {
-  const named = nameIn(readFileSync(file, 'utf8'));
+  const named = nameIn(gitText(readFileSync(file)));
 
   if (named === undefined) {
     return [];
