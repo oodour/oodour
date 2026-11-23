@@ -5,6 +5,12 @@ export type Place = 'direct' | 'linked';
 
 const mostLinks = 40;
 
+export function pathBelow(root: string, path: string): string | undefined {
+  const below = relative(root, resolve(root, path));
+
+  return below === '..' || below.startsWith(`..${sep}`) || isAbsolute(below) ? undefined : below;
+}
+
 // Links are followed by reading them, never by opening their targets: on Windows, opening a link to \\host\share
 // sends the user's credentials to that host.
 export function placeBelow(root: string): (path: string) => Place | undefined {
@@ -16,11 +22,10 @@ export function placeBelow(root: string): (path: string) => Place | undefined {
 
     return targets.get(path);
   };
-  const segmentsBelow = (path: string): readonly string[] | undefined => {
-    const below = relative(root, resolve(root, path));
-
-    return below.startsWith('..') || isAbsolute(below) ? undefined : below.split(sep).filter((segment) => segment !== '');
-  };
+  const segmentsBelow = (path: string): readonly string[] | undefined =>
+    pathBelow(root, path)
+      ?.split(sep)
+      .filter((segment) => segment !== '');
   const walk = (segments: readonly string[], links: number): Place | undefined => {
     let current = root;
 

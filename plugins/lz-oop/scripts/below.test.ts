@@ -12,6 +12,13 @@ test('a path with no link on the way is direct, whether or not it exists', (cont
   assert.deepEqual([place(join(root, 'lib', 'a.ts')), place(join(root, 'lib', 'missing', 'b.ts')), place(root)], ['direct', 'direct', 'direct']);
 });
 
+test('a name that starts with two dots is below the root', (context) => {
+  const root = folderWith(context, { '..lib/a.ts': '', '..b.ts': '' });
+  const place = placeBelow(root);
+
+  assert.deepEqual([place(join(root, '..lib', 'a.ts')), place(join(root, '..b.ts'))], ['direct', 'direct']);
+});
+
 test('a path outside the root has no place', (context) => {
   const root = folderWith(context, {});
 

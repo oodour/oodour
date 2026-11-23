@@ -182,14 +182,14 @@ test('a file the parser cannot read is left out and named with where it stopped'
   assert.match(parseErrors.join('\n'), /^broken\.ts:1:\d+ /);
 });
 
-test('outside a repository the history is none and the report shows no commit counts', (context) => {
+test('outside a repository there is no history and the report shows no commit counts', (context) => {
   const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
   outsideAnyRepository(context);
 
   const measured = measureScope(root, '12 months ago');
   const report = renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30));
 
-  assert.equal(measured.history, 'none');
+  assert.equal(measured.history, 'no repository');
   assert.match(report, /\nHistory: no Git repository, or git is not installed, so no commit counts, and no file counts as often changed\.\n/);
   assert.match(report, /\n\| a\.ts \| - \| 0, 0 \|/);
 });

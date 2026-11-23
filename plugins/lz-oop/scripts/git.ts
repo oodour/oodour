@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
+import { pathBelow } from './below.ts';
 
 export type Git = (args: readonly string[]) => string;
 
@@ -28,7 +29,13 @@ const childOptions = () =>
     env: { ...process.env, GIT_ALLOW_PROTOCOL: 'none', GIT_NO_LAZY_FETCH: '1', LANGUAGE: 'C', LC_ALL: 'C' },
   }) as const;
 
-export function gitIn(folder: string): Git | undefined {
+export interface Repository {
+  readonly git: Git;
+  readonly top: string;
+  readonly prefix: string;
+}
+
+export function gitIn(folder: string): Repository | undefined {
   const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), childOptions());
 
   if (probe.error) {
@@ -51,11 +58,11 @@ export function gitIn(folder: string): Git | undefined {
     execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer: 1024 ** 3, stdio: ['ignore', 'pipe', 'pipe'] });
   // The repository's own config can set its work tree anywhere, a network share included.
   const top = resolve(git(['rev-parse', '--show-toplevel']).trim());
-  const below = relative(top, realpathSync.native(resolve(folder)));
 
-  if (below.startsWith('..') || isAbsolute(below)) {
+  if (pathBelow(top, realpathSync.native(resolve(folder))) === undefined) {
     throw new Error(`git: the repository's work tree ${top} does not hold ${folder}`);
   }
 
-  return git;
+  // Git names the folder from the top folder itself, so a short or differently cased path to either cannot mislead it.
+  return { git, top, prefix: git(['rev-parse', '--show-prefix']).trim() };
 }

@@ -32,17 +32,20 @@ export interface Ranked {
   readonly rows: readonly (FileMeasures & { readonly quadrant: Quadrant })[];
 }
 
+export type Uncounted = 'no repository' | 'treeless';
+
 export interface Measured {
   readonly files: readonly FileMeasures[];
-  readonly history: readonly HistoryLimit[] | 'none';
+  readonly history: readonly HistoryLimit[] | Uncounted;
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
 }
 
 export function measureScope(scope: string, since: string): Measured {
-  const git = gitIn(scope);
-  const { root, all, inScope } = sources(scope, git);
-  const counted = git && churn(git, since);
+  const repository = gitIn(scope);
+  const { root, all, inScope } = sources(scope, repository);
+  const counted = repository ? churn(repository.git, since) : 'no repository';
+  const commitsOf = (file: string): number => (typeof counted === 'string' ? 0 : (counted.commits.get(file) ?? 0));
   const modules = readModules(root, all);
   const dependents = dependentsThroughReexports(modules);
   const production = inScope.filter((file) => !isTest(file));
@@ -58,7 +61,7 @@ export function measureScope(scope: string, since: string): Measured {
         ? complexity
         : {
             file,
-            commits: counted?.commits.get(file) ?? 0,
+            commits: commitsOf(file),
             dependents: {
               production: importers.filter((importer) => !isTest(importer)).length,
               test: importers.filter(isTest).length,
@@ -74,7 +77,7 @@ export function measureScope(scope: string, since: string): Measured {
 
   return {
     files: measured.flatMap((result) => ('parseError' in result ? [] : [result])),
-    history: counted?.limits ?? 'none',
+    history: typeof counted === 'string' ? counted : counted.limits,
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
   };
@@ -83,12 +86,16 @@ export function measureScope(scope: string, since: string): Measured {
 const limitClauses: Readonly<Record<HistoryLimit, string>> = {
   shallow: 'a shallow clone, so the commit counts are too low',
   partial: "a partial clone, so renames are not followed and a renamed file's older commits count for its old path",
-  treeless: 'a treeless clone, whose older commits name no files without fetching, so no commit counts, and no file counts as often changed',
+};
+
+const uncountedReasons: Readonly<Record<Uncounted, string>> = {
+  'no repository': 'no Git repository, or git is not installed',
+  treeless: 'a treeless clone, whose older commits name no files without fetching',
 };
 
 function historyLine(history: Measured['history']): string {
-  if (history === 'none') {
-    return 'no Git repository, or git is not installed, so no commit counts, and no file counts as often changed.';
+  if (typeof history === 'string') {
+    return `${uncountedReasons[history]}, so no commit counts, and no file counts as often changed.`;
   }
 
   return history.length === 0 ? 'the full history of the period.' : `${history.map((limit) => limitClauses[limit]).join('; ')}.`;
@@ -100,7 +107,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
   const rows = ranked.rows.map((row) =>
     [
       row.file,
-      measured.history === 'none' || measured.history.includes('treeless') ? '-' : row.commits,
+      typeof measured.history === 'string' ? '-' : row.commits,
       `${String(row.dependents.production)}, ${String(row.dependents.test)}`,
       row.largest ? `${row.largest.name}, line ${String(row.largest.line)}: ${String(row.largest.complexity)}` : 'none',
       row.exportsConcreteClass ? 'yes' : 'no',

@@ -9,7 +9,13 @@ import { gitIn } from './git.ts';
 test('in a repository, Git runs in the folder it was asked about', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
 
-  assert.equal(gitIn(`${root}/lib`)?.(['rev-parse', '--show-prefix']), 'lib/\n');
+  assert.equal(gitIn(`${root}/lib`)?.prefix, 'lib/');
+});
+
+test('a folder whose name starts with two dots is in the repository', (context) => {
+  const root = repositoryWith(context, [{ '..lib/a.ts': '' }]);
+
+  assert.equal(gitIn(join(root, '..lib'))?.prefix, '..lib/');
 });
 
 test('Git reaches no remote, whatever the repository allows', (context) => {
@@ -18,7 +24,7 @@ test('Git reaches no remote, whatever the repository allows', (context) => {
   runGit(clone, ['clone', '-q', pathToFileURL(origin).href, '.']);
   runGit(clone, ['config', 'protocol.file.allow', 'always']);
 
-  assert.throws(() => gitIn(clone)?.(['fetch', '-q']), /transport 'file' not allowed/);
+  assert.throws(() => gitIn(clone)?.git(['fetch', '-q']), /transport 'file' not allowed/);
 });
 
 test('a repository whose work tree is elsewhere than the folder is refused', (context) => {
@@ -34,7 +40,7 @@ test('a git program in the folder is not the Git that runs', { skip: process.pla
   copyFileSync(join(process.env['SystemRoot'] ?? 'C:/Windows', 'System32', 'hostname.exe'), join(root, 'lib', 'git.exe'));
   setForTest(context, 'NoDefaultCurrentDirectoryInExePath', undefined);
 
-  assert.equal(gitIn(`${root}/lib`)?.(['rev-parse', '--show-prefix']), 'lib/\n');
+  assert.equal(gitIn(`${root}/lib`)?.prefix, 'lib/');
 });
 
 test('a folder outside any repository has no Git', (context) => {

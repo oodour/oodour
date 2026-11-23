@@ -1,18 +1,18 @@
 import type { Git } from './git.ts';
 
-export type HistoryLimit = 'shallow' | 'partial' | 'treeless';
+export type HistoryLimit = 'shallow' | 'partial';
 
 export interface Churn {
   readonly commits: ReadonlyMap<string, number>;
   readonly limits: readonly HistoryLimit[];
 }
 
-export function churn(git: Git, since: string): Churn {
+export function churn(git: Git, since: string): Churn | 'treeless' {
   const config = git(['config', '--list']);
 
   // A treeless clone would have to fetch the older commits' file lists before it could name the files they changed.
-  if (/^remote\..+\.partialclonefilter=tree:/m.test(config)) {
-    return { commits: new Map(), limits: ['treeless'] };
+  if (/^remote\..+\.partialclonefilter=(?:combine:(?:[^+\n]*\+)*)?tree:/m.test(config)) {
+    return 'treeless';
   }
 
   // Finding a rename compares file contents, and a partial clone would fetch the old ones from its remote.
@@ -33,7 +33,7 @@ export function churn(git: Git, since: string): Churn {
 
   return {
     commits: commitsPerCurrentPath(log),
-    limits: (['shallow', 'partial'] as const).filter((limit) => ({ shallow, partial })[limit]),
+    limits: [...(shallow ? ['shallow' as const] : []), ...(partial ? ['partial' as const] : [])],
   };
 }
 
