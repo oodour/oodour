@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
+import { copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
@@ -10,6 +10,14 @@ test('in a repository, Git runs in the folder it was asked about', (context) => 
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
 
   assert.equal(gitIn(`${root}/lib`)?.prefix, 'lib/');
+});
+
+test('in a submodule, Git runs in the submodule', (context) => {
+  const library = repositoryWith(context, [{ 'b.ts': '' }]);
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  runGit(root, ['-c', 'protocol.file.allow=always', 'submodule', 'add', '-q', library, 'lib']);
+
+  assert.equal(gitIn(join(root, 'lib'))?.prefix, '');
 });
 
 test('a folder whose name starts with two dots is in the repository', (context) => {
@@ -54,6 +62,14 @@ test("a repository whose config names a network path is refused before Git runs"
   assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+config names a network path \(\\\\lz-oop-test\.invalid\\share\\hooks\)$/);
 });
 
+test('a config value that leads to a network path through a link is refused before Git runs', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  symlinkSync(share, join(root, 'shared'), 'dir');
+  runGit(root, ['config', 'core.excludesFile', 'shared/ignore']);
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.excludesfile in .+config leads to a network path \(shared\/ignore\)$/);
+});
+
 test('a config file an include names is checked like the config itself', (context) => {
   const elsewhere = folderWith(context, { included: `[mailmap]\n\tfile = ${share.replaceAll('\\', '/')}/mailmap\n` });
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
@@ -62,10 +78,49 @@ test('a config file an include names is checked like the config itself', (contex
   assert.throws(() => gitIn(root), /^Error: git: mailmap\.file in .+included names a network path/);
 });
 
+test('a relative include in a config file that is a link is read from where Git reads it', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const gitFolder = join(root, '.git');
+  mkdirSync(join(gitFolder, 'sub'));
+  renameSync(join(gitFolder, 'config'), join(gitFolder, 'sub', 'config'));
+  symlinkSync(join(gitFolder, 'sub', 'config'), join(gitFolder, 'config'), 'file');
+  runGit(root, ['config', '--file', join(gitFolder, 'sub', 'config'), 'include.path', 'included']);
+  writeFiles(gitFolder, { included: `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n` });
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+included names a network path/);
+});
+
+test('an include that steps back after a link is read with the step taken by its text too', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const gitFolder = join(root, '.git');
+  const deep = join(folderWith(context, {}), 'deep');
+  mkdirSync(deep);
+  symlinkSync(deep, join(gitFolder, 'linked'), 'dir');
+  runGit(root, ['config', 'include.path', 'linked/../included']);
+  writeFiles(gitFolder, { included: `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n` });
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+included names a network path/);
+});
+
 test('a .git file that points to a network path is refused before Git runs', (context) => {
   const root = folderWith(context, { '.git': `gitdir: ${share.replaceAll('\\', '/')}/repo.git\n`, 'a.ts': '' });
 
   assert.throws(() => gitIn(root), /^Error: git: .+\.git points to a network path \(\/\/lz-oop-test\.invalid\/share\/repo\.git\)$/);
+});
+
+test('a .git link to a .git file is read like the file', (context) => {
+  const elsewhere = folderWith(context, { gitfile: `gitdir: ${share.replaceAll('\\', '/')}/repo.git\n` });
+  const root = folderWith(context, { 'a.ts': '' });
+  symlinkSync(join(elsewhere, 'gitfile'), join(root, '.git'), 'file');
+
+  assert.throws(() => gitIn(root), /^Error: git: .+gitfile points to a network path \(\/\/lz-oop-test\.invalid\/share\/repo\.git\)$/);
+});
+
+test('a .git file is read as Git reads it, keeping the spaces after `gitdir: `', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir:  linked\n', 'a.ts': '' });
+  symlinkSync(share, join(root, ' linked'), 'dir');
+
+  assert.throws(() => gitIn(root), /^Error: git: .+\.git points to a path that leads to a network path \( linked\)$/);
 });
 
 test("a work tree whose repository's common folder is a network path is refused before Git runs", (context) => {
@@ -77,12 +132,49 @@ test("a work tree whose repository's common folder is a network path is refused 
   assert.throws(() => gitIn(tree), /^Error: git: .+commondir points to a network path/);
 });
 
+test('a commondir that steps back after a link is read with the step taken by its text too', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const tree = join(folderWith(context, {}), 'tree');
+  const treeGit = join(root, '.git', 'worktrees', 'tree');
+  const deep = join(folderWith(context, {}), 'deep');
+  runGit(root, ['worktree', 'add', '-q', tree]);
+  mkdirSync(deep);
+  symlinkSync(deep, join(treeGit, 'linked'), 'dir');
+  writeFiles(treeGit, {
+    commondir: 'linked/../common\n',
+    'common/config': `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n`,
+  });
+
+  assert.throws(() => gitIn(tree), /^Error: git: core\.hookspath in .+config names a network path/);
+});
+
+test('a commondir file that is a link is read like any other', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const tree = join(folderWith(context, {}), 'tree');
+  const elsewhere = folderWith(context, { commondir: `${share}\\repo.git\n` });
+  runGit(root, ['worktree', 'add', '-q', tree]);
+  rmSync(join(root, '.git', 'worktrees', 'tree', 'commondir'));
+  symlinkSync(join(elsewhere, 'commondir'), join(root, '.git', 'worktrees', 'tree', 'commondir'), 'file');
+
+  assert.throws(() => gitIn(tree), /^Error: git: .+commondir points to a network path/);
+});
+
 test('a link in the git folder that leads to a network path is refused before Git runs', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
   rmSync(join(root, '.git', 'info'), { recursive: true, force: true });
   symlinkSync(share, join(root, '.git', 'info'), 'dir');
 
   assert.throws(() => gitIn(root), /^Error: git: .+info leads to a network path$/);
+});
+
+test('a link in a folder that a link in the git folder leads to is checked too', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const elsewhere = folderWith(context, {});
+  symlinkSync(share, join(elsewhere, 'heads'), 'dir');
+  rmSync(join(root, '.git', 'info'), { recursive: true, force: true });
+  symlinkSync(elsewhere, join(root, '.git', 'info'), 'dir');
+
+  assert.throws(() => gitIn(root), /^Error: git: .+heads leads to a network path$/);
 });
 
 test("from a linked work tree, the repository's own config is checked", (context) => {
@@ -102,6 +194,33 @@ test("a bare repository's config is checked like any other", (context) => {
   assert.throws(() => gitIn(join(bare, 'refs')), /^Error: git: core\.hookspath in .+config names a network path/);
 });
 
+test('a bare repository whose HEAD is a link is checked like any other', (context) => {
+  const bare = folderWith(context, {});
+  runGit(bare, ['init', '-q', '--bare']);
+  runGit(bare, ['config', 'core.hooksPath', share]);
+  rmSync(join(bare, 'HEAD'));
+  symlinkSync('refs/heads/main', join(bare, 'HEAD'), 'file');
+
+  assert.throws(() => gitIn(bare), /^Error: git: core\.hookspath in .+config names a network path/);
+});
+
+test('an empty .git folder in a bare repository does not hide its config', (context) => {
+  const bare = folderWith(context, {});
+  runGit(bare, ['init', '-q', '--bare']);
+  runGit(bare, ['config', 'core.hooksPath', share]);
+  mkdirSync(join(bare, '.git'));
+
+  assert.throws(() => gitIn(bare), /^Error: git: core\.hookspath in .+config names a network path/);
+});
+
+test('an empty .git folder does not hide the config of the repository above it', (context) => {
+  const root = repositoryWith(context, [{ 'sub/a.ts': '' }]);
+  mkdirSync(join(root, 'sub', '.git'));
+  runGit(root, ['config', 'core.hooksPath', share]);
+
+  assert.throws(() => gitIn(join(root, 'sub')), /^Error: git: core\.hookspath in .+config names a network path/);
+});
+
 test('a repository that borrows objects from another is refused', (context) => {
   const lender = repositoryWith(context, [{ 'a.ts': '' }]);
   const root = folderWith(context, {});
@@ -116,6 +235,13 @@ test('a git program in the folder is not the Git that runs', { skip: process.pla
   setForTest(context, 'NoDefaultCurrentDirectoryInExePath', undefined);
 
   assert.equal(gitIn(`${root}/lib`)?.prefix, 'lib/');
+});
+
+test('a .git file that points to a missing folder leaves the folder outside any repository', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir: gone/.git/worktrees/tree\n', 'a.ts': '' });
+  outsideAnyRepository(context);
+
+  assert.equal(gitIn(root), undefined);
 });
 
 test('a folder outside any repository has no Git', (context) => {

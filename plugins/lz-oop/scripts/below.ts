@@ -25,6 +25,7 @@ function walk(
   start: Walk,
   startAbsolute: (target: string) => Walk | undefined,
   linkTarget: (path: string) => string | undefined,
+  stepBackFromBase: 'leaves' | 'stays',
 ): { readonly path: string; readonly links: number } | undefined {
   let { base } = start;
   let walked: string[] = [];
@@ -37,7 +38,7 @@ function walk(
     }
 
     if (segment === '..') {
-      if (walked.pop() === undefined) {
+      if (walked.pop() === undefined && stepBackFromBase === 'leaves') {
         return undefined;
       }
 
@@ -92,7 +93,7 @@ export function placeBelow(root: string): (path: string) => Place | undefined {
 
   return (path) => {
     const start = isAbsolute(path) ? fromRoot(path) : { base: root, segments: segmentsOf(path) };
-    const walked = start && walk(start, fromRoot, linkTarget);
+    const walked = start && walk(start, fromRoot, linkTarget, 'leaves');
 
     return walked && (walked.links === 0 ? 'direct' : 'linked');
   };
@@ -114,7 +115,8 @@ const fromFilesystemRoot = (path: string): Walk | undefined => {
 export function localPath(path: string): string | undefined {
   const start = fromFilesystemRoot(isAbsolute(path) ? path : `${process.cwd()}${sep}${path}`);
 
-  return start && walk(start, fromFilesystemRoot, readLink)?.path;
+  // A `..` at the filesystem root names the root itself.
+  return start && walk(start, fromFilesystemRoot, readLink, 'stays')?.path;
 }
 
 function readLink(path: string): string | undefined {
