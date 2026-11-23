@@ -26,6 +26,8 @@ interface Parsed {
   readonly reexportsOnly: boolean;
   /** Each concrete class the file exports, by the name it is exported under (`default` for a default export). */
   readonly exportedClasses: ReadonlyMap<string, string>;
+  /** The files whose exports this one passes on: all of them (`export *`), or by exported name to their own name. */
+  readonly reexports: readonly { readonly from: string; readonly names: ReadonlyMap<string, string> | 'all' }[];
   /** Each name an import declaration takes from another file of the scan. */
   readonly importedNames: readonly { readonly from: string; readonly name: string }[];
   /** The classes the file declares and creates with `new`. */
@@ -51,9 +53,26 @@ export function readModules(root: string, files: readonly string[]): ReadonlyMap
     }),
   );
 
+  const classExported = (file: string, name: string, passed: ReadonlySet<string>): string | undefined => {
+    const facts = parsed.get(file);
+    const own = facts?.exportedClasses.get(name);
+
+    if (own !== undefined || facts === undefined || passed.has(file)) {
+      return own;
+    }
+
+    return facts.reexports
+      .map(({ from, names }) => {
+        const original = names === 'all' ? (name === 'default' ? undefined : name) : names.get(name);
+
+        return original === undefined ? undefined : classExported(from, original, new Set([...passed, file]));
+      })
+      .find((found) => found !== undefined);
+  };
+
   return new Map(
     [...parsed].map(([file, { imports, reexportsOnly, exportedClasses, importedNames, createdClasses }]) => {
-      const imported = importedNames.flatMap(({ from, name }) => present(parsed.get(from)?.exportedClasses.get(name)));
+      const imported = importedNames.flatMap(({ from, name }) => present(classExported(from, name, new Set())));
       const namedClasses = [...new Set([...imported, ...createdClasses])].sort();
 
       return [file, { imports, reexportsOnly, concreteClasses: [...exportedClasses.values()], namedClasses }];
@@ -95,6 +114,20 @@ function parse(path: string, resolve: (specifier: string) => string | undefined)
       statements.some(ts.isExportDeclaration) &&
       statements.every((statement) => ts.isExportDeclaration(statement) || ts.isImportDeclaration(statement)),
     exportedClasses: exportedClassesOf(statements),
+    reexports: statements.filter(ts.isExportDeclaration).flatMap(({ moduleSpecifier, exportClause }) => {
+      const from = moduleSpecifier && ts.isStringLiteral(moduleSpecifier) ? resolve(moduleSpecifier.text) : undefined;
+
+      if (from === undefined || (exportClause !== undefined && !ts.isNamedExports(exportClause))) {
+        return [];
+      }
+
+      const names =
+        exportClause === undefined
+          ? ('all' as const)
+          : new Map(exportClause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text]));
+
+      return [{ from, names }];
+    }),
     importedNames: statements.filter(ts.isImportDeclaration).flatMap(({ moduleSpecifier, importClause }) => {
       const from = ts.isStringLiteral(moduleSpecifier) ? resolve(moduleSpecifier.text) : undefined;
 

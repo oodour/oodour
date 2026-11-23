@@ -110,6 +110,21 @@ test('a file names the concrete classes it imports from other files and the clas
   assert.deepEqual(modules.get('a.ts')?.namedClasses, ['Local', 'Store', 'SystemClock']);
 });
 
+test('a concrete class imported through files that re-export it is named', () => {
+  const modules = modulesOf({
+    'store.ts': 'export class Store {}',
+    'index.ts': "export * from './store';",
+    'barrel.ts': "export { Store as Shelf } from './index';",
+    'a.ts': "import { Store } from './index';",
+    'b.ts': "import { Shelf } from './barrel';",
+  });
+
+  assert.deepEqual(
+    ['a.ts', 'b.ts'].map((file) => modules.get(file)?.namedClasses),
+    [['Store'], ['Store']],
+  );
+});
+
 test('the dependents of a file are the files that import it, directly or through files that only re-export it', () => {
   const modules = modulesOf({
     'lib.ts': 'export const lib = 1;',
