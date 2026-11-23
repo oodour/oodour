@@ -60,8 +60,9 @@ test('a public method no test called gets a stop-and-look line of its own, and t
 
   assert.deepEqual(testMetricsReport([unsent]), {
     lines: [
-      "src/order.ts:3 Stop and look: Untested Code, Method 'settle' is public and no test called it. Cure: a test " +
-        'that sends it and checks what it returns or the message it passes on, or delete it when nothing sends it.',
+      "src/order.ts:3 Stop and look: Untested Code, Method 'settle' is public and no test called it. Look for what " +
+        'sends it. Cure: a test that sends it and checks what it returns or the message it passes on, or delete it ' +
+        'when nothing sends it.',
     ],
     failed: false,
   });

@@ -80,9 +80,9 @@ for (const provider of ['v8', 'istanbul']) {
             'it run by tests. Look for the paths no test takes. Cure: a test that drives each of them through the ' +
             'inputs, or fewer paths first (Decompose Conditional, Replace Conditional with Polymorphism) when those ' +
             'inputs are hard to set up.',
-          "src/order.ts:26 Stop and look: Untested Code, Method 'open' is public and no test called it. Cure: a test " +
-            'that sends it and checks what it returns or the message it passes on, or delete it when nothing sends ' +
-            'it.',
+          "src/order.ts:26 Stop and look: Untested Code, Method 'open' is public and no test called it. Look for " +
+            'what sends it. Cure: a test that sends it and checks what it returns or the message it passes on, or ' +
+            'delete it when nothing sends it.',
           "src/order.ts:30 Stop and look: Untested Code, Method 'charge' has 1 branch path no test took. Cure: a " +
             'test that drives it through the inputs that reach it.',
         ],
