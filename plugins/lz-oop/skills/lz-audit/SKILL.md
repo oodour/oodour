@@ -1,7 +1,7 @@
 ---
 name: lz-audit
 description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository. Use when a developer asks to audit the design of a codebase, find its design hot spots or technical debt, decide where to start refactoring a legacy codebase or which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
-allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
+allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**) Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts *)
 ---
 
 # lz-audit: design audit of a package or repository
@@ -27,53 +27,55 @@ are the house style: where they are not, a cure can use a module of functions or
 
 ## 2. Find the hot spots: churn against complexity
 
-Code that changes often and is hard to understand costs the most; plot each file on those two axes.
+Code that changes often and is hard to understand costs the most; plot each file on those two axes, beside how many
+files depend on it.
 
-- **Churn**: count commits per file over the last year, for example in a POSIX shell
-  `git log --since="12 months ago" --format= --name-only -- <scope> | sort | uniq -c | sort -rn`; elsewhere count the
-  paths that `git log --format= --name-only` prints in another way. A shallow clone
-  (`git rev-parse --is-shallow-repository` prints `true`), a short history, or no Git history at all limits this
-  measure: use what exists and say so in the report. Count a moved or renamed file together with its old paths (for
-  example `git log --follow --format=%h -- <file>` per file), and leave out a file that now only re-exports others: its
-  commits belong to the code that moved out of it.
-- **Complexity**: use what the repository already measures (ESLint `complexity`, `max-lines-per-function`,
-  `sonarjs/cognitive-complexity`). Where it has ESLint but none of these rules, run its ESLint once with them added on
-  the command line (`--rule`) to get real numbers; only without ESLint approximate with file length, function length and
-  the number of conditionals. Treat the numbers as fallible facts that start a judgement, not end it. Cyclomatic
-  complexity is also the least number of tests that covers a function's paths, so a hot spot with fewer tests than its
-  score has untested logic; say so in the report. Where the repository gates on a mutation score, read that gate for the
-  hot spot's file instead of counting tests: a passing gate says more about whether its logic is tested.
+Run `node ${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts hotspots <scope>`. It measures the last 12 months (`--since <date>`
+for another period) and prints 30 rows (`--limit <count>` for more). Lines above the table state the period, the history
+and the thresholds; the table has one row per production file:
+
+- **Commits**: commits in the period, a renamed file counted with its old paths. The history line says when a shallow
+  clone or a missing repository limits this measure; say so in the report, and say so too when the period is longer than
+  the history.
+- **Dependents**: the production and test files that import it, by any form of import, path alias or package name,
+  counted through files that only re-export it. Files that only re-export are left out of the rows, since their commits
+  and dependents belong to the code they pass on.
+- **Largest function**: the count ESLint's `complexity` rule gives the file's most complex function. Treat it as a
+  fallible fact that starts a judgement, not one that ends it. It is also the least number of tests that covers the
+  function's paths, so a hot spot with fewer tests than its count has untested logic; say so in the report. Where the
+  repository gates on a mutation score, read that gate for the hot spot's file instead of counting tests: a passing gate
+  says more about whether its logic is tested. Where the team sets its own complexity limits (ESLint `complexity`,
+  `sonarjs/cognitive-complexity`), judge by them.
+- **Concrete classes**: whether the file exports a class that is not abstract, and the concrete classes it names, by
+  import or with `new`. The code that changes most should be the easiest to replace, and each concrete class it names
+  makes that harder. Where classes are not the house style these columns say little; look instead at the modules whose
+  functions a churning file calls directly rather than receiving them.
+- **Quadrant**: from thresholds the command sets from the scope itself, which the lines above the table state. They rank
+  the files of this scope against each other, so read them as where to look first, not as limits.
+
+When the command cannot run, say why in the report and count by hand: commits per file from
+`git log --since="12 months ago" --format= --name-only -- <scope>`, importers by searching the scope's imports for the
+file's name, and complexity from the repository's ESLint with the `complexity` rule added on the command line
+(`--rule`).
+
+Then weigh the table:
+
 - **Size limits**: Read the Size limits entry under Bloaters in `${CLAUDE_PLUGIN_ROOT}/references/smells.md`, which
   gives the limits for class length, method length, parameter count and controller actions. Apply the team's own limits
   where it has them, else those, and report a file over a limit as a place to look, not as a defect. When nearly every
   function is over a length limit, list only the longest few and every function over the parameter limit; the rest add
   nothing to the ranking.
-- **Dependents**: for the files high on churn, count how many files import each one. Count production files; say whether
-  test files are included, and give both counts when including them changes the ranking. Use what the repository has
-  (dependency-cruiser, madge, the Nx project graph, which also sees imports between packages by package name); otherwise
-  count the files whose imports name it, for example `rg -l "from ['\"][^'\"]*/<name>(\.[jt]sx?)?['\"]" <scope>` (this
-  and the command below are Bash syntax). It counts a file that re-exports the target but not the files that import it
-  through that file, and it misses path aliases and imports by package name. A file that changes often and that many
-  files depend on is the costly corner of the grid of likelihood of change against dependents, reading churn as
-  likelihood of change; it is one input beside concreteness: a concrete class with many dependents is suspect even when
-  it has been stable. So also find the most-imported modules with the tools above, or list candidates by file name with
-  `rg -o --no-filename -r '$1' "from ['\"]\.[^'\"]*?([^/'\"]+?)(\.[jt]sx?)?['\"]" <scope> | sort | uniq -c | sort -rn`
-  (relative imports only; files that share a name, such as `index`, share a line). Take the top five that hold a
-  concrete class, or, where classes are not the house style, a module whose exported functions hold rules that change,
-  count each one's importers with the `rg -l` command above, and add each that a tenth or more of the files in scope
-  import to the hot-spot table as a finding, whatever its churn. The cures for both are in
-  `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points.
-- **Concrete names in churning files**: for each file high on churn, list the concrete classes it names (its imports and
-  `new` calls). The code that changes most should be the easiest to replace, and each concrete class it names makes that
-  harder. Where classes are not the house style, list instead the modules whose functions it calls directly rather than
-  receiving them, and skip this step when it shows nothing the dependents count has not.
 - **Read the quadrants**:
-  - often changed and complex: audit these first; a large central class full of conditionals that changes all the time
-    is the worst case;
-  - many dependents and either changes often or holds concrete code, whether or not it is complex: the costly corner
-    from the Dependents bullet; judge which way its dependencies point rather than its complexity. A steady abstraction
+  - changed and complex: audit these first; a large central class full of conditionals that changes all the time is the
+    worst case;
+  - depended on: a tenth or more of the production files import it, and it either changes often or exports a concrete
+    class, whether or not it is complex. Reading churn as likelihood of change, this is the costly corner of the grid of
+    likelihood of change against dependents, and a concrete class with many dependents is suspect even when it has been
+    stable. Judge which way its dependencies point rather than its complexity; the cures are in
+    `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points. Where classes are
+    not the house style, a module whose exported functions hold rules that change belongs here too. A steady abstraction
     that many files depend on is the healthy case, not a finding;
-  - complex but unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that hides
+  - complex, unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that hides
     behind one message costs nothing until it has to change;
   - simple: skip.
 
@@ -94,8 +96,8 @@ history, not from a guess at features.
 
 ## 4. Report
 
-- Lead with the hot-spot table: file, commits in the period, dependents where counted, the complexity measure used, and
-  the quadrant.
+- Lead with the hot-spot table from step 2, cut to the rows your findings and the healthy files you name rest on, with
+  its lines on the history and the thresholds.
 - Then the findings, ranked by cost: the files and lines, the smell's name, what change it makes expensive, the cure,
   and the first small step. For a hot spot whose logic no test reaches, that first step is characterisation tests
   (`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, Characterisation tests), before any cure. Group

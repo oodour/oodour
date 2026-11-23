@@ -36,6 +36,11 @@ Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 /plugin install lz-oop@lz-oop
 ```
 
+`lz-audit` measures hot spots with the plugin's own command, `scripts/lz-oop.ts`, which needs Node.js 22.18 or later.
+Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser) when it installs the plugin, with npm
+from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run `npm ci` in that folder
+first.
+
 ## Scope
 
 JavaScript and TypeScript only. The plugin stands alone: it needs no other plugin.
