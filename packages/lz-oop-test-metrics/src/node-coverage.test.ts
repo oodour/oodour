@@ -51,14 +51,34 @@ test('a called function counts each block on its lines that no test ran as an un
   assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 1);
 });
 
-test('a block on a line the coverage leaves out, as a node:coverage ignore comment does, is untested for no function', () => {
+test('a block whose first two lines the coverage leaves out, as a node:coverage ignore comment over it does, is untested for no function', () => {
   const coverage = {
     functions: [{ name: 'settle', line: 1, count: 1 }],
-    lines: [1, 2, 4].map((line) => ({ line, count: 1 })),
+    lines: [1, 2].map((line) => ({ line, count: 1 })),
     branches: [{ line: 3, count: 0 }],
   };
 
   assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 0);
+});
+
+test('a block whose first line alone the coverage leaves out is untested, since its other lines did not run', () => {
+  // export function settle(x) {
+  //   /* node:coverage ignore next */
+  //   if (x) {
+  //     return 1;
+  //   }
+  //   return 2;
+  // }
+  const coverage = {
+    functions: [{ name: 'settle', line: 1, count: 1 }],
+    lines: [1, 2, 4, 5, 6, 7].map((line) => ({ line, count: line === 4 || line === 5 ? 0 : 1 })),
+    branches: [{ line: 3, count: 0 }],
+  };
+
+  assert.equal(
+    measuredFromNodeCoverage('src/order.ts', [{ ...settle, end: { line: 7, column: 1 } }], coverage)[0]?.untestedBranches,
+    1,
+  );
 });
 
 test('a function the coverage lists no entry for is left out', () => {
@@ -288,7 +308,7 @@ test('a callback that starts on the first line of the function around it keeps i
   );
 });
 
-test('the line a callback starts on, when it is also the first line of the function around it, counts for both', () => {
+test('an untaken block on the line a callback starts on, when it is also the first line of the function around it, counts for both', () => {
   // export const pick = (xs, a) => (a ? [] : xs.map((x) => {
   //   return x;
   // }));
@@ -304,14 +324,8 @@ test('the line a callback starts on, when it is also the first line of the funct
   };
 
   assert.deepEqual(
-    measuredFromNodeCoverage('src/order.ts', [pick, callback], coverage).map(({ called, untestedBranches }) => [
-      called,
-      untestedBranches,
-    ]),
-    [
-      [true, 1],
-      [true, 1],
-    ],
+    measuredFromNodeCoverage('src/order.ts', [pick, callback], coverage).map(({ untestedBranches }) => untestedBranches),
+    [1, 1],
   );
 });
 

@@ -29,26 +29,30 @@ export function measuredFromNodeCoverage(
   sites: readonly FunctionSite[],
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
-  const calledSites = new Set(
-    sites.filter((site) => entriesFor(site, sites, coverage.functions).some(({ count }) => count > 0)),
-  );
-  // `node:test` drops the lines a `node:coverage ignore` comment covers from the coverage, but keeps the blocks on them.
+  const listed = sites.flatMap((site) => {
+    const entries = entriesFor(site, sites, coverage.functions);
+
+    return entries.length > 0 ? [{ site, called: entries.some(({ count }) => count > 0) }] : [];
+  });
+  const calledSites = new Set(listed.filter(({ called }) => called).map(({ site }) => site));
+  // `node:test` drops the lines a `node:coverage ignore` comment covers, but keeps the blocks on them by their first
+  // line alone, and counts a block as ignored only when all its lines are. A block whose next line is listed may have
+  // run none of it, so only a block with its first two lines left out counts as ignored.
   const listedLines = new Set(coverage.lines.map(({ line }) => line));
-  const untakenBlocks = coverage.branches.filter(({ line, count }) => count === 0 && listedLines.has(line));
+  const untakenBlocks = coverage.branches.filter(
+    ({ line, count }) => count === 0 && (listedLines.has(line) || listedLines.has(line + 1)),
+  );
 
-  return sites.flatMap((site) => {
+  return listed.flatMap(({ site, called }) => {
     const { name, complexity, start, publicMethod } = site;
-    const ignored = !coverage.lines.some(({ line }) => isOnLines(line, site));
 
-    if (entriesFor(site, sites, coverage.functions).length === 0 || ignored) {
+    if (!coverage.lines.some(({ line }) => isOnLines(line, site))) {
       return [];
     }
 
-    const called = calledSites.has(site);
     const measured = { file, line: start.line, name, complexity, called, publicMethod };
 
-    // The first line also holds whatever ran around the function, such as `export` when the module loaded. V8 lists no
-    // blocks for a function that never ran.
+    // The first line also holds whatever ran around the function, such as `export` when the module loaded.
     if (!called) {
       return [{ ...measured, coverage: 0, untestedBranches: 0 }];
     }
@@ -58,7 +62,8 @@ export function measuredFromNodeCoverage(
     // With its first line left out of the coverage, a function whose other lines are all a function inside it has no
     // line of its own, so a call covers it.
     const share = own.length > 0 ? own.filter(({ count }) => count > 0).length / own.length : 1;
-    // The blocks on the lines of a function that never ran belong to the called function around it.
+    // V8 lists no blocks for a function that never ran, so an untaken block on its lines belongs to the called function
+    // around it.
     const calledNested = nested.filter((inner) => calledSites.has(inner));
     const untestedBranches = untakenBlocks.filter(({ line }) => ownsLine(site, calledNested, line)).length;
 
