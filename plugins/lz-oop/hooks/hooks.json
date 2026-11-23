@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(*lz-oop.ts*)",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts\""
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "PowerShell(*lz-oop.ts*)",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts\""
+          }
+        ]
+      }
+    ]
+  }
+}
