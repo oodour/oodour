@@ -41,6 +41,33 @@ Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser)
 from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run `npm ci` in that folder
 first.
 
+## Trusted repositories
+
+Git, a test runner, a linter and a package script can start programs that a repository's own config names, and on
+Windows open paths that lead to other machines. So `lz-audit` treats every repository as untrusted: its command starts
+no Git process, the audit runs none of the repository's tools, and the report has no commit counts and says why.
+
+To trust a repository, ask for a trusted audit in your own message. Claude Code then asks your permission for the
+trusted command, `node <plugin folder>/scripts/lz-oop.ts --trusted-repository hotspots -- <scope>`.
+
+Where nobody can answer a prompt (a loop, a schedule, `claude -p`, CI), grant it in advance with an allow rule in your
+settings, or with `--allowedTools` for one run:
+
+```text
+Bash(node <plugin folder>/scripts/lz-oop.ts --trusted-repository hotspots *)
+```
+
+The plugin folder is where Claude Code installed the plugin, under `~/.claude/plugins/cache/`, and its last part is the
+version, so renew the rule after an update. Write the folder out in full: a `*` in it also matches a path that steps
+back with `..` to a `lz-oop.ts` inside the audited repository. In auto mode the plugin's hook asks you before the
+trusted command runs, even when a rule allows it, so run unattended trusted audits in another permission mode.
+
+The trust check is no stronger than your permission settings. A broad allow rule such as `Bash(node *)` or
+`Bash(git *)`, or a session with permission checks turned off, lets Claude run those commands on any repository, so keep
+allow rules narrow. A repository's own `.claude/settings.json` can hold allow rules too, so read it before you trust the
+folder when Claude Code first opens it. An ask rule for the trusted command makes Claude Code ask in every permission
+mode.
+
 ## Scope
 
 JavaScript and TypeScript only. The plugin stands alone: it needs no other plugin.

@@ -44,6 +44,12 @@ _Avoid_: hotspot (except as the name of a tool's flag)
 **Churn**:
 How often a file changed over a period, counted in commits.
 
+**Trusted repository**:
+A repository the developer has allowed an audit to run Git, its tests, its linters and its scripts in. Every other
+repository is untrusted, and an audit of it starts no program the repository names.
+_Avoid_: safe repository (Git's `safe.directory` is a different check), workspace trust (Claude Code's own trust of a
+folder is a separate decision)
+
 ## Lint rules
 
 **Report**:
