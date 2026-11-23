@@ -1,6 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { lstatSync, realpathSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
 import { gitText } from './git-text.ts';
 import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
@@ -53,6 +53,19 @@ const readConfig: ConfigReader = (file) =>
       stdio: ['ignore', 'pipe', 'pipe'],
     }),
   );
+
+// Finds a repository the way Git starts to, by a `.git` entry in the folder or one above it, without starting Git.
+export function insideRepository(folder: string): boolean {
+  for (let current = resolve(folder), above = dirname(current); ; current = above, above = dirname(current)) {
+    if (lstatSync(join(current, '.git'), { throwIfNoEntry: false }) !== undefined) {
+      return true;
+    }
+
+    if (above === current) {
+      return false;
+    }
+  }
+}
 
 export function gitIn(folder: string): Repository | undefined {
   const installed = spawnSync('git', ['--version'], childOptions());

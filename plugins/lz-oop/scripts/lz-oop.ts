@@ -16,7 +16,8 @@ export interface CommandResult {
   readonly stderr: string;
 }
 
-const usage = 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+const trustFlag = '--trusted-repository';
 
 function parseCommand(args: readonly string[]): HotspotsCommand | string {
   let parsed;
@@ -25,10 +26,19 @@ function parseCommand(args: readonly string[]): HotspotsCommand | string {
     parsed = parseArgs({
       args: [...args],
       allowPositionals: true,
-      options: { since: { type: 'string', default: '12 months ago' }, limit: { type: 'string', default: '30' } },
+      options: {
+        since: { type: 'string', default: '12 months ago' },
+        limit: { type: 'string', default: '30' },
+        'trusted-repository': { type: 'boolean' },
+      },
     });
   } catch (error) {
     return error instanceof Error ? error.message : String(error);
+  }
+
+  // Trust is read from the first argument only, so a flag that ends a longer command line grants nothing.
+  if (parsed.values['trusted-repository'] === true) {
+    return `${trustFlag} goes first, before the command`;
   }
 
   const [command, scope = '.', extra] = parsed.positionals;
@@ -54,7 +64,8 @@ function parseCommand(args: readonly string[]): HotspotsCommand | string {
 }
 
 export function runCommand(args: readonly string[]): CommandResult {
-  const command = parseCommand(args);
+  const trusted = args[0] === trustFlag;
+  const command = parseCommand(trusted ? args.slice(1) : args);
 
   if (typeof command === 'string') {
     return { status: 2, stdout: '', stderr: `lz-oop: ${command}\n${usage}` };
@@ -78,7 +89,7 @@ export function runCommand(args: readonly string[]): CommandResult {
   }
 
   try {
-    const measured = measureScope(folder, since);
+    const measured = measureScope(folder, since, trusted);
 
     return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
   } catch (error) {

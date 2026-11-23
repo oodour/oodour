@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { symlinkSync } from 'node:fs';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, outsideAnyRepository, partialCloneOf, repositoryWith } from './fixtures.ts';
 import { type FileMeasures, measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
@@ -114,7 +116,7 @@ test("measuring a scope joins each production file's commits, dependents, larges
     { 'src/store.ts': 'export class Store {\n  get(a: number) {\n    return a > 1 ? a : 1;\n  }\n}' },
   ]);
 
-  const measured = measureScope(root, '12 months ago');
+  const measured = measureScope(root, '12 months ago', true);
 
   assert.deepEqual(measured.files, [
     {
@@ -148,7 +150,7 @@ test('the report states the period, the history, the thresholds and what was lef
     }),
     measures('src/port.ts'),
   ];
-  const measured = { files, history: ['shallow'] as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'] };
+  const measured = { files, history: ['shallow'] as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'], skipped: [] };
 
   assert.equal(
     renderHotspots('src', '12 months ago', measured, rankHotspots(files, 30)),
@@ -173,7 +175,7 @@ test('the report states the period, the history, the thresholds and what was lef
 test('a file the parser cannot read is left out and named with where it stopped', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;', 'broken.ts': 'function (\n' }]);
 
-  const { files, parseErrors } = measureScope(root, '12 months ago');
+  const { files, parseErrors } = measureScope(root, '12 months ago', true);
 
   assert.deepEqual(
     files.map(({ file }) => file),
@@ -186,7 +188,7 @@ test('outside a repository there is no history and the report shows no commit co
   const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
   outsideAnyRepository(context);
 
-  const measured = measureScope(root, '12 months ago');
+  const measured = measureScope(root, '12 months ago', true);
   const report = renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30));
 
   assert.equal(measured.history, 'no repository');
@@ -194,10 +196,34 @@ test('outside a repository there is no history and the report shows no commit co
   assert.match(report, /\n\| a\.ts \| - \| 0, 0 \|/);
 });
 
+test('a folder not trusted is still named as outside any repository when no .git is above it', (context) => {
+  const root = folderWith(context, { 'lib/a.ts': 'export const a = 1;' });
+  outsideAnyRepository(context);
+
+  assert.deepEqual(
+    [measureScope(join(root, 'lib'), '12 months ago', false).history, measureScope(repositoryWith(context, []), '12 months ago', false).history],
+    ['no repository', 'untrusted'],
+  );
+});
+
+test('the report names what the walk did not enter, so the reader leaves it unread', (context) => {
+  const outside = folderWith(context, { 'x.ts': 'export const x = 1;' });
+  const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
+  symlinkSync(outside, join(root, 'linked'), 'junction');
+  outsideAnyRepository(context);
+
+  const measured = measureScope(root, '12 months ago', false);
+
+  assert.match(
+    renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
+    /\nLeft out, not entered \(links, folders it may not list, names ending in a dot or a space\): linked\.\n/,
+  );
+});
+
 test('a full history is stated as such', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]);
 
-  const measured = measureScope(root, '12 months ago');
+  const measured = measureScope(root, '12 months ago', true);
 
   assert.match(renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)), /\nHistory: the full history of the period\.\n/);
 });
@@ -205,7 +231,7 @@ test('a full history is stated as such', (context) => {
 test('a treeless clone shows no commit counts and says why', (context) => {
   const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }, { 'a.ts': 'export const a = 2;' }]), 'tree:0');
 
-  const measured = measureScope(clone, '12 months ago');
+  const measured = measureScope(clone, '12 months ago', true);
   const report = renderHotspots(clone, '12 months ago', measured, rankHotspots(measured.files, 30));
 
   assert.match(report, /\nHistory: a treeless clone, whose older commits name no files without fetching, so no commit counts, and no file counts as often changed\.\n/);
@@ -215,7 +241,7 @@ test('a treeless clone shows no commit counts and says why', (context) => {
 test("a partial clone's history says renames are not followed", (context) => {
   const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]));
 
-  const measured = measureScope(clone, '12 months ago');
+  const measured = measureScope(clone, '12 months ago', true);
 
   assert.match(
     renderHotspots(clone, '12 months ago', measured, rankHotspots(measured.files, 30)),

@@ -1,36 +1,65 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { symlinkSync } from 'node:fs';
+import { existsSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { test } from 'node:test';
-import { networkShare, refusedByGit, repositoryWith } from './fixtures.ts';
+import { folderWith, networkShare, refusedByGit, repositoryWith, setForTest } from './fixtures.ts';
 import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
-const usage = 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [<folder>] [--since <date>] [--limit <count>]\n';
 
-test('hotspots prints the hot-spot report for the scope it is given', (context) => {
+test('hotspots prints the hot-spot report for the scope it is given, counting commits in a trusted repository', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'export const a = (n: number) => (n > 0 ? n : 0);' }]);
 
-  const run = spawnSync(process.execPath, [cli, 'hotspots', root, '--since', '2 years ago', '--limit', '5'], {
-    encoding: 'utf8',
-  });
+  const run = spawnSync(
+    process.execPath,
+    [cli, '--trusted-repository', 'hotspots', root, '--since', '2 years ago', '--limit', '5'],
+    { encoding: 'utf8' },
+  );
 
   assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /^Hot spots in .+: 1 production files, commits since 2 years ago\.\n/);
+  assert.match(run.stdout, /^Hot spots in .+: 1 production files, commits since 2 years ago\.\nHistory: the full history/);
   assert.match(run.stdout, /\n\| a\.ts \| 1 \| 0, 0 \| Arrow function, line 1: 2 \| no \| none \| simple \|\n/);
+});
+
+test('a repository not trusted gets no commit counts, and its history line says how to trust it', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = (n: number) => (n > 0 ? n : 0);' }]);
+
+  const { status, stdout } = runCommand(['hotspots', root]);
+
+  assert.equal(status, 0);
+  assert.match(
+    stdout,
+    /\nHistory: a repository not trusted with --trusted-repository, so no commit counts, and no file counts as often changed\.\n/,
+  );
+  assert.match(stdout, /\n\| a\.ts \| - \| 0, 0 \|/);
 });
 
 test('a relative folder, and no folder at all, are read from the working folder', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': 'export const a = 1;', 'b.ts': 'export const b = 1;' }]);
 
-  const runs = [['hotspots', 'lib'], ['hotspots']].map((args) => spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: 'utf8' }));
+  const runs = [['hotspots', 'lib'], ['hotspots']].map((args) =>
+    spawnSync(process.execPath, [cli, '--trusted-repository', ...args], { cwd: root, encoding: 'utf8' }),
+  );
 
   assert.deepEqual(
     runs.map(({ stdout }) => stdout.match(/^\| (?!File|---)\S+/gm)),
     [['| lib/a.ts'], ['| b.ts', '| lib/a.ts']],
   );
+});
+
+test('a repository not trusted starts no Git process, and a trusted one does', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  const trace = join(folderWith(context, {}), 'trace');
+  setForTest(context, 'GIT_TRACE', trace);
+
+  runCommand(['hotspots', root]);
+  const tracedUntrusted = existsSync(trace);
+  runCommand(['--trusted-repository', 'hotspots', root]);
+
+  assert.deepEqual({ tracedUntrusted, tracedTrusted: existsSync(trace) }, { tracedUntrusted: false, tracedTrusted: true });
 });
 
 test('a folder that does not exist is named on stderr with exit 1', () => {
@@ -78,7 +107,7 @@ test('a repository Git refuses fails with what Git said and exit 1', (context) =
   const root = repositoryWith(context, []);
   refusedByGit(context);
 
-  const result = runCommand(['hotspots', root]);
+  const result = runCommand(['--trusted-repository', 'hotspots', root]);
 
   assert.deepEqual([result.status, result.stdout], [1, '']);
   assert.match(result.stderr, /^lz-oop: git: .*dubious ownership/s);
@@ -92,6 +121,7 @@ test('a wrong argument is named above the usage, with exit 2', () => {
     [['hotspots', '--depth', '3'], "Unknown option '--depth'"],
     [['hotspots', '--limit', 'ten'], '--limit takes a whole number of 1 or more, not ten'],
     [['hotspots', '--limit', '0'], '--limit takes a whole number of 1 or more, not 0'],
+    [['hotspots', '.', '--trusted-repository'], '--trusted-repository goes first, before the command'],
   ];
 
   for (const [args, reason] of cases) {

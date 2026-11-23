@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { churn, type HistoryLimit, type Uncountable } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
 import { isTest, sources } from './files.ts';
-import { gitIn } from './git.ts';
+import { gitIn, insideRepository } from './git.ts';
 import { dependentsThroughReexports, readModules } from './modules.ts';
 
 export interface FileMeasures {
@@ -32,19 +32,22 @@ export interface Ranked {
   readonly rows: readonly (FileMeasures & { readonly quadrant: Quadrant })[];
 }
 
-export type Uncounted = Uncountable | 'no repository';
+export type Uncounted = Uncountable | 'no repository' | 'untrusted';
 
 export interface Measured {
   readonly files: readonly FileMeasures[];
   readonly history: readonly HistoryLimit[] | Uncounted;
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
+  readonly skipped: readonly string[];
 }
 
-export function measureScope(scope: string, since: string): Measured {
-  const repository = gitIn(scope);
-  const { root, all, inScope } = sources(scope, repository);
-  const counted = repository ? churn(repository.git, since) : 'no repository';
+// A repository not trusted runs no Git: Git starts programs its config names and opens paths its metadata names.
+export function measureScope(scope: string, since: string, trusted: boolean): Measured {
+  const repository = trusted ? gitIn(scope) : undefined;
+  const { root, all, inScope, skipped } = sources(scope, repository);
+  const uncounted = !trusted && insideRepository(scope) ? 'untrusted' : 'no repository';
+  const counted = repository ? churn(repository.git, since) : uncounted;
   const commitsOf = (file: string): number => (typeof counted === 'string' ? 0 : (counted.commits.get(file) ?? 0));
   const modules = readModules(root, all);
   const dependents = dependentsThroughReexports(modules);
@@ -80,6 +83,7 @@ export function measureScope(scope: string, since: string): Measured {
     history: typeof counted === 'string' ? counted : counted.limits,
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
+    skipped,
   };
 }
 
@@ -90,6 +94,7 @@ const limitClauses: Readonly<Record<HistoryLimit, string>> = {
 
 const uncountedReasons: Readonly<Record<Uncounted, string>> = {
   'no repository': 'no Git repository, or git is not installed',
+  untrusted: 'a repository not trusted with --trusted-repository',
   treeless: 'a treeless clone, whose older commits name no files without fetching',
 };
 
@@ -126,6 +131,12 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
       `(one in ${String(policy.dependentsShare)}, at least ${String(policy.leastDependents)}).`,
     ...(measured.reexportsOnly.length > 0 ? [`Left out, only re-exporting: ${measured.reexportsOnly.join(', ')}.`] : []),
     ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join('; ')}`] : []),
+    ...(measured.skipped.length > 0
+      ? [
+          'Left out, not entered (links, folders it may not list, names ending in a dot or a space): ' +
+            `${measured.skipped.join(', ')}.`,
+        ]
+      : []),
     '',
     '| File | Commits | Dependents (production, test) | Largest function | Exports a concrete class | Concrete classes it names | Quadrant |',
     '| --- | ---: | --- | --- | --- | --- | --- |',
