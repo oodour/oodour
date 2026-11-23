@@ -1,5 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import { within, type FunctionSite } from './functions.ts';
+import { nestedIn, type FunctionSite } from './functions.ts';
 
 /** A line, or a function by the line it starts on, with how many times the tests ran it. */
 interface Counted {
@@ -41,7 +41,7 @@ export function measuredFromNodeCoverage(
     }
 
     const called = entries.some(({ count }) => count > 0);
-    const nested = sites.filter((other) => other !== site && within(other, site));
+    const nested = nestedIn(site, sites);
     // A line holds no columns, so the first line stays the function's own when a function inside it starts there too.
     const isOwn = ({ line }: Counted) =>
       isOnLines(line, site) && (line === start.line || !nested.some((inner) => isOnLines(line, inner)));
@@ -54,7 +54,8 @@ export function measuredFromNodeCoverage(
     }
 
     const own = coverage.lines.filter(isOwn);
-    // A function whose every line it shares with a function inside it has no line of its own, so a call covers it.
+    // With its first line left out of the coverage, a function whose other lines are all a function inside it has no
+    // line of its own, so a call covers it.
     const share = own.length > 0 ? own.filter(({ count }) => count > 0).length / own.length : 1;
 
     return [{ ...measured, coverage: share }];

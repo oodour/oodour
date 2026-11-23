@@ -1,5 +1,5 @@
 import type { MeasuredFunction } from './crap.ts';
-import { within, type FunctionSite, type Position, type Range } from './functions.ts';
+import { nestedIn, within, type FunctionSite, type Position, type Range } from './functions.ts';
 
 /**
  * The parts of an Istanbul file coverage the join reads: functions and statements, each with its hit count, and
@@ -41,7 +41,7 @@ export function measuredFromIstanbul(
     }
 
     const [id] = listed;
-    const nested = sites.filter((other) => other !== site && within(other, site)).map(bodyOf);
+    const nested = nestedIn(site, sites).map(bodyOf);
     const isOwn = ({ range }: { readonly range: Range }) =>
       within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner));
     const own = statements.filter(isOwn);

@@ -25,6 +25,11 @@ export function within(inner: Range, outer: Range): boolean {
   return !isBefore(inner.start, outer.start) && !isBefore(outer.end, inner.end);
 }
 
+/** The other functions inside this one, at any depth. */
+export function nestedIn(site: FunctionSite, sites: readonly FunctionSite[]): FunctionSite[] {
+  return sites.filter((other) => other !== site && within(other, site));
+}
+
 /**
  * A function as ESLint's `complexity` rule sees it: its name and count, where it starts, and where its body starts.
  * Class field initializers and static blocks count as functions of their own, as the rule counts them.
