@@ -235,6 +235,7 @@ function assertLocalConfigReading(file: string, local: string, check: ConfigChec
     const newline = entry.indexOf('\n');
     const key = newline === -1 ? entry : entry.slice(0, newline);
     const value = newline === -1 ? '' : entry.slice(newline + 1);
+
     // Git reaches no remote here (GIT_ALLOW_PROTOCOL=none, no lazy fetch), so a remote may live anywhere.
     if (/^remote\..+\.(?:url|pushurl)$/.test(key)) {
       continue;
