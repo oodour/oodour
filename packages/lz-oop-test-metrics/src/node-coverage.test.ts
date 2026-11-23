@@ -231,7 +231,26 @@ test('functions that start on one line join the entries of that line in source o
   );
 });
 
-test('a callback that starts on the first line of the function around it keeps its lines and branches to itself', () => {
+test('a called function whose first line the coverage leaves out, with every other line in a function inside it, is covered', () => {
+  // export const doubled = (xs) =>   <- left out by a node:coverage ignore comment
+  //   xs.map((x) => {
+  //     return x * 2;
+  //   });
+  const doubled: FunctionSite = { ...settle, start: { line: 1, column: 22 }, end: { line: 4, column: 4 } };
+  const callback: FunctionSite = { ...settle, start: { line: 2, column: 9 }, end: { line: 4, column: 3 } };
+  const coverage = {
+    functions: [
+      { name: 'doubled', line: 1, count: 1 },
+      { name: '', line: 2, count: 1 },
+    ],
+    lines: [2, 3, 4].map((line) => ({ line, count: 1 })),
+    branches: [],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [doubled, callback], coverage)[0]?.coverage, 1);
+});
+
+test('a callback that starts on the first line of the function around it keeps its later lines and branches to itself', () => {
   // export const signs = (xs) => xs.map((x) => {
   //   if (x > 0) { return 1; }
   //   return -1;

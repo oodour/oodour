@@ -12,7 +12,7 @@ test('a file outside the folder the run started in is counted too, as a coverage
   );
 });
 
-test('a source with lint configuration comments is counted, though some of them stop ESLint 10 on their own', () => {
+test('a source with lint configuration comments is counted, even those ESLint stops on by themselves', () => {
   const source = [
     '/* eslint-env node */',
     '/* global ledger: */',
