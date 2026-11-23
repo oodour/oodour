@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { folderWith, outsideAnyRepository, repositoryWith, runGit } from './fixtures.ts';
+import { folderWith, outsideAnyRepository, repositoryWith, runGit, writeFiles } from './fixtures.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 
@@ -43,6 +43,15 @@ test("listing the sources runs no program the repository's own config names", (c
   sources(root, gitIn(root));
 
   assert.equal(existsSync(join(hook, 'ran')), false);
+});
+
+test("listing the sources reads no exclude file the repository's own config names", (context) => {
+  const elsewhere = folderWith(context, { ignored: 'b.ts\n' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  writeFiles(root, { 'b.ts': '' });
+  runGit(root, ['config', 'core.excludesFile', join(elsewhere, 'ignored')]);
+
+  assert.deepEqual(sources(root, gitIn(root)).all.toSorted(), ['a.ts', 'b.ts']);
 });
 
 test('a linked file or folder is no source, so nothing outside the repository is read', (context) => {

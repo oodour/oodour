@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
@@ -33,6 +33,24 @@ test('a repository whose work tree is elsewhere than the folder is refused', (co
   runGit(root, ['config', 'core.worktree', elsewhere]);
 
   assert.throws(() => gitIn(root), /^Error: git: the repository's work tree .+ does not hold /);
+});
+
+test('a repository whose work tree is a folder above it is refused', (context) => {
+  const above = folderWith(context, { 'b.ts': '' });
+  const root = join(above, 'inner');
+  mkdirSync(root);
+  runGit(root, ['init', '-q']);
+  runGit(root, ['config', 'core.worktree', above]);
+
+  assert.throws(() => gitIn(root), /^Error: git: the repository's work tree .+ has no \.git of its own/);
+});
+
+test('a repository that borrows objects from another is refused', (context) => {
+  const lender = repositoryWith(context, [{ 'a.ts': '' }]);
+  const root = folderWith(context, {});
+  runGit(root, ['clone', '-q', '--shared', lender, '.']);
+
+  assert.throws(() => gitIn(root), /^Error: git: the repository borrows objects from elsewhere \(.+alternates\)/);
 });
 
 test('a git program in the folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {

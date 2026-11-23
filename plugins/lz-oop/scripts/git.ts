@@ -1,21 +1,29 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { realpathSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { lstatSync, realpathSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
 
 export type Git = (args: readonly string[]) => string;
 
 // Windows looks for a program in the working folder before PATH, so git starts in this folder and goes to the
-// audited one with -C. The settings stop the audited repository's own config from starting programs or fetching.
+// audited one with -C. The settings stop the audited repository's own config from starting programs, fetching, or
+// reading files it names, which could be on a network share. An empty order file fails, so it names the null device.
+const overrides = [
+  'core.quotePath=false',
+  'core.fsmonitor=false',
+  'log.showSignature=false',
+  'core.excludesFile=',
+  'core.attributesFile=',
+  'diff.orderFile=/dev/null',
+  'mailmap.file=',
+  'mailmap.blob=',
+  'log.mailmap=false',
+] as const;
+
 const safely = (folder: string, args: readonly string[]): readonly string[] => [
   '-C',
   resolve(folder),
-  '-c',
-  'core.quotePath=false',
-  '-c',
-  'core.fsmonitor=false',
-  '-c',
-  'log.showSignature=false',
+  ...overrides.flatMap((setting) => ['-c', setting]),
   ...args,
 ];
 
@@ -61,6 +69,20 @@ export function gitIn(folder: string): Repository | undefined {
 
   if (pathBelow(top, realpathSync.native(resolve(folder))) === undefined) {
     throw new Error(`git: the repository's work tree ${top} does not hold ${folder}`);
+  }
+
+  if (lstatSync(join(top, '.git'), { throwIfNoEntry: false }) === undefined) {
+    throw new Error(`git: the repository's work tree ${top} has no .git of its own, so its config moved it there`);
+  }
+
+  // Objects borrowed from another repository are read from wherever it is, a network share included.
+  const info = join(git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim(), 'objects', 'info');
+  const borrowed = ['alternates', 'http-alternates']
+    .map((name) => join(info, name))
+    .find((path) => (statSync(path, { throwIfNoEntry: false })?.size ?? 0) > 0);
+
+  if (borrowed !== undefined) {
+    throw new Error(`git: the repository borrows objects from elsewhere (${borrowed})`);
   }
 
   // Git names the folder from the top folder itself, so a short or differently cased path to either cannot mislead it.

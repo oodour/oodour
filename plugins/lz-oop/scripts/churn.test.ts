@@ -126,6 +126,13 @@ test("counting the commits runs no signature program the repository's own config
   assert.equal(existsSync(join(hook, 'ran')), false);
 });
 
+test("counting the commits reads no order file the repository's own config names", (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
+  runGit(root, ['config', 'diff.orderFile', join(folderWith(context, {}), 'order')]);
+
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
+});
+
 test('a branch without commits has nothing to count, whatever other branches hold', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
   runGit(root, ['checkout', '-q', '--orphan', 'fresh']);
