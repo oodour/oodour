@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { spawnSync } from 'node:child_process';
-import { existsSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
@@ -135,6 +135,28 @@ test("counting the commits reads no order file the repository's own config names
   runGit(root, ['config', 'diff.orderFile', join(folderWith(context, {}), 'order')]);
 
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
+});
+
+test('counting the commits reads no pack that the multi-pack-index names outside the pack folder', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
+  runGit(root, ['repack', '-adq', '--write-midx']);
+  const pack = join(root, '.git', 'objects', 'pack');
+  const name = (readdirSync(pack).find((file) => file.endsWith('.idx')) ?? '').replace(/\.idx$/, '');
+  // The same length as the name it replaces, so the index keeps its layout; a link in the work tree could lead there.
+  const outside = `pack-${name.slice('../../../out/pack-'.length)}`;
+  mkdirSync(join(root, 'out'));
+
+  for (const ending of ['.idx', '.pack', '.rev']) {
+    renameSync(join(pack, `${name}${ending}`), join(root, 'out', `${outside}${ending}`));
+  }
+
+  const index = join(pack, 'multi-pack-index');
+  const bytes = readFileSync(index);
+  Buffer.from(`../../../out/${outside}.idx`).copy(bytes, bytes.indexOf(`${name}.idx`));
+  writeFileSync(index, bytes);
+
+  // Only that pack holds the commit, so Git finds no commit to count unless it read the pack.
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), limits: [] });
 });
 
 // attr.tree, which keeps Git from reading attributes from the work tree, came with Git 2.45.

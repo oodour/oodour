@@ -18,6 +18,7 @@ const overrides = [
   'mailmap.file=',
   'mailmap.blob=',
   'log.mailmap=false',
+  'core.multiPackIndex=false',
 ] as const;
 
 const safely = (folder: string, args: readonly string[]): readonly string[] => [
