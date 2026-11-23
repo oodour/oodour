@@ -24,11 +24,13 @@ interface Walk {
 function walk(
   start: Walk,
   startAbsolute: (target: string) => Walk | undefined,
-  linkTarget: (path: string) => string | undefined,
+  entryAt: (path: string) => Entry,
   stepBackFromBase: 'leaves' | 'stays',
 ): { readonly path: string; readonly links: number } | undefined {
   let { base } = start;
   let walked: string[] = [];
+  // The path after each walked segment, so a long path is not joined again at every step.
+  let trail: string[] = [];
   let pending = [...start.segments];
   let links = 0;
 
@@ -38,6 +40,8 @@ function walk(
     }
 
     if (segment === '..') {
+      trail.pop();
+
       if (walked.pop() === undefined && stepBackFromBase === 'leaves') {
         return undefined;
       }
@@ -45,10 +49,20 @@ function walk(
       continue;
     }
 
-    const target = linkTarget(join(base, ...walked, segment));
+    const here = trail.at(-1) ?? base;
+    const path = here.endsWith(sep) ? `${here}${segment}` : `${here}${sep}${segment}`;
+    const entry = entryAt(path);
+
+    // Nothing below a missing entry is a link, so only a step back can lead anywhere else.
+    if (!entry.exists && !pending.includes('..')) {
+      return { path: join(path, ...pending), links };
+    }
+
+    const { target } = entry;
 
     if (target === undefined) {
       walked.push(segment);
+      trail.push(path);
       continue;
     }
 
@@ -65,6 +79,7 @@ function walk(
 
     base = next.base;
     walked = [];
+    trail = [];
     pending = [...next.segments, ...pending];
   }
 
@@ -72,14 +87,7 @@ function walk(
 }
 
 export function placeBelow(root: string): (path: string) => Place | undefined {
-  const targets = new Map<string, string | undefined>();
-  const linkTarget = (path: string): string | undefined => {
-    if (!targets.has(path)) {
-      targets.set(path, readLink(path));
-    }
-
-    return targets.get(path);
-  };
+  const entryAt = remembered(readEntry);
   // Only the part of an absolute path before its first `..` names a place by its text alone.
   const fromRoot = (path: string): Walk | undefined => {
     const segments = segmentsOf(path);
@@ -93,7 +101,7 @@ export function placeBelow(root: string): (path: string) => Place | undefined {
 
   return (path) => {
     const start = isAbsolute(path) ? fromRoot(path) : { base: root, segments: segmentsOf(path) };
-    const walked = start && walk(start, fromRoot, linkTarget, 'leaves');
+    const walked = start && walk(start, fromRoot, entryAt, 'leaves');
 
     return walked && (walked.links === 0 ? 'direct' : 'linked');
   };
@@ -112,13 +120,40 @@ const fromFilesystemRoot = (path: string): Walk | undefined => {
   return { base: root, segments: segmentsOf(path.slice(root.length)) };
 };
 
-export function localPath(path: string): string | undefined {
+export const localPath = (path: string): string | undefined => localPathWith(path, readEntry);
+
+// For many paths in a short time: each entry is read once, so a change made to it meanwhile goes unseen.
+export function cachedLocalPath(): (path: string) => string | undefined {
+  const entryAt = remembered(readEntry);
+
+  return (path) => localPathWith(path, entryAt);
+}
+
+function localPathWith(path: string, entryAt: (path: string) => Entry): string | undefined {
   const start = fromFilesystemRoot(isAbsolute(path) ? path : `${process.cwd()}${sep}${path}`);
 
   // A `..` at the filesystem root names the root itself.
-  return start && walk(start, fromFilesystemRoot, readLink, 'stays')?.path;
+  return start && walk(start, fromFilesystemRoot, entryAt, 'stays')?.path;
 }
 
-function readLink(path: string): string | undefined {
-  return lstatSync(path, { throwIfNoEntry: false })?.isSymbolicLink() === true ? readlinkSync(path) : undefined;
+interface Entry {
+  readonly exists: boolean;
+  readonly target: string | undefined;
+}
+
+function readEntry(path: string): Entry {
+  const stats = lstatSync(path, { throwIfNoEntry: false });
+
+  return { exists: stats !== undefined, target: stats?.isSymbolicLink() === true ? readlinkSync(path) : undefined };
+}
+
+function remembered(read: (path: string) => Entry): (path: string) => Entry {
+  const entries = new Map<string, Entry>();
+
+  return (path) => {
+    const known = entries.get(path) ?? read(path);
+    entries.set(path, known);
+
+    return known;
+  };
 }

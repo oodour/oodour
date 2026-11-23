@@ -1,7 +1,7 @@
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, normalize, parse, resolve, sep } from 'node:path';
-import { localPath, namesNetworkPath } from './below.ts';
+import { cachedLocalPath, localPath, namesNetworkPath } from './below.ts';
 import { gitText } from './git-text.ts';
 
 export type ConfigReader = (file: string) => string;
@@ -53,15 +53,21 @@ export function assertLocalMetadata(folder: string, readConfig: ConfigReader): v
 
   // Git takes the first git folder on the way up that it accepts as one, and its rules for that have more corners
   // than a copy of them would keep up with. So every folder it could take is checked.
+  const check = { readConfig, local: cachedLocalPath() };
+
   for (const gitFolder of workTreeTops.flatMap((folder) => gitFoldersIn(folder, workTreeTops))) {
-    assertLocalRepository(gitFolder, workTreeTops, readConfig);
+    assertLocalRepository(gitFolder, workTreeTops, check);
   }
 }
 
 const foldersUpFrom = (folder: string): readonly string[] =>
   dirname(folder) === folder ? [folder] : [folder, ...foldersUpFrom(dirname(folder))];
 
-function assertLocalRepository(gitFolder: string, workTreeTops: readonly string[], readConfig: ConfigReader): void {
+function assertLocalRepository(
+  gitFolder: string,
+  workTreeTops: readonly string[],
+  { readConfig, local }: Omit<ConfigCheck, 'places'>,
+): void {
   const commondir =
     localPath(join(gitFolder, 'commondir')) ?? refuse(`${join(gitFolder, 'commondir')} leads to a network path`);
   const pointed =
@@ -69,7 +75,7 @@ function assertLocalRepository(gitFolder: string, workTreeTops: readonly string[
       ? pointedFolders(commondir, commondirOf, gitFolder, workTreeTops)
       : [];
   const commonFolders = pointed.length === 0 ? [gitFolder] : pointed;
-  const check = { readConfig, places: [...workTreeTops, gitFolder, ...commonFolders] };
+  const check = { readConfig, local, places: [...new Set([...workTreeTops, gitFolder, ...commonFolders])] };
 
   for (const commonFolder of commonFolders) {
     assertLocalConfig(join(commonFolder, 'config'), check);
@@ -203,13 +209,11 @@ function readingsOf(path: string, refusal = `${path} leads to a network path`): 
   return new Set([path, normalize(path)].map((reading) => localPath(reading) ?? refuse(refusal)));
 }
 
-const leadsToNetwork = (path: string): boolean =>
-  [path, normalize(path)].some((reading) => localPath(reading) === undefined);
-
 // Which values Git reads as paths, and from where, depends on the key and the command; every value is checked as a
 // path from every folder Git could read it from.
 interface ConfigCheck {
   readonly readConfig: ConfigReader;
+  readonly local: (path: string) => string | undefined;
   readonly places: readonly string[];
 }
 
@@ -244,7 +248,10 @@ function assertLocalConfigReading(file: string, local: string, check: ConfigChec
         refuse(`${key} in ${local} names a network path (${value})`);
       }
 
-      if ((fromHome ? [homedir()] : check.places).some((place) => from(place, name).some(leadsToNetwork))) {
+      const leadsToNetwork = (reading: string): boolean => check.local(reading) === undefined;
+      const readings = (fromHome ? [homedir()] : check.places).flatMap((place) => from(place, name));
+
+      if (readings.flatMap((reading) => [reading, normalize(reading)]).some(leadsToNetwork)) {
         refuse(`${key} in ${local} leads to a network path (${value})`);
       }
 

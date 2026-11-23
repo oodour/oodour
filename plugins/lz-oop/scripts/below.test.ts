@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { localPath, placeBelow } from './below.ts';
+import { cachedLocalPath, localPath, placeBelow } from './below.ts';
 import { folderWith } from './fixtures.ts';
 
 test('a path with no link on the way is direct, whether or not it exists', (context) => {
@@ -72,6 +72,14 @@ test('a path that is or leads to a network path has no local path', (context) =>
   symlinkSync('\\\\lz-oop-test.invalid\\share', join(root, 'share'), 'dir');
 
   assert.deepEqual([localPath(join(root, 'share', 'a.ts')), localPath('\\\\lz-oop-test.invalid\\share\\a.ts'), localPath('//lz-oop-test.invalid/share')], [undefined, undefined, undefined]);
+});
+
+test('a step back after a missing folder can still lead to a network path', (context) => {
+  const root = folderWith(context, {});
+  symlinkSync('\\\\lz-oop-test.invalid\\share', join(root, 'share'), 'dir');
+  const local = cachedLocalPath();
+
+  assert.deepEqual([local(join(root, 'missing', 'a.ts')), local(`${root}/missing/../share/a.ts`)], [join(root, 'missing', 'a.ts'), undefined]);
 });
 
 test('links that lead to each other have no place', (context) => {
