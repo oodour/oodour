@@ -1,7 +1,7 @@
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, normalize, parse, resolve, sep } from 'node:path';
-import { cachedLocalPath, localPath, namesNetworkPath } from './below.ts';
+import { cachedLocalPath, childPath, localPath, namesNetworkPath } from './below.ts';
 import { gitText } from './git-text.ts';
 
 export type ConfigReader = (file: string) => string;
@@ -22,14 +22,14 @@ function from(base: string, name: string): readonly string[] {
     const [, drive = '', rest = ''] = named;
     const sameDrive = base.slice(0, 2).toLowerCase() === drive.toLowerCase();
 
-    return [`${drive}\\${rest}`, resolve(name), ...(sameDrive ? [`${base}${sep}${rest}`] : [])];
+    return [`${drive}\\${rest}`, resolve(name), ...(sameDrive ? [childPath(base, rest)] : [])];
   }
 
   if (sep === '\\' && /^[\\/](?![\\/])/.test(name)) {
     return [`${parse(base).root}${name.slice(1)}`, name];
   }
 
-  return [isAbsolute(name) ? name : `${base}${sep}${name}`];
+  return [isAbsolute(name) ? name : childPath(base, name)];
 }
 
 const driveRelative = (name: string): RegExpExecArray | null =>

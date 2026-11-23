@@ -3,7 +3,7 @@ import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSyn
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
-import { folderWith, outsideAnyRepository, refusedByGit, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
+import { folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { gitIn } from './git.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
@@ -53,19 +53,27 @@ test('a repository whose work tree is a folder above it is refused', (context) =
   assert.throws(() => gitIn(root), /^Error: git: the repository's work tree .+ has no \.git of its own/);
 });
 
-const share = '\\\\lz-oop-test.invalid\\share';
+const share = networkShare;
 
 test("a repository whose config names a network path is refused before Git runs", (context) => {
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
   runGit(root, ['config', 'core.hooksPath', `${share}\\hooks`]);
 
-  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+config names a network path \(\\\\lz-oop-test\.invalid\\share\\hooks\)$/);
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+config names a network path \([\\/]{2}lz-oop-test\.invalid[\\/]share\\hooks\)$/);
 });
 
 test('a repository whose remote is a network path is accepted, since Git reaches no remote', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
   runGit(root, ['remote', 'add', 'origin', `${share}\\repo.git`]);
   runGit(root, ['config', 'remote.origin.pushurl', `${share}\\repo.git`]);
+
+  assert.equal(gitIn(root)?.prefix, '');
+});
+
+test('a config value that cannot name a file is no path Git could open', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  runGit(root, ['config', 'alias.long', `!echo ${'x'.repeat(300)}`]);
+  runGit(root, ['config', 'core.excludesFile', 'a.ts/ignore']);
 
   assert.equal(gitIn(root)?.prefix, '');
 });
@@ -317,7 +325,8 @@ test('a repository that borrows objects from a network path is refused', (contex
   assert.throws(() => gitIn(root), /^Error: git: .+alternates names a network path \(\/\/lz-oop-test\.invalid\/share\/objects\)$/);
 });
 
-test('a reftable table that leads to a network path through a link is refused', (context) => {
+// Git makes a reftable repository from 2.45 on.
+test('a reftable table that leads to a network path through a link is refused', { skip: !gitAtLeast(2, 45) }, (context) => {
   const root = folderWith(context, {});
   runGit(root, ['init', '-q', '--ref-format=reftable']);
   symlinkSync(share, join(root, 'shared'), 'dir');

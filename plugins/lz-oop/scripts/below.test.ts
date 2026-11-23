@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { symlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { test } from 'node:test';
 import { cachedLocalPath, localPath, placeBelow } from './below.ts';
-import { folderWith } from './fixtures.ts';
+import { folderWith, networkShare } from './fixtures.ts';
 
 test('a path with no link on the way is direct, whether or not it exists', (context) => {
   const root = folderWith(context, { 'lib/a.ts': '' });
@@ -54,7 +54,8 @@ test('a link target that steps back through a link leading outside has no place'
   const outside = folderWith(context, { 'x/a.ts': '' });
   const root = folderWith(context, { 'sub/a.ts': '' });
   symlinkSync(join(outside, 'x'), join(root, 'sub', 'deep'), 'junction');
-  symlinkSync(join('sub', 'deep', '..'), join(root, 'back'), 'dir');
+  // Not `join`, which would take the `..` by its text and make the link lead to `sub`.
+  symlinkSync('sub/deep/..', join(root, 'back'), 'dir');
 
   assert.equal(placeBelow(root)(join(root, 'back', 'a.ts')), undefined);
 });
@@ -69,14 +70,14 @@ test('the local path of a path through links is where the links lead', (context)
 
 test('a path that is or leads to a network path has no local path', (context) => {
   const root = folderWith(context, {});
-  symlinkSync('\\\\lz-oop-test.invalid\\share', join(root, 'share'), 'dir');
+  symlinkSync(networkShare, join(root, 'share'), 'dir');
 
-  assert.deepEqual([localPath(join(root, 'share', 'a.ts')), localPath('\\\\lz-oop-test.invalid\\share\\a.ts'), localPath('//lz-oop-test.invalid/share')], [undefined, undefined, undefined]);
+  assert.deepEqual([localPath(join(root, 'share', 'a.ts')), localPath(`${networkShare}${sep}a.ts`), localPath('//lz-oop-test.invalid/share')], [undefined, undefined, undefined]);
 });
 
 test('a step back after a missing folder can still lead to a network path', (context) => {
   const root = folderWith(context, {});
-  symlinkSync('\\\\lz-oop-test.invalid\\share', join(root, 'share'), 'dir');
+  symlinkSync(networkShare, join(root, 'share'), 'dir');
   const local = cachedLocalPath();
 
   assert.deepEqual([local(join(root, 'missing', 'a.ts')), local(`${root}/missing/../share/a.ts`)], [join(root, 'missing', 'a.ts'), undefined]);

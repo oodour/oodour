@@ -49,8 +49,7 @@ function walk(
       continue;
     }
 
-    const here = trail.at(-1) ?? base;
-    const path = here.endsWith(sep) ? `${here}${segment}` : `${here}${sep}${segment}`;
+    const path = childPath(trail.at(-1) ?? base, segment);
     const entry = entryAt(path);
 
     // Nothing below a missing entry is a link, so only a step back can lead anywhere else.
@@ -107,6 +106,11 @@ export function placeBelow(root: string): (path: string) => Place | undefined {
   };
 }
 
+// The path of `name` in `folder`, without `join`, which would apply a `..` by its text. A root such as `/` ends in the
+// separator already, and `//name` would name a network path.
+export const childPath = (folder: string, name: string): string =>
+  folder.endsWith(sep) ? `${folder}${name}` : `${folder}${sep}${name}`;
+
 // \\host\share and //host/share name a network path; \\?\ and \\.\ are device paths that can name one too.
 export const namesNetworkPath = (path: string): boolean => /^[\\/]{2}/.test(path);
 
@@ -130,7 +134,7 @@ export function cachedLocalPath(): (path: string) => string | undefined {
 }
 
 function localPathWith(path: string, entryAt: (path: string) => Entry): string | undefined {
-  const start = fromFilesystemRoot(isAbsolute(path) ? path : `${process.cwd()}${sep}${path}`);
+  const start = fromFilesystemRoot(isAbsolute(path) ? path : childPath(process.cwd(), path));
 
   // A `..` at the filesystem root names the root itself.
   return start && walk(start, fromFilesystemRoot, entryAt, 'stays')?.path;
@@ -141,10 +145,21 @@ interface Entry {
   readonly target: string | undefined;
 }
 
-function readEntry(path: string): Entry {
-  const stats = lstatSync(path, { throwIfNoEntry: false });
+// Below a file, past the longest name, or in a folder the user may not search, nothing can be opened, Git included.
+const unreachable = new Set(['ENOTDIR', 'ENAMETOOLONG', 'EACCES']);
 
-  return { exists: stats !== undefined, target: stats?.isSymbolicLink() === true ? readlinkSync(path) : undefined };
+function readEntry(path: string): Entry {
+  try {
+    const stats = lstatSync(path, { throwIfNoEntry: false });
+
+    return { exists: stats !== undefined, target: stats?.isSymbolicLink() === true ? readlinkSync(path) : undefined };
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && typeof error.code === 'string' && unreachable.has(error.code)) {
+      return { exists: false, target: undefined };
+    }
+
+    throw error;
+  }
 }
 
 function remembered(read: (path: string) => Entry): (path: string) => Entry {

@@ -4,7 +4,7 @@ import { symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { refusedByGit, repositoryWith } from './fixtures.ts';
+import { networkShare, refusedByGit, repositoryWith } from './fixtures.ts';
 import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
@@ -52,7 +52,7 @@ test('a network or device path is refused before anything reads it, with exit 1'
 test('a folder that leads to a network path through a link is refused before anything reads it', (context) => {
   const root = repositoryWith(context, []);
   const scope = join(root, 'share');
-  symlinkSync('\\\\lz-oop-test.invalid\\share', scope, 'dir');
+  symlinkSync(networkShare, scope, 'dir');
 
   assert.deepEqual(runCommand(['hotspots', scope]), {
     status: 1,

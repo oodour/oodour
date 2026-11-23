@@ -5,7 +5,7 @@ import { existsSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
-import { commitFiles, folderWith, partialCloneOf, repositoryWith, runGit, writeFiles } from './fixtures.ts';
+import { commitFiles, folderWith, gitAtLeast, partialCloneOf, repositoryWith, runGit, writeFiles } from './fixtures.ts';
 import { type Git, gitIn } from './git.ts';
 
 const hash = (digit: string): string => digit.repeat(40);
@@ -85,9 +85,12 @@ test('a partial clone is known by any spelling Git reads as true', (context) => 
   rmSync(join(origin, 'a.ts'));
   commitFiles(origin, { 'b.ts': 'one\ntwo\nthree\nfour\nfive\n' });
   const clone = partialCloneOf(context, origin);
-  runGit(clone, ['config', 'remote.origin.promisor', 'ON']);
 
-  assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 2], ['b.ts', 1]]), limits: ['partial'] });
+  for (const spelling of ['ON', 'yes', '1', '2k']) {
+    runGit(clone, ['config', 'remote.origin.promisor', spelling]);
+
+    assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 2], ['b.ts', 1]]), limits: ['partial'] }, spelling);
+  }
 });
 
 for (const filter of ['tree:0', 'combine:blob:none+tree:0']) {
@@ -134,7 +137,8 @@ test("counting the commits reads no order file the repository's own config names
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
 });
 
-test('counting the commits reads no attributes file in the work tree, which a link could lead to a share', (context) => {
+// attr.tree, which keeps Git from reading attributes from the work tree, came with Git 2.45.
+test('counting the commits reads no attributes file in the work tree, which a link could lead to a share', { skip: !gitAtLeast(2, 45) }, (context) => {
   const root = repositoryWith(context, [{ 'a/b/x.ts': 'one\ntwo\nthree\nfour\nfive\nsix\n' }]);
   renameSync(join(root, 'a', 'b', 'x.ts'), join(root, 'a', 'b', 'y.ts'));
   commitFiles(root, { 'a/b/y.ts': 'one\ntwo\nthree\nfour\nfive\nsix\nseven\n' });

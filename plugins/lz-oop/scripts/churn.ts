@@ -18,8 +18,7 @@ export function churn(git: Git, since: string): Churn | Uncountable {
   }
 
   // Finding a rename compares file contents, and a partial clone would fetch the old ones from its remote.
-  const partial =
-    /^remote\..+\.promisor=true$/m.test(git(['config', '--list', '--type=bool'])) || /^extensions\.partialclone=./m.test(config);
+  const partial = promisorIn(config) || /^extensions\.partialclone=./m.test(config);
   // Finding a rename reads the attributes of the files it compares, from the work tree unless attr.tree names a tree,
   // and a link in the work tree can lead to a share. The empty tree holds none; with no input, hash-object names it in
   // the repository's own hash. Git before 2.45 has no attr.tree and still reads the work tree.
@@ -44,6 +43,18 @@ export function churn(git: Git, since: string): Churn | Uncountable {
     limits: [...(shallow ? ['shallow' as const] : []), ...(partial ? ['partial' as const] : [])],
   };
 }
+
+// Git before 2.54 lists a value as written, whatever --type says, so a remote is a promisor by any spelling Git reads as
+// true: a key with no value, true, yes, on, or a number other than 0 (with a k, m or g after it).
+const promisorIn = (config: string): boolean =>
+  config
+    .split('\n')
+    .map((line) => /^remote\..+\.promisor(?:=(.*))?$/i.exec(line))
+    .some((entry) => {
+      const value = entry?.[1];
+
+      return entry !== null && (value === undefined || /^(?:true|yes|on|[-+]?0*[1-9]\d*[kmg]?)$/i.test(value));
+    });
 
 export function commitsPerCurrentPath(newestFirstLog: string): Map<string, number> {
   const commits = new Map<string, number>();
