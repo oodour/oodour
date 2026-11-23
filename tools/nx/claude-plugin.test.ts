@@ -108,12 +108,11 @@ test('an eval case folder that does not exist is left out of the overlap check',
   assert.equal(overlap?.command, 'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo-real');
 });
 
-test("a plugin's scripts are type-checked, linted and tested, cached on the scripts, the packages and the Node.js version", () => {
+test("a plugin's scripts are type-checked, linted and tested, the tests cached on the scripts, the packages and the Node.js version", () => {
   const targets = scriptTargets('plugins/demo/scripts', ['eslint', 'typescript']);
   const files = ['{workspaceRoot}/plugins/demo/scripts/**/*', '{projectRoot}/package.json', 'sharedGlobals'];
 
-  assert.equal(targets['typecheck']?.command, 'tsc -p plugins/demo/scripts/tsconfig.json');
-  assert.deepEqual(targets['typecheck'].inputs, [...files, { externalDependencies: ['eslint', 'typescript', '@types/node'] }]);
+  assert.deepEqual(targets['typecheck'], { command: 'tsc -p plugins/demo/scripts/tsconfig.json' });
   assert.equal(targets['lint']?.command, 'eslint plugins/demo/scripts');
   assert.equal(targets['test']?.command, 'node --test "plugins/demo/scripts/*.test.ts"');
   assert.equal(targets['test'].cache, true);

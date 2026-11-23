@@ -77,10 +77,7 @@ export function scriptTargets(scripts: string, dependencies: readonly string[]):
   const files = [`{workspaceRoot}/${scripts}/**/*`, '{projectRoot}/package.json', 'sharedGlobals'];
 
   return {
-    typecheck: {
-      command: `tsc -p ${scripts}/tsconfig.json`,
-      inputs: [...files, { externalDependencies: [...dependencies, '@types/node'] }],
-    },
+    typecheck: { command: `tsc -p ${scripts}/tsconfig.json` },
     lint: { command: `eslint ${scripts}` },
     test: {
       command: `node --test "${scripts}/*.test.ts"`,
