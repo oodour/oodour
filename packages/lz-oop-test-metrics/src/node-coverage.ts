@@ -29,42 +29,40 @@ export function measuredFromNodeCoverage(
   sites: readonly FunctionSite[],
   coverage: NodeFileCoverage,
 ): MeasuredFunction[] {
-  const entriesOf = new Map(sites.map((site) => [site, entriesFor(site, sites, coverage.functions)]));
-  const isCalled = (site: FunctionSite) => (entriesOf.get(site) ?? []).some(({ count }) => count > 0);
+  const calledSites = new Set(
+    sites.filter((site) => entriesFor(site, sites, coverage.functions).some(({ count }) => count > 0)),
+  );
+  // `node:test` drops the lines a `node:coverage ignore` comment covers from the coverage, but keeps the blocks on them.
+  const listedLines = new Set(coverage.lines.map(({ line }) => line));
+  const untakenBlocks = coverage.branches.filter(({ line, count }) => count === 0 && listedLines.has(line));
 
   return sites.flatMap((site) => {
     const { name, complexity, start, publicMethod } = site;
-
-    const entries = entriesOf.get(site) ?? [];
-    // `node:test` drops the lines a `node:coverage ignore` comment covers from the coverage.
     const ignored = !coverage.lines.some(({ line }) => isOnLines(line, site));
 
-    if (entries.length === 0 || ignored) {
+    if (entriesFor(site, sites, coverage.functions).length === 0 || ignored) {
       return [];
     }
 
-    const called = isCalled(site);
-    const nested = nestedIn(site, sites);
-    // A line holds no columns, so the first line stays the function's own when a function inside it starts there too.
-    const isOwnAmong = (inners: readonly FunctionSite[]) => ({ line }: Counted) =>
-      isOnLines(line, site) && (line === start.line || !inners.some((inner) => isOnLines(line, inner)));
-    const isOwn = isOwnAmong(nested);
-    // A function no test called prints no branch line, so the blocks on its lines count for the function around it.
-    const isOwnBranch = isOwnAmong(nested.filter(isCalled));
-    const untestedBranches = coverage.branches.filter((branch) => branch.count === 0 && isOwnBranch(branch)).length;
-    const measured = { file, line: start.line, name, complexity, called, publicMethod, untestedBranches };
+    const called = calledSites.has(site);
+    const measured = { file, line: start.line, name, complexity, called, publicMethod };
 
-    // The first line also holds whatever ran around the function, such as `export` when the module loaded.
+    // The first line also holds whatever ran around the function, such as `export` when the module loaded. V8 lists no
+    // blocks for a function that never ran.
     if (!called) {
-      return [{ ...measured, coverage: 0 }];
+      return [{ ...measured, coverage: 0, untestedBranches: 0 }];
     }
 
-    const own = coverage.lines.filter(isOwn);
+    const nested = nestedIn(site, sites);
+    const own = coverage.lines.filter(({ line }) => ownsLine(site, nested, line));
     // With its first line left out of the coverage, a function whose other lines are all a function inside it has no
     // line of its own, so a call covers it.
     const share = own.length > 0 ? own.filter(({ count }) => count > 0).length / own.length : 1;
+    // The blocks on the lines of a function that never ran belong to the called function around it.
+    const calledNested = nested.filter((inner) => calledSites.has(inner));
+    const untestedBranches = untakenBlocks.filter(({ line }) => ownsLine(site, calledNested, line)).length;
 
-    return [{ ...measured, coverage: share }];
+    return [{ ...measured, coverage: share, untestedBranches }];
   });
 }
 
@@ -81,6 +79,14 @@ function entriesFor(site: FunctionSite, sites: readonly FunctionSite[], function
   const entry = neighbours.length === onLine.length ? onLine[neighbours.indexOf(site)] : undefined;
 
   return entry === undefined ? onLine : [entry];
+}
+
+/**
+ * Whether a line is the function's own rather than a line of a function inside it. A line holds no columns, so the
+ * first line stays the function's own when a function inside it starts there too.
+ */
+function ownsLine(site: FunctionSite, inners: readonly FunctionSite[], line: number): boolean {
+  return isOnLines(line, site) && (line === site.start.line || !inners.some((inner) => isOnLines(line, inner)));
 }
 
 function isOnLines(line: number, { start, end }: FunctionSite): boolean {

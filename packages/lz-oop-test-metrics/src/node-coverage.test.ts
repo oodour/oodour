@@ -51,6 +51,16 @@ test('a called function counts each block on its lines that no test ran as an un
   assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 1);
 });
 
+test('a block on a line the coverage leaves out, as a node:coverage ignore comment does, is untested for no function', () => {
+  const coverage = {
+    functions: [{ name: 'settle', line: 1, count: 1 }],
+    lines: [1, 2, 4].map((line) => ({ line, count: 1 })),
+    branches: [{ line: 3, count: 0 }],
+  };
+
+  assert.equal(measuredFromNodeCoverage('src/order.ts', [settle], coverage)[0]?.untestedBranches, 0);
+});
+
 test('a function the coverage lists no entry for is left out', () => {
   const coverage = {
     functions: [{ name: 'other', line: 9, count: 1 }],
@@ -279,17 +289,17 @@ test('a callback that starts on the first line of the function around it keeps i
 });
 
 test('the line a callback starts on, when it is also the first line of the function around it, counts for both', () => {
-  // export const pick = (xs, a) => (a ? xs.map((x) => {
+  // export const pick = (xs, a) => (a ? [] : xs.map((x) => {
   //   return x;
-  // }) : []);
-  const pick: FunctionSite = { ...settle, start: { line: 1, column: 20 }, end: { line: 3, column: 9 } };
-  const callback: FunctionSite = { ...settle, start: { line: 1, column: 43 }, end: { line: 3, column: 1 } };
+  // }));
+  const pick: FunctionSite = { ...settle, start: { line: 1, column: 20 }, end: { line: 3, column: 3 } };
+  const callback: FunctionSite = { ...settle, start: { line: 1, column: 48 }, end: { line: 3, column: 1 } };
   const coverage = {
     functions: [
       { name: 'pick', line: 1, count: 1 },
-      { name: '', line: 1, count: 0 },
+      { name: '', line: 1, count: 1 },
     ],
-    lines: [1, 0, 0].map((count, index) => ({ line: index + 1, count })),
+    lines: [1, 1, 1].map((count, index) => ({ line: index + 1, count })),
     branches: [{ line: 1, count: 0 }],
   };
 
@@ -300,12 +310,12 @@ test('the line a callback starts on, when it is also the first line of the funct
     ]),
     [
       [true, 1],
-      [false, 1],
+      [true, 1],
     ],
   );
 });
 
-test('a block on the lines of a callback no test called counts for the function around it', () => {
+test('a block on the lines of a callback no test called counts for the function around it, not for the callback', () => {
   // export const doubled = (xs) =>
   //   xs.length > 0 ? xs.map((x) => {
   //     return x * 2;
@@ -318,10 +328,7 @@ test('a block on the lines of a callback no test called counts for the function 
       { name: '', line: 2, count: 0 },
     ],
     lines: [1, 1, 0, 1].map((count, index) => ({ line: index + 1, count })),
-    branches: [
-      { line: 1, count: 1 },
-      { line: 2, count: 0 },
-    ],
+    branches: [{ line: 2, count: 0 }],
   };
 
   assert.deepEqual(
@@ -330,7 +337,7 @@ test('a block on the lines of a callback no test called counts for the function 
     ),
     [
       [true, 1, 1],
-      [false, 0, 1],
+      [false, 0, 0],
     ],
   );
 });
