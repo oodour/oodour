@@ -1,4 +1,4 @@
-import { dirname, resolve } from 'node:path';
+import { basename } from 'node:path';
 import { Linter, type Rule } from 'eslint';
 import { builtinRules } from 'eslint/use-at-your-own-risk';
 import * as parser from '@typescript-eslint/parser';
@@ -10,7 +10,9 @@ export interface FunctionComplexity {
   readonly complexity: number;
 }
 
-export function functionComplexity(file: string, text: string): FunctionComplexity[] {
+export type Complexity = { readonly functions: readonly FunctionComplexity[] } | { readonly parseError: string };
+
+export function functionComplexity(file: string, text: string): Complexity {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
   const complexity = builtinRules.get('complexity');
 
@@ -49,8 +51,8 @@ export function functionComplexity(file: string, text: string): FunctionComplexi
     },
   };
 
-  // ESLint matches `files` against the path below its cwd, so a file outside the run's folder would match no config.
-  const fatal = new Linter({ cwd: dirname(resolve(file)) }).verify(
+  // Linted by its base name, the file sits below ESLint's cwd and in no folder its default ignores name.
+  const fatal = new Linter().verify(
     text,
     [
       {
@@ -61,14 +63,12 @@ export function functionComplexity(file: string, text: string): FunctionComplexi
         rules: { 'lz/complexity': ['error', 0] },
       },
     ],
-    file,
+    basename(file),
   ).find((message) => message.fatal === true);
 
-  if (fatal) {
-    throw new Error(`${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`);
-  }
-
-  return functions;
+  return fatal
+    ? { parseError: `${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}` }
+    : { functions };
 }
 
 function isRuleContext(value: unknown): value is Rule.RuleContext {

@@ -3,20 +3,23 @@ import { join } from 'node:path';
 import { churn } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
 import { isTest, sources } from './files.ts';
+import { gitIn } from './git.ts';
 import { dependentsThroughReexports, readModules } from './modules.ts';
 
 export interface FileMeasures {
   readonly file: string;
-  readonly commits: number | undefined;
+  readonly commits: number;
   readonly dependents: { readonly production: number; readonly test: number };
   readonly largest: FunctionComplexity | undefined;
   readonly exportsConcreteClass: boolean;
   readonly concreteClassesNamed: readonly string[];
 }
 
-export type Quadrant = 'changed and complex' | 'depended on' | 'complex, unchanged' | 'simple';
+export type Quadrant = 'changed and complex' | 'depended on' | 'complex, seldom changed' | 'simple';
 
 const auditFirstQuadrants: readonly Quadrant[] = ['changed and complex', 'depended on'];
+
+const policy = { percentile: 75, leastCommits: 2, leastComplexity: 5, dependentsShare: 10, leastDependents: 2 } as const;
 
 export interface Thresholds {
   readonly commits: number;
@@ -37,83 +40,44 @@ export interface Measured {
 }
 
 export function measureScope(scope: string, since: string): Measured {
-  const { root, all, inScope } = sources(scope);
-  const history = churn(scope, since);
+  const git = gitIn(scope);
+  const { root, all, inScope } = sources(scope, git);
+  const history = git && churn(git, since);
   const modules = readModules(root, all);
   const dependents = dependentsThroughReexports(modules);
-  const reexportsOnly = inScope.filter((file) => modules.get(file)?.reexportsOnly === true);
-  const parseErrors: string[] = [];
-  const files = inScope
-    .filter((file) => !isTest(file) && !reexportsOnly.includes(file))
-    .flatMap((file): FileMeasures[] => {
+  const production = inScope.filter((file) => !isTest(file));
+  const reexportsOnly = production.filter((file) => modules.get(file)?.reexportsOnly === true);
+  const measured = production
+    .filter((file) => modules.get(file)?.reexportsOnly !== true)
+    .map((file) => {
       const facts = modules.get(file);
-      let functions;
-
-      try {
-        functions = functionComplexity(file, readFileSync(join(root, file), 'utf8'));
-      } catch (error) {
-        parseErrors.push(error instanceof Error ? error.message : String(error));
-
-        return [];
-      }
-
       const importers = dependents.get(file) ?? [];
+      const complexity = functionComplexity(file, readFileSync(join(root, file), 'utf8'));
 
-      return [
-        {
-          file,
-          commits: history === undefined ? undefined : (history.commits.get(file) ?? 0),
-          dependents: {
-            production: importers.filter((importer) => !isTest(importer)).length,
-            test: importers.filter(isTest).length,
-          },
-          largest: functions.reduce<FunctionComplexity | undefined>(
-            (most, next) => (most === undefined || next.complexity > most.complexity ? next : most),
-            undefined,
-          ),
-          exportsConcreteClass: (facts?.concreteClasses.length ?? 0) > 0,
-          concreteClassesNamed: facts?.concreteClassesNamed ?? [],
-        },
-      ];
+      return 'parseError' in complexity
+        ? complexity
+        : {
+            file,
+            commits: history?.commits.get(file) ?? 0,
+            dependents: {
+              production: importers.filter((importer) => !isTest(importer)).length,
+              test: importers.filter(isTest).length,
+            },
+            largest: complexity.functions.reduce<FunctionComplexity | undefined>(
+              (most, next) => (most === undefined || next.complexity > most.complexity ? next : most),
+              undefined,
+            ),
+            exportsConcreteClass: (facts?.concreteClasses.length ?? 0) > 0,
+            concreteClassesNamed: facts?.concreteClassesNamed ?? [],
+          };
     });
 
   return {
-    files,
+    files: measured.flatMap((result) => ('parseError' in result ? [] : [result])),
     history: history === undefined ? 'none' : history.shallow ? 'shallow' : 'full',
     reexportsOnly,
-    parseErrors,
+    parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
   };
-}
-
-export function renderHotspots(scope: string, since: string, measured: Measured, ranked: Ranked): string {
-  const { commits, complexity, dependents } = ranked.thresholds;
-  const listed = (items: readonly string[], none: string): string => (items.length > 0 ? items.join(', ') : none);
-  const rows = ranked.rows.map((row) =>
-    [
-      row.file,
-      row.commits ?? '-',
-      `${String(row.dependents.production)}, ${String(row.dependents.test)}`,
-      row.largest ? `${row.largest.name}, line ${String(row.largest.line)}: ${String(row.largest.complexity)}` : 'none',
-      row.exportsConcreteClass ? 'yes' : 'no',
-      listed(row.concreteClassesNamed, 'none'),
-      row.quadrant,
-    ].join(' | '),
-  );
-
-  return [
-    `Hot spots in ${scope}: ${String(measured.files.length)} production files, commits since ${since}.`,
-    `History: ${historyLines[measured.history]}`,
-    `Thresholds: often changed at ${String(commits)} commits or more (the 75th percentile, at least 2); ` +
-      `complex at a largest function of ${String(complexity)} or more (the 75th percentile, above 4); ` +
-      `many dependents at ${String(dependents)} production files or more (a tenth, at least 2).`,
-    ...(measured.reexportsOnly.length > 0 ? [`Left out, only re-exporting: ${listed(measured.reexportsOnly, '')}.`] : []),
-    ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${listed(measured.parseErrors, '')}.`] : []),
-    '',
-    '| File | Commits | Dependents (production, test) | Largest function | Exports a concrete class | Concrete classes it names | Quadrant |',
-    '| --- | ---: | --- | --- | --- | --- | --- |',
-    ...rows.map((row) => `| ${row} |`),
-    '',
-  ].join('\n');
 }
 
 const historyLines: Readonly<Record<Measured['history'], string>> = {
@@ -122,15 +86,51 @@ const historyLines: Readonly<Record<Measured['history'], string>> = {
   none: 'no Git repository, so no commit counts, and no file counts as often changed.',
 };
 
+export function renderHotspots(scope: string, since: string, measured: Measured, ranked: Ranked): string {
+  const { commits, complexity, dependents } = ranked.thresholds;
+  const listed = (items: readonly string[]): string => (items.length > 0 ? items.join(', ') : 'none');
+  const rows = ranked.rows.map((row) =>
+    [
+      row.file,
+      measured.history === 'none' ? '-' : row.commits,
+      `${String(row.dependents.production)}, ${String(row.dependents.test)}`,
+      row.largest ? `${row.largest.name}, line ${String(row.largest.line)}: ${String(row.largest.complexity)}` : 'none',
+      row.exportsConcreteClass ? 'yes' : 'no',
+      listed(row.concreteClassesNamed),
+      row.quadrant,
+    ].join(' | '),
+  );
+  const percentile = `the ${String(policy.percentile)}th percentile`;
+
+  return [
+    `Hot spots in ${scope}: ${String(measured.files.length)} production files, commits since ${since}.`,
+    `History: ${historyLines[measured.history]}`,
+    `Thresholds: often changed at ${String(commits)} commits or more (${percentile}, at least ${String(policy.leastCommits)}); ` +
+      `complex at a largest function of ${String(complexity)} or more (${percentile}, at least ${String(policy.leastComplexity)}); ` +
+      `many dependents at ${String(dependents)} production files or more ` +
+      `(one in ${String(policy.dependentsShare)}, at least ${String(policy.leastDependents)}).`,
+    ...(measured.reexportsOnly.length > 0 ? [`Left out, only re-exporting: ${measured.reexportsOnly.join(', ')}.`] : []),
+    ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join(', ')}.`] : []),
+    '',
+    '| File | Commits | Dependents (production, test) | Largest function | Exports a concrete class | Concrete classes it names | Quadrant |',
+    '| --- | ---: | --- | --- | --- | --- | --- |',
+    ...rows.map((row) => `| ${row} |`),
+    '',
+  ].join('\n');
+}
+
 export function rankHotspots(files: readonly FileMeasures[], limit: number): Ranked {
   const thresholds = {
-    commits: Math.max(2, upperQuartile(files.flatMap(({ commits }) => (commits ? [commits] : [])))),
-    complexity: Math.max(5, upperQuartile(files.flatMap(({ largest }) => (largest ? [largest.complexity] : [])))),
-    dependents: Math.max(2, Math.ceil(files.length / 10)),
+    commits: Math.max(policy.leastCommits, percentileOf(files.flatMap(({ commits }) => (commits > 0 ? [commits] : [])))),
+    complexity: Math.max(
+      policy.leastComplexity,
+      percentileOf(files.flatMap(({ largest }) => (largest ? [largest.complexity] : []))),
+    ),
+    dependents: Math.max(policy.leastDependents, Math.ceil(files.length / policy.dependentsShare)),
   };
   const complexityOf = (measured: FileMeasures): number => measured.largest?.complexity ?? 0;
   const quadrantOf = (measured: FileMeasures): Quadrant => {
-    const often = (measured.commits ?? 0) >= thresholds.commits;
+    const often = measured.commits >= thresholds.commits;
     const complex = complexityOf(measured) >= thresholds.complexity;
 
     if (often && complex) {
@@ -141,17 +141,17 @@ export function rankHotspots(files: readonly FileMeasures[], limit: number): Ran
       return 'depended on';
     }
 
-    return complex ? 'complex, unchanged' : 'simple';
+    return complex ? 'complex, seldom changed' : 'simple';
   };
   const ranked = files
     .map((measured) => ({ ...measured, quadrant: quadrantOf(measured) }))
-    .sort((a, b) => (b.commits ?? 0) - (a.commits ?? 0) || complexityOf(b) - complexityOf(a));
+    .sort((a, b) => b.commits - a.commits || complexityOf(b) - complexityOf(a));
   const auditFirst = auditFirstQuadrants.flatMap((quadrant) => ranked.filter((row) => row.quadrant === quadrant));
   const rest = ranked.filter((row) => !auditFirstQuadrants.includes(row.quadrant));
 
   return { thresholds, rows: [...auditFirst, ...rest.slice(0, Math.max(0, limit - auditFirst.length))] };
 }
 
-function upperQuartile(values: readonly number[]): number {
-  return values.toSorted((a, b) => a - b)[Math.ceil(values.length * 0.75) - 1] ?? 0;
+function percentileOf(values: readonly number[]): number {
+  return values.toSorted((a, b) => a - b)[Math.ceil((values.length * policy.percentile) / 100) - 1] ?? 0;
 }

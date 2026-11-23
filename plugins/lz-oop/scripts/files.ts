@@ -1,6 +1,6 @@
-import { execFileSync, spawnSync } from 'node:child_process';
-import { globSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { globSync, statSync } from 'node:fs';
+import { basename, join, resolve } from 'node:path';
+import type { Git } from './git.ts';
 
 export interface Sources {
   readonly root: string;
@@ -14,23 +14,24 @@ export function isTest(file: string): boolean {
   return /\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)__tests__\//.test(file);
 }
 
-export function sources(scope: string): Sources {
-  if (spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: scope }).status !== 0) {
+export function sources(scope: string, git: Git | undefined): Sources {
+  const onDisk = (root: string) => (file: string) =>
+    source.test(file) && statSync(join(root, file), { throwIfNoEntry: false })?.isFile() === true;
+
+  if (git === undefined) {
     const root = resolve(scope);
     const all = globSync('**/*', { cwd: root, exclude: (path) => basename(path) === 'node_modules' })
       .map((file) => file.replaceAll('\\', '/'))
-      .filter((file) => source.test(file))
+      .filter(onDisk(root))
       .sort();
 
     return { root, all, inScope: all };
   }
 
-  const git = (args: readonly string[]): string =>
-    execFileSync('git', ['-c', 'core.quotePath=false', ...args], { cwd: scope, encoding: 'utf8', maxBuffer: 1024 ** 3 });
   const root = resolve(git(['rev-parse', '--show-toplevel']).trim());
   const all = git(['ls-files', '--cached', '--others', '--exclude-standard', '--full-name', ':/'])
     .split('\n')
-    .filter((file) => source.test(file));
+    .filter(onDisk(root));
   // Git names the scope from the top folder itself, so a short or differently cased path to either cannot mislead it.
   const prefix = git(['rev-parse', '--show-prefix']).trim();
 

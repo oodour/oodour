@@ -1,22 +1,16 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { repositoryWith } from './fixtures.ts';
 import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
+const usage = 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n';
 
-test('hotspots prints the hot-spot report for the scope it is given', () => {
-  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-cli-')));
-  writeFileSync(join(root, 'a.ts'), 'export const a = (n: number) => (n > 0 ? n : 0);');
-  const git = (args: readonly string[]): void => {
-    execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', ...args], { cwd: root });
-  };
-  git(['init', '-q']);
-  git(['add', '.']);
-  git(['commit', '-q', '-m', 'add']);
+test('hotspots prints the hot-spot report for the scope it is given', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = (n: number) => (n > 0 ? n : 0);' }]);
 
   const run = spawnSync(process.execPath, [cli, 'hotspots', root, '--since', '2 years ago', '--limit', '5'], {
     encoding: 'utf8',
@@ -33,19 +27,34 @@ test('a folder that does not exist is named on stderr with exit 1', () => {
   assert.deepEqual(runCommand(['hotspots', missing]), { status: 1, stdout: '', stderr: `lz-oop: no folder ${missing}\n` });
 });
 
-test('no command, another command, an extra folder, an unknown option or a limit that is no count print the usage and exit 2', () => {
-  for (const args of [
-    [],
-    ['churn', '.'],
-    ['hotspots', 'a', 'b'],
-    ['hotspots', '--depth', '3'],
-    ['hotspots', '--limit', 'ten'],
-    ['hotspots', '--limit', '0'],
-  ]) {
-    assert.deepEqual(
-      runCommand(args),
-      { status: 2, stdout: '', stderr: 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n' },
-      args.join(' '),
-    );
+test('a repository Git refuses fails with what Git said and exit 1', (context) => {
+  const root = repositoryWith(context, []);
+  process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1';
+  context.after(() => {
+    delete process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'];
+  });
+
+  const result = runCommand(['hotspots', root]);
+
+  assert.deepEqual([result.status, result.stdout], [1, '']);
+  assert.match(result.stderr, /^lz-oop: git: .*dubious ownership/s);
+});
+
+test('a wrong argument is named above the usage, with exit 2', () => {
+  const cases: readonly (readonly [readonly string[], string])[] = [
+    [[], 'no command'],
+    [['churn', '.'], 'unknown command churn'],
+    [['hotspots', 'a', 'b'], 'one folder at most, not b'],
+    [['hotspots', '--depth', '3'], "Unknown option '--depth'"],
+    [['hotspots', '--limit', 'ten'], '--limit takes a whole number of 1 or more, not ten'],
+    [['hotspots', '--limit', '0'], '--limit takes a whole number of 1 or more, not 0'],
+  ];
+
+  for (const [args, reason] of cases) {
+    const result = runCommand(args);
+
+    assert.deepEqual([result.status, result.stdout], [2, ''], args.join(' '));
+    assert.ok(result.stderr.startsWith(`lz-oop: ${reason}`), result.stderr);
+    assert.ok(result.stderr.endsWith(`\n${usage}`), result.stderr);
   }
 });

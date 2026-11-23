@@ -8,7 +8,15 @@ interface HotspotsCommand {
   readonly limit: number;
 }
 
-function parseCommand(args: readonly string[]): HotspotsCommand | undefined {
+export interface CommandResult {
+  readonly status: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+const usage = 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+
+function parseCommand(args: readonly string[]): HotspotsCommand | string {
   let parsed;
 
   try {
@@ -17,31 +25,37 @@ function parseCommand(args: readonly string[]): HotspotsCommand | undefined {
       allowPositionals: true,
       options: { since: { type: 'string', default: '12 months ago' }, limit: { type: 'string', default: '30' } },
     });
-  } catch {
-    return undefined;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
   }
 
-  const [command, scope = '.', ...extra] = parsed.positionals;
+  const [command, scope = '.', extra] = parsed.positionals;
   const limit = Number(parsed.values.limit);
 
-  if (command !== 'hotspots' || extra.length > 0 || !Number.isInteger(limit) || limit < 1) {
-    return undefined;
+  if (command === undefined) {
+    return 'no command';
+  }
+
+  if (command !== 'hotspots') {
+    return `unknown command ${command}`;
+  }
+
+  if (extra !== undefined) {
+    return `one folder at most, not ${extra}`;
+  }
+
+  if (!Number.isInteger(limit) || limit < 1) {
+    return `--limit takes a whole number of 1 or more, not ${parsed.values.limit}`;
   }
 
   return { scope, since: parsed.values.since, limit };
 }
 
-export interface CommandResult {
-  readonly status: number;
-  readonly stdout: string;
-  readonly stderr: string;
-}
-
 export function runCommand(args: readonly string[]): CommandResult {
   const command = parseCommand(args);
 
-  if (command === undefined) {
-    return { status: 2, stdout: '', stderr: 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n' };
+  if (typeof command === 'string') {
+    return { status: 2, stdout: '', stderr: `lz-oop: ${command}\n${usage}` };
   }
 
   const { scope, since, limit } = command;
@@ -50,9 +64,13 @@ export function runCommand(args: readonly string[]): CommandResult {
     return { status: 1, stdout: '', stderr: `lz-oop: no folder ${scope}\n` };
   }
 
-  const measured = measureScope(scope, since);
+  try {
+    const measured = measureScope(scope, since);
 
-  return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
+    return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
+  } catch (error) {
+    return { status: 1, stdout: '', stderr: `lz-oop: ${error instanceof Error ? error.message : String(error)}\n` };
+  }
 }
 
 if (import.meta.main) {

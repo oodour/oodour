@@ -14,7 +14,7 @@ const config: PartialStrykerOptions = {
   ...runnerOptions,
   tsconfigFile: 'plugins/lz-oop/scripts/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/lz-oop-scripts.html' },
-  mutate: ['plugins/lz-oop/scripts/*.ts', '!plugins/lz-oop/scripts/*.test.ts'],
+  mutate: ['plugins/lz-oop/scripts/*.ts', '!plugins/lz-oop/scripts/*.test.ts', '!plugins/lz-oop/scripts/fixtures.ts'],
   incrementalFile: 'reports/stryker-incremental/lz-oop-scripts.json',
 };
 

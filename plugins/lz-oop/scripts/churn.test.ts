@@ -1,33 +1,17 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
+import { commitFiles, folderWith, git, repositoryWith } from './fixtures.ts';
+import { type Git, gitIn } from './git.ts';
 
 const hash = (digit: string): string => digit.repeat(40);
 
-function git(root: string, args: readonly string[], date = '2026-11-01T12:00:00Z'): string {
-  return execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', ...args], {
-    cwd: root,
-    encoding: 'utf8',
-    env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date },
-  });
-}
+function gitOf(folder: string): Git {
+  const runner = gitIn(folder);
+  assert.ok(runner);
 
-function commit(root: string, file: string, text: string, date?: string): void {
-  writeFileSync(join(root, file), text);
-  git(root, ['add', file], date);
-  git(root, ['commit', '-q', '-m', `change ${file}`], date);
-}
-
-function repository(): string {
-  const root = mkdtempSync(join(tmpdir(), 'lz-oop-churn-'));
-  git(root, ['init', '-q']);
-
-  return root;
+  return runner;
 }
 
 test('a file one commit changed counts one commit', () => {
@@ -67,31 +51,25 @@ test('the commits before a rename count for the path the file has now', () => {
   assert.deepEqual(commitsPerCurrentPath(log), new Map([['src/c.ts', 3]]));
 });
 
-test('churn counts the commits of the period in a repository and leaves out older ones', () => {
-  const root = repository();
-  commit(root, 'a.ts', 'one', '2024-01-01T12:00:00Z');
-  commit(root, 'a.ts', 'two');
-  commit(root, 'a.ts', 'three');
+test('churn counts the commits of the period in a repository and leaves out older ones', (context) => {
+  const root = repositoryWith(context, []);
+  commitFiles(root, { 'a.ts': 'one' }, '2024-01-01T12:00:00Z');
+  commitFiles(root, { 'a.ts': 'two' });
+  commitFiles(root, { 'a.ts': 'three' });
 
-  assert.deepEqual(churn(root, '2025-11-23'), { commits: new Map([['a.ts', 2]]), shallow: false });
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 2]]), shallow: false });
 });
 
-test('churn says when the clone is shallow', () => {
-  const origin = repository();
-  commit(origin, 'a.ts', 'one');
-  commit(origin, 'a.ts', 'two');
-  const clone = mkdtempSync(join(tmpdir(), 'lz-oop-shallow-'));
+test('churn says when the clone is shallow', (context) => {
+  const origin = repositoryWith(context, [{ 'a.ts': 'one' }, { 'a.ts': 'two' }]);
+  const clone = folderWith(context, {});
   git(clone, ['clone', '-q', '--depth', '1', pathToFileURL(origin).href, '.']);
 
-  assert.deepEqual(churn(clone, '2025-11-23'), { commits: new Map([['a.ts', 1]]), shallow: true });
+  assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 1]]), shallow: true });
 });
 
-test('churn has nothing to count in a folder outside any repository', (context) => {
-  const folder = mkdtempSync(join(tmpdir(), 'lz-oop-no-git-'));
-  process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
-  context.after(() => {
-    delete process.env['GIT_CEILING_DIRECTORIES'];
-  });
+test('a repository without commits has nothing to count', (context) => {
+  const root = repositoryWith(context, []);
 
-  assert.equal(churn(folder, '2025-11-23'), undefined);
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), shallow: false });
 });

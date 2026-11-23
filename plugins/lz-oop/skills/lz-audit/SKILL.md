@@ -75,8 +75,8 @@ Then weigh the table:
     `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`, Which way a dependency points. Where classes are
     not the house style, a module whose exported functions hold rules that change belongs here too. A steady abstraction
     that many files depend on is the healthy case, not a finding;
-  - complex, unchanged: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that hides
-    behind one message costs nothing until it has to change;
+  - complex, seldom changed: usually leave it. Ugly code that nothing depends on, that depends on nothing, and that
+    hides behind one message costs nothing until it has to change;
   - simple: skip.
 
 ## 3. Judge the hot spots

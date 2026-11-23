@@ -1,30 +1,7 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
 import { test } from 'node:test';
+import { folderWith, outsideAnyRepository, repositoryWith } from './fixtures.ts';
 import { type FileMeasures, measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
-
-function repository(commits: readonly Readonly<Record<string, string>>[]): string {
-  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-hotspots-')));
-  const git = (args: readonly string[]): void => {
-    execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', ...args], { cwd: root });
-  };
-  git(['init', '-q']);
-
-  for (const files of commits) {
-    for (const [file, text] of Object.entries(files)) {
-      mkdirSync(dirname(join(root, file)), { recursive: true });
-      writeFileSync(join(root, file), text);
-    }
-
-    git(['add', '.']);
-    git(['commit', '-q', '-m', 'change']);
-  }
-
-  return root;
-}
 
 function measures(file: string, values: Partial<FileMeasures> = {}): FileMeasures {
   return {
@@ -32,7 +9,7 @@ function measures(file: string, values: Partial<FileMeasures> = {}): FileMeasure
     commits: 0,
     dependents: { production: 0, test: 0 },
     largest: undefined,
-    exportsConcreteClass:false,
+    exportsConcreteClass: false,
     concreteClassesNamed: [],
     ...values,
   };
@@ -61,7 +38,7 @@ test('often changed means at least the 75th percentile of commits among files wi
   );
 });
 
-test("complex means a largest function at least the 75th percentile of the files', and above the limit of 4", () => {
+test("complex means a largest function at least the 75th percentile of the files', and at least 5", () => {
   const complexities = [2, 4, 6, 8, undefined];
   const files = complexities.map((complexity, index) =>
     measures(`${String(index)}.ts`, { commits: 5, largest: complexity === undefined ? undefined : largest(complexity) }),
@@ -77,14 +54,14 @@ test("complex means a largest function at least the 75th percentile of the files
   assert.equal(rankHotspots([measures('a.ts', { largest: largest(3) })], 30).thresholds.complexity, 5);
 });
 
-test('a complex file that is not often changed is complex, unchanged', () => {
+test('a complex file that is not often changed is complex, seldom changed', () => {
   const files = [measures('changed.ts', { commits: 4, largest: largest(9) }), measures('kept.ts', { largest: largest(9) })];
 
   assert.deepEqual(
     rankHotspots(files, 30).rows.map(({ file, quadrant }) => [file, quadrant]),
     [
       ['changed.ts', 'changed and complex'],
-      ['kept.ts', 'complex, unchanged'],
+      ['kept.ts', 'complex, seldom changed'],
     ],
   );
 });
@@ -92,7 +69,7 @@ test('a complex file that is not often changed is complex, unchanged', () => {
 test('a file a tenth of the files depend on is depended on when it changes often or holds a concrete class', () => {
   const others = Array.from({ length: 17 }, (_, index) => measures(`other-${String(index)}.ts`));
   const files = [
-    measures('store.ts', { dependents: { production: 2, test: 9 }, exportsConcreteClass:true }),
+    measures('store.ts', { dependents: { production: 2, test: 9 }, exportsConcreteClass: true }),
     measures('util.ts', { dependents: { production: 2, test: 0 }, commits: 4 }),
     measures('port.ts', { dependents: { production: 5, test: 0 } }),
     ...others,
@@ -112,7 +89,7 @@ test('the rows list the files to audit first by quadrant, then the rest by commi
     measures('busy.ts', { commits: 9, largest: largest(1) }),
     measures('kept.ts', { commits: 1, largest: largest(9) }),
     measures('hot.ts', { commits: 4, largest: largest(9) }),
-    measures('store.ts', { commits: 1, dependents: { production: 2, test: 0 }, exportsConcreteClass:true }),
+    measures('store.ts', { commits: 1, dependents: { production: 2, test: 0 }, exportsConcreteClass: true }),
     measures('quiet.ts', { commits: 1 }),
   ];
 
@@ -126,8 +103,8 @@ test('the rows list the files to audit first by quadrant, then the rest by commi
   );
 });
 
-test("measuring a scope joins each production file's commits, dependents, largest function and classes", () => {
-  const root = repository([
+test("measuring a scope joins each production file's commits, dependents, largest function and classes", (context) => {
+  const root = repositoryWith(context, [
     {
       'src/store.ts': 'export class Store {\n  get(a: number) {\n    return a > 0 ? a : 0;\n  }\n}',
       'src/app.ts': "import { Store } from './index';\nexport const store = new Store();",
@@ -145,7 +122,7 @@ test("measuring a scope joins each production file's commits, dependents, larges
       commits: 1,
       dependents: { production: 0, test: 0 },
       largest: undefined,
-      exportsConcreteClass:false,
+      exportsConcreteClass: false,
       concreteClassesNamed: ['Store'],
     },
     {
@@ -153,7 +130,7 @@ test("measuring a scope joins each production file's commits, dependents, larges
       commits: 2,
       dependents: { production: 1, test: 1 },
       largest: { name: "Method 'get'", line: 2, complexity: 2 },
-      exportsConcreteClass:true,
+      exportsConcreteClass: true,
       concreteClassesNamed: [],
     },
   ]);
@@ -166,7 +143,7 @@ test('the report states the period, the history, the thresholds and what was lef
       commits: 3,
       dependents: { production: 1, test: 2 },
       largest: { name: "Method 'get'", line: 2, complexity: 7 },
-      exportsConcreteClass:true,
+      exportsConcreteClass: true,
       concreteClassesNamed: ['Clock', 'Ledger'],
     }),
     measures('src/port.ts'),
@@ -179,8 +156,8 @@ test('the report states the period, the history, the thresholds and what was lef
       'Hot spots in src: 2 production files, commits since 12 months ago.',
       'History: a shallow clone, so the commit counts are too low.',
       'Thresholds: often changed at 3 commits or more (the 75th percentile, at least 2); ' +
-        'complex at a largest function of 7 or more (the 75th percentile, above 4); ' +
-        'many dependents at 2 production files or more (a tenth, at least 2).',
+        'complex at a largest function of 7 or more (the 75th percentile, at least 5); ' +
+        'many dependents at 2 production files or more (one in 10, at least 2).',
       'Left out, only re-exporting: src/index.ts.',
       'Left out, not parsed: src/x.ts:1:9 Oops.',
       '',
@@ -193,8 +170,8 @@ test('the report states the period, the history, the thresholds and what was lef
   );
 });
 
-test('a file the parser cannot read is left out and named with where it stopped', () => {
-  const root = repository([{ 'a.ts': 'export const a = 1;', 'broken.ts': 'function (\n' }]);
+test('a file the parser cannot read is left out and named with where it stopped', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;', 'broken.ts': 'function (\n' }]);
 
   const { files, parseErrors } = measureScope(root, '12 months ago');
 
@@ -205,15 +182,22 @@ test('a file the parser cannot read is left out and named with where it stopped'
   assert.match(parseErrors.join('\n'), /^broken\.ts:1:\d+ /);
 });
 
-test('outside a repository the files have no commits and the history is none', (context) => {
-  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-no-history-')));
-  writeFileSync(join(root, 'a.ts'), 'export const a = 1;');
-  process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
-  context.after(() => {
-    delete process.env['GIT_CEILING_DIRECTORIES'];
-  });
+test('outside a repository the history is none and the report shows no commit counts', (context) => {
+  const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
+  outsideAnyRepository(context);
 
-  const { files, history } = measureScope(root, '12 months ago');
+  const measured = measureScope(root, '12 months ago');
+  const report = renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30));
 
-  assert.deepEqual([history, files.map(({ commits }) => commits)], ['none', [undefined]]);
+  assert.equal(measured.history, 'none');
+  assert.match(report, /\nHistory: no Git repository, so no commit counts, and no file counts as often changed\.\n/);
+  assert.match(report, /\n\| a\.ts \| - \| 0, 0 \|/);
+});
+
+test('a full history is stated as such', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]);
+
+  const measured = measureScope(root, '12 months ago');
+
+  assert.match(renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)), /\nHistory: the full history of the period\.\n/);
 });
