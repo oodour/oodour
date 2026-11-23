@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { churn, type HistoryLimit } from './churn.ts';
+import { churn, type HistoryLimit, type Uncountable } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
@@ -32,7 +32,7 @@ export interface Ranked {
   readonly rows: readonly (FileMeasures & { readonly quadrant: Quadrant })[];
 }
 
-export type Uncounted = 'no repository' | 'treeless';
+export type Uncounted = Uncountable | 'no repository';
 
 export interface Measured {
   readonly files: readonly FileMeasures[];

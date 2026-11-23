@@ -2,12 +2,14 @@ import type { Git } from './git.ts';
 
 export type HistoryLimit = 'shallow' | 'partial';
 
+export type Uncountable = 'treeless';
+
 export interface Churn {
   readonly commits: ReadonlyMap<string, number>;
   readonly limits: readonly HistoryLimit[];
 }
 
-export function churn(git: Git, since: string): Churn | 'treeless' {
+export function churn(git: Git, since: string): Churn | Uncountable {
   const config = git(['config', '--list']);
 
   // A treeless clone would have to fetch the older commits' file lists before it could name the files they changed.
