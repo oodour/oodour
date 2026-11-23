@@ -148,7 +148,7 @@ test('the report states the period, the history, the thresholds and what was lef
     }),
     measures('src/port.ts'),
   ];
-  const measured = { files, history: 'shallow' as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops'] };
+  const measured = { files, history: 'shallow' as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'] };
 
   assert.equal(
     renderHotspots('src', '12 months ago', measured, rankHotspots(files, 30)),
@@ -159,7 +159,7 @@ test('the report states the period, the history, the thresholds and what was lef
         'complex at a largest function of 7 or more (the 75th percentile, at least 5); ' +
         'many dependents at 2 production files or more (one in 10, at least 2).',
       'Left out, only re-exporting: src/index.ts.',
-      'Left out, not parsed: src/x.ts:1:9 Oops.',
+      'Left out, not parsed: src/x.ts:1:9 Oops.; src/y.ts:2:1 Oops.',
       '',
       '| File | Commits | Dependents (production, test) | Largest function | Exports a concrete class | Concrete classes it names | Quadrant |',
       '| --- | ---: | --- | --- | --- | --- | --- |',
@@ -190,7 +190,7 @@ test('outside a repository the history is none and the report shows no commit co
   const report = renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30));
 
   assert.equal(measured.history, 'none');
-  assert.match(report, /\nHistory: no Git repository, so no commit counts, and no file counts as often changed\.\n/);
+  assert.match(report, /\nHistory: no Git repository, or git is not installed, so no commit counts, and no file counts as often changed\.\n/);
   assert.match(report, /\n\| a\.ts \| - \| 0, 0 \|/);
 });
 

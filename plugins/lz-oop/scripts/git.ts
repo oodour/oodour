@@ -11,6 +11,10 @@ export function gitIn(folder: string): Git | undefined {
   });
 
   if (probe.error) {
+    if ('code' in probe.error && probe.error.code === 'ENOENT') {
+      return undefined;
+    }
+
     throw probe.error;
   }
 
@@ -23,5 +27,10 @@ export function gitIn(folder: string): Git | undefined {
   }
 
   return (args) =>
-    execFileSync('git', ['-c', 'core.quotePath=false', ...args], { cwd: folder, encoding: 'utf8', maxBuffer: 1024 ** 3 });
+    execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
+      cwd: folder,
+      encoding: 'utf8',
+      maxBuffer: 1024 ** 3,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
 }

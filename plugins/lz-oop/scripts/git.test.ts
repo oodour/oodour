@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { folderWith, outsideAnyRepository, repositoryWith } from './fixtures.ts';
+import { folderWith, outsideAnyRepository, refusedByGit, repositoryWith, setForTest } from './fixtures.ts';
 import { gitIn } from './git.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
@@ -16,12 +16,16 @@ test('a folder outside any repository has no Git', (context) => {
   assert.equal(gitIn(folder), undefined);
 });
 
+test('without git installed there is no Git', (context) => {
+  const root = repositoryWith(context, []);
+  setForTest(context, 'PATH', '');
+
+  assert.equal(gitIn(root), undefined);
+});
+
 test('a repository Git refuses to open fails with what Git said', (context) => {
   const root = repositoryWith(context, []);
-  process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1';
-  context.after(() => {
-    delete process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'];
-  });
+  refusedByGit(context);
 
   assert.throws(() => gitIn(root), /^Error: git: .*dubious ownership/s);
 });

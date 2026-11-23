@@ -83,7 +83,7 @@ export function measureScope(scope: string, since: string): Measured {
 const historyLines: Readonly<Record<Measured['history'], string>> = {
   full: 'the full history of the period.',
   shallow: 'a shallow clone, so the commit counts are too low.',
-  none: 'no Git repository, so no commit counts, and no file counts as often changed.',
+  none: 'no Git repository, or git is not installed, so no commit counts, and no file counts as often changed.',
 };
 
 export function renderHotspots(scope: string, since: string, measured: Measured, ranked: Ranked): string {
@@ -110,7 +110,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
       `many dependents at ${String(dependents)} production files or more ` +
       `(one in ${String(policy.dependentsShare)}, at least ${String(policy.leastDependents)}).`,
     ...(measured.reexportsOnly.length > 0 ? [`Left out, only re-exporting: ${measured.reexportsOnly.join(', ')}.`] : []),
-    ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join(', ')}.`] : []),
+    ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join('; ')}`] : []),
     '',
     '| File | Commits | Dependents (production, test) | Largest function | Exports a concrete class | Concrete classes it names | Quadrant |',
     '| --- | ---: | --- | --- | --- | --- | --- |',

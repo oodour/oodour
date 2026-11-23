@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { repositoryWith } from './fixtures.ts';
+import { refusedByGit, repositoryWith } from './fixtures.ts';
 import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
@@ -29,10 +29,7 @@ test('a folder that does not exist is named on stderr with exit 1', () => {
 
 test('a repository Git refuses fails with what Git said and exit 1', (context) => {
   const root = repositoryWith(context, []);
-  process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1';
-  context.after(() => {
-    delete process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'];
-  });
+  refusedByGit(context);
 
   const result = runCommand(['hotspots', root]);
 

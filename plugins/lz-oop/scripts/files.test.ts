@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { folderWith, git, outsideAnyRepository, repositoryWith } from './fixtures.ts';
+import { folderWith, outsideAnyRepository, repositoryWith, runGit } from './fixtures.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 
@@ -15,14 +15,14 @@ test("a repository's JavaScript and TypeScript files are its sources, named from
     'ignored/c.ts': '',
     '.gitignore': 'ignored/\n',
   });
-  git(root, ['init', '-q']);
+  runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(root, gitIn(root)), { root, all: ['src/a.ts', 'src/b.jsx'], inScope: ['src/a.ts', 'src/b.jsx'] });
 });
 
 test('a folder of a repository scopes the sources to the files below it', (context) => {
   const root = folderWith(context, { 'lib/a.ts': '', 'lib-two/b.ts': '', 'c.ts': '' });
-  git(root, ['init', '-q']);
+  runGit(root, ['init', '-q']);
   const scope = join(root, 'lib');
 
   assert.deepEqual(sources(scope, gitIn(scope)).inScope, ['lib/a.ts']);

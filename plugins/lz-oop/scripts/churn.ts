@@ -6,8 +6,7 @@ export interface Churn {
 }
 
 export function churn(git: Git, since: string): Churn {
-  const hasCommits = git(['rev-list', '-n', '1', '--all']) !== '';
-  const log = hasCommits ? git(['log', `--since=${since}`, '--format=%H', '--name-status', '-M']) : '';
+  const log = git(['log', '--ignore-missing', 'HEAD', `--since=${since}`, '--format=%H', '--name-status', '-M']);
 
   return { commits: commitsPerCurrentPath(log), shallow: git(['rev-parse', '--is-shallow-repository']).trim() === 'true' };
 }

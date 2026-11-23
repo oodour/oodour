@@ -23,7 +23,7 @@ export function writeFiles(root: string, files: Files): void {
   }
 }
 
-export function git(root: string, args: readonly string[], date = '2026-11-01T12:00:00Z'): string {
+export function runGit(root: string, args: readonly string[], date = '2026-11-01T12:00:00Z'): string {
   return execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', ...args], {
     cwd: root,
     encoding: 'utf8',
@@ -33,13 +33,13 @@ export function git(root: string, args: readonly string[], date = '2026-11-01T12
 
 export function commitFiles(root: string, files: Files, date?: string): void {
   writeFiles(root, files);
-  git(root, ['add', '.'], date);
-  git(root, ['commit', '-q', '-m', 'change'], date);
+  runGit(root, ['add', '.'], date);
+  runGit(root, ['commit', '-q', '-m', 'change'], date);
 }
 
 export function repositoryWith(context: TestContext, commits: readonly Files[]): string {
   const root = folderWith(context, {});
-  git(root, ['init', '-q']);
+  runGit(root, ['init', '-q']);
 
   for (const files of commits) {
     commitFiles(root, files);
@@ -49,8 +49,21 @@ export function repositoryWith(context: TestContext, commits: readonly Files[]):
 }
 
 export function outsideAnyRepository(context: TestContext): void {
-  process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
+  setForTest(context, 'GIT_CEILING_DIRECTORIES', tmpdir());
+}
+
+export function refusedByGit(context: TestContext): void {
+  setForTest(context, 'GIT_TEST_ASSUME_DIFFERENT_OWNER', '1');
+}
+
+export function setForTest(context: TestContext, variable: string, value: string): void {
+  const previous = process.env[variable];
+  process.env[variable] = value;
   context.after(() => {
-    delete process.env['GIT_CEILING_DIRECTORIES'];
+    if (previous === undefined) {
+      Reflect.deleteProperty(process.env, variable);
+    } else {
+      process.env[variable] = previous;
+    }
   });
 }

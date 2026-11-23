@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
-import { commitFiles, folderWith, git, repositoryWith } from './fixtures.ts';
+import { commitFiles, folderWith, repositoryWith, runGit } from './fixtures.ts';
 import { type Git, gitIn } from './git.ts';
 
 const hash = (digit: string): string => digit.repeat(40);
@@ -63,13 +63,20 @@ test('churn counts the commits of the period in a repository and leaves out olde
 test('churn says when the clone is shallow', (context) => {
   const origin = repositoryWith(context, [{ 'a.ts': 'one' }, { 'a.ts': 'two' }]);
   const clone = folderWith(context, {});
-  git(clone, ['clone', '-q', '--depth', '1', pathToFileURL(origin).href, '.']);
+  runGit(clone,['clone', '-q', '--depth', '1', pathToFileURL(origin).href, '.']);
 
   assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 1]]), shallow: true });
 });
 
 test('a repository without commits has nothing to count', (context) => {
   const root = repositoryWith(context, []);
+
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), shallow: false });
+});
+
+test('a branch without commits has nothing to count, whatever other branches hold', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
+  runGit(root, ['checkout', '-q', '--orphan', 'fresh']);
 
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), shallow: false });
 });

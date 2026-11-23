@@ -36,7 +36,7 @@ export function readModules(root: string, files: readonly string[]): ReadonlyMap
         const resolved = ts.resolveModuleName(specifier, path, options, ts.sys, undefined, undefined, format);
         const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
 
-        return [imported, imported && describedScript(imported)].find((file) => file !== undefined && scanned.has(file));
+        return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
       };
 
       return [file, parse(path, resolve)] as const;
@@ -121,12 +121,6 @@ function parse(path: string, resolve: (specifier: string) => string | undefined)
     }),
     createdClasses: createdClassesOf(source),
   };
-}
-
-function describedScript(declaration: string): string | undefined {
-  const parts = /^(.*)\.d\.([cm]?)ts$/.exec(declaration);
-
-  return parts ? `${parts[1] ?? ''}.${parts[2] ?? ''}js` : undefined;
 }
 
 function present<T>(value: T | undefined): T[] {
