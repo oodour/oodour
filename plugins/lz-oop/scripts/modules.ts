@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, isAbsolute, join, relative } from 'node:path';
 import ts from 'typescript';
 
 export interface ModuleFacts {
@@ -26,18 +26,26 @@ interface Parsed {
 
 export function readModules(root: string, files: readonly string[]): ReadonlyMap<string, ModuleFacts> {
   const scanned = new Set(files);
-  const optionsFor = compilerOptions(root);
+  const system = boundedTo(root);
+  const optionsFor = compilerOptions(system);
   const parsed = new Map(
     files.map((file) => {
       const path = join(root, file);
-      const options = optionsFor(path);
-      const format = ts.getImpliedNodeFormatForFile(path, undefined, ts.sys, options);
-      const resolve = (specifier: string): string | undefined => {
-        const resolved = ts.resolveModuleName(specifier, path, options, ts.sys, undefined, undefined, format);
-        const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
+      const resolvers = optionsFor(path).map((options) => {
+        const format = ts.getImpliedNodeFormatForFile(path, undefined, system, options);
 
-        return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
-      };
+        return (specifier: string): string | undefined => {
+          const resolved = ts.resolveModuleName(specifier, path, options, system, undefined, undefined, format);
+          const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
+
+          return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
+        };
+      });
+      const resolve = (specifier: string): string | undefined =>
+        resolvers
+          .values()
+          .map((resolveWith) => resolveWith(specifier))
+          .find((found) => found !== undefined);
 
       return [file, parse(path, resolve)] as const;
     }),
@@ -128,17 +136,32 @@ function present<T>(value: T | undefined): T[] {
 }
 
 function concreteClassesByExportName(statements: readonly ts.Statement[]): ReadonlyMap<string, string> {
-  return new Map(
-    statements
-      .filter(ts.isClassDeclaration)
-      .filter((declaration) => hasModifier(declaration, ts.SyntaxKind.ExportKeyword))
-      .filter((declaration) => !hasModifier(declaration, ts.SyntaxKind.AbstractKeyword))
-      .map((declaration) => {
-        const name = declaration.name?.text ?? 'default';
+  const concrete = statements
+    .filter(ts.isClassDeclaration)
+    .filter((declaration) => !hasModifier(declaration, ts.SyntaxKind.AbstractKeyword));
+  const declaredHere = new Set(concrete.flatMap(({ name }) => present(name?.text)));
+  const exportedWhereDeclared = concrete
+    .filter((declaration) => hasModifier(declaration, ts.SyntaxKind.ExportKeyword))
+    .map((declaration) => {
+      const name = declaration.name?.text ?? 'default';
 
-        return [hasModifier(declaration, ts.SyntaxKind.DefaultKeyword) ? 'default' : name, name] as const;
-      }),
-  );
+      return [hasModifier(declaration, ts.SyntaxKind.DefaultKeyword) ? 'default' : name, name] as const;
+    });
+  const exportedLater = statements.flatMap(localNameByExportName).filter(([, name]) => declaredHere.has(name));
+
+  return new Map([...exportedWhereDeclared, ...exportedLater]);
+}
+
+function localNameByExportName(statement: ts.Statement): (readonly [string, string])[] {
+  if (ts.isExportAssignment(statement) && !statement.isExportEquals && ts.isIdentifier(statement.expression)) {
+    return [['default', statement.expression.text]];
+  }
+
+  const clause = ts.isExportDeclaration(statement) && statement.moduleSpecifier === undefined ? statement.exportClause : undefined;
+
+  return clause !== undefined && ts.isNamedExports(clause)
+    ? clause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text])
+    : [];
 }
 
 function exportedNamesImportedBy(clause: ts.ImportClause | undefined): string[] {
@@ -171,26 +194,58 @@ function hasModifier(declaration: ts.ClassDeclaration, kind: ts.SyntaxKind): boo
   return declaration.modifiers?.some((modifier) => modifier.kind === kind) ?? false;
 }
 
-function compilerOptions(root: string): (path: string) => ts.CompilerOptions {
-  const read = new Map<string, ts.CompilerOptions>();
+// On Windows, reading a path such as \\host\share\x.json sends the user's credentials to that host.
+export function boundedTo(root: string): ts.System {
+  const inside = (path: string): boolean => {
+    const below = relative(root, path);
 
-  return (path) => {
-    const config = ts.findConfigFile(dirname(path), (file) => ts.sys.fileExists(file));
+    return !below.startsWith('..') && !isAbsolute(below);
+  };
 
-    if (config === undefined || relative(root, config).startsWith('..')) {
-      return withoutConfig;
-    }
+  return {
+    ...ts.sys,
+    fileExists: (path) => inside(path) && ts.sys.fileExists(path),
+    readFile: (path, encoding) => (inside(path) ? ts.sys.readFile(path, encoding) : undefined),
+    directoryExists: (path) => inside(path) && ts.sys.directoryExists(path),
+    readDirectory: () => [],
+  };
+}
 
-    const cached = read.get(config);
+interface Config {
+  readonly options: ts.CompilerOptions;
+  readonly references: readonly string[];
+}
+
+// A config that only references others (one per app, library or test set) holds no options of its own, so a file's
+// imports may resolve only through one of the configs it references.
+function compilerOptions(system: ts.System): (path: string) => readonly ts.CompilerOptions[] {
+  const read = new Map<string, Config>();
+  const configAt = (path: string): Config => {
+    const cached = read.get(path);
 
     if (cached !== undefined) {
       return cached;
     }
 
-    const parsed = ts.getParsedCommandLineOfConfigFile(config, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined });
-    const options = parsed === undefined ? withoutConfig : { ...parsed.options, allowJs: true };
-    read.set(config, options);
+    const parsed = ts.getParsedCommandLineOfConfigFile(path, {}, { ...system, onUnRecoverableConfigFileDiagnostic: () => undefined });
+    const config = {
+      options: parsed === undefined ? withoutConfig : { ...parsed.options, allowJs: true },
+      references: (parsed?.projectReferences ?? []).map((reference) => ts.resolveProjectReferencePath(reference)),
+    };
+    read.set(path, config);
 
-    return options;
+    return config;
+  };
+
+  return (path) => {
+    const nearest = ts.findConfigFile(dirname(path), (file) => system.fileExists(file));
+
+    if (nearest === undefined) {
+      return [withoutConfig];
+    }
+
+    const { options, references } = configAt(nearest);
+
+    return [options, ...references.map((reference) => configAt(reference).options)];
   };
 }

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { mkdirSync, symlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { type TestContext, test } from 'node:test';
-import { folderWith } from './fixtures.ts';
-import { dependentsThroughReexports, readModules } from './modules.ts';
+import { folderWith, writeFiles } from './fixtures.ts';
+import { boundedTo, dependentsThroughReexports, readModules } from './modules.ts';
 
 function modulesOf(context: TestContext, files: Readonly<Record<string, string>>, prepare?: (root: string) => void) {
   const root = folderWith(context, files);
@@ -45,6 +45,53 @@ test("an import through a path the nearest tsconfig.json maps names the file it 
   });
 
   assert.deepEqual(modules.get('app/a.ts')?.imports, ['lib/b.ts']);
+});
+
+test('an import the nearest tsconfig.json cannot resolve resolves through a config it references', (context) => {
+  const modules = modulesOf(context, {
+    'src/a.ts': "import { b } from '@lib/b';",
+    'lib/b.ts': 'export const b = 1;',
+    'tsconfig.json': JSON.stringify({ files: [], references: [{ path: './tsconfig.spec.json' }, { path: './tsconfig.app.json' }] }),
+    'tsconfig.spec.json': JSON.stringify({ include: ['test'] }),
+    'tsconfig.app.json': JSON.stringify({ compilerOptions: { paths: { '@lib/*': ['./lib/*'] } }, include: ['src'] }),
+  });
+
+  assert.deepEqual(modules.get('src/a.ts')?.imports, ['lib/b.ts']);
+});
+
+test('a tsconfig.json that extends a file outside the root is read without it', (context) => {
+  const outside = folderWith(context, {});
+  const modules = modulesOf(
+    context,
+    {
+      'src/a.ts': "import { b } from '@lib/b';",
+      'lib/b.ts': 'export const b = 1;',
+      'tsconfig.json': JSON.stringify({ extends: join(outside, 'base.json') }),
+    },
+    (root) => {
+      writeFiles(outside, { 'base.json': JSON.stringify({ compilerOptions: { paths: { '@lib/*': [join(root, 'lib/*')] } } }) });
+    },
+  );
+
+  assert.deepEqual(modules.get('src/a.ts')?.imports, []);
+});
+
+test('configs and imports are read through a file system that has nothing outside the root', (context) => {
+  const outside = folderWith(context, { 'x.json': '{}' });
+  const root = folderWith(context, { 'y.json': '{}', 'lib/z.json': '{}' });
+  const files = boundedTo(root);
+
+  assert.deepEqual(
+    [files.fileExists(join(outside, 'x.json')), files.readFile(join(outside, 'x.json')), files.directoryExists(outside)],
+    [false, undefined, false],
+  );
+  assert.deepEqual([files.fileExists(join(root, 'y.json')), files.readFile(join(root, 'y.json')), files.directoryExists(join(root, 'lib'))], [true, '{}', true]);
+});
+
+test('reading a config lists no folders, since only its compiler options count', (context) => {
+  const root = folderWith(context, { 'y.json': '{}' });
+
+  assert.deepEqual(boundedTo(root).readDirectory(root, ['.json']), []);
 });
 
 test('an import by the name of a package linked into node_modules names its source file', (context) => {
@@ -113,6 +160,16 @@ test('the concrete classes of a file are the classes it exports that are not abs
   });
 
   assert.deepEqual(modules.get('a.ts')?.concreteClasses, ['A', 'D']);
+});
+
+test('a class declared first and exported later by name or as the default is exported', (context) => {
+  const modules = modulesOf(context, {
+    'a.ts': ['class A {}', 'abstract class B {}', 'class C {}', 'class D {}', 'export { A, B, C as E };', 'export default D;'].join('\n'),
+    'b.ts': "import D, { E } from './a';",
+  });
+
+  assert.deepEqual(modules.get('a.ts')?.concreteClasses, ['A', 'C', 'D']);
+  assert.deepEqual(modules.get('b.ts')?.concreteClassesNamed, ['C', 'D']);
 });
 
 test('a file names the concrete classes it imports from other files and the classes of its own it creates', (context) => {
