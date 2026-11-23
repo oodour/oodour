@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { test } from 'node:test';
 import { networkShare, refusedByGit, repositoryWith } from './fixtures.ts';
 import { runCommand } from './lz-oop.ts';
@@ -53,6 +53,19 @@ test('a folder that leads to a network path through a link is refused before any
   const root = repositoryWith(context, []);
   const scope = join(root, 'share');
   symlinkSync(networkShare, scope, 'dir');
+
+  assert.deepEqual(runCommand(['hotspots', scope]), {
+    status: 1,
+    stdout: '',
+    stderr: `lz-oop: ${scope} is a network or device path, or leads to one; audit a local folder\n`,
+  });
+});
+
+test('a scope that steps back after a link is read as its text names it, so a link to a network path is refused', (context) => {
+  const root = repositoryWith(context, [{ 'elsewhere/inner/a.ts': '' }]);
+  symlinkSync(join(root, 'elsewhere', 'inner'), join(root, 'link'), 'junction');
+  symlinkSync(networkShare, join(root, 'evil'), 'dir');
+  const scope = [root, 'link', '..', 'evil'].join(sep);
 
   assert.deepEqual(runCommand(['hotspots', scope]), {
     status: 1,

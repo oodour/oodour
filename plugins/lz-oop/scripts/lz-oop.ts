@@ -1,4 +1,5 @@
 import { statSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { localPath } from './below.ts';
 import { measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
@@ -60,9 +61,11 @@ export function runCommand(args: readonly string[]): CommandResult {
   }
 
   const { scope, since, limit } = command;
+  // Windows and Node.js apply a `..` by text, so the folder is checked and read by the same resolved text.
+  const folder = resolve(scope);
 
   // On Windows, opening \\host\share sends the user's credentials to that host, so the folder's links are read first.
-  if (localPath(scope) === undefined) {
+  if (localPath(folder) === undefined) {
     return {
       status: 1,
       stdout: '',
@@ -70,12 +73,12 @@ export function runCommand(args: readonly string[]): CommandResult {
     };
   }
 
-  if (!statSync(scope, { throwIfNoEntry: false })?.isDirectory()) {
+  if (!statSync(folder, { throwIfNoEntry: false })?.isDirectory()) {
     return { status: 1, stdout: '', stderr: `lz-oop: no folder ${scope}\n` };
   }
 
   try {
-    const measured = measureScope(scope, since);
+    const measured = measureScope(folder, since);
 
     return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
   } catch (error) {
