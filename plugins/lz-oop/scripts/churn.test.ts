@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { existsSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
@@ -131,6 +132,22 @@ test("counting the commits reads no order file the repository's own config names
   runGit(root, ['config', 'diff.orderFile', join(folderWith(context, {}), 'order')]);
 
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
+});
+
+test('counting the commits reads no attributes file in the work tree, which a link could lead to a share', (context) => {
+  const root = repositoryWith(context, [{ 'a/b/x.ts': 'one\ntwo\nthree\nfour\nfive\nsix\n' }]);
+  renameSync(join(root, 'a', 'b', 'x.ts'), join(root, 'a', 'b', 'y.ts'));
+  commitFiles(root, { 'a/b/y.ts': 'one\ntwo\nthree\nfour\nfive\nsix\nseven\n' });
+  // Git warns that a macro is not allowed here whenever it reads this file.
+  writeFiles(root, { 'a/.gitattributes': '[attr]probe text\n' });
+  const git: Git = (args) => {
+    const run = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
+    assert.doesNotMatch(run.stderr, /gitattributes/);
+
+    return run.stdout;
+  };
+
+  assert.deepEqual(churn(git, '2025-11-23'), { commits: new Map([['a/b/y.ts', 2]]), limits: [] });
 });
 
 test('a branch without commits has nothing to count, whatever other branches hold', (context) => {
