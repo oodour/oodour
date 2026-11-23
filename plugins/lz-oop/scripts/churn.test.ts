@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { churn, commitsPerCurrentPath } from './churn.ts';
-import { commitFiles, folderWith, gitAtLeast, partialCloneOf, repositoryWith, runGit, writeFiles } from './fixtures.ts';
+import { commitFiles, folderWith, gitAtLeast, partialCloneOf, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { type Git, gitIn } from './git.ts';
 
 const hash = (digit: string): string => digit.repeat(40);
@@ -135,6 +135,24 @@ test("counting the commits reads no order file the repository's own config names
   runGit(root, ['config', 'diff.orderFile', join(folderWith(context, {}), 'order')]);
 
   assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
+});
+
+test('counting the commits reads no commit graph that the chain names outside its folder', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
+  runGit(root, ['commit-graph', 'write', '--reachable', '--split']);
+  const chain = join(root, '.git', 'objects', 'info', 'commit-graphs', 'commit-graph-chain');
+  const line = readFileSync(chain, 'utf8').trim();
+  chmodSync(chain, 0o644);
+  // Git reads the hash from the start of the line and opens graph-<the whole line>.graph; a link could lead there.
+  writeFileSync(chain, `${line}/../../../../../out/g\n`);
+  writeFiles(root, { 'out/g.graph': 'four' });
+  const trace = join(folderWith(context, {}), 'trace.json');
+  setForTest(context, 'GIT_TRACE2_EVENT', trace);
+
+  churn(gitOf(root), '2025-11-23');
+
+  // Git reports a graph it read and found too small as an error event.
+  assert.doesNotMatch(readFileSync(trace, 'utf8'), /commit-graph file is too small/);
 });
 
 test('counting the commits reads no pack that the multi-pack-index names outside the pack folder', (context) => {
