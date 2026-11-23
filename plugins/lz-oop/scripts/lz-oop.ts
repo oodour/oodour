@@ -1,4 +1,5 @@
 import { statSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
 
@@ -59,6 +60,11 @@ export function runCommand(args: readonly string[]): CommandResult {
   }
 
   const { scope, since, limit } = command;
+
+  // On Windows, opening \\host\share sends the user's credentials to that host; \\?\ and \\.\ can name one too.
+  if (process.platform === 'win32' && /^[\\/]{2}/.test(resolve(scope))) {
+    return { status: 1, stdout: '', stderr: `lz-oop: ${scope} is a network or device path; audit a local folder\n` };
+  }
 
   if (!statSync(scope, { throwIfNoEntry: false })?.isDirectory()) {
     return { status: 1, stdout: '', stderr: `lz-oop: no folder ${scope}\n` };

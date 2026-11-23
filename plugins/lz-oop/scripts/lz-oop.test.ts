@@ -38,6 +38,16 @@ test('a folder that does not exist is named on stderr with exit 1', () => {
   assert.deepEqual(runCommand(['hotspots', missing]), { status: 1, stdout: '', stderr: `lz-oop: no folder ${missing}\n` });
 });
 
+test('a network or device path is refused before anything reads it, with exit 1', { skip: process.platform !== 'win32' }, (context) => {
+  const device = `\\\\?\\${repositoryWith(context, [{ 'a.ts': '' }])}`;
+
+  assert.deepEqual(runCommand(['hotspots', device]), {
+    status: 1,
+    stdout: '',
+    stderr: `lz-oop: ${device} is a network or device path; audit a local folder\n`,
+  });
+});
+
 test('a repository Git refuses fails with what Git said and exit 1', (context) => {
   const root = repositoryWith(context, []);
   refusedByGit(context);
