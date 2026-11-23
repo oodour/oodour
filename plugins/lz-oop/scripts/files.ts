@@ -1,5 +1,6 @@
-import { globSync, realpathSync, statSync } from 'node:fs';
+import { globSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { placeBelow } from './below.ts';
 import type { Git } from './git.ts';
 
 export interface Sources {
@@ -15,14 +16,14 @@ export function isTest(file: string): boolean {
 }
 
 export function sources(scope: string, git: Git | undefined): Sources {
+  // A link, or a file below a linked folder, could lead outside the root, so it is checked before anything opens it.
   const isSourceOnDisk = (root: string) => {
-    const realRoot = realpathSync.native(root);
+    const place = placeBelow(root);
 
-    // A link, or a file below a linked folder, has a real path elsewhere and could lead outside the root.
     return (file: string) =>
       source.test(file) &&
-      statSync(join(root, file), { throwIfNoEntry: false })?.isFile() === true &&
-      realpathSync.native(join(root, file)) === join(realRoot, file);
+      place(join(root, file)) === 'direct' &&
+      statSync(join(root, file), { throwIfNoEntry: false })?.isFile() === true;
   };
 
   if (git === undefined) {

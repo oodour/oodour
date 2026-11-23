@@ -88,10 +88,23 @@ test('configs and imports are read through a file system that has nothing outsid
   assert.deepEqual([files.fileExists(join(root, 'y.json')), files.readFile(join(root, 'y.json')), files.directoryExists(join(root, 'lib'))], [true, '{}', true]);
 });
 
+test('a link inside the root that leads outside it leads nowhere', (context) => {
+  const outside = folderWith(context, { 'x.json': '{}' });
+  const root = folderWith(context, {});
+  symlinkSync(outside, join(root, 'linked'), 'junction');
+  const files = boundedTo(root);
+  const through = join(root, 'linked', 'x.json');
+
+  assert.deepEqual(
+    [files.fileExists(through), files.readFile(through), files.directoryExists(join(root, 'linked')), files.realpath(through)],
+    [false, undefined, false, through],
+  );
+});
+
 test('reading a config lists no folders, since only its compiler options count', (context) => {
   const root = folderWith(context, { 'y.json': '{}' });
 
-  assert.deepEqual(boundedTo(root).readDirectory(root, ['.json']), []);
+  assert.deepEqual(boundedTo(root).readDirectory(root, ['.json'], undefined, ['**/*']), []);
 });
 
 test('an import by the name of a package linked into node_modules names its source file', (context) => {

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, rmSync, symlinkSync } from 'node:fs';
+import { existsSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, outsideAnyRepository, repositoryWith, runGit } from './fixtures.ts';
@@ -62,6 +62,13 @@ test('outside a repository a linked file or folder is no source either', (contex
   outsideAnyRepository(context);
 
   assert.deepEqual(sources(root, undefined).all, ['a.ts']);
+});
+
+test('a folder renamed only in case outside Git keeps its sources', { skip: process.platform === 'linux' }, (context) => {
+  const root = repositoryWith(context, [{ 'src/a.ts': '' }]);
+  renameSync(join(root, 'src'), join(root, 'Src'));
+
+  assert.deepEqual(sources(root, gitIn(root)).all, ['src/a.ts']);
 });
 
 test('a test file is named .test or .spec, or sits in a __tests__ folder', () => {

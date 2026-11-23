@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import ts from 'typescript';
+import { placeBelow } from './below.ts';
 
 export interface ModuleFacts {
   readonly imports: readonly string[];
@@ -25,29 +26,12 @@ interface Parsed {
 }
 
 export function readModules(root: string, files: readonly string[]): ReadonlyMap<string, ModuleFacts> {
-  const scanned = new Set(files);
-  const system = boundedTo(root);
-  const optionsFor = compilerOptions(system);
+  const resolverFor = importResolver(root, files);
   const parsed = new Map(
     files.map((file) => {
       const path = join(root, file);
-      const resolvers = optionsFor(path).map((options) => {
-        const format = ts.getImpliedNodeFormatForFile(path, undefined, system, options);
 
-        return (specifier: string): string | undefined => {
-          const resolved = ts.resolveModuleName(specifier, path, options, system, undefined, undefined, format);
-          const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
-
-          return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
-        };
-      });
-      const resolve = (specifier: string): string | undefined =>
-        resolvers
-          .values()
-          .map((resolveWith) => resolveWith(specifier))
-          .find((found) => found !== undefined);
-
-      return [file, parse(path, resolve)] as const;
+      return [file, parse(path, resolverFor(path))] as const;
     }),
   );
 
@@ -73,7 +57,7 @@ export function readModules(root: string, files: readonly string[]): ReadonlyMap
       const imported = importedNames.flatMap(({ from, name }) => present(classExported(from, name, new Set())));
       const concreteClassesNamed = [...new Set([...imported, ...createdClasses])].sort();
 
-      return [file, { imports, reexportsOnly, concreteClasses: [...classNameByExportName.values()], concreteClassesNamed }];
+      return [file, { imports, reexportsOnly, concreteClasses: [...new Set(classNameByExportName.values())], concreteClassesNamed }];
     }),
   );
 }
@@ -115,10 +99,7 @@ function parse(path: string, resolve: (specifier: string) => string | undefined)
         return [];
       }
 
-      const originalNameByExportName =
-        exportClause === undefined
-          ? ('all' as const)
-          : new Map(exportClause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text]));
+      const originalNameByExportName = exportClause === undefined ? ('all' as const) : new Map(namesExportedBy(exportClause));
 
       return [{ from, originalNameByExportName }];
     }),
@@ -159,9 +140,11 @@ function localNameByExportName(statement: ts.Statement): (readonly [string, stri
 
   const clause = ts.isExportDeclaration(statement) && statement.moduleSpecifier === undefined ? statement.exportClause : undefined;
 
-  return clause !== undefined && ts.isNamedExports(clause)
-    ? clause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text])
-    : [];
+  return clause !== undefined && ts.isNamedExports(clause) ? namesExportedBy(clause) : [];
+}
+
+function namesExportedBy(clause: ts.NamedExports): (readonly [string, string])[] {
+  return clause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text]);
 }
 
 function exportedNamesImportedBy(clause: ts.ImportClause | undefined): string[] {
@@ -194,20 +177,53 @@ function hasModifier(declaration: ts.ClassDeclaration, kind: ts.SyntaxKind): boo
   return declaration.modifiers?.some((modifier) => modifier.kind === kind) ?? false;
 }
 
-// On Windows, reading a path such as \\host\share\x.json sends the user's credentials to that host.
-export function boundedTo(root: string): ts.System {
-  const inside = (path: string): boolean => {
-    const below = relative(root, path);
+interface BoundedFiles extends ts.ParseConfigFileHost {
+  directoryExists(path: string): boolean;
+  getDirectories(path: string): string[];
+  realpath(path: string): string;
+}
 
-    return !below.startsWith('..') && !isAbsolute(below);
-  };
+// On Windows, reading a path such as \\host\share\x.json sends the user's credentials to that host.
+export function boundedTo(root: string): BoundedFiles {
+  const place = placeBelow(root);
+  const inside = (path: string): boolean => place(path) !== undefined;
 
   return {
-    ...ts.sys,
+    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+    getCurrentDirectory: () => root,
     fileExists: (path) => inside(path) && ts.sys.fileExists(path),
-    readFile: (path, encoding) => (inside(path) ? ts.sys.readFile(path, encoding) : undefined),
+    readFile: (path) => (inside(path) ? ts.sys.readFile(path) : undefined),
     directoryExists: (path) => inside(path) && ts.sys.directoryExists(path),
+    getDirectories: (path) => (inside(path) ? ts.sys.getDirectories(path) : []),
+    realpath: (path) => (inside(path) && ts.sys.realpath ? ts.sys.realpath(path) : path),
     readDirectory: () => [],
+    onUnRecoverableConfigFileDiagnostic: () => undefined,
+  };
+}
+
+// Imports resolve as TypeScript resolves them, through a file system that ends at the root, to scanned files only.
+function importResolver(root: string, files: readonly string[]): (path: string) => (specifier: string) => string | undefined {
+  const scanned = new Set(files);
+  const system = boundedTo(root);
+  const optionsFor = compilerOptions(system);
+
+  return (path) => {
+    const resolvers = optionsFor(path).map((options) => {
+      const format = ts.getImpliedNodeFormatForFile(path, undefined, system, options);
+
+      return (specifier: string): string | undefined => {
+        const resolved = ts.resolveModuleName(specifier, path, options, system, undefined, undefined, format);
+        const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
+
+        return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
+      };
+    });
+
+    return (specifier) =>
+      resolvers
+        .values()
+        .map((resolveWith) => resolveWith(specifier))
+        .find((found) => found !== undefined);
   };
 }
 
@@ -218,34 +234,31 @@ interface Config {
 
 // A config that only references others (one per app, library or test set) holds no options of its own, so a file's
 // imports may resolve only through one of the configs it references.
-function compilerOptions(system: ts.System): (path: string) => readonly ts.CompilerOptions[] {
-  const read = new Map<string, Config>();
-  const configAt = (path: string): Config => {
-    const cached = read.get(path);
-
-    if (cached !== undefined) {
-      return cached;
+function compilerOptions(system: BoundedFiles): (path: string) => readonly ts.CompilerOptions[] {
+  const read = new Map<string, Config | undefined>();
+  const configAt = (path: string): Config | undefined => {
+    if (!read.has(path)) {
+      const parsed = ts.getParsedCommandLineOfConfigFile(path, {}, system);
+      read.set(
+        path,
+        parsed && {
+          options: { ...parsed.options, allowJs: true },
+          references: (parsed.projectReferences ?? []).map((reference) => ts.resolveProjectReferencePath(reference)),
+        },
+      );
     }
 
-    const parsed = ts.getParsedCommandLineOfConfigFile(path, {}, { ...system, onUnRecoverableConfigFileDiagnostic: () => undefined });
-    const config = {
-      options: parsed === undefined ? withoutConfig : { ...parsed.options, allowJs: true },
-      references: (parsed?.projectReferences ?? []).map((reference) => ts.resolveProjectReferencePath(reference)),
-    };
-    read.set(path, config);
-
-    return config;
+    return read.get(path);
   };
 
   return (path) => {
     const nearest = ts.findConfigFile(dirname(path), (file) => system.fileExists(file));
+    const config = nearest === undefined ? undefined : configAt(nearest);
 
-    if (nearest === undefined) {
+    if (config === undefined) {
       return [withoutConfig];
     }
 
-    const { options, references } = configAt(nearest);
-
-    return [options, ...references.map((reference) => configAt(reference).options)];
+    return [config.options, ...config.references.flatMap((reference) => present(configAt(reference)?.options))];
   };
 }
