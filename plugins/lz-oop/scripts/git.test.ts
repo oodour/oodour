@@ -138,6 +138,30 @@ test('an include that steps back after a link is read with the step taken by its
   assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+included names a network path/);
 });
 
+test('an include named from its drive is read from the folder Git runs in', { skip: process.platform !== 'win32' }, (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  writeFiles(root, { 'sub/cfg': `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n` });
+  runGit(root, ['config', 'include.path', `${root.slice(0, 2)}sub/cfg`]);
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+cfg names a network path/);
+});
+
+test('an include named from the drive root is read on the drive Git runs on', { skip: process.platform !== 'win32' }, (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  writeFiles(root, { 'sub/cfg': `[core]\n\thooksPath = ${share.replaceAll('\\', '/')}\n` });
+  runGit(root, ['config', 'include.path', `${root.slice(2)}\\sub\\cfg`]);
+
+  assert.throws(() => gitIn(root), /^Error: git: core\.hookspath in .+cfg names a network path/);
+});
+
+test('a .git file that names its folder from its drive is read from the folder Git runs in', { skip: process.platform !== 'win32' }, (context) => {
+  const root = folderWith(context, { '.git': '', 'sub/a.ts': '' });
+  writeFiles(root, { '.git': `gitdir: ${root.slice(0, 2)}gd\n` });
+  symlinkSync(share, join(root, 'sub', 'gd'), 'dir');
+
+  assert.throws(() => gitIn(join(root, 'sub')), /^Error: git: .+\.git points to a path that leads to a network path \(.:gd\)$/);
+});
+
 test('a .git file that points to a network path is refused before Git runs', (context) => {
   const root = folderWith(context, { '.git': `gitdir: ${share.replaceAll('\\', '/')}/repo.git\n`, 'a.ts': '' });
 
@@ -283,6 +307,15 @@ test('a repository that borrows objects from a network path is refused', (contex
   writeFiles(join(root, '.git', 'objects', 'info'), { alternates: `${share.replaceAll('\\', '/')}/objects\n` });
 
   assert.throws(() => gitIn(root), /^Error: git: .+alternates names a network path \(\/\/lz-oop-test\.invalid\/share\/objects\)$/);
+});
+
+test('a reftable table that leads to a network path through a link is refused', (context) => {
+  const root = folderWith(context, {});
+  runGit(root, ['init', '-q', '--ref-format=reftable']);
+  symlinkSync(share, join(root, 'shared'), 'dir');
+  writeFiles(join(root, '.git', 'reftable'), { 'tables.list': '../../shared/table.ref\n' });
+
+  assert.throws(() => gitIn(root), /^Error: git: .+tables\.list names a path that leads to a network path \(\.\.\/\.\.\/shared\/table\.ref\)$/);
 });
 
 test('a git program in the folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {

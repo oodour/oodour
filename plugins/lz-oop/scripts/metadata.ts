@@ -1,6 +1,6 @@
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, isAbsolute, join, normalize, sep } from 'node:path';
+import { dirname, isAbsolute, join, normalize, parse, resolve, sep } from 'node:path';
 import { localPath, namesNetworkPath } from './below.ts';
 
 export type ConfigReader = (file: string) => string;
@@ -11,8 +11,36 @@ const refuse = (reason: string): never => {
   throw new Error(`git: ${reason}`);
 };
 
-// Not `resolve`, which would take a `..` by its text only; readingsOf takes it both ways.
-const from = (base: string, name: string): string => (isAbsolute(name) ? name : `${base}${sep}${name}`);
+// Not `resolve`, which would take a `..` by its text only; readingsOf takes it both ways. Git on Windows opens a name
+// such as `D:sub` from that drive's current folder, which is the folder Git runs in when the base is on that drive, and
+// a name such as `\sub` from the root of the drive it runs on.
+function from(base: string, name: string): readonly string[] {
+  const named = driveRelative(name);
+
+  if (named !== null) {
+    const [, drive = '', rest = ''] = named;
+    const sameDrive = base.slice(0, 2).toLowerCase() === drive.toLowerCase();
+
+    return [`${drive}\\${rest}`, resolve(name), ...(sameDrive ? [`${base}${sep}${rest}`] : [])];
+  }
+
+  if (sep === '\\' && /^[\\/](?![\\/])/.test(name)) {
+    return [`${parse(base).root}${name.slice(1)}`, name];
+  }
+
+  return [isAbsolute(name) ? name : `${base}${sep}${name}`];
+}
+
+const driveRelative = (name: string): RegExpExecArray | null =>
+  sep === '\\' ? /^([a-z]:)(?![\\/])(.*)$/is.exec(name) : null;
+
+// `cwds` are the folders Git may run in, which it reads a name such as `D:sub` from.
+const pathsFrom = (base: string, name: string, cwds: readonly string[]): readonly string[] => [
+  ...new Set((driveRelative(name) === null ? [base] : [base, ...cwds]).flatMap((folder) => from(folder, name))),
+];
+
+const readingsFrom = (base: string, name: string, cwds: readonly string[], refusal: string): ReadonlySet<string> =>
+  new Set(pathsFrom(base, name, cwds).flatMap((path) => [...readingsOf(path, refusal)]));
 
 // Git opens the files its metadata names, wherever they are, and on Windows opening \\host\share sends the user's
 // credentials to that host. So the metadata is read here first, without git, and a network path in it refuses the
@@ -24,7 +52,7 @@ export function assertLocalMetadata(folder: string, readConfig: ConfigReader): v
 
   // Git takes the first git folder on the way up that it accepts as one, and its rules for that have more corners
   // than a copy of them would keep up with. So every folder it could take is checked.
-  for (const gitFolder of workTreeTops.flatMap(gitFoldersIn)) {
+  for (const gitFolder of workTreeTops.flatMap((folder) => gitFoldersIn(folder, workTreeTops))) {
     assertLocalRepository(gitFolder, workTreeTops, readConfig);
   }
 }
@@ -37,7 +65,7 @@ function assertLocalRepository(gitFolder: string, workTreeTops: readonly string[
     localPath(join(gitFolder, 'commondir')) ?? refuse(`${join(gitFolder, 'commondir')} leads to a network path`);
   const pointed =
     lstatSync(commondir, { throwIfNoEntry: false })?.isFile() === true
-      ? pointedFolders(commondir, commondirOf, gitFolder)
+      ? pointedFolders(commondir, commondirOf, gitFolder, workTreeTops)
       : [];
   const commonFolders = pointed.length === 0 ? [gitFolder] : pointed;
   const check = { readConfig, places: [...workTreeTops, gitFolder, ...commonFolders] };
@@ -55,29 +83,48 @@ function assertLocalRepository(gitFolder: string, workTreeTops: readonly string[
   }
 
   for (const commonFolder of commonFolders) {
-    assertLocalAlternates(join(commonFolder, 'objects'), walked);
+    assertLocalAlternates(join(commonFolder, 'objects'), walked, check.places);
   }
+
+  for (const metadataFolder of [gitFolder, ...commonFolders]) {
+    assertLocalTables(join(metadataFolder, 'reftable'));
+  }
+}
+
+// Git reads each table that tables.list names from the reftable folder.
+function assertLocalTables(reftable: string): void {
+  const file = join(reftable, 'tables.list');
+
+  for (const line of linesOf(file)) {
+    if (namesNetworkPath(line)) {
+      refuse(`${file} names a network path (${line})`);
+    }
+
+    readingsFrom(reftable, line, [], `${file} names a path that leads to a network path (${line})`);
+  }
+}
+
+function linesOf(file: string): readonly string[] {
+  const local = localPath(file) ?? refuse(`${file} leads to a network path`);
+
+  return lstatSync(local, { throwIfNoEntry: false })?.isFile() === true
+    ? readFileSync(local, 'utf8').split(/\r?\n/).filter((line) => line !== '')
+    : [];
 }
 
 // Git reads borrowed objects from the folders an alternates file names, each line a path from the objects folder, and
 // follows their own alternates files up to this deep.
 const mostAlternates = 5;
 
-function assertLocalAlternates(objects: string, walked: Set<string>, depth = 0): void {
+function assertLocalAlternates(objects: string, walked: Set<string>, cwds: readonly string[], depth = 0): void {
   for (const file of [join(objects, 'info', 'alternates'), join(objects, 'info', 'http-alternates')]) {
-    const local = localPath(file) ?? refuse(`${file} leads to a network path`);
-
-    if (lstatSync(local, { throwIfNoEntry: false })?.isFile() !== true) {
-      continue;
-    }
-
-    for (const line of readFileSync(local, 'utf8').split(/\r?\n/).filter((line) => line !== '')) {
+    for (const line of linesOf(file)) {
       const refusal = `${file} names a network path (${line})`;
-      const lent = namesNetworkPath(line) ? refuse(refusal) : readingsOf(from(objects, line), refusal);
+      const lent = namesNetworkPath(line) ? refuse(refusal) : readingsFrom(objects, line, cwds, refusal);
 
       for (const reading of depth < mostAlternates ? lent : []) {
         assertLocalLinks(reading, walked);
-        assertLocalAlternates(reading, walked, depth + 1);
+        assertLocalAlternates(reading, walked, cwds, depth + 1);
       }
     }
   }
@@ -104,21 +151,21 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
 }
 
 // The folder's .git, then the folder itself as a bare repository.
-function gitFoldersIn(folder: string): readonly string[] {
+function gitFoldersIn(folder: string, cwds: readonly string[]): readonly string[] {
   const has = (name: string): boolean => lstatSync(join(folder, name), { throwIfNoEntry: false }) !== undefined;
   const bare = has('HEAD') && (has('commondir') || (has('objects') && has('refs'))) ? [folder] : [];
 
-  return [...dotGitFolders(folder), ...bare];
+  return [...dotGitFolders(folder, cwds), ...bare];
 }
 
 // A .git folder by its name too: Git reads the relative names in it from there.
-function dotGitFolders(folder: string): readonly string[] {
+function dotGitFolders(folder: string, cwds: readonly string[]): readonly string[] {
   const named = join(folder, '.git');
   const dotGit = localPath(named) ?? refuse(`${named} leads to a network path`);
   const entry = lstatSync(dotGit, { throwIfNoEntry: false });
 
   if (entry?.isFile() === true) {
-    return pointedFolders(dotGit, gitdirOf, folder);
+    return pointedFolders(dotGit, gitdirOf, folder, cwds);
   }
 
   return entry === undefined ? [] : [...new Set([named, dotGit])];
@@ -131,7 +178,12 @@ const gitdirOf = (text: string): string | undefined =>
 const commondirOf = (text: string): string => text.replace(/[\r\n]+$/, '');
 
 // A file such as .git or commondir that names another folder; a relative name is read from `base`.
-function pointedFolders(file: string, nameIn: (text: string) => string | undefined, base: string): readonly string[] {
+function pointedFolders(
+  file: string,
+  nameIn: (text: string) => string | undefined,
+  base: string,
+  cwds: readonly string[],
+): readonly string[] {
   const named = nameIn(readFileSync(file, 'utf8'));
 
   if (named === undefined) {
@@ -142,7 +194,7 @@ function pointedFolders(file: string, nameIn: (text: string) => string | undefin
     refuse(`${file} points to a network path (${named})`);
   }
 
-  return [...readingsOf(from(base, named), `${file} points to a path that leads to a network path (${named})`)];
+  return [...readingsFrom(base, named, cwds, `${file} points to a path that leads to a network path (${named})`)];
 }
 
 // The system Git runs on takes a `..` by its text or after following the links before it, depending on the platform
@@ -192,14 +244,17 @@ function assertLocalConfigReading(file: string, local: string, check: ConfigChec
         refuse(`${key} in ${local} names a network path (${value})`);
       }
 
-      if ((fromHome ? [homedir()] : check.places).some((place) => leadsToNetwork(from(place, name)))) {
+      if ((fromHome ? [homedir()] : check.places).some((place) => from(place, name).some(leadsToNetwork))) {
         refuse(`${key} in ${local} leads to a network path (${value})`);
       }
 
-      // Git reads a relative include from the folder of the config file as it named it, before any link.
+      // Git reads a relative include from the folder of the config file as it named it, before any link, and one
+      // named from its drive from the folder Git runs in.
       if (key === 'include.path' || /^includeif\..+\.path$/.test(key)) {
-        for (const base of fromHome ? [homedir()] : new Set([dirname(file), dirname(local)])) {
-          assertLocalConfig(from(base, name), check, depth + 1);
+        const folders = fromHome ? [homedir()] : [dirname(file), dirname(local)];
+
+        for (const included of new Set(folders.flatMap((base) => pathsFrom(base, name, check.places)))) {
+          assertLocalConfig(included, check, depth + 1);
         }
       }
     }
