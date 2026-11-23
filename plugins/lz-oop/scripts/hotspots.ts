@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { type Churn, churn } from './churn.ts';
+import { churn, type HistoryLimit } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
@@ -34,7 +34,7 @@ export interface Ranked {
 
 export interface Measured {
   readonly files: readonly FileMeasures[];
-  readonly history: Churn['history'] | 'none';
+  readonly history: readonly HistoryLimit[] | 'none';
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
 }
@@ -74,20 +74,25 @@ export function measureScope(scope: string, since: string): Measured {
 
   return {
     files: measured.flatMap((result) => ('parseError' in result ? [] : [result])),
-    history: counted?.history ?? 'none',
+    history: counted?.limits ?? 'none',
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
   };
 }
 
-const historyLines: Readonly<Record<Measured['history'], string>> = {
-  full: 'the full history of the period.',
-  shallow: 'a shallow clone, so the commit counts are too low.',
-  partial: "a partial clone, so renames are not followed and a renamed file's older commits count for its old path.",
-  'shallow and partial':
-    "a shallow partial clone, so the commit counts are too low, and renames are not followed, so a renamed file's older commits count for its old path.",
-  none: 'no Git repository, or git is not installed, so no commit counts, and no file counts as often changed.',
+const limitClauses: Readonly<Record<HistoryLimit, string>> = {
+  shallow: 'a shallow clone, so the commit counts are too low',
+  partial: "a partial clone, so renames are not followed and a renamed file's older commits count for its old path",
+  treeless: 'a treeless clone, whose older commits name no files without fetching, so no commit counts, and no file counts as often changed',
 };
+
+function historyLine(history: Measured['history']): string {
+  if (history === 'none') {
+    return 'no Git repository, or git is not installed, so no commit counts, and no file counts as often changed.';
+  }
+
+  return history.length === 0 ? 'the full history of the period.' : `${history.map((limit) => limitClauses[limit]).join('; ')}.`;
+}
 
 export function renderHotspots(scope: string, since: string, measured: Measured, ranked: Ranked): string {
   const { commits, complexity, dependents } = ranked.thresholds;
@@ -95,7 +100,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
   const rows = ranked.rows.map((row) =>
     [
       row.file,
-      measured.history === 'none' ? '-' : row.commits,
+      measured.history === 'none' || measured.history.includes('treeless') ? '-' : row.commits,
       `${String(row.dependents.production)}, ${String(row.dependents.test)}`,
       row.largest ? `${row.largest.name}, line ${String(row.largest.line)}: ${String(row.largest.complexity)}` : 'none',
       row.exportsConcreteClass ? 'yes' : 'no',
@@ -107,7 +112,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
 
   return [
     `Hot spots in ${scope}: ${String(measured.files.length)} production files, commits since ${since}.`,
-    `History: ${historyLines[measured.history]}`,
+    `History: ${historyLine(measured.history)}`,
     `Thresholds: often changed at ${String(commits)} commits or more (${percentile}, at least ${String(policy.leastCommits)}); ` +
       `complex at a largest function of ${String(complexity)} or more (${percentile}, at least ${String(policy.leastComplexity)}); ` +
       `many dependents at ${String(dependents)} production files or more ` +

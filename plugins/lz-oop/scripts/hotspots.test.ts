@@ -148,7 +148,7 @@ test('the report states the period, the history, the thresholds and what was lef
     }),
     measures('src/port.ts'),
   ];
-  const measured = { files, history: 'shallow' as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'] };
+  const measured = { files, history: ['shallow'] as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'] };
 
   assert.equal(
     renderHotspots('src', '12 months ago', measured, rankHotspots(files, 30)),
@@ -200,6 +200,16 @@ test('a full history is stated as such', (context) => {
   const measured = measureScope(root, '12 months ago');
 
   assert.match(renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)), /\nHistory: the full history of the period\.\n/);
+});
+
+test('a treeless clone shows no commit counts and says why', (context) => {
+  const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }, { 'a.ts': 'export const a = 2;' }]), 'tree:0');
+
+  const measured = measureScope(clone, '12 months ago');
+  const report = renderHotspots(clone, '12 months ago', measured, rankHotspots(measured.files, 30));
+
+  assert.match(report, /\nHistory: a treeless clone, whose older commits name no files without fetching, so no commit counts, and no file counts as often changed\.\n/);
+  assert.match(report, /\n\| a\.ts \| - \|/);
 });
 
 test("a partial clone's history says renames are not followed", (context) => {

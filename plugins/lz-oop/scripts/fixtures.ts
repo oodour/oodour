@@ -49,10 +49,10 @@ export function repositoryWith(context: TestContext, commits: readonly Files[]):
   return root;
 }
 
-export function partialCloneOf(context: TestContext, origin: string): string {
+export function partialCloneOf(context: TestContext, origin: string, filter = 'blob:none'): string {
   runGit(origin, ['config', 'uploadpack.allowFilter', 'true']);
   const clone = folderWith(context, {});
-  runGit(clone, ['clone', '-q', '--filter=blob:none', pathToFileURL(origin).href, '.']);
+  runGit(clone, ['clone', '-q', `--filter=${filter}`, pathToFileURL(origin).href, '.']);
   rmSync(origin, { recursive: true, force: true });
 
   return clone;

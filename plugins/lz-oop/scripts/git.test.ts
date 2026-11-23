@@ -2,13 +2,31 @@ import assert from 'node:assert/strict';
 import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { folderWith, outsideAnyRepository, refusedByGit, repositoryWith, setForTest } from './fixtures.ts';
+import { pathToFileURL } from 'node:url';
+import { folderWith, outsideAnyRepository, refusedByGit, repositoryWith, runGit, setForTest } from './fixtures.ts';
 import { gitIn } from './git.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
 
   assert.equal(gitIn(`${root}/lib`)?.(['rev-parse', '--show-prefix']), 'lib/\n');
+});
+
+test('Git reaches no remote, whatever the repository allows', (context) => {
+  const origin = repositoryWith(context, [{ 'a.ts': '' }]);
+  const clone = folderWith(context, {});
+  runGit(clone, ['clone', '-q', pathToFileURL(origin).href, '.']);
+  runGit(clone, ['config', 'protocol.file.allow', 'always']);
+
+  assert.throws(() => gitIn(clone)?.(['fetch', '-q']), /transport 'file' not allowed/);
+});
+
+test('a repository whose work tree is elsewhere than the folder is refused', (context) => {
+  const elsewhere = folderWith(context, { 'b.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  runGit(root, ['config', 'core.worktree', elsewhere]);
+
+  assert.throws(() => gitIn(root), /^Error: git: the repository's work tree .+ does not hold /);
 });
 
 test('a git program in the folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {

@@ -21,6 +21,17 @@ test('hotspots prints the hot-spot report for the scope it is given', (context) 
   assert.match(run.stdout, /\n\| a\.ts \| 1 \| 0, 0 \| Arrow function, line 1: 2 \| no \| none \| simple \|\n/);
 });
 
+test('a relative folder, and no folder at all, are read from the working folder', (context) => {
+  const root = repositoryWith(context, [{ 'lib/a.ts': 'export const a = 1;', 'b.ts': 'export const b = 1;' }]);
+
+  const runs = [['hotspots', 'lib'], ['hotspots']].map((args) => spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: 'utf8' }));
+
+  assert.deepEqual(
+    runs.map(({ stdout }) => stdout.match(/^\| (?!File|---)\S+/gm)),
+    [['| lib/a.ts'], ['| b.ts', '| lib/a.ts']],
+  );
+});
+
 test('a folder that does not exist is named on stderr with exit 1', () => {
   const missing = join(tmpdir(), 'lz-oop-no-such-folder');
 

@@ -1,4 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
+import { isAbsolute, relative, resolve } from 'node:path';
 
 export type Git = (args: readonly string[]) => string;
 
@@ -6,7 +8,7 @@ export type Git = (args: readonly string[]) => string;
 // audited one with -C. The settings stop the audited repository's own config from starting programs or fetching.
 const safely = (folder: string, args: readonly string[]): readonly string[] => [
   '-C',
-  folder,
+  resolve(folder),
   '-c',
   'core.quotePath=false',
   '-c',
@@ -16,13 +18,18 @@ const safely = (folder: string, args: readonly string[]): readonly string[] => [
   ...args,
 ];
 
-export function gitIn(folder: string): Git | undefined {
-  // Git translates its messages, and only the English one tells "no repository" from a repository it refuses.
-  const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), {
+// GIT_ALLOW_PROTOCOL names no real protocol, so no remote can be reached on any Git version; it also overrides the
+// repository's own protocol settings. Git translates its messages, and only the English one tells "no repository"
+// from a repository it refuses.
+const childOptions = () =>
+  ({
     cwd: import.meta.dirname,
     encoding: 'utf8',
-    env: { ...process.env, GIT_NO_LAZY_FETCH: '1', LANGUAGE: 'C', LC_ALL: 'C' },
-  });
+    env: { ...process.env, GIT_ALLOW_PROTOCOL: 'none', GIT_NO_LAZY_FETCH: '1', LANGUAGE: 'C', LC_ALL: 'C' },
+  }) as const;
+
+export function gitIn(folder: string): Git | undefined {
+  const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), childOptions());
 
   if (probe.error) {
     if ('code' in probe.error && probe.error.code === 'ENOENT') {
@@ -40,12 +47,15 @@ export function gitIn(folder: string): Git | undefined {
     throw new Error(`git: ${probe.stderr.trim()}`);
   }
 
-  return (args) =>
-    execFileSync('git', safely(folder, args), {
-      cwd: import.meta.dirname,
-      encoding: 'utf8',
-      env: { ...process.env, GIT_NO_LAZY_FETCH: '1' },
-      maxBuffer: 1024 ** 3,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+  const git: Git = (args) =>
+    execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer: 1024 ** 3, stdio: ['ignore', 'pipe', 'pipe'] });
+  // The repository's own config can set its work tree anywhere, a network share included.
+  const top = resolve(git(['rev-parse', '--show-toplevel']).trim());
+  const below = relative(top, realpathSync.native(resolve(folder)));
+
+  if (below.startsWith('..') || isAbsolute(below)) {
+    throw new Error(`git: the repository's work tree ${top} does not hold ${folder}`);
+  }
+
+  return git;
 }

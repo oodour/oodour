@@ -59,7 +59,7 @@ test('churn counts the commits of the period in a repository and leaves out olde
   commitFiles(root, { 'a.ts': 'two' });
   commitFiles(root, { 'a.ts': 'three' });
 
-  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 2]]), history: 'full' });
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 2]]), limits: [] });
 });
 
 test('churn says when the clone is shallow', (context) => {
@@ -67,7 +67,7 @@ test('churn says when the clone is shallow', (context) => {
   const clone = folderWith(context, {});
   runGit(clone,['clone', '-q', '--depth', '1', pathToFileURL(origin).href, '.']);
 
-  assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 1]]), history: 'shallow' });
+  assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: ['shallow'] });
 });
 
 test('a partial clone is counted from what it holds, without fetching from its remote', (context) => {
@@ -79,10 +79,26 @@ test('a partial clone is counted from what it holds, without fetching from its r
   assert.deepEqual(churn(gitOf(clone), '2025-11-23').commits, new Map([['a.ts', 2], ['b.ts', 1]]));
 });
 
+test('a partial clone is known by any spelling Git reads as true', (context) => {
+  const origin = repositoryWith(context, [{ 'a.ts': 'one\ntwo\nthree\nfour\n' }]);
+  rmSync(join(origin, 'a.ts'));
+  commitFiles(origin, { 'b.ts': 'one\ntwo\nthree\nfour\nfive\n' });
+  const clone = partialCloneOf(context, origin);
+  runGit(clone, ['config', 'remote.origin.promisor', 'ON']);
+
+  assert.deepEqual(churn(gitOf(clone), '2025-11-23').commits, new Map([['a.ts', 2], ['b.ts', 1]]));
+});
+
+test('a treeless clone has no commit counts, since its older commits list no files', (context) => {
+  const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'one' }, { 'a.ts': 'two' }]), 'tree:0');
+
+  assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map(), limits: ['treeless'] });
+});
+
 test('a repository without commits has nothing to count', (context) => {
   const root = repositoryWith(context, []);
 
-  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), history: 'full' });
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), limits: [] });
 });
 
 test('a file named HEAD is counted like any other file', (context) => {
@@ -112,5 +128,5 @@ test('a branch without commits has nothing to count, whatever other branches hol
   const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
   runGit(root, ['checkout', '-q', '--orphan', 'fresh']);
 
-  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), history: 'full' });
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map(), limits: [] });
 });

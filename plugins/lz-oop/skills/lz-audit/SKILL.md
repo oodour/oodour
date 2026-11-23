@@ -35,8 +35,8 @@ for another period) and prints 30 rows (`--limit <count>` for more). Lines above
 and the thresholds; the table has one row per production file:
 
 - **Commits**: commits in the period, a renamed file counted with its old paths. The history line says when a shallow
-  clone, a partial clone (renames not followed) or a missing repository limits this measure; say so in the report, and
-  say so too when the period is longer than the history.
+  clone, a partial clone (renames not followed), a treeless clone or a missing repository (no counts) limits this
+  measure; say so in the report, and say so too when the period is longer than the history.
 - **Dependents**: the production and test files that import it, by any form of import, path alias or package name,
   counted through files that only re-export it. Files that only re-export are left out of the rows, since their commits
   and dependents belong to the code they pass on.
@@ -56,7 +56,8 @@ and the thresholds; the table has one row per production file:
 When the command cannot run, say why in the report and count by hand: commits per file from
 `git log --since="12 months ago" --format= --name-only -- <scope>`, importers by searching the scope's imports for the
 file's name, and complexity from the repository's ESLint with the `complexity` rule added on the command line
-(`--rule`).
+(`--rule`). When the command refuses the repository because the repository's own Git config puts its work tree somewhere
+other than the scope, say so in the report and do not count by hand: Git would read that other place.
 
 Then weigh the table:
 
