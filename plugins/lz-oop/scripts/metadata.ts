@@ -172,11 +172,10 @@ function dotGitFolders(folder: string, cwds: readonly string[]): readonly string
   return entry === undefined ? [] : [...new Set([named, dotGit])];
 }
 
-// Git reads all of a .git file after `gitdir: `, less the spaces and line ends at its end, and all of a commondir file
-// less the line ends at its end.
-const gitdirOf = (text: string): string | undefined =>
-  text.startsWith('gitdir: ') ? text.slice('gitdir: '.length).replace(/[ \t\n\r]+$/, '') : undefined;
+// Git reads all of a .git file after `gitdir: `, and all of a commondir file, less the line ends at its end.
 const commondirOf = (text: string): string => text.replace(/[\r\n]+$/, '');
+const gitdirOf = (text: string): string | undefined =>
+  text.startsWith('gitdir: ') ? commondirOf(text.slice('gitdir: '.length)) : undefined;
 
 // A file such as .git or commondir that names another folder; a relative name is read from `base`.
 function pointedFolders(
