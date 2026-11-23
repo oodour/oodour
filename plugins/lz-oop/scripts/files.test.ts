@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { existsSync, renameSync, rmSync, symlinkSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { chmodSync, existsSync, mkdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { userInfo } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
-import { isTest, sources } from './files.ts';
+import { filesBelow, isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 
 test("a repository's JavaScript and TypeScript files are its sources, named from its top folder", (context) => {
@@ -17,7 +19,12 @@ test("a repository's JavaScript and TypeScript files are its sources, named from
   });
   runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(root, gitIn(root)), { root, all: ['src/a.ts', 'src/b.jsx'], inScope: ['src/a.ts', 'src/b.jsx'] });
+  assert.deepEqual(sources(root, gitIn(root)), {
+    root,
+    all: ['src/a.ts', 'src/b.jsx'],
+    inScope: ['src/a.ts', 'src/b.jsx'],
+    skipped: [],
+  });
 });
 
 test('a folder of a repository scopes the sources to the files below it', (context) => {
@@ -74,11 +81,74 @@ test('outside a repository a linked file or folder is no source either', (contex
   assert.deepEqual(sources(root, undefined).all, ['a.ts']);
 });
 
+test('outside a repository a folder whose name ends in a dot holds no source and is reported', (context) => {
+  const root = folderWith(context, { 'a.ts': '' });
+  const exact = (path: string) => (process.platform === 'win32' ? `\\\\?\\${path}` : path);
+  mkdirSync(exact(join(root, 'odd.')));
+  writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
+  outsideAnyRepository(context);
+
+  assert.deepEqual(sources(root, undefined), { root, all: ['a.ts'], inScope: ['a.ts'], skipped: ['odd.'] });
+});
+
 test('a folder renamed only in case outside Git keeps its sources', { skip: process.platform === 'linux' }, (context) => {
   const root = repositoryWith(context, [{ 'src/a.ts': '' }]);
   renameSync(join(root, 'src'), join(root, 'Src'));
 
   assert.deepEqual(sources(root, gitIn(root)).all, ['src/a.ts']);
+});
+
+test('the walk enters no link, so no file behind one is listed', (context) => {
+  const outside = folderWith(context, { 'x.ts': '' });
+  const root = folderWith(context, { 'a.ts': '' });
+  symlinkSync(outside, join(root, 'linked'), 'junction');
+
+  assert.deepEqual(filesBelow(root).files, ['a.ts']);
+});
+
+test('the walk lists nothing in a .git or node_modules folder', (context) => {
+  const root = folderWith(context, { 'a.ts': '', '.git/hooks/b.ts': '', 'node_modules/x/c.ts': '' });
+
+  assert.deepEqual(filesBelow(root), { files: ['a.ts'], skipped: [] });
+});
+
+test('the walk reports the links it did not enter, so nothing reads through them', (context) => {
+  const outside = folderWith(context, { 'x.ts': '', 'lib/y.ts': '' });
+  const root = folderWith(context, { 'sub/a.ts': '' });
+  symlinkSync(join(outside, 'x.ts'), join(root, 'b.ts'), 'file');
+  symlinkSync(join(outside, 'lib'), join(root, 'sub', 'linked'), 'junction');
+
+  assert.deepEqual(filesBelow(root), { files: ['sub/a.ts'], skipped: ['b.ts', 'sub/linked'] });
+});
+
+test('the walk reports a name ending in a dot or a space, which Windows may open as another name', (context) => {
+  const root = folderWith(context, { 'odd/a.ts': '' });
+  const exact = (path: string) => (process.platform === 'win32' ? `\\\\?\\${path}` : path);
+  mkdirSync(exact(join(root, 'odd.')));
+  writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
+  writeFileSync(exact(join(root, 'b.ts ')), '');
+
+  assert.deepEqual(filesBelow(root), { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] });
+});
+
+test('the walk reports a folder it may not list instead of failing', { skip: process.getuid?.() === 0 }, (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'locked/x.ts': '' });
+  const locked = join(root, 'locked');
+  const user = userInfo().username;
+  const lock = (on: boolean) => {
+    if (process.platform === 'win32') {
+      spawnSync('icacls', [locked, ...(on ? ['/deny', `${user}:(RD)`] : ['/remove:d', user])]);
+    } else {
+      chmodSync(locked, on ? 0o000 : 0o755);
+    }
+  };
+  lock(true);
+
+  try {
+    assert.deepEqual(filesBelow(root), { files: ['a.ts'], skipped: ['locked'] });
+  } finally {
+    lock(false);
+  }
 });
 
 test('a test file is named .test or .spec, or sits in a __tests__ folder', () => {
@@ -91,5 +161,10 @@ test('outside a repository the sources are the files below the scope, without no
   const root = folderWith(context, { 'src/a.ts': '', 'node_modules/x/index.js': '', 'b.mjs': '', 'chart.js/README.md': '' });
   outsideAnyRepository(context);
 
-  assert.deepEqual(sources(root, undefined), { root, all: ['b.mjs', 'src/a.ts'], inScope: ['b.mjs', 'src/a.ts'] });
+  assert.deepEqual(sources(root, undefined), {
+    root,
+    all: ['b.mjs', 'src/a.ts'],
+    inScope: ['b.mjs', 'src/a.ts'],
+    skipped: [],
+  });
 });

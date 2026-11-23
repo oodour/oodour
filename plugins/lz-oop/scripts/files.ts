@@ -1,5 +1,5 @@
-import { globSync, statSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { type Dirent, readdirSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { placeBelow } from './below.ts';
 import type { Repository } from './git.ts';
 
@@ -7,12 +7,66 @@ export interface Sources {
   readonly root: string;
   readonly all: readonly string[];
   readonly inScope: readonly string[];
+  readonly skipped: readonly string[];
 }
 
 const source = /(?<!\.d)\.[cm]?[jt]sx?$/;
 
 export function isTest(file: string): boolean {
   return /\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)__tests__\//.test(file);
+}
+
+const notWalked = new Set(['.git', 'node_modules']);
+
+export interface Walked {
+  readonly files: readonly string[];
+  readonly skipped: readonly string[];
+}
+
+// readdirSync names a link as a link, so the walk never enters one: on Windows, listing a folder a link leads to on
+// \\host\share sends the user's credentials to that host. globSync enters links on Node.js 22. A name ending in a dot
+// or a space is reported, not listed: a reader that opens it without the \\?\ prefix opens the name without them.
+export function filesBelow(root: string): Walked {
+  const files: string[] = [];
+  const skipped: string[] = [];
+  const folders = [''];
+
+  for (let folder = folders.pop(); folder !== undefined; folder = folders.pop()) {
+    const entries = folder === '' ? readdirSync(root, { withFileTypes: true }) : listed(join(root, folder));
+
+    if (entries === undefined) {
+      skipped.push(folder);
+      continue;
+    }
+
+    for (const entry of entries) {
+      const path = folder === '' ? entry.name : `${folder}/${entry.name}`;
+
+      if (entry.isSymbolicLink() || /[. ]$/.test(entry.name)) {
+        skipped.push(path);
+      } else if (entry.isDirectory() && !notWalked.has(entry.name)) {
+        folders.push(path);
+      } else if (entry.isFile()) {
+        files.push(path);
+      }
+    }
+  }
+
+  return { files: files.sort(), skipped: skipped.sort() };
+}
+
+const unlistable = new Set(['EPERM', 'EACCES']);
+
+function listed(folder: string): Dirent[] | undefined {
+  try {
+    return readdirSync(folder, { withFileTypes: true });
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && typeof error.code === 'string' && unlistable.has(error.code)) {
+      return undefined;
+    }
+
+    throw error;
+  }
 }
 
 export function sources(scope: string, repository: Repository | undefined): Sources {
@@ -29,12 +83,10 @@ export function sources(scope: string, repository: Repository | undefined): Sour
 
   if (repository === undefined) {
     const root = resolve(scope);
-    const all = globSync('**/*', { cwd: root, exclude: (path) => basename(path) === 'node_modules' })
-      .map((file) => file.replaceAll('\\', '/'))
-      .filter(isSourceOnDisk(root))
-      .sort();
+    const { files, skipped } = filesBelow(root);
+    const all = files.filter(isSourceOnDisk(root));
 
-    return { root, all, inScope: all };
+    return { root, all, inScope: all, skipped };
   }
 
   const { git, top, prefix } = repository;
@@ -42,5 +94,5 @@ export function sources(scope: string, repository: Repository | undefined): Sour
     .split('\n')
     .filter(isSourceOnDisk(top));
 
-  return { root: top, all, inScope: all.filter((file) => file.startsWith(prefix)) };
+  return { root: top, all, inScope: all.filter((file) => file.startsWith(prefix)), skipped: [] };
 }
