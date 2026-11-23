@@ -6,7 +6,6 @@ import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { type FileMeasures, measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
 
-/** A repository with one commit per entry, each writing its files. */
 function repository(commits: readonly Readonly<Record<string, string>>[]): string {
   const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-hotspots-')));
   const git = (args: readonly string[]): void => {
@@ -33,8 +32,8 @@ function measures(file: string, values: Partial<FileMeasures> = {}): FileMeasure
     commits: 0,
     dependents: { production: 0, test: 0 },
     largest: undefined,
-    concrete: false,
-    namedClasses: [],
+    exportsConcreteClass:false,
+    concreteClassesNamed: [],
     ...values,
   };
 }
@@ -93,7 +92,7 @@ test('a complex file that is not often changed is complex, unchanged', () => {
 test('a file a tenth of the files depend on is depended on when it changes often or holds a concrete class', () => {
   const others = Array.from({ length: 17 }, (_, index) => measures(`other-${String(index)}.ts`));
   const files = [
-    measures('store.ts', { dependents: { production: 2, test: 9 }, concrete: true }),
+    measures('store.ts', { dependents: { production: 2, test: 9 }, exportsConcreteClass:true }),
     measures('util.ts', { dependents: { production: 2, test: 0 }, commits: 4 }),
     measures('port.ts', { dependents: { production: 5, test: 0 } }),
     ...others,
@@ -113,7 +112,7 @@ test('the rows list the files to audit first by quadrant, then the rest by commi
     measures('busy.ts', { commits: 9, largest: largest(1) }),
     measures('kept.ts', { commits: 1, largest: largest(9) }),
     measures('hot.ts', { commits: 4, largest: largest(9) }),
-    measures('store.ts', { commits: 1, dependents: { production: 2, test: 0 }, concrete: true }),
+    measures('store.ts', { commits: 1, dependents: { production: 2, test: 0 }, exportsConcreteClass:true }),
     measures('quiet.ts', { commits: 1 }),
   ];
 
@@ -146,16 +145,16 @@ test("measuring a scope joins each production file's commits, dependents, larges
       commits: 1,
       dependents: { production: 0, test: 0 },
       largest: undefined,
-      concrete: false,
-      namedClasses: ['Store'],
+      exportsConcreteClass:false,
+      concreteClassesNamed: ['Store'],
     },
     {
       file: 'src/store.ts',
       commits: 2,
       dependents: { production: 1, test: 1 },
       largest: { name: "Method 'get'", line: 2, complexity: 2 },
-      concrete: true,
-      namedClasses: [],
+      exportsConcreteClass:true,
+      concreteClassesNamed: [],
     },
   ]);
   assert.deepEqual(measured.reexportsOnly, ['src/index.ts']);
@@ -167,12 +166,12 @@ test('the report states the period, the history, the thresholds and what was lef
       commits: 3,
       dependents: { production: 1, test: 2 },
       largest: { name: "Method 'get'", line: 2, complexity: 7 },
-      concrete: true,
-      namedClasses: ['Clock', 'Ledger'],
+      exportsConcreteClass:true,
+      concreteClassesNamed: ['Clock', 'Ledger'],
     }),
     measures('src/port.ts'),
   ];
-  const measured = { files, history: 'shallow' as const, reexportsOnly: ['src/index.ts'], notParsed: ['src/x.ts:1:9 Oops'] };
+  const measured = { files, history: 'shallow' as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops'] };
 
   assert.equal(
     renderHotspots('src', '12 months ago', measured, rankHotspots(files, 30)),
@@ -197,19 +196,18 @@ test('the report states the period, the history, the thresholds and what was lef
 test('a file the parser cannot read is left out and named with where it stopped', () => {
   const root = repository([{ 'a.ts': 'export const a = 1;', 'broken.ts': 'function (\n' }]);
 
-  const { files, notParsed } = measureScope(root, '12 months ago');
+  const { files, parseErrors } = measureScope(root, '12 months ago');
 
   assert.deepEqual(
     files.map(({ file }) => file),
     ['a.ts'],
   );
-  assert.match(notParsed.join('\n'), /^broken\.ts:1:\d+ /);
+  assert.match(parseErrors.join('\n'), /^broken\.ts:1:\d+ /);
 });
 
 test('outside a repository the files have no commits and the history is none', (context) => {
   const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-no-history-')));
   writeFileSync(join(root, 'a.ts'), 'export const a = 1;');
-  // Git looks for a repository in every folder above, and the temporary folder could sit in one.
   process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
   context.after(() => {
     delete process.env['GIT_CEILING_DIRECTORIES'];

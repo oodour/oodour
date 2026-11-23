@@ -3,11 +3,8 @@ import { globSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
 export interface Sources {
-  /** The folder every path is named from: the repository's top folder, or the scope outside a repository. */
   readonly root: string;
-  /** Every JavaScript and TypeScript file below the root, declaration files left out. */
   readonly all: readonly string[];
-  /** The files of `all` inside the scope. */
   readonly inScope: readonly string[];
 }
 

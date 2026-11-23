@@ -40,7 +40,6 @@ test('a test file is named .test or .spec, or sits in a __tests__ folder', () =>
 
 test('outside a repository the sources are the files below the scope, without node_modules', (context) => {
   const root = folderWith(['src/a.ts', 'node_modules/x/index.js', 'b.mjs']);
-  // Git looks for a repository in every folder above, and the temporary folder could sit in one.
   process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
   context.after(() => {
     delete process.env['GIT_CEILING_DIRECTORIES'];

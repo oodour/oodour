@@ -3,9 +3,8 @@ import { mkdirSync, mkdtempSync, realpathSync, symlinkSync, writeFileSync } from
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
-import { dependentsOf, readModules } from './modules.ts';
+import { dependentsThroughReexports, readModules } from './modules.ts';
 
-/** A folder holding the files, and the facts read from the JavaScript and TypeScript ones. */
 function modulesOf(files: Readonly<Record<string, string>>, prepare?: (root: string) => void) {
   const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-modules-')));
 
@@ -107,7 +106,7 @@ test('a file names the concrete classes it imports from other files and the clas
     'format.ts': 'export function format() {}',
   });
 
-  assert.deepEqual(modules.get('a.ts')?.namedClasses, ['Local', 'Store', 'SystemClock']);
+  assert.deepEqual(modules.get('a.ts')?.concreteClassesNamed, ['Local', 'Store', 'SystemClock']);
 });
 
 test('a concrete class imported through files that re-export it is named', () => {
@@ -120,7 +119,7 @@ test('a concrete class imported through files that re-export it is named', () =>
   });
 
   assert.deepEqual(
-    ['a.ts', 'b.ts'].map((file) => modules.get(file)?.namedClasses),
+    ['a.ts', 'b.ts'].map((file) => modules.get(file)?.concreteClassesNamed),
     [['Store'], ['Store']],
   );
 });
@@ -135,5 +134,5 @@ test('the dependents of a file are the files that import it, directly or through
     'c.ts': "import { a } from './a';",
   });
 
-  assert.deepEqual(dependentsOf(modules).get('lib.ts'), ['a.ts', 'b.ts']);
+  assert.deepEqual(dependentsThroughReexports(modules).get('lib.ts'), ['a.ts', 'b.ts']);
 });

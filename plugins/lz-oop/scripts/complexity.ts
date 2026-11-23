@@ -10,10 +10,6 @@ export interface FunctionComplexity {
   readonly complexity: number;
 }
 
-/**
- * The complexity of each function in a JavaScript or TypeScript file's text, in the order ESLint reports them. The
- * count is ESLint's own `complexity` rule's, run with no configuration of the audited repository.
- */
 export function functionComplexity(file: string, text: string): FunctionComplexity[] {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
   const complexity = builtinRules.get('complexity');

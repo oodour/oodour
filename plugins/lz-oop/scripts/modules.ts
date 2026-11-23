@@ -2,16 +2,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import ts from 'typescript';
 
-/** What one source file says about its place among the others. */
 export interface ModuleFacts {
-  /** The files of the scan this file imports, by any form of import. */
   readonly imports: readonly string[];
-  /** The file only passes on what other files export, so its own commits and dependents belong to them. */
   readonly reexportsOnly: boolean;
-  /** The classes the file exports that are not abstract. */
   readonly concreteClasses: readonly string[];
-  /** The concrete classes of other files this file imports, and the classes of its own it creates with `new`. */
-  readonly namedClasses: readonly string[];
+  readonly concreteClassesNamed: readonly string[];
 }
 
 const withoutConfig: ts.CompilerOptions = {
@@ -20,21 +15,15 @@ const withoutConfig: ts.CompilerOptions = {
   moduleResolution: ts.ModuleResolutionKind.Bundler,
 };
 
-/** One file as its own text gives it, before the files it imports are read. */
 interface Parsed {
   readonly imports: readonly string[];
   readonly reexportsOnly: boolean;
-  /** Each concrete class the file exports, by the name it is exported under (`default` for a default export). */
-  readonly exportedClasses: ReadonlyMap<string, string>;
-  /** The files whose exports this one passes on: all of them (`export *`), or by exported name to their own name. */
-  readonly reexports: readonly { readonly from: string; readonly names: ReadonlyMap<string, string> | 'all' }[];
-  /** Each name an import declaration takes from another file of the scan. */
+  readonly classNameByExportName: ReadonlyMap<string, string>;
+  readonly reexports: readonly { readonly from: string; readonly originalNameByExportName: ReadonlyMap<string, string> | 'all' }[];
   readonly importedNames: readonly { readonly from: string; readonly name: string }[];
-  /** The classes the file declares and creates with `new`. */
   readonly createdClasses: readonly string[];
 }
 
-/** The facts of each file, named from `root` with forward slashes. */
 export function readModules(root: string, files: readonly string[]): ReadonlyMap<string, ModuleFacts> {
   const scanned = new Set(files);
   const optionsFor = compilerOptions(root);
@@ -55,15 +44,15 @@ export function readModules(root: string, files: readonly string[]): ReadonlyMap
 
   const classExported = (file: string, name: string, passed: ReadonlySet<string>): string | undefined => {
     const facts = parsed.get(file);
-    const own = facts?.exportedClasses.get(name);
+    const own = facts?.classNameByExportName.get(name);
 
     if (own !== undefined || facts === undefined || passed.has(file)) {
       return own;
     }
 
     return facts.reexports
-      .map(({ from, names }) => {
-        const original = names === 'all' ? (name === 'default' ? undefined : name) : names.get(name);
+      .map(({ from, originalNameByExportName: originals }) => {
+        const original = originals === 'all' ? (name === 'default' ? undefined : name) : originals.get(name);
 
         return original === undefined ? undefined : classExported(from, original, new Set([...passed, file]));
       })
@@ -71,20 +60,16 @@ export function readModules(root: string, files: readonly string[]): ReadonlyMap
   };
 
   return new Map(
-    [...parsed].map(([file, { imports, reexportsOnly, exportedClasses, importedNames, createdClasses }]) => {
+    [...parsed].map(([file, { imports, reexportsOnly, classNameByExportName, importedNames, createdClasses }]) => {
       const imported = importedNames.flatMap(({ from, name }) => present(classExported(from, name, new Set())));
-      const namedClasses = [...new Set([...imported, ...createdClasses])].sort();
+      const concreteClassesNamed = [...new Set([...imported, ...createdClasses])].sort();
 
-      return [file, { imports, reexportsOnly, concreteClasses: [...exportedClasses.values()], namedClasses }];
+      return [file, { imports, reexportsOnly, concreteClasses: [...classNameByExportName.values()], concreteClassesNamed }];
     }),
   );
 }
 
-/**
- * The files that import each file, directly or through files that only re-export it; a file that only re-exports is
- * no dependent itself.
- */
-export function dependentsOf(modules: ReadonlyMap<string, ModuleFacts>): ReadonlyMap<string, readonly string[]> {
+export function dependentsThroughReexports(modules: ReadonlyMap<string, ModuleFacts>): ReadonlyMap<string, readonly string[]> {
   const importers = Map.groupBy(
     [...modules].flatMap(([file, { imports }]) => [...new Set(imports)].map((imported) => ({ file, imported }))),
     ({ imported }) => imported,
@@ -113,7 +98,7 @@ function parse(path: string, resolve: (specifier: string) => string | undefined)
     reexportsOnly:
       statements.some(ts.isExportDeclaration) &&
       statements.every((statement) => ts.isExportDeclaration(statement) || ts.isImportDeclaration(statement)),
-    exportedClasses: exportedClassesOf(statements),
+    classNameByExportName: concreteClassesByExportName(statements),
     reexports: statements.filter(ts.isExportDeclaration).flatMap(({ moduleSpecifier, exportClause }) => {
       const from = moduleSpecifier && ts.isStringLiteral(moduleSpecifier) ? resolve(moduleSpecifier.text) : undefined;
 
@@ -121,17 +106,17 @@ function parse(path: string, resolve: (specifier: string) => string | undefined)
         return [];
       }
 
-      const names =
+      const originalNameByExportName =
         exportClause === undefined
           ? ('all' as const)
           : new Map(exportClause.elements.map(({ name, propertyName }) => [name.text, (propertyName ?? name).text]));
 
-      return [{ from, names }];
+      return [{ from, originalNameByExportName }];
     }),
     importedNames: statements.filter(ts.isImportDeclaration).flatMap(({ moduleSpecifier, importClause }) => {
       const from = ts.isStringLiteral(moduleSpecifier) ? resolve(moduleSpecifier.text) : undefined;
 
-      return from === undefined ? [] : namesTakenBy(importClause).map((name) => ({ from, name }));
+      return from === undefined ? [] : exportedNamesImportedBy(importClause).map((name) => ({ from, name }));
     }),
     createdClasses: createdClassesOf(source),
   };
@@ -141,7 +126,7 @@ function present<T>(value: T | undefined): T[] {
   return value === undefined ? [] : [value];
 }
 
-function exportedClassesOf(statements: readonly ts.Statement[]): ReadonlyMap<string, string> {
+function concreteClassesByExportName(statements: readonly ts.Statement[]): ReadonlyMap<string, string> {
   return new Map(
     statements
       .filter(ts.isClassDeclaration)
@@ -155,8 +140,7 @@ function exportedClassesOf(statements: readonly ts.Statement[]): ReadonlyMap<str
   );
 }
 
-/** The names an import takes from the other file, as that file exports them. */
-function namesTakenBy(clause: ts.ImportClause | undefined): string[] {
+function exportedNamesImportedBy(clause: ts.ImportClause | undefined): string[] {
   const bindings = clause?.namedBindings;
 
   return [
@@ -186,7 +170,6 @@ function hasModifier(declaration: ts.ClassDeclaration, kind: ts.SyntaxKind): boo
   return declaration.modifiers?.some((modifier) => modifier.kind === kind) ?? false;
 }
 
-/** The options of the `tsconfig.json` nearest each file inside `root`, read once per config. */
 function compilerOptions(root: string): (path: string) => ts.CompilerOptions {
   const read = new Map<string, ts.CompilerOptions>();
 

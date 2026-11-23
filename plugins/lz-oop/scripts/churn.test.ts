@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
-import { churn, commitsPerFile } from './churn.ts';
+import { churn, commitsPerCurrentPath } from './churn.ts';
 
 const hash = (digit: string): string => digit.repeat(40);
 
@@ -33,14 +33,14 @@ function repository(): string {
 test('a file one commit changed counts one commit', () => {
   const log = [hash('a'), '', 'M\tsrc/a.ts', ''].join('\n');
 
-  assert.deepEqual(commitsPerFile(log), new Map([['src/a.ts', 1]]));
+  assert.deepEqual(commitsPerCurrentPath(log), new Map([['src/a.ts', 1]]));
 });
 
 test('each commit that changes a file adds one to its count', () => {
   const log = [hash('b'), '', 'M\tsrc/a.ts', 'A\tsrc/b.ts', '', hash('a'), '', 'A\tsrc/a.ts', ''].join('\n');
 
   assert.deepEqual(
-    commitsPerFile(log),
+    commitsPerCurrentPath(log),
     new Map([
       ['src/a.ts', 2],
       ['src/b.ts', 1],
@@ -64,7 +64,7 @@ test('the commits before a rename count for the path the file has now', () => {
     '',
   ].join('\n');
 
-  assert.deepEqual(commitsPerFile(log), new Map([['src/c.ts', 3]]));
+  assert.deepEqual(commitsPerCurrentPath(log), new Map([['src/c.ts', 3]]));
 });
 
 test('churn counts the commits of the period in a repository and leaves out older ones', () => {
@@ -88,7 +88,6 @@ test('churn says when the clone is shallow', () => {
 
 test('churn has nothing to count in a folder outside any repository', (context) => {
   const folder = mkdtempSync(join(tmpdir(), 'lz-oop-no-git-'));
-  // Git looks for a repository in every folder above, and the temporary folder could sit in one.
   process.env['GIT_CEILING_DIRECTORIES'] = tmpdir();
   context.after(() => {
     delete process.env['GIT_CEILING_DIRECTORIES'];
