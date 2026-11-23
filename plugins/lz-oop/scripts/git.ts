@@ -1,7 +1,8 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { lstatSync, realpathSync, statSync } from 'node:fs';
+import { lstatSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
+import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
 
 export type Git = (args: readonly string[]) => string;
 
@@ -12,8 +13,6 @@ const overrides = [
   'core.quotePath=false',
   'core.fsmonitor=false',
   'log.showSignature=false',
-  'core.excludesFile=',
-  'core.attributesFile=',
   'diff.orderFile=/dev/null',
   'mailmap.file=',
   'mailmap.blob=',
@@ -43,14 +42,25 @@ export interface Repository {
   readonly prefix: string;
 }
 
-export function gitIn(folder: string): Repository | undefined {
-  const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), childOptions());
+// Read with no includes followed, so a file an include names is checked before git opens it.
+const readConfig: ConfigReader = (file) =>
+  execFileSync('git', ['config', '--file', file, '--list', '-z'], { ...childOptions(), stdio: ['ignore', 'pipe', 'pipe'] });
 
-  if (probe.error) {
-    if ('code' in probe.error && probe.error.code === 'ENOENT') {
+export function gitIn(folder: string): Repository | undefined {
+  const installed = spawnSync('git', ['--version'], childOptions());
+
+  if (installed.error) {
+    if ('code' in installed.error && installed.error.code === 'ENOENT') {
       return undefined;
     }
 
+    throw installed.error;
+  }
+
+  assertLocalMetadata(folder, readConfig);
+  const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), childOptions());
+
+  if (probe.error) {
     throw probe.error;
   }
 
@@ -73,16 +83,6 @@ export function gitIn(folder: string): Repository | undefined {
 
   if (lstatSync(join(top, '.git'), { throwIfNoEntry: false }) === undefined) {
     throw new Error(`git: the repository's work tree ${top} has no .git of its own, so its config moved it there`);
-  }
-
-  // Objects borrowed from another repository are read from wherever it is, a network share included.
-  const info = join(git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim(), 'objects', 'info');
-  const borrowed = ['alternates', 'http-alternates']
-    .map((name) => join(info, name))
-    .find((path) => (statSync(path, { throwIfNoEntry: false })?.size ?? 0) > 0);
-
-  if (borrowed !== undefined) {
-    throw new Error(`git: the repository borrows objects from elsewhere (${borrowed})`);
   }
 
   // Git names the folder from the top folder itself, so a short or differently cased path to either cannot mislead it.

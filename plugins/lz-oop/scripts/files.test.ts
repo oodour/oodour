@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { folderWith, outsideAnyRepository, repositoryWith, runGit, writeFiles } from './fixtures.ts';
+import { folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 
@@ -45,13 +45,14 @@ test("listing the sources runs no program the repository's own config names", (c
   assert.equal(existsSync(join(hook, 'ran')), false);
 });
 
-test("listing the sources reads no exclude file the repository's own config names", (context) => {
-  const elsewhere = folderWith(context, { ignored: 'b.ts\n' });
+test("a file the user's own global exclude file ignores is no source", (context) => {
+  const home = folderWith(context, { ignored: 'b.ts\n' });
+  writeFiles(home, { gitconfig: `[core]\n\texcludesFile = ${join(home, 'ignored').replaceAll('\\', '/')}\n` });
+  setForTest(context, 'GIT_CONFIG_GLOBAL', join(home, 'gitconfig'));
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
   writeFiles(root, { 'b.ts': '' });
-  runGit(root, ['config', 'core.excludesFile', join(elsewhere, 'ignored')]);
 
-  assert.deepEqual(sources(root, gitIn(root)).all.toSorted(), ['a.ts', 'b.ts']);
+  assert.deepEqual(sources(root, gitIn(root)).all, ['a.ts']);
 });
 
 test('a linked file or folder is no source, so nothing outside the repository is read', (context) => {

@@ -56,9 +56,10 @@ and the thresholds; the table has one row per production file:
 When the command cannot run, say why in the report and count by hand: commits per file from
 `git log --since="12 months ago" --format= --name-only -- <scope>`, importers by searching the scope's imports for the
 file's name, and complexity from the repository's ESLint with the `complexity` rule added on the command line
-(`--rule`). When the command refuses the scope because it is a network or device path, or refuses the repository because
-its own Git config puts its work tree somewhere else or it borrows objects from another repository, say so in the report
-and do not count by hand: Git would read that other place.
+(`--rule`). When the command refuses a device path to a local folder, such as `\\?\D:\repo`, run it again on the plain
+path (`D:\repo`). When it refuses a scope that is or leads to a network path, or a repository whose Git metadata names a
+network path, puts its work tree somewhere else or borrows objects from another repository, say so in the report and do
+not count by hand: Git would read that other place.
 
 Then weigh the table:
 

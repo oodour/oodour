@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -44,7 +45,19 @@ test('a network or device path is refused before anything reads it, with exit 1'
   assert.deepEqual(runCommand(['hotspots', device]), {
     status: 1,
     stdout: '',
-    stderr: `lz-oop: ${device} is a network or device path; audit a local folder\n`,
+    stderr: `lz-oop: ${device} is a network or device path, or leads to one; audit a local folder\n`,
+  });
+});
+
+test('a folder that leads to a network path through a link is refused before anything reads it', (context) => {
+  const root = repositoryWith(context, []);
+  const scope = join(root, 'share');
+  symlinkSync('\\\\lz-oop-test.invalid\\share', scope, 'dir');
+
+  assert.deepEqual(runCommand(['hotspots', scope]), {
+    status: 1,
+    stdout: '',
+    stderr: `lz-oop: ${scope} is a network or device path, or leads to one; audit a local folder\n`,
   });
 });
 
