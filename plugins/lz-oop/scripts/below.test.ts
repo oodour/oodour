@@ -41,6 +41,16 @@ test('a link that leads outside the root has no place', (context) => {
   assert.equal(placeBelow(root)(join(root, 'a.ts')), undefined);
 });
 
+// Windows stores a link's target with its `..` already applied, so only other systems can make this link.
+test('a link target that steps back through a link leading outside has no place', { skip: process.platform === 'win32' }, (context) => {
+  const outside = folderWith(context, { 'x/a.ts': '' });
+  const root = folderWith(context, { 'sub/a.ts': '' });
+  symlinkSync(join(outside, 'x'), join(root, 'sub', 'deep'), 'junction');
+  symlinkSync(join('sub', 'deep', '..'), join(root, 'back'), 'dir');
+
+  assert.equal(placeBelow(root)(join(root, 'back', 'a.ts')), undefined);
+});
+
 test('links that lead to each other have no place', (context) => {
   const root = folderWith(context, {});
   symlinkSync(join(root, 'b'), join(root, 'a'), 'dir');
