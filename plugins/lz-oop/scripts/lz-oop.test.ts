@@ -4,6 +4,7 @@ import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
 
@@ -29,9 +30,7 @@ test('hotspots prints the hot-spot report for the scope it is given', () => {
 test('a folder that does not exist is named on stderr with exit 1', () => {
   const missing = join(tmpdir(), 'lz-oop-no-such-folder');
 
-  const run = spawnSync(process.execPath, [cli, 'hotspots', missing], { encoding: 'utf8' });
-
-  assert.deepEqual([run.status, run.stdout, run.stderr], [1, '', `lz-oop: no folder ${missing}\n`]);
+  assert.deepEqual(runCommand(['hotspots', missing]), { status: 1, stdout: '', stderr: `lz-oop: no folder ${missing}\n` });
 });
 
 test('no command, another command, an extra folder, an unknown option or a limit that is no count print the usage and exit 2', () => {
@@ -43,10 +42,10 @@ test('no command, another command, an extra folder, an unknown option or a limit
     ['hotspots', '--limit', 'ten'],
     ['hotspots', '--limit', '0'],
   ]) {
-    const run = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
-
-    assert.equal(run.status, 2, args.join(' '));
-    assert.equal(run.stdout, '', args.join(' '));
-    assert.match(run.stderr, /^usage: node .*lz-oop\.ts hotspots \[<folder>\] \[--since <date>\] \[--limit <count>\]\n/, args.join(' '));
+    assert.deepEqual(
+      runCommand(args),
+      { status: 2, stdout: '', stderr: 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n' },
+      args.join(' '),
+    );
   }
 });

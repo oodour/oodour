@@ -31,17 +31,34 @@ function parseCommand(args: readonly string[]): HotspotsCommand | undefined {
   return { scope, since: parsed.values.since, limit };
 }
 
-const command = parseCommand(process.argv.slice(2));
+export interface CommandResult {
+  readonly status: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
 
-if (command === undefined) {
-  process.stderr.write('usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n');
-  process.exitCode = 2;
-} else if (!statSync(command.scope, { throwIfNoEntry: false })?.isDirectory()) {
-  process.stderr.write(`lz-oop: no folder ${command.scope}\n`);
-  process.exitCode = 1;
-} else {
+export function runCommand(args: readonly string[]): CommandResult {
+  const command = parseCommand(args);
+
+  if (command === undefined) {
+    return { status: 2, stdout: '', stderr: 'usage: node lz-oop.ts hotspots [<folder>] [--since <date>] [--limit <count>]\n' };
+  }
+
   const { scope, since, limit } = command;
+
+  if (!statSync(scope, { throwIfNoEntry: false })?.isDirectory()) {
+    return { status: 1, stdout: '', stderr: `lz-oop: no folder ${scope}\n` };
+  }
+
   const measured = measureScope(scope, since);
 
-  process.stdout.write(renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)));
+  return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
+}
+
+if (import.meta.main) {
+  const { status, stdout, stderr } = runCommand(process.argv.slice(2));
+
+  process.stdout.write(stdout);
+  process.stderr.write(stderr);
+  process.exitCode = status;
 }
