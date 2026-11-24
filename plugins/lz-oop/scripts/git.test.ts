@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { gitIn } from './git.ts';
+import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
@@ -176,6 +177,71 @@ test('a .git file that names its folder from its drive is read from the folder G
   symlinkSync(share, join(root, 'sub', 'gd'), 'dir');
 
   assert.throws(() => gitIn(join(root, 'sub')), /^Error: git: .+\.git points to a path that leads to a network path \(.:gd\)$/);
+});
+
+test('a .git file that names its folder by a relative name is read from its own folder only', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir: gd\n', 'sub/a.ts': '' });
+  symlinkSync(share, join(root, 'sub', 'gd'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(join(root, 'sub'), () => '');
+  });
+});
+
+test('a config value named from another drive is not read from the folder Git runs in', { skip: process.platform !== 'win32' }, (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  const otherDrive = /^q/i.test(root) ? 'R:' : 'Q:';
+  symlinkSync(share, join(root, 'sub'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, () => `core.hookspath\n${otherDrive}sub`);
+  });
+});
+
+test('a config value with a colon past its first folder is read from the folder, not from a drive', (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  symlinkSync(share, join(root, 'shared'), 'dir');
+
+  assert.throws(
+    () => {
+      assertLocalMetadata(root, () => 'core.excludesfile\nshared/a:b');
+    },
+    /^Error: git: core\.excludesfile in .+config leads to a network path \(shared\/a:b\)$/,
+  );
+});
+
+test('a folder that is a network path is refused before anything in it is read', () => {
+  assert.throws(() => {
+    assertLocalMetadata(share, () => '');
+  }, /^Error: git: [\\/]{2}lz-oop-test\.invalid[\\/]share is a network or device path, or leads to one$/);
+});
+
+// Each config file includes the next, from c1 to c11, by the name `nameOf` gives it.
+const includeChain =
+  (nameOf: (file: number) => string): ConfigReader =>
+  (file) =>
+    `include.path\n${nameOf(Number(/c(\d+)$/.exec(file)?.[1] ?? '0') + 1)}`;
+const chainFiles = Object.fromEntries(
+  ['config', ...Array.from({ length: 11 }, (_, index) => `c${String(index + 1)}`)].map((name) => [`.git/${name}`, '']),
+);
+
+test('an include more than 10 deep is refused', (context) => {
+  const root = folderWith(context, chainFiles);
+
+  assert.throws(() => {
+    assertLocalMetadata(root, includeChain((file) => `c${String(file)}`));
+  }, /[\\/]c11 is included more than 10 deep$/);
+});
+
+test('an include named from the drive root is refused by the path Git reads', { skip: process.platform !== 'win32' }, (context) => {
+  const root = folderWith(context, chainFiles);
+  const gitFolder = join(root, '.git');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, includeChain((file) => join(gitFolder, `c${String(file)}`).slice(2)));
+  }, {
+    message: `git: ${join(gitFolder, 'c11')} is included more than 10 deep`,
+  });
 });
 
 test('a .git file that points to a network path is refused before Git runs', (context) => {
