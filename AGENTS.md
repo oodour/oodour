@@ -197,9 +197,10 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
 - Never set `NX_DAEMON=false` or pass `--skip-nx-cache` (Lars, 2026-11-15: "this Nx workspace may never use
   `NX_DAEMON=false` or `--skip-nx-cache` which is always a smell indicating a misconfigured workspace or
   environment"). Fix the configuration instead.
-- Name an environment variable for internal use (tests, tooling, anything a plugin user never sets) with the prefix
-  `_LZ_OOP_INTERNAL_` (Lars, 2026-11-24: "Keep in mind that env variables for internal use should be prexifed with
-  `_LZ_OOP_INTERNAL_`").
+- Avoid adding environment variables of the repository's own. When one is needed, prefix a public one (a plugin user
+  may set it) with `LZ_OOP_` and an internal one (tests, tooling) with `_LZ_OOP_INTERNAL_` (Lars, 2026-11-24: "Keep in
+  mind that env variables for internal use should be prexifed with `_LZ_OOP_INTERNAL_`" and "Public env variables
+  should be prefixed with `LZ_OOP_` but generally avoid custom env variables").
 - `_LZ_OOP_INTERNAL_TEST_TEMP` moves the scripts' test temporary folders, for instance to a Dev Drive. Nx loads it
   from a git-ignored `.env.local` at the workspace root; `TEMP` itself cannot go there, as Nx never lets an env file
   replace a variable the shell already set.
