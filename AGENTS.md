@@ -89,7 +89,9 @@ output), stop reading it, do not use it, and tell Lars.
   articles, or other sources. A separate license-like/attribution document distributed with the plugin, sure, but I
   don't think we should waste tokens on mentioning titles of sources over and over again." and "No *Sources and
   attribution* or similar directly in SKILL.md and references."). Whether person names stay is open until the
-  measurement Lars asked for ("Measure with/without titles and with/without the names of persons").
+  measurement Lars asked for ("Measure with/without titles and with/without the names of persons"). That A/B never
+  ran past its baseline arm (2026-11-20), so leaving person names out of the plugin text is untested. Lars, 2026-11-24:
+  "Wait for lz-tdd's results and decide then", meaning lz-tdd's names A/B on its own eval suite.
 - Every claim you attribute to Sandi Metz must come from an oracle answer, not from memory, and
   you must mark what is your inference.
 - For a JavaScript or TypeScript form, *99 Bottles of OOP* and its JavaScript companion code decide first, then
