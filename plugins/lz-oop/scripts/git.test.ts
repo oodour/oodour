@@ -364,9 +364,24 @@ test('without git installed there is no Git', (context) => {
   assert.equal(gitIn(root), undefined);
 });
 
-test('a repository Git refuses to open fails with what Git said', (context) => {
+test('a git that is not a program fails, rather than counting as no Git', (context) => {
+  const root = repositoryWith(context, []);
+  const notAProgram = folderWith(context, { [process.platform === 'win32' ? 'git.exe' : 'git']: 'not a program\n' });
+  setForTest(context, 'PATH', notAProgram);
+
+  assert.throws(() => gitIn(root), /^Error: spawnSync git /);
+});
+
+test('a repository Git refuses to open fails with what Git said, without its last newline', (context) => {
   const root = repositoryWith(context, []);
   refusedByGit(context);
 
-  assert.throws(() => gitIn(root), /^Error: git: .*dubious ownership/s);
+  assert.throws(() => gitIn(root), /^Error: git: .*dubious ownership.*\S$/s);
+});
+
+test('Git output past a mebibyte is read whole', (context) => {
+  const text = 'x'.repeat(2 * 1024 ** 2);
+  const root = repositoryWith(context, [{ 'big.txt': text }]);
+
+  assert.equal(gitIn(root)?.git(['cat-file', '-p', 'HEAD:big.txt']), text);
 });

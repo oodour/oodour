@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, symlinkSync } from 'node:fs';
+import { copyFileSync, existsSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { test } from 'node:test';
@@ -30,6 +30,7 @@ test('a repository not trusted gets no commit counts, and its history line says 
   const { status, stdout } = runCommand(['hotspots', root]);
 
   assert.equal(status, 0);
+  assert.match(stdout, /^Hot spots in .+: 1 production files, commits since 12 months ago\.\n/);
   assert.match(
     stdout,
     /\nHistory: a repository not trusted with --trusted-repository, so no commit counts, and no file counts as often changed\.\n/,
@@ -45,9 +46,37 @@ test('a relative folder, and no folder at all, are read from the working folder'
   );
 
   assert.deepEqual(
-    runs.map(({ stdout }) => stdout.match(/^\| (?!File|---)\S+/gm)),
-    [['| lib/a.ts'], ['| b.ts', '| lib/a.ts']],
+    runs.map(({ stdout }) => stdout.match(/^Hot spots in [^:]*|^\| (?!File|---)\S+/gm)),
+    [
+      ['Hot spots in lib', '| lib/a.ts'],
+      ['Hot spots in .', '| b.ts', '| lib/a.ts'],
+    ],
   );
+});
+
+test('a git program in the working folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
+  copyFileSync(join(process.env['SystemRoot'] ?? 'C:/Windows', 'System32', 'hostname.exe'), join(root, 'git.exe'));
+  const env = { ...process.env };
+  Reflect.deleteProperty(env, 'NoDefaultCurrentDirectoryInExePath');
+
+  const run = spawnSync(process.execPath, [cli, '--trusted-repository', 'hotspots'], { cwd: root, encoding: 'utf8', env });
+
+  assert.deepEqual([run.status, run.stderr], [0, '']);
+});
+
+test('a limit of 1 lists one file, with nothing on stderr', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;', 'b.ts': 'export const b = 1;' }]);
+
+  const { status, stdout, stderr } = runCommand(['hotspots', root, '--limit', '1']);
+
+  assert.deepEqual([status, stderr, stdout.match(/^\| (?!File|---)\S+/gm)?.length], [0, '', 1]);
+});
+
+test('the command line writes a refusal to stderr and exits with its status', () => {
+  const run = spawnSync(process.execPath, [cli, 'churn'], { encoding: 'utf8' });
+
+  assert.deepEqual([run.status, run.stdout, run.stderr], [2, '', `lz-oop: unknown command churn\n${usage}`]);
 });
 
 test('a repository not trusted starts no Git process, and a trusted one does', (context) => {
