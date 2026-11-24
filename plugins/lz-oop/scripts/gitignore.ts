@@ -30,7 +30,7 @@ export function isIgnored(files: readonly IgnoreFile[], path: string, isFolder: 
       const below = path.slice(base.length);
       const result = rules.test(`${below}${isFolder ? '/' : ''}`);
       const above = below.includes('/') ? rules.test(`${below.slice(0, below.lastIndexOf('/'))}/`) : undefined;
-      const throughFolder = result.ignored && result.rule !== undefined && result.rule === above?.rule;
+      const throughFolder = result.ignored && result.rule === above?.rule;
 
       if ((result.ignored || result.unignored) && !throughFolder) {
         ignored = result.ignored;

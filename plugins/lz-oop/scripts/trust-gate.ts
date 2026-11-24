@@ -21,6 +21,7 @@ function isUntrustedForm(command: string, pluginRoot: string, tool: unknown): bo
 
   return (
     path !== undefined &&
+    pluginRoot !== '' &&
     !(tool === 'Bash' && bare?.includes('\\') === true) &&
     withSlashes(path) === `${withSlashes(pluginRoot)}/scripts/lz-oop.ts`
   );

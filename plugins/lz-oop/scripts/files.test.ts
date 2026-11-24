@@ -96,6 +96,13 @@ test("in a repository not trusted, a scope folder's own .gitignore applies to th
   assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
 });
 
+test("in a repository not trusted, a deeper .gitignore's anchored rule applies only below its own folder", (context) => {
+  const root = folderWith(context, { 'lib/.gitignore': '/gen/\n', 'gen/a.ts': '', 'lib/gen/b.ts': '', 'lib/c.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+});
+
 test('in a repository not trusted, the ignore files above the scope and in .git/info/exclude apply too', (context) => {
   const root = folderWith(context, {
     '.gitignore': 'out/\n',

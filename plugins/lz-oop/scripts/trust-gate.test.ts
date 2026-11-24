@@ -26,6 +26,7 @@ test('in auto mode any other call of an lz-oop.ts asks, since its words could re
     `node ${script} "--trusted"-repository hotspots -- D:/repo`,
     `node D:/repo/evil/scripts/lz-oop.ts hotspots -- D:/repo`,
     `FLAG=1 node ${script} hotspots -- D:/repo`,
+    `xnode ${script} hotspots -- D:/repo`,
   ];
 
   assert.deepEqual(
@@ -59,6 +60,8 @@ test('in auto mode the untrusted command passes with a quoted scope and the plug
     call(`node "${backslashed}" hotspots -- D:/repo`),
     call(`node ${backslashed} hotspots -- D:/repo`, 'auto', 'PowerShell'),
     call(`node ${script} hotspots --limit 50 -- packages/@org/lib`),
+    call(`node ${script} hotspots`),
+    call(` node  ${script}  hotspots -- D:/repo`),
   ];
 
   assert.deepEqual(
@@ -79,6 +82,10 @@ test('in auto mode a Bash path whose backslashes Bash would remove or change ask
     commands.map((command) => trustDecision(call(command), root)),
     commands.map(() => 'ask'),
   );
+});
+
+test("without a plugin folder every call asks, since no script is then the plugin's own", () => {
+  assert.equal(trustDecision(call('node /scripts/lz-oop.ts hotspots -- D:/repo'), ''), 'ask');
 });
 
 test('input the hook cannot read asks, since the hook runs only for calls that name lz-oop.ts', () => {
