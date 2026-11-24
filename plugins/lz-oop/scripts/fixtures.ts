@@ -47,7 +47,8 @@ export function writeFiles(root: string, files: Files): void {
 }
 
 export function runGit(root: string, args: readonly string[], date = '2026-11-01T12:00:00Z'): string {
-  return execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', ...args], {
+  // A commit would otherwise start a second Git in the background for auto maintenance.
+  return execFileSync('git', ['-c', 'user.name=lz-oop', '-c', 'user.email=lz-oop', '-c', 'maintenance.auto=false', ...args], {
     cwd: root,
     encoding: 'utf8',
     env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date },
