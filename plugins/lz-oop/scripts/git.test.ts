@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import childProcess from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
 import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, type TestContext } from 'node:test';
@@ -11,6 +13,23 @@ test('in a repository, Git runs in the folder it was asked about', (context) => 
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
 
   assert.equal(gitIn(`${root}/lib`)?.prefix, 'lib/');
+});
+
+test('finding a repository starts Git twice: to read its config, then to ask where the folder is in it', (context) => {
+  const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
+  const spawned = context.mock.method(childProcess, 'spawnSync');
+  const executed = context.mock.method(childProcess, 'execFileSync');
+  syncBuiltinESMExports();
+  context.after(() => {
+    spawned.mock.restore();
+    executed.mock.restore();
+    syncBuiltinESMExports();
+  });
+
+  const repository = gitIn(join(root, 'lib'));
+
+  assert.equal(spawned.mock.callCount() + executed.mock.callCount(), 2);
+  assert.deepEqual({ top: repository?.top, prefix: repository?.prefix }, { top: root, prefix: 'lib/' });
 });
 
 test('in a submodule, Git runs in the submodule', (context) => {

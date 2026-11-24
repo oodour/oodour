@@ -68,21 +68,27 @@ export function repositoryTop(folder: string): string | undefined {
   }
 }
 
-export function gitIn(folder: string): Repository | undefined {
-  const installed = spawnSync('git', ['--version'], childOptions());
+const notInstalled = (error: unknown): boolean => error instanceof Error && 'code' in error && error.code === 'ENOENT';
 
-  if (installed.error) {
-    if ('code' in installed.error && installed.error.code === 'ENOENT') {
+// Each start of Git costs tens of milliseconds on Windows, so one rev-parse answers every question about the folder.
+export function gitIn(folder: string): Repository | undefined {
+  try {
+    assertLocalMetadata(folder, readConfig);
+  } catch (error) {
+    if (notInstalled(error)) {
       return undefined;
     }
 
-    throw installed.error;
+    throw error;
   }
 
-  assertLocalMetadata(folder, readConfig);
-  const probe = spawnSync('git', safely(folder, ['rev-parse', '--is-inside-work-tree']), childOptions());
+  const probe = spawnSync('git', safely(folder, ['rev-parse', '--show-toplevel', '--show-prefix']), childOptions());
 
   if (probe.error) {
+    if (notInstalled(probe.error)) {
+      return undefined;
+    }
+
     throw probe.error;
   }
 
@@ -94,10 +100,11 @@ export function gitIn(folder: string): Repository | undefined {
     throw new Error(`git: ${probe.stderr.trim()}`);
   }
 
+  const [shownTop = '', prefix = ''] = probe.stdout.split('\n');
   const git: Git = (args) =>
     execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer: 1024 ** 3, stdio: ['ignore', 'pipe', 'pipe'] });
   // The repository's own config can set its work tree anywhere, a network share included.
-  const top = resolve(git(['rev-parse', '--show-toplevel']).trim());
+  const top = resolve(shownTop);
 
   if (pathBelow(top, realpathSync.native(resolve(folder))) === undefined) {
     throw new Error(`git: the repository's work tree ${top} does not hold ${folder}`);
@@ -108,5 +115,5 @@ export function gitIn(folder: string): Repository | undefined {
   }
 
   // Git names the folder from the top folder itself, so a short or differently cased path to either cannot mislead it.
-  return { git, top, prefix: git(['rev-parse', '--show-prefix']).trim() };
+  return { git, top, prefix };
 }
