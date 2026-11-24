@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { test } from 'node:test';
 import { folderWith, networkShare, refusedByGit, repositoryWith, setForTest } from './fixtures.ts';
-import { runCommand } from './lz-oop.ts';
+import { runCommand } from './command.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
 const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
@@ -22,6 +22,18 @@ test('hotspots prints the hot-spot report for the scope it is given, counting co
   assert.equal(run.status, 0, run.stderr);
   assert.match(run.stdout, /^Hot spots in .+: 1 production files, commits since 2 years ago\.\nHistory: the full history/);
   assert.match(run.stdout, /\n\| a\.ts \| 1 \| 0, 0 \| Arrow function, line 1: 2 \| no \| none \| simple \|\n/);
+});
+
+test("a run keeps the CLI's compiled code in the temporary folder, for the next run to start sooner", (context) => {
+  const temp = folderWith(context, {});
+  const env: NodeJS.ProcessEnv = { ...process.env, TEMP: temp, TMP: temp, TMPDIR: temp };
+  Reflect.deleteProperty(env, 'NODE_COMPILE_CACHE');
+  Reflect.deleteProperty(env, 'NODE_DISABLE_COMPILE_CACHE');
+
+  const run = spawnSync(process.execPath, [cli], { encoding: 'utf8', env });
+
+  assert.equal(run.status, 2, run.stderr);
+  assert.ok(existsSync(join(temp, 'node-compile-cache')), 'no compile cache in the temporary folder');
 });
 
 test('a repository not trusted gets no commit counts, and its history line says how to trust it', (context) => {

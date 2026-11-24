@@ -41,6 +41,10 @@ Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser,
 plugin, with npm from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run `npm ci`
 in that folder first.
 
+The command keeps Node.js's compiled code of its modules in `node-compile-cache` under your system's temporary folder,
+about 5 MB for each Node.js version, so later runs start sooner. Set `NODE_DISABLE_COMPILE_CACHE=1` to turn it off, or
+`NODE_COMPILE_CACHE` to another folder; deleting the folder is safe.
+
 ## Trusted repositories
 
 Git, a test runner, a linter and a package script can start programs that a repository's own config names, and on

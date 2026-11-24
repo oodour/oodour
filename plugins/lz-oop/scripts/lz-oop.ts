@@ -1,106 +1,12 @@
-import { statSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { parseArgs } from 'node:util';
-import { localPath } from './below.ts';
-import { measureScope, rankHotspots, renderHotspots } from './hotspots.ts';
+import { enableCompileCache } from 'node:module';
 
-interface HotspotsCommand {
-  readonly scope: string;
-  readonly since: string;
-  readonly limit: number;
-}
+// Node.js keeps the compiled code of the modules imported below in a folder under the system's temporary folder, so the
+// next run starts sooner. A static import would be compiled before this line runs. NODE_DISABLE_COMPILE_CACHE=1 turns
+// it off.
+enableCompileCache();
+const { runCommand } = await import('./command.ts');
+const { status, stdout, stderr } = runCommand(process.argv.slice(2));
 
-export interface CommandResult {
-  readonly status: number;
-  readonly stdout: string;
-  readonly stderr: string;
-}
-
-const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
-const trustFlag = '--trusted-repository';
-
-function parseCommand(args: readonly string[]): HotspotsCommand | string {
-  let parsed;
-
-  try {
-    parsed = parseArgs({
-      args: [...args],
-      allowPositionals: true,
-      options: {
-        since: { type: 'string', default: '12 months ago' },
-        limit: { type: 'string', default: '30' },
-        'trusted-repository': { type: 'boolean' },
-      },
-    });
-  } catch (error) {
-    return error instanceof Error ? error.message : String(error);
-  }
-
-  // Trust is read from the first argument only, so a flag that ends a longer command line grants nothing.
-  if (parsed.values['trusted-repository'] === true) {
-    return `${trustFlag} goes first, before the command`;
-  }
-
-  const [command, scope = '.', extra] = parsed.positionals;
-  const limit = Number(parsed.values.limit);
-
-  if (command === undefined) {
-    return 'no command';
-  }
-
-  if (command !== 'hotspots') {
-    return `unknown command ${command}`;
-  }
-
-  if (extra !== undefined) {
-    return `one folder at most, not ${extra}`;
-  }
-
-  if (!Number.isInteger(limit) || limit < 1) {
-    return `--limit takes a whole number of 1 or more, not ${parsed.values.limit}`;
-  }
-
-  return { scope, since: parsed.values.since, limit };
-}
-
-export function runCommand(args: readonly string[]): CommandResult {
-  const trusted = args[0] === trustFlag;
-  const command = parseCommand(trusted ? args.slice(1) : args);
-
-  if (typeof command === 'string') {
-    return { status: 2, stdout: '', stderr: `lz-oop: ${command}\n${usage}` };
-  }
-
-  const { scope, since, limit } = command;
-  // Windows and Node.js apply a `..` by text, so the folder is checked and read by the same resolved text.
-  const folder = resolve(scope);
-
-  // On Windows, opening \\host\share sends the user's credentials to that host, so the folder's links are read first.
-  if (localPath(folder) === undefined) {
-    return {
-      status: 1,
-      stdout: '',
-      stderr: `lz-oop: ${scope} is a network or device path, or leads to one; audit a local folder\n`,
-    };
-  }
-
-  if (!statSync(folder, { throwIfNoEntry: false })?.isDirectory()) {
-    return { status: 1, stdout: '', stderr: `lz-oop: no folder ${scope}\n` };
-  }
-
-  try {
-    const measured = measureScope(folder, since, trusted);
-
-    return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
-  } catch (error) {
-    return { status: 1, stdout: '', stderr: `lz-oop: ${error instanceof Error ? error.message : String(error)}\n` };
-  }
-}
-
-if (import.meta.main) {
-  const { status, stdout, stderr } = runCommand(process.argv.slice(2));
-
-  process.stdout.write(stdout);
-  process.stderr.write(stderr);
-  process.exitCode = status;
-}
+process.stdout.write(stdout);
+process.stderr.write(stderr);
+process.exitCode = status;
