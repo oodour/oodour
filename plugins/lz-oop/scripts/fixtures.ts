@@ -26,6 +26,18 @@ for (const variable of Object.keys(process.env).filter((name) => name.startsWith
   Reflect.deleteProperty(process.env, variable);
 }
 
+// _LZ_OOP_INTERNAL_TEST_TEMP moves the temporary folders of the tests and of the programs they start, for instance to a
+// faster drive. Nx can load it from an env file, which never replaces a variable the shell set, such as TEMP.
+const testTemp = process.env['_LZ_OOP_INTERNAL_TEST_TEMP'];
+
+if (testTemp !== undefined && testTemp !== '') {
+  mkdirSync(testTemp, { recursive: true });
+
+  for (const variable of ['TEMP', 'TMP', 'TMPDIR']) {
+    process.env[variable] = testTemp;
+  }
+}
+
 process.env['GIT_CONFIG_NOSYSTEM'] = '1';
 process.env['GIT_CONFIG_GLOBAL'] = join(tmpdir(), 'lz-oop-tests-read-no-global-git-config');
 

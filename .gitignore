@@ -9,3 +9,4 @@ dist/
 .nx/
 .claude/worktrees
 .claude/settings.local.json
+.env.local

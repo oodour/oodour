@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import childProcess from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { repositoryWith, runGit } from './fixtures.ts';
+import { folderWith, repositoryWith, runGit } from './fixtures.ts';
 
 test("the tests' Git reads neither the system's nor the developer's config", (context) => {
   const root = repositoryWith(context, []);
@@ -34,6 +34,19 @@ test('a repository with the commits of one built before is a copy of it, made wi
   assert.equal(runGit(second, ['rev-parse', 'HEAD']), runGit(first, ['rev-parse', 'HEAD']));
   assert.equal(readFileSync(join(second, 'b', 'c.ts'), 'utf8'), 'three');
   assert.equal(runGit(second, ['status', '--porcelain']), '');
+});
+
+test('_LZ_OOP_INTERNAL_TEST_TEMP names the temporary folder of the tests and of the programs they start', (context) => {
+  const temp = join(folderWith(context, {}), 'temp');
+  const script = `await import(${JSON.stringify(new URL('fixtures.ts', import.meta.url).href)}); console.log((await import('node:os')).tmpdir());`;
+
+  const shown = childProcess.execFileSync(process.execPath, ['--input-type=module', '--eval', script], {
+    encoding: 'utf8',
+    env: { ...process.env, _LZ_OOP_INTERNAL_TEST_TEMP: temp },
+  });
+
+  assert.equal(shown.trim(), temp);
+  assert.ok(existsSync(temp));
 });
 
 test('a repository with other commits is built for them', (context) => {
