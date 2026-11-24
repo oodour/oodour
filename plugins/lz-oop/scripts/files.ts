@@ -24,19 +24,19 @@ export function isTest(file: string): boolean {
   return /\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)__tests__\//.test(file);
 }
 
-const notWalked = ['.git', 'node_modules'];
+// Git never lists what is in .git, whatever its case where names have none; node_modules is left out by choice.
+const isNotWalked = (name: string): boolean => isNamed(name, '.git') || name === 'node_modules';
 
 export interface Walked {
   readonly files: readonly string[];
   readonly skipped: readonly string[];
-  readonly ignored: Ignored;
+  readonly ignored: readonly string[] | undefined;
 }
 
-// Where the scope sits below the repository's top, the ignore files above it, and whether it lies in an ignored folder.
+// Where the scope sits below the repository's top, and the ignore files above it.
 export interface Ignoring {
   readonly prefix: string;
   readonly above: readonly IgnoreFile[];
-  readonly scopeIgnored: boolean;
 }
 
 const joined = (...parts: readonly string[]): string => parts.filter((part) => part !== '').join('/');
@@ -47,10 +47,6 @@ const joined = (...parts: readonly string[]): string => parts.filter((part) => p
 // Inside a repository, each folder's .gitignore is read as text and what the ignore files match is left out, as Git
 // leaves out untracked files they match, without starting Git.
 export function filesBelow(root: string, ignoring?: Ignoring): Walked {
-  if (ignoring?.scopeIgnored === true) {
-    return { files: [], skipped: [], ignored: 'whole scope' };
-  }
-
   const prefix = ignoring?.prefix ?? '';
   const files: string[] = [];
   const skipped: string[] = [];
@@ -77,13 +73,17 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
     for (const entry of entries) {
       const path = joined(folder, entry.name);
 
+      if (entry.isDirectory() && isNotWalked(entry.name)) {
+        continue;
+      }
+
       if (entry.isSymbolicLink() || /[. ]$/.test(entry.name)) {
         skipped.push(path);
       } else if (isIgnored(ignoreFiles, joined(prefix, path), entry.isDirectory())) {
         if (entry.isDirectory()) {
           ignored.push(path);
         }
-      } else if (entry.isDirectory() && !notWalked.some((name) => isNamed(entry.name, name))) {
+      } else if (entry.isDirectory()) {
         folders.push({ folder: path, ignoreFiles });
       } else if (entry.isFile()) {
         files.push(path);
@@ -96,7 +96,7 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
 
 // .git/info/exclude, then the .gitignore of each folder from the top down to the one above the scope (`root`). A folder
 // on the way that these ignore makes the whole scope ignored: Git re-includes nothing below an ignored folder.
-export function ignoringAt(top: string, root: string): Ignoring {
+export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' {
   const prefix = withSlashes(relative(top, root));
   const folders = [
     '',
@@ -106,7 +106,7 @@ export function ignoringAt(top: string, root: string): Ignoring {
 
   for (const folder of folders) {
     if (folder !== '' && isIgnored(above, folder, true)) {
-      return { prefix, above, scopeIgnored: true };
+      return 'whole scope';
     }
 
     if (folder !== prefix) {
@@ -114,7 +114,7 @@ export function ignoringAt(top: string, root: string): Ignoring {
     }
   }
 
-  return { prefix, above, scopeIgnored: false };
+  return { prefix, above };
 }
 
 function ignoreFileAt(top: string, folder: string, path: string): IgnoreFile[] {
@@ -169,7 +169,13 @@ export function sources(scope: string, repository: Repository | undefined): Sour
   if (repository === undefined) {
     const root = resolve(scope);
     const top = repositoryTop(root);
-    const { files, skipped, ignored } = filesBelow(root, top === undefined ? undefined : ignoringAt(top, root));
+    const ignoring = top === undefined ? undefined : ignoringAt(top, root);
+
+    if (ignoring === 'whole scope') {
+      return { root, all: [], inScope: [], skipped: [], ignored: ignoring };
+    }
+
+    const { files, skipped, ignored } = filesBelow(root, ignoring);
     const all = files.filter(isSourceOnDisk(root));
 
     return { root, all, inScope: all, skipped, ignored };

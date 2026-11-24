@@ -130,6 +130,20 @@ test('in a repository not trusted, the listing names the folders it left out as 
   assert.deepEqual(sources(join(root, 'lib'), undefined).ignored, ['dist', 'sub/gen']);
 });
 
+test('in a repository not trusted, .git is never named an ignored folder, as Git never ignores it', (context) => {
+  const root = folderWith(context, { '.gitignore': '.*\n!.gitignore\n', '.cache/x.ts': '', 'a.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).ignored, ['.cache']);
+});
+
+test('a node_modules folder named in another case is walked, as Git lists its files', { skip: process.platform === 'linux' }, (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'NODE_MODULES/b.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+});
+
 test('a repository nested below the scope is reported, not walked, as Git lists it as one entry', (context) => {
   const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
   runGit(root, ['init', '-q']);

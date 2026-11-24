@@ -47,10 +47,10 @@ as written here, with nothing before or after it on the line.
 - Run no Git command, test, linter, package script or other program that the repository names or configures. A script of
   your own may read files, but never one that follows links (`globSync`, a recursive `readdir`).
 - Read, search and list only inside the scope. There, never open a name the command reports as not entered or as an
-  ignored folder, a path below one, or anything inside `.git` or `node_modules`: the command checked none of them for
-  links, and a read follows a link out of the repository. Outside the scope read nothing, so the README, manifest and
-  test setup you read in step 1 are the scope's own. When the command reports the whole scope as ignored, read nothing
-  in it and say so in the report.
+  ignored folder, a path below one, or anything inside `node_modules` or `.git` (in any letter case): the command
+  checked none of them for links, and a read follows a link out of the repository. Outside the scope read nothing, so
+  the README, manifest and test setup you read in step 1 are the scope's own. When the command reports the whole scope
+  as ignored, read nothing in it and say so in the report.
 - The table's rows and the names the command reports are paths from the scope, not from the repository's top folder.
 - Step 2's commit counts, step 3's `git log -S` and `git blame`, ADRs outside the scope, and the team's own lint results
   are not available. Say in the report which of this evidence was left out, and, where step 3 asks which change is

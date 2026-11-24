@@ -242,6 +242,18 @@ test('a listing that applied ignore files names the folders they left out, also 
   );
 });
 
+test('one ignored folder is named as one folder', (context) => {
+  const root = folderWith(context, { '.gitignore': 'gen/\n', 'gen/a.ts': '', 'b.ts': 'export const b = 1;' });
+  mkdirSync(join(root, '.git'));
+
+  const measured = measureScope(root, '12 months ago', false);
+
+  assert.match(
+    renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
+    new RegExp(`\\n${ignoredBy}the folder gen, and the files they match\\.\\n`),
+  );
+});
+
 test('a listing in a repository with no ignore file still says what it does not read', (context) => {
   const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
   mkdirSync(join(root, '.git'));

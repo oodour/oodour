@@ -98,10 +98,11 @@ function ignoredLines({ ignored }: Measured): string[] {
     return ["Left out, ignored: the whole scope, which lies in a folder the repository's ignore files ignore."];
   }
 
+  const folders = ignored.length > 0 ? `the folder${ignored.length > 1 ? 's' : ''} ${ignored.join(', ')}, and ` : '';
+
   return [
     'Left out, ignored by .gitignore files and .git/info/exclude, committed files too (the global excludes file, ' +
-      "core.excludesFile, and a linked work tree's exclude file are not read): " +
-      `${ignored.length > 0 ? `the folders ${ignored.join(', ')}, and ` : ''}the files they match.`,
+      `core.excludesFile, and a linked work tree's exclude file are not read): ${folders}the files they match.`,
   ];
 }
 
