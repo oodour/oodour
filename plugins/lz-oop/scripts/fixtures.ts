@@ -17,13 +17,16 @@ for (const variable of Object.keys(process.env).filter((name) => name.startsWith
 process.env['GIT_CONFIG_NOSYSTEM'] = '1';
 process.env['GIT_CONFIG_GLOBAL'] = join(tmpdir(), 'lz-oop-tests-read-no-global-git-config');
 
-const [gitMajor = 0, gitMinor = 0] = (/(\d+)\.(\d+)/.exec(execFileSync('git', ['--version'], { encoding: 'utf8' })) ?? [])
-  .slice(1)
-  .map(Number);
+let gitVersion: readonly number[] | undefined;
 
-// Whether the installed Git is this version or later, for tests of what older Git cannot do.
-export const gitAtLeast = (major: number, minor: number): boolean =>
-  gitMajor > major || (gitMajor === major && gitMinor >= minor);
+// Whether the installed Git is this version or later, for tests of what older Git cannot do. Only the test files that
+// ask start Git for its version.
+export function gitAtLeast(major: number, minor: number): boolean {
+  gitVersion ??= (/(\d+)\.(\d+)/.exec(execFileSync('git', ['--version'], { encoding: 'utf8' })) ?? []).slice(1).map(Number);
+  const [gitMajor = 0, gitMinor = 0] = gitVersion;
+
+  return gitMajor > major || (gitMajor === major && gitMinor >= minor);
+}
 
 // A share on a host that cannot exist, in the form the system names one; elsewhere than Windows a backslash is part of
 // a name, so a link to `\\host\share` would be an ordinary relative link.
@@ -71,7 +74,8 @@ function initialisedGitFolder(): string {
     process.once('exit', () => {
       rmSync(folder, { recursive: true, force: true });
     });
-    runGit(folder, ['init', '-q']);
+    // No template: each test copies the config and HEAD, not the sample hooks.
+    runGit(folder, ['init', '-q', '--template=']);
     initialised = join(folder, '.git');
   }
 
