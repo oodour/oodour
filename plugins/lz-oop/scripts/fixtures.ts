@@ -7,6 +7,16 @@ import { pathToFileURL } from 'node:url';
 
 type Files = Readonly<Record<string, string>>;
 
+// The tests' Git, and the Git the code under test starts, read no system or developer config and no Git variable of
+// the shell that started the tests. Git for Windows refuses the null device as a config file; a missing file reads as
+// empty.
+for (const variable of Object.keys(process.env).filter((name) => name.startsWith('GIT_') && !name.startsWith('GIT_CONFIG_'))) {
+  Reflect.deleteProperty(process.env, variable);
+}
+
+process.env['GIT_CONFIG_NOSYSTEM'] = '1';
+process.env['GIT_CONFIG_GLOBAL'] = join(tmpdir(), 'lz-oop-tests-read-no-global-git-config');
+
 const [gitMajor = 0, gitMinor = 0] = (/(\d+)\.(\d+)/.exec(execFileSync('git', ['--version'], { encoding: 'utf8' })) ?? [])
   .slice(1)
   .map(Number);
