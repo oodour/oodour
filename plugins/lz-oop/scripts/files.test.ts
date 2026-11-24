@@ -81,6 +81,93 @@ test('outside a repository a linked file or folder is no source either', (contex
   assert.deepEqual(sources(root, undefined).all, ['a.ts']);
 });
 
+test('in a repository not trusted, a file its .gitignore ignores is no source, as Git would leave it out', (context) => {
+  const root = folderWith(context, { '.gitignore': 'dist/\n', 'dist/a.js': '', 'src/b.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, ['src/b.ts']);
+});
+
+test("in a repository not trusted, a scope folder's own .gitignore applies to the files below it", (context) => {
+  const root = folderWith(context, { 'lib/.gitignore': 'out/\n', 'lib/out/a.js': '', 'lib/b.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
+});
+
+test('in a repository not trusted, the ignore files above the scope and in .git/info/exclude apply too', (context) => {
+  const root = folderWith(context, {
+    '.gitignore': 'out/\n',
+    'lib/out/a.js': '',
+    'lib/gen/c.ts': '',
+    'lib/b.ts': '',
+  });
+  runGit(root, ['init', '-q']);
+  writeFiles(root, { '.git/info/exclude': 'gen/\n' });
+
+  assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
+});
+
+test('in a repository not trusted, the sources are the files Git itself would list', (context) => {
+  const ignored = [
+    '# a comment',
+    '*.gen.ts',
+    '!keep.gen.ts',
+    '/top-only.ts',
+    'build/',
+    '!build/back.ts',
+    '**/deep/*.js',
+    'a/**/z.ts',
+    'docs/**',
+    'lib/*/skip.ts',
+    'f?le.ts',
+    '[ab]x.ts',
+    '[!c]y.ts',
+    '\\#hash.ts',
+    'spaced.ts   ',
+    'case.ts',
+    'two**stars.ts',
+  ];
+  const root = folderWith(context, {
+    '.gitignore': ignored.join('\n'),
+    'sub/.gitignore': '!y.gen.ts\n',
+    ...Object.fromEntries(
+      [
+        'x.gen.ts',
+        'keep.gen.ts',
+        'sub/y.gen.ts',
+        'sub/z.gen.ts',
+        'top-only.ts',
+        'sub/top-only.ts',
+        'build/a.ts',
+        'build/back.ts',
+        'sub/build/b.ts',
+        'p/deep/c.js',
+        'deep/d.js',
+        'a/z.ts',
+        'a/b/c/z.ts',
+        'docs/e.ts',
+        'lib/m/skip.ts',
+        'lib/m/n/skip.ts',
+        'file.ts',
+        'fle.ts',
+        'ax.ts',
+        'cx.ts',
+        'ay.ts',
+        'cy.ts',
+        '#hash.ts',
+        'spaced.ts',
+        'Case.ts',
+        'twoxstars.ts',
+        'normal.ts',
+      ].map((file) => [file, '']),
+    ),
+  });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+});
+
 test('outside a repository a folder whose name ends in a dot holds no source and is reported', (context) => {
   const root = folderWith(context, { 'a.ts': '' });
   const exact = (path: string) => (process.platform === 'win32' ? `\\\\?\\${path}` : path);

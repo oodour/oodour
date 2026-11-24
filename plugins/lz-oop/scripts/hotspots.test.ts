@@ -220,6 +220,17 @@ test('the report names what the walk did not enter, so the reader leaves it unre
   );
 });
 
+test('a repository not trusted says which ignore files its listing read and which it did not', (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]);
+
+  const measured = measureScope(root, '12 months ago', false);
+
+  assert.match(
+    renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
+    /\nLeft out, ignored: what the repository's \.gitignore files and \.git\/info\/exclude ignore; the global excludes file \(core\.excludesFile\) is not read\.\n/,
+  );
+});
+
 test('a full history is stated as such', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'export const a = 1;' }]);
 

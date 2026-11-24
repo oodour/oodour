@@ -56,14 +56,14 @@ const readConfig: ConfigReader = (file) =>
   );
 
 // Finds a repository the way Git starts to, by a `.git` entry in the folder or one above it, without starting Git.
-export function insideRepository(folder: string): boolean {
+export function repositoryTop(folder: string): string | undefined {
   for (let current = resolve(folder), above = dirname(current); ; current = above, above = dirname(current)) {
     if (lstatSync(join(current, '.git'), { throwIfNoEntry: false }) !== undefined) {
-      return true;
+      return current;
     }
 
     if (above === current) {
-      return false;
+      return undefined;
     }
   }
 }
