@@ -203,4 +203,5 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
   should be prefixed with `LZ_OOP_` but generally avoid custom env variables").
 - `_LZ_OOP_INTERNAL_TEST_TEMP` moves the scripts' test temporary folders, for instance to a Dev Drive. Nx loads it
   from a git-ignored `.env.local` at the workspace root; `TEMP` itself cannot go there, as Nx never lets an env file
-  replace a variable the shell already set.
+  replace a variable the shell already set. Lars chose this over a user-level `TEMP` and a per-run `--env.TEMP=`
+  (2026-11-24: "1: Option A"). A `TEMP` inside the workspace fails the tests that need a folder outside any repository.
