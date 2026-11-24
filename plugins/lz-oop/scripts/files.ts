@@ -2,33 +2,34 @@ import { type Dirent, lstatSync, readdirSync, readFileSync, statSync } from 'nod
 import { join, relative, resolve } from 'node:path';
 import { placeBelow } from './below.ts';
 import { repositoryTop, type Repository } from './git.ts';
-import { type IgnoreFile, ignoreFileIn, isIgnored, isIgnoreFileName } from './gitignore.ts';
+import { type IgnoreFile, ignoreFileIn, isIgnored, isNamed } from './gitignore.ts';
 
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
+
+// The folders the ignore files match, from the scope, which the walk did not enter; the whole scope when it lies in an
+// ignored folder; undefined when no ignore file was applied (outside a repository, or Git listed the files).
+export type Ignored = readonly string[] | 'whole scope' | undefined;
 
 export interface Sources {
   readonly root: string;
   readonly all: readonly string[];
   readonly inScope: readonly string[];
   readonly skipped: readonly string[];
-  readonly ignoreFiles: readonly string[];
-  readonly scopeIgnored: boolean;
+  readonly ignored: Ignored;
 }
 
-const source =/(?<!\.d)\.[cm]?[jt]sx?$/;
+const source = /(?<!\.d)\.[cm]?[jt]sx?$/;
 
 export function isTest(file: string): boolean {
   return /\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)__tests__\//.test(file);
 }
 
-const notWalked = new Set(['.git', 'node_modules']);
+const notWalked = ['.git', 'node_modules'];
 
 export interface Walked {
   readonly files: readonly string[];
   readonly skipped: readonly string[];
-  // The ignore files read, as paths from the repository's top.
-  readonly ignoreFiles: readonly string[];
-  readonly scopeIgnored: boolean;
+  readonly ignored: Ignored;
 }
 
 // Where the scope sits below the repository's top, the ignore files above it, and whether it lies in an ignored folder.
@@ -46,54 +47,43 @@ const joined = (...parts: readonly string[]): string => parts.filter((part) => p
 // Inside a repository, each folder's .gitignore is read as text and what the ignore files match is left out, as Git
 // leaves out untracked files they match, without starting Git.
 export function filesBelow(root: string, ignoring?: Ignoring): Walked {
-  const above = ignoring?.above ?? [];
-  const read = above.map((file) => file.path);
-
   if (ignoring?.scopeIgnored === true) {
-    return { files: [], skipped: [], ignoreFiles: read, scopeIgnored: true };
+    return { files: [], skipped: [], ignored: 'whole scope' };
   }
 
   const prefix = ignoring?.prefix ?? '';
   const files: string[] = [];
   const skipped: string[] = [];
+  const ignored: string[] = [];
   const folders: { readonly folder: string; readonly ignoreFiles: readonly IgnoreFile[] }[] = [
-    { folder: '', ignoreFiles: above },
+    { folder: '', ignoreFiles: ignoring?.above ?? [] },
   ];
 
   for (let next = folders.pop(); next !== undefined; next = folders.pop()) {
     const { folder } = next;
     const entries = folder === '' ? readdirSync(root, { withFileTypes: true }) : listed(join(root, folder));
 
-    if (entries === undefined || (folder !== '' && entries.some((entry) => entry.name === '.git'))) {
+    if (entries === undefined || (folder !== '' && entries.some((entry) => isNamed(entry.name, '.git')))) {
       skipped.push(folder);
       continue;
     }
 
-    const ownName = entries.find((entry) => isIgnoreFileName(entry.name) && entry.isFile())?.name;
-    const own =
+    const ownName = entries.find((entry) => isNamed(entry.name, '.gitignore') && entry.isFile())?.name;
+    const ignoreFiles =
       ignoring !== undefined && ownName !== undefined
-        ? ignoreFileIn(
-            joined(prefix, folder),
-            joined(prefix, folder, ownName),
-            readFileSync(join(root, folder, ownName), 'utf8'),
-          )
-        : undefined;
-    const ignoreFiles = own === undefined ? next.ignoreFiles : [...next.ignoreFiles, own];
-
-    if (own !== undefined) {
-      read.push(own.path);
-    }
+        ? [...next.ignoreFiles, ignoreFileIn(joined(prefix, folder), readFileSync(join(root, folder, ownName), 'utf8'))]
+        : next.ignoreFiles;
 
     for (const entry of entries) {
       const path = joined(folder, entry.name);
 
-      if (isIgnored(ignoreFiles, joined(prefix, path), entry.isDirectory())) {
-        continue;
-      }
-
       if (entry.isSymbolicLink() || /[. ]$/.test(entry.name)) {
         skipped.push(path);
-      } else if (entry.isDirectory() && !notWalked.has(entry.name)) {
+      } else if (isIgnored(ignoreFiles, joined(prefix, path), entry.isDirectory())) {
+        if (entry.isDirectory()) {
+          ignored.push(path);
+        }
+      } else if (entry.isDirectory() && !notWalked.some((name) => isNamed(entry.name, name))) {
         folders.push({ folder: path, ignoreFiles });
       } else if (entry.isFile()) {
         files.push(path);
@@ -101,14 +91,17 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
     }
   }
 
-  return { files: files.sort(), skipped: skipped.sort(), ignoreFiles: read.sort(), scopeIgnored: false };
+  return { files: files.sort(), skipped: skipped.sort(), ignored: ignoring === undefined ? undefined : ignored.sort() };
 }
 
 // .git/info/exclude, then the .gitignore of each folder from the top down to the one above the scope (`root`). A folder
 // on the way that these ignore makes the whole scope ignored: Git re-includes nothing below an ignored folder.
 export function ignoringAt(top: string, root: string): Ignoring {
   const prefix = withSlashes(relative(top, root));
-  const folders = ['', ...(prefix === '' ? [] : prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1))))];
+  const folders = [
+    '',
+    ...(prefix === '' ? [] : prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1)))),
+  ];
   let above = ignoreFileAt(top, '', '.git/info/exclude');
 
   for (const folder of folders) {
@@ -127,7 +120,7 @@ export function ignoringAt(top: string, root: string): Ignoring {
 function ignoreFileAt(top: string, folder: string, path: string): IgnoreFile[] {
   const text = plainFileText(top, path);
 
-  return text === undefined ? [] : [ignoreFileIn(folder, path, text)];
+  return text === undefined ? [] : [ignoreFileIn(folder, text)];
 }
 
 // The text of a file below `top`, read only when no part of its path is a link.
@@ -176,10 +169,10 @@ export function sources(scope: string, repository: Repository | undefined): Sour
   if (repository === undefined) {
     const root = resolve(scope);
     const top = repositoryTop(root);
-    const { files, skipped, ignoreFiles, scopeIgnored } = filesBelow(root, top === undefined ? undefined : ignoringAt(top, root));
+    const { files, skipped, ignored } = filesBelow(root, top === undefined ? undefined : ignoringAt(top, root));
     const all = files.filter(isSourceOnDisk(root));
 
-    return { root, all, inScope: all, skipped, ignoreFiles, scopeIgnored };
+    return { root, all, inScope: all, skipped, ignored };
   }
 
   const { git, top, prefix } = repository;
@@ -192,7 +185,6 @@ export function sources(scope: string, repository: Repository | undefined): Sour
     all,
     inScope: all.filter((file) => file.startsWith(prefix)),
     skipped: [],
-    ignoreFiles: [],
-    scopeIgnored: false,
+    ignored: undefined,
   };
 }

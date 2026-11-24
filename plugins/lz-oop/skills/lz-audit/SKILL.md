@@ -46,14 +46,15 @@ as written here, with nothing before or after it on the line.
 
 - Run no Git command, test, linter, package script or other program that the repository names or configures. A script of
   your own may read files, but never one that follows links (`globSync`, a recursive `readdir`).
-- Read, search and list only inside the scope, plus the ignore files the command names. Inside the scope, never open a
-  path below a name the command reports as not entered, inside `.git` or `node_modules`, or that those ignore files
-  leave out: the command checked none of them for links, and a read follows a link out of the repository. Outside the
-  scope read nothing else, so the README, manifest and test setup you read in step 1 are the scope's own.
-- The table's rows are named from the scope, not from the repository's top folder.
-- Step 2's commit counts, step 3's `git log -S` and `git blame`, and the team's own lint results are not available. Say
-  in the report which of this evidence was left out, and, where step 3 asks which change is likely, that churn and the
-  commit history were not read.
+- Read, search and list only inside the scope. There, never open a name the command reports as not entered or as an
+  ignored folder, a path below one, or anything inside `.git` or `node_modules`: the command checked none of them for
+  links, and a read follows a link out of the repository. Outside the scope read nothing, so the README, manifest and
+  test setup you read in step 1 are the scope's own. When the command reports the whole scope as ignored, read nothing
+  in it and say so in the report.
+- The table's rows and the names the command reports are paths from the scope, not from the repository's top folder.
+- Step 2's commit counts, step 3's `git log -S` and `git blame`, ADRs outside the scope, and the team's own lint results
+  are not available. Say in the report which of this evidence was left out, and, where step 3 asks which change is
+  likely, that churn and the commit history were not read.
 
 Then read the README, the package manifest, the entry points and the test setup. Note where the framework code sits
 (controllers, components, handlers) and where the domain code sits, the style of the existing tests, and whether classes

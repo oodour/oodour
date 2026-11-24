@@ -1,9 +1,8 @@
 import ignore, { type Ignore } from 'ignore';
 
-// One ignore file: its path from the repository's top, and the folder its rules apply to, as a path from the top that
-// ends in `/`, or '' for the top itself.
+// One ignore file: the folder its rules apply to, as a path from the repository's top that ends in `/`, or '' for the
+// top itself.
 export interface IgnoreFile {
-  readonly path: string;
   readonly base: string;
   readonly rules: Ignore;
 }
@@ -11,17 +10,18 @@ export interface IgnoreFile {
 // Git sets core.ignoreCase on the file systems of Windows and macOS when it creates a repository.
 const ignorecase = process.platform === 'win32' || process.platform === 'darwin';
 
-export const isIgnoreFileName = (name: string): boolean => (ignorecase ? name.toLowerCase() : name) === '.gitignore';
+export const isNamed = (name: string, gitName: string): boolean => (ignorecase ? name.toLowerCase() : name) === gitName;
 
-export function ignoreFileIn(folder: string, path: string, text: string): IgnoreFile {
-  return { path, base: folder === '' ? '' : `${folder}/`, rules: ignore({ ignorecase }).add(text) };
+export function ignoreFileIn(folder: string, text: string): IgnoreFile {
+  return { base: folder === '' ? '' : `${folder}/`, rules: ignore({ ignorecase }).add(text) };
 }
 
 // Git applies the ignore files from the top down; a deeper file's rule overrides a higher one's. The walk asks about a
 // folder before it enters it, so a rule the package matches only through the folder above (the same rule matches that
-// folder) has already been decided there, and a deeper file may have overridden it. shortcut: a rule that matches a
-// re-included folder and, by itself, a file in it (`foo*` with `!foo1/`) is read as matching the folder only; match
-// without the package's parent check if a real repository needs that case.
+// folder) has already been decided there, and a deeper file may have overridden it. shortcut: when a deeper file
+// re-includes a folder that a higher file's rule ignores, and that rule also matches a file in it by itself (`a/**`,
+// or `foo*` for `foo1/foo.ts`), the file is listed though Git leaves it out; match without the package's parent check
+// if a real repository needs that case.
 export function isIgnored(files: readonly IgnoreFile[], path: string, isFolder: boolean): boolean {
   let ignored = false;
 

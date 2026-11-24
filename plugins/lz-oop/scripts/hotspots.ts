@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { churn, type HistoryLimit, type Uncountable } from './churn.ts';
 import { type FunctionComplexity, functionComplexity } from './complexity.ts';
-import { isTest, sources } from './files.ts';
+import { type Ignored, isTest, sources } from './files.ts';
 import { gitIn, repositoryTop } from './git.ts';
 import { dependentsThroughReexports, readModules } from './modules.ts';
 
@@ -40,14 +40,13 @@ export interface Measured {
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
   readonly skipped: readonly string[];
-  readonly ignoreFiles: readonly string[];
-  readonly scopeIgnored: boolean;
+  readonly ignored: Ignored;
 }
 
 // A repository not trusted runs no Git: Git starts programs its config names and opens paths its metadata names.
 export function measureScope(scope: string, since: string, trusted: boolean): Measured {
   const repository = trusted ? gitIn(scope) : undefined;
-  const { root, all, inScope, skipped, ignoreFiles, scopeIgnored } = sources(scope, repository);
+  const { root, all, inScope, skipped, ignored } = sources(scope, repository);
   const uncounted = !trusted && repositoryTop(scope) !== undefined ? 'untrusted' : 'no repository';
   const counted = repository ? churn(repository.git, since) : uncounted;
   const commitsOf = (file: string): number => (typeof counted === 'string' ? 0 : (counted.commits.get(file) ?? 0));
@@ -86,24 +85,24 @@ export function measureScope(scope: string, since: string, trusted: boolean): Me
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
     skipped,
-    ignoreFiles,
-    scopeIgnored,
+    ignored,
   };
 }
 
-function ignoredLines({ ignoreFiles, scopeIgnored }: Measured): string[] {
-  const files = ignoreFiles.join(', ');
-
-  if (scopeIgnored) {
-    return [`Left out, ignored: the whole scope, which lies in a folder that ${files} ignores.`];
+function ignoredLines({ ignored }: Measured): string[] {
+  if (ignored === undefined) {
+    return [];
   }
 
-  return ignoreFiles.length > 0
-    ? [
-        `Left out, ignored: files that ${files} match, committed files too; the global excludes file ` +
-          '(core.excludesFile) is not read.',
-      ]
-    : [];
+  if (ignored === 'whole scope') {
+    return ["Left out, ignored: the whole scope, which lies in a folder the repository's ignore files ignore."];
+  }
+
+  return [
+    'Left out, ignored by .gitignore files and .git/info/exclude, committed files too (the global excludes file, ' +
+      "core.excludesFile, and a linked work tree's exclude file are not read): " +
+      `${ignored.length > 0 ? `the folders ${ignored.join(', ')}, and ` : ''}the files they match.`,
+  ];
 }
 
 const limitClauses: Readonly<Record<HistoryLimit, string>> = {

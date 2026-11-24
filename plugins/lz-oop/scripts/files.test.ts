@@ -24,8 +24,7 @@ test("a repository's JavaScript and TypeScript files are its sources, named from
     all: ['src/a.ts', 'src/b.jsx'],
     inScope: ['src/a.ts', 'src/b.jsx'],
     skipped: [],
-    ignoreFiles: [],
-    scopeIgnored: false,
+    ignored: undefined,
   });
 });
 
@@ -117,6 +116,20 @@ test('in a repository not trusted, a scope inside an ignored folder holds no sou
   assert.deepEqual(sources(join(root, 'a', 'b'), undefined).all, []);
 });
 
+test('in a repository not trusted, the listing names the folders it left out as ignored, from the scope', (context) => {
+  const root = folderWith(context, {
+    '.gitignore': 'dist/\n*.log\n',
+    'lib/dist/a.js': '',
+    'lib/b.ts': '',
+    'lib/c.log': '',
+    'lib/sub/.gitignore': 'gen/\n',
+    'lib/sub/gen/x.ts': '',
+  });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(join(root, 'lib'), undefined).ignored, ['dist', 'sub/gen']);
+});
+
 test('a repository nested below the scope is reported, not walked, as Git lists it as one entry', (context) => {
   const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
   runGit(root, ['init', '-q']);
@@ -125,6 +138,15 @@ test('a repository nested below the scope is reported, not walked, as Git lists 
   const { all, skipped } = sources(root, undefined);
 
   assert.deepEqual({ all, skipped }, { all: ['a.ts'], skipped: ['n'] });
+});
+
+test('a nested repository whose .git is named in another case is not walked where Git reads it so', { skip: process.platform === 'linux' }, (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
+  runGit(root, ['init', '-q']);
+  runGit(join(root, 'n'), ['init', '-q']);
+  renameSync(join(root, 'n', '.git'), join(root, 'n', '.GIT'));
+
+  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
 });
 
 test('in a repository not trusted, an ignore file named in another case is read where Git reads it', (context) => {
@@ -209,8 +231,7 @@ test('outside a repository a folder whose name ends in a dot holds no source and
     all: ['a.ts'],
     inScope: ['a.ts'],
     skipped: ['odd.'],
-    ignoreFiles: [],
-    scopeIgnored: false,
+    ignored: undefined,
   });
 });
 
@@ -297,7 +318,6 @@ test('outside a repository the sources are the files below the scope, without no
     all: ['b.mjs', 'src/a.ts'],
     inScope: ['b.mjs', 'src/a.ts'],
     skipped: [],
-    ignoreFiles: [],
-    scopeIgnored: false,
+    ignored: undefined,
   });
 });

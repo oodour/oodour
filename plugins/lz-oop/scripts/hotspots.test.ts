@@ -150,7 +150,7 @@ test('the report states the period, the history, the thresholds and what was lef
     }),
     measures('src/port.ts'),
   ];
-  const measured = { files, history: ['shallow'] as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'], skipped: [], ignoreFiles: [], scopeIgnored: false };
+  const measured = { files, history: ['shallow'] as const, reexportsOnly: ['src/index.ts'], parseErrors: ['src/x.ts:1:9 Oops.', 'src/y.ts:2:1 Oops.'], skipped: [], ignored: undefined };
 
   assert.equal(
     renderHotspots('src', '12 months ago', measured, rankHotspots(files, 30)),
@@ -220,11 +220,16 @@ test('the report names what the walk did not enter, so the reader leaves it unre
   );
 });
 
-test('a listing that read ignore files names them, also when Git could not run on a trusted folder', (context) => {
+const ignoredBy =
+  'Left out, ignored by \\.gitignore files and \\.git/info/exclude, committed files too \\(the global excludes file, ' +
+  "core\\.excludesFile, and a linked work tree's exclude file are not read\\): ";
+
+test('a listing that applied ignore files names the folders they left out, also when Git could not run on a trusted folder', (context) => {
   const root = folderWith(context, {
     '.gitignore': 'dist/\n',
     'dist/a.ts': 'export const a = 1;',
     'lib/.gitignore': 'out/\n',
+    'lib/out/c.ts': 'export const c = 1;',
     'lib/b.ts': 'export const b = 1;',
   });
   mkdirSync(join(root, '.git'));
@@ -233,7 +238,19 @@ test('a listing that read ignore files names them, also when Git could not run o
 
   assert.match(
     renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
-    /\nLeft out, ignored: files that \.gitignore, lib\/\.gitignore match, committed files too; the global excludes file \(core\.excludesFile\) is not read\.\n/,
+    new RegExp(`\\n${ignoredBy}the folders dist, lib/out, and the files they match\\.\\n`),
+  );
+});
+
+test('a listing in a repository with no ignore file still says what it does not read', (context) => {
+  const root = folderWith(context, { 'a.ts': 'export const a = 1;' });
+  mkdirSync(join(root, '.git'));
+
+  const measured = measureScope(root, '12 months ago', false);
+
+  assert.match(
+    renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
+    new RegExp(`\\n${ignoredBy}the files they match\\.\\n`),
   );
 });
 
@@ -246,7 +263,7 @@ test('a scope inside an ignored folder says so, since its table is empty', (cont
 
   assert.match(
     renderHotspots(scope, '12 months ago', measured, rankHotspots(measured.files, 30)),
-    /\nLeft out, ignored: the whole scope, which lies in a folder that \.gitignore ignores\.\n/,
+    /\nLeft out, ignored: the whole scope, which lies in a folder the repository's ignore files ignore\.\n/,
   );
 });
 

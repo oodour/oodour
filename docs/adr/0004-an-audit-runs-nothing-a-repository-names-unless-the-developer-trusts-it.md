@@ -55,7 +55,11 @@ The metadata check stays on the trusted path as a best-effort alarm for plain ne
   config, and its report says so. Its rows are named from the scope, not from the repository's top folder. Its file
   list leaves out what the repository's `.gitignore` files and `.git/info/exclude` ignore, read as text with the
   `ignore` package (Lars, 2026-11-24: "Approve adding the `ignore` package as agreed"), but not what the developer's
-  global excludes file ignores.
+  global excludes file or a linked work tree's exclude file ignores: reading either means opening a path that Git
+  config or the repository names. The report names the ignored folders, which the audit then leaves unread. Known
+  differences from Git: committed files an ignore rule matches are left out too; a folder holding any `.git` counts as
+  another repository; and when a deeper ignore file re-includes a folder that a higher file's rule ignores, files in it
+  that the same rule matches by themselves are still listed.
 - The trust check is no stronger than the developer's permission settings. Lars, 2026-11-23: "Broad permission grants:
   OK". A rule such as `Bash(node *)` or `Bash(git *)`, or a session with permission checks off, lets Claude run those
   commands on any repository; the plugin's README says to keep allow rules narrow.
