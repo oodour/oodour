@@ -123,6 +123,11 @@ invoking it, and background subagents. Each is one more eval case.
 - Eval cases at c21b3fe (sonnet runner and judge, 3 runs, with and without the plugin, `-j 2`): audit-hot-spots 3/3
   with, 1/3 without; review-own-change 3/3 with, 0/3 without; review-developer-diff 3/3 with, 3/3 without. About 100 s
   a case.
+- The reviewer, at 004a493, in a session without the plain `Read` allow rule (Skill allowed): an `lz-oop:reviewer`
+  launched alone loaded `lz-oop:lz-review` with the Skill tool first and then read
+  `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md` with no refusal. A `general-purpose` subagent in the same setup,
+  with no Skill call, was refused the same Read ("Claude requested permissions to read from ..."). So 7e7099c fixes the
+  reviewer's Read grant too (measured, one run each).
 
 ## Login note
 
