@@ -380,7 +380,7 @@ test('a repository Git refuses to open fails with what Git said, without its las
 });
 
 test('Git output past a mebibyte is read whole', (context) => {
-  const text = 'x'.repeat(2 * 1024 ** 2);
+  const text = 'x'.repeat(1024 ** 2 + 1);
   const root = repositoryWith(context, [{ 'big.txt': text }]);
 
   assert.equal(gitIn(root)?.git(['cat-file', '-p', 'HEAD:big.txt']), text);
