@@ -294,7 +294,7 @@ test('a .git file is read without all the line ends at its end', (context) => {
 });
 
 test('a .git file keeps a line end inside the name, as Git does, so the name without it is not read', (context) => {
-  const root = folderWith(context, { '.git': 'gitdir: shared\nlink\n' });
+  const root = folderWith(context, { '.git': 'gitdir: shared\nlink' });
   symlinkSync(share, join(root, 'sharedlink'), 'dir');
 
   assert.doesNotThrow(() => {
@@ -356,6 +356,15 @@ test('a commondir file that is a link to a network path is refused, naming the f
   }, {
     message: `git: ${join(root, '.git', 'commondir')} leads to a network path`,
   });
+});
+
+test('a config file that is a link to a network path is refused, naming the file', (context) => {
+  const root = folderWith(context, { '.git/HEAD': 'ref: refs/heads/main\n' });
+  symlinkSync(`${share}\\config`, join(root, '.git', 'config'), 'file');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, { message: `git: ${join(root, '.git', 'config')} leads to a network path` });
 });
 
 test('a link in the git folder that leads to a network path is refused before Git runs', (context) => {
