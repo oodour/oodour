@@ -104,6 +104,26 @@ the grant still reaches a subagent in a later turn (docs say the grant clears at
 subagent that preloads the skill through `skills:` (the `lz-oop:auditor` shape) gets the grant without the parent
 invoking it, and background subagents. Each is one more eval case.
 
+**Update, 2026-11-24 eval round** [measured, one haiku run each, slim `claude -p` on stryker-js at 494e821, plugin at
+0f4b7b1, offline allow list]:
+
+- With `/lz-oop:lz-audit` invoked in the main session, the unquoted command ran in the main session and in both an
+  `lz-oop:auditor` and a `general-purpose` subagent. The same command with the script path in double quotes was refused
+  ("This command requires approval"), so a profile path with a space stays an open risk. A `--since $(date ...)` form
+  was refused ("A nested command in this command can't be checked before it runs"); c21b3fe has lz-audit ask for the
+  date written out. The `--trusted-repository` form was refused, as designed for print mode.
+- With no skill invoked in the main session, the `lz-oop:auditor` subagent, its lz-audit text preloaded through
+  `skills:` (seen in its transcript), was refused the command ("This command requires approval"). A preloaded skill
+  does not carry its grant.
+- A background `lz-oop:auditor` that loaded `lz-oop:lz-audit` with the Skill tool (Skill allowed with `--allow Skill`)
+  then ran the command. Without that allow rule the Skill call itself was refused. 7e7099c has both plugin agents make
+  that Skill call before their first command or Read.
+- At c21b3fe, an `lz-oop:auditor` launched alone with only a scope and "not trusted" made the Skill call on its own, ran
+  the command with no refusal, and went on to audit.
+- Eval cases at c21b3fe (sonnet runner and judge, 3 runs, with and without the plugin, `-j 2`): audit-hot-spots 3/3
+  with, 1/3 without; review-own-change 3/3 with, 0/3 without; review-developer-diff 3/3 with, 3/3 without. About 100 s
+  a case.
+
 ## Login note
 
 The isolated `CLAUDE_CONFIG_DIR` cannot run a session: it has no login [measured], and copying Lars's
