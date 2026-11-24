@@ -7,7 +7,8 @@
           {
             "type": "command",
             "if": "Bash(*lz-oop.ts*)",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts\""
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts"]
           }
         ]
       },
@@ -17,7 +18,8 @@
           {
             "type": "command",
             "if": "PowerShell(*lz-oop.ts*)",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts\""
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/trust-gate.ts"]
           }
         ]
       }
