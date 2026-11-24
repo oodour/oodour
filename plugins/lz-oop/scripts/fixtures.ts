@@ -1,7 +1,19 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { delimiter, dirname, join } from 'node:path';
 import type { TestContext } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
@@ -64,33 +76,67 @@ export function commitFiles(root: string, files: Files, date?: string): void {
   runGit(root, ['commit', '-q', '-m', 'change'], date);
 }
 
-let initialised: string | undefined;
+// Each repository a test builds is kept here, and a later test, in this process or another, that asks for the same
+// commits copies it: on Windows, starting Git costs several times what copying its files does. Stryker's sandboxes link
+// to the same node_modules folder.
+const keptRepositories = join(import.meta.dirname, '..', '..', '..', 'node_modules', '.cache', 'lz-oop-fixtures');
+let keyBase: string | undefined;
 
-// Each test copies one repository that `git init` made once per test process: on Windows, starting Git costs several
-// times what copying its files does.
-function initialisedGitFolder(): string {
-  if (initialised === undefined) {
-    const folder = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-')));
-    process.once('exit', () => {
-      rmSync(folder, { recursive: true, force: true });
-    });
-    // No template: each test copies the config and HEAD, not the sample hooks.
-    runGit(folder, ['init', '-q', '--template=']);
-    initialised = join(folder, '.git');
+function keptRepository(commits: readonly Files[]): string {
+  keyBase ??= JSON.stringify([readFileSync(import.meta.filename, 'utf8'), process.platform, installedGit()]);
+
+  return join(keptRepositories, createHash('sha256').update(keyBase).update(JSON.stringify(commits)).digest('hex'));
+}
+
+// The Git on the path, by where it is, its size and when it was written, so that another Git builds its own
+// repositories, without starting Git to ask its version.
+function installedGit(): string {
+  const program = process.platform === 'win32' ? 'git.exe' : 'git';
+
+  for (const folder of (process.env['PATH'] ?? '').split(delimiter)) {
+    const found = statSync(join(folder, program), { throwIfNoEntry: false });
+
+    if (found?.isFile() === true) {
+      return `${join(folder, program)} ${String(found.size)} ${String(found.mtimeMs)}`;
+    }
   }
 
-  return initialised;
+  return '';
 }
 
 export function repositoryWith(context: TestContext, commits: readonly Files[]): string {
   const root = folderWith(context, {});
-  cpSync(initialisedGitFolder(), join(root, '.git'), { recursive: true });
+  const kept = keptRepository(commits);
+
+  if (existsSync(kept)) {
+    cpSync(kept, root, { recursive: true });
+
+    return root;
+  }
+
+  // No template: the kept copy holds the config and HEAD, not the sample hooks.
+  runGit(root, ['init', '-q', '--template=']);
 
   for (const files of commits) {
     commitFiles(root, files);
   }
 
+  keep(root, kept);
+
   return root;
+}
+
+function keep(root: string, kept: string): void {
+  mkdirSync(keptRepositories, { recursive: true });
+  const copy = mkdtempSync(join(keptRepositories, 'copy-'));
+  cpSync(root, copy, { recursive: true });
+
+  try {
+    renameSync(copy, kept);
+  } catch {
+    // Another test process kept the same repository first.
+    rmSync(copy, { recursive: true, force: true });
+  }
 }
 
 // For tests that read no history: the files are in the work tree, uncommitted, which spares two Git starts.
