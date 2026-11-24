@@ -157,6 +157,30 @@ Routing: the choice changes what the audit shows for an untrusted repository and
 is product direction, so it goes to Lars as a recommendation, with a plan reviewed by thermos, security-review and
 security-audit as he asked.
 
-A test of the shared assumption (Claude's idea, not yet run): trace the files Git actually opens during the CLI's
-commands on probe repositories (strace on Linux, a file-access trace on Windows) and compare them with what the check
-reads.
+A test of the shared assumption (Claude's idea): trace the files Git actually opens during the CLI's commands on probe
+repositories (strace on Linux, a file-access trace on Windows) and compare them with what the check reads.
+
+Run 2026-11-24 (Lars: "Item 3, an untested idea from the network-guard decision: OK"), Linux only: a Windows
+file-access trace needs an elevated prompt (wpr, xperf) or Process Monitor, which is not installed. Docker
+`node:24-trixie` (Git 2.47.3, Node.js 24.22.3, strace 6.13), plugin at b597195, `strace -f -y` on
+`node lz-oop.ts --trusted-repository hotspots -- <scope>`. Ten probe repositories whose metadata names files under a
+separate `/far/<probe>` tree: plain; a `.git` file naming a separate git folder; a linked work tree whose
+`config.worktree` includes a file; a relative alternate whose own alternate names a third object store; a chain of two
+includes, the second relative to the first; `includeIf` on `gitdir` and `onbranch`; `core.excludesFile` and
+`core.attributesFile`; `core.worktree` moved out; reftable; a submodule audited from inside. The check counts as the
+CLI's own Node.js process plus its `git config --file` children; Git is every other git process. [measured]
+
+- In all ten, every path Git touched under the probe's trees (`rev-parse`, `ls-files`, `log`) was one the check had
+  touched first, or lies in a folder the check had touched first: refs, loose objects, `index`, `HEAD`,
+  `info/exclude`, and the probes for `shallow`, `info/grafts` and `packed-refs`. Under `/far`, Git opened nothing in a
+  folder the check had not read; the include files, `config.worktree`'s include, both alternates and the separate git
+  folder were all read by the check before Git ran. [measured]
+- `core.worktree` pointing out of the scope: the CLI stopped after `rev-parse` ("the repository's work tree ... does
+  not hold ..."), and Git had opened only `HEAD` before that. [measured]
+- What this does not show: the routes rounds 4 to 9 found were Windows name readings (drive-relative names, `\` roots,
+  links, short names, UNC forms), which a Linux trace cannot exercise; a link below a checked folder (no probe had
+  one); Git versions other than 2.47.3; programs Git starts; and the Git commands the lz-audit skill has the model run
+  itself. So the premise held on these ten shapes on Linux and stays unproven where the earlier findings were.
+  [inferred]
+- Probe scripts and traces: `C:/Users/LARSGY~1/AppData/Local/Temp/claude/4ec5e242a5a42496/17f94589-bf36-47a0-a4fc-f6884d5e4fb6/scratchpad/strace/`
+  (`probes.sh`, `analyze-trace.ts`, `analysis.txt`).
