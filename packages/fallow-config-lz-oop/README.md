@@ -1,7 +1,7 @@
 # @layzee/fallow-config-lz-oop
 
 Two [Fallow](https://github.com/fallow-rs/fallow) config presets for `lz-oop`. They set the few Fallow limits that
-make `fallow health` point at the places the `lz-audit` skill looks at first: complex functions inside often-changed
+make `fallow health` point at the places the `lz-oop-audit` skill looks at first: complex functions inside often-changed
 files, files that change together without importing each other, and, in the strict preset, files too long to read.
 They fail the run (severity `error`, not `warn`) on a function over the complexity limits, and the strict preset also
 on a source file over the length limit. Checks that judge production code only (CRAP, duplication, file length) leave
@@ -40,7 +40,7 @@ with the entries below set, it found 1 unused file and scored 87.6.
 - `entry`: the files that run in production: CLIs, servers, the module a package exports.
 - `supportEntry`: tests, tooling and scripts that run outside production. List test utility modules too (for example
   `test-*.ts`) when their names do not match a test pattern. With `production: true`, Fallow then leaves all of them
-  out, so the importer count (fan-in) of a module counts production importers only, as `lz-audit` counts them.
+  out, so the importer count (fan-in) of a module counts production importers only, as `lz-oop-audit` counts them.
   Without `production: true`, tests and their utilities count as importers.
 - `dynamicallyLoaded`: files loaded by a computed path or URL (for example a worker or a child process started from a
   `new URL(...)`), which Fallow cannot see as imports and would report as unused.
@@ -68,7 +68,7 @@ the dynamically loaded file as unused.
 
 Two settings are command-line flags only, with no config key:
 
-- `--since`: the history window for hot spots. `lz-audit` counts churn over the last year, so run
+- `--since`: the history window for hot spots. `lz-oop-audit` counts churn over the last year, so run
   `fallow health --since 1y` to match it; Fallow's own default window is 6 months.
 - `--coverage`: Istanbul or V8 coverage data. Without it Fallow estimates coverage, and on lz-gardener it estimated none
   for all 66 functions it flagged, although every module there has tests. With no coverage the CRAP score is just
@@ -87,7 +87,7 @@ Run Fallow twice, for two jobs:
   the coverage from the whole suite.
 - **The hot-spot list**, when you look for what to refactor first:
   `fallow health --hotspots --since 1y --report-only`. It lists files that are both complex and often changed over the
-  year `lz-audit` counts, and never fails the run.
+  year `lz-oop-audit` counts, and never fails the run.
 
 
 ## The recommended preset
@@ -103,7 +103,7 @@ table and `fallowrc.json` hold the same keys and values.
 | `rules.complexity-cyclomatic` | `"error"` | The cyclomatic limit below. | Fallow's default is already `error`; stating it keeps the gate failing if that default changes. A function over the limit fails the run. |
 | `rules.complexity-cognitive` | `"error"` | The cognitive limit below. | Stated for the same reason. |
 | `rules.complexity-crap` | `"error"` | Complex functions that no test covers. | Stays at `error`. CRAP is cyclomatic² × (1 − coverage)³ + cyclomatic, so with the cyclomatic limit at 4 a function within that limit scores at most 20, below Fallow's CRAP limit of 30. CRAP therefore fails no function the cyclomatic limit passes; it marks which flagged functions tests leave uncovered. Read that only from a run with `--coverage`. The `overrides` row below turns it off in test files. |
-| `health.maxCyclomatic` | `4` | `lz-audit` step 2, Complexity: cyclomatic complexity is the least number of tests that covers a function's paths, and the complex functions inside hot spots are where the audit reads first. The same limit as the `complexity` rule of `eslint-plugin-lz-oop`. | The JavaScript companion code of *99 Bottles of OOP* never goes above 4 at any chapter's end; its factory method, a three-way choice with a default, sits at 4 (measured with ESLint and Fallow 3.43.2). Fallow and ESLint count the same on 97% of 25,034 functions in four repositories, and where they differ ESLint is higher (it also counts default values and every `?.`), so one number serves both and the two flagged sets overlap most (90.5%). At 4, Fallow flags 8.0 to 8.8% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 2.4% in ts-morph. Fallow's default of 20 flags under 0.2%. Each flag asks for a fix or a stated exception. A legacy repository adopts the preset through a Fallow baseline, not a raised limit. |
+| `health.maxCyclomatic` | `4` | `lz-oop-audit` step 2, Complexity: cyclomatic complexity is the least number of tests that covers a function's paths, and the complex functions inside hot spots are where the audit reads first. The same limit as the `complexity` rule of `eslint-plugin-lz-oop`. | The JavaScript companion code of *99 Bottles of OOP* never goes above 4 at any chapter's end; its factory method, a three-way choice with a default, sits at 4 (measured with ESLint and Fallow 3.43.2). Fallow and ESLint count the same on 97% of 25,034 functions in four repositories, and where they differ ESLint is higher (it also counts default values and every `?.`), so one number serves both and the two flagged sets overlap most (90.5%). At 4, Fallow flags 8.0 to 8.8% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 2.4% in ts-morph. Fallow's default of 20 flags under 0.2%. Each flag asks for a fix or a stated exception. A legacy repository adopts the preset through a Fallow baseline, not a raised limit. |
 | `health.maxCognitive` | `4` | Cognitive complexity, the second reading of how hard a function is to follow: nesting and runs of boolean operators weigh more than a flat branch. The same limit as the `cognitive-complexity` rule of `eslint-plugin-lz-oop`, and the same number as the cyclomatic limit. | The same companion code never goes above 2. Fallow and sonarjs count the same on 82% of functions; Fallow is almost always the higher, because it also counts runs of `\|\|` and `??`, and at 4 the flagged sets overlap 82.0%. At 4, Fallow flags 4.3 to 5.7% of source functions in lz-node-test, stryker-playwright-runner and lz-gardener, and 1.8% in ts-morph; nearly all of them are over the cyclomatic limit too, so the cognitive limit adds few reports of its own (1 or 2 functions per repository, 37 in ts-morph). |
 | `health.changeCoupling.minDegree` | `0.4` | `references/smells.md`, Shotgun Surgery: files that change together with no import between them, so one change needs edits in each. | Change coupling is advisory: no rule exists for it, so it never fails the run. Measured on pairs with at least 5 shared commits, 0.25 sits below the median degree in lz-node-test (0.34) and stryker-playwright-runner (0.32) and lists most pairs, mostly a file and its own test. 0.4 keeps the strongest third: 32 of 102 pairs in stryker-playwright-runner, 5 of 18 in lz-node-test, 4 in ts-morph (all source files, among them the two runtime adapters that change together), and 10 in lz-gardener, none of them two source files. tldraw still gets 143, mostly release lockstep and sibling tools. Fallow has no setting that leaves out only the pairs of a source file and its test; see "Test files" below. |
 | `duplicates.ignore` | `["**/*.test.*","**/*.spec.*","**/__tests__/**","**/test/**","**/tests/**","**/spec/**","**/e2e/**"]` | Duplication in production code only: removing duplication pays much less in tests, where each test reads best on its own. | Fallow's own duplication ignores already skip `*.test.*`, `*.spec.*`, `__tests__` and `__mocks__`; this list adds the test folders. Fallow adds `duplicates.ignore` to its own ignores (`ignoreDefaults` stays `true`). |

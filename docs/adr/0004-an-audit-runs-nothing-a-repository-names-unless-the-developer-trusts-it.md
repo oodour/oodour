@@ -1,6 +1,6 @@
 # An audit runs nothing a repository names unless the developer trusts it
 
-`lz-audit` audits repositories the developer may not have written. Git, test runners, linters and package scripts start
+`lz-oop-audit` audits repositories the developer may not have written. Git, test runners, linters and package scripts start
 programs that a repository's own config names, and on Windows a path that Git opens can lead to another machine and send
 it the developer's credentials. So every repository is untrusted by default: the plugin's command starts no Git process
 and walks the folder itself without entering links, and the skill and the `lz-oop:auditor` agent run nothing the

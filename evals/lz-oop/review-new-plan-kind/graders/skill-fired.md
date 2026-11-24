@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Skill
-input_match: '"skill"\s*:\s*"(?:[\w-]+:)?lz-review"'
+input_match: '"skill"\s*:\s*"(?:[\w-]+:)?lz-oop-review"'
 ---
 
-The lz-review skill was invoked.
+The lz-oop-review skill was invoked.

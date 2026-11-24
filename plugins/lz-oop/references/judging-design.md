@@ -1,7 +1,7 @@
 # Judging a design
 
-Used by every skill in this plugin: by `lz-oop` for a question about one piece of code, by `lz-review` for each change
-in a change set, and by `lz-audit` for each hot spot in a package.
+Used by every skill in this plugin: by `lz-oop` for a question about one piece of code, by `lz-oop-review` for each
+change in a change set, and by `lz-oop-audit` for each hot spot in a package.
 
 Contents: steps 1-6; Smells and checks this leaf owns: The Squint Test; Is a class hiding inside this one?; Primitive
 Obsession; Consistency; Does it do one job?; More smells.

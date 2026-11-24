@@ -15,8 +15,8 @@ allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
 5. **Not a design question**: a bug, a rename, functional code where objects would not help, or another language. Answer
    it directly without this skill's procedures.
 
-A review of a whole change set (a diff, a branch, a pull request) belongs to the `lz-review` skill, and an audit of a
-package or repository to the `lz-audit` skill.
+A review of a whole change set (a diff, a branch, a pull request) belongs to the `lz-oop-review` skill, and an audit of
+a package or repository to the `lz-oop-audit` skill.
 
 Inspect the project before advising: its language and module style, framework conventions, and how its existing code and
 tests are written. Advice must fit the codebase, including codebases where classes are not the house style: a module of
@@ -26,8 +26,8 @@ Advise on a question; change code only on an explicit request to do so, then sto
 
 When you did change code, end by offering a design review of the change by the `lz-oop:reviewer` agent, which starts
 with fresh context and so without your reasons for the change. When the developer asked for a review of it, run that
-review, not the offer: launch `lz-oop:reviewer` with the scope as step 1 of the `lz-review` skill describes, and check
-its findings against the code before you relay them.
+review, not the offer: launch `lz-oop:reviewer` with the scope as step 1 of the `lz-oop-review` skill describes, and
+check its findings against the code before you relay them.
 
 This file only routes. Before you answer each request, follow-up questions included, Read each reference file the
 matching section below names for the request, and every further reference that file sends you to for the smell or

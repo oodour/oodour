@@ -1,10 +1,10 @@
 ---
-name: lz-audit
+name: lz-oop-audit
 description: Object-oriented design audit of a JavaScript or TypeScript package, folder or repository. Use when a developer asks to audit the design of a codebase, find its design hot spots or technical debt, decide where to start refactoring a legacy codebase or which classes or modules to refactor first, or find where change is most expensive (large condition-laden classes, type switches repeated across files, hard-coded dependencies, deep hierarchies, test suites full of mocks). Produces a ranked report and changes nothing. Not for reviewing one change, not for one question about one piece of code, and not for code in other languages.
 allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**) Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts" hotspots *)
 ---
 
-# lz-audit: design audit of a package or repository
+# lz-oop-audit: design audit of a package or repository
 
 This file only routes. Read `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, and for each smell you report the file
 that judging-design.md's step 4 names, before you write the report; the cures and their steps are there, not here. If

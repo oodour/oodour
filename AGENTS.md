@@ -161,7 +161,7 @@ type-checks, lints and tests all of them.
   count as traced ([ADR 0003](docs/adr/0003-every-concept-rule-and-check-traces-to-the-sources.md)).
 - No skill sets `disable-model-invocation: true`. In Claude Code it also makes the Skill tool refuse the skill,
   stops `skills:` preloading, and keeps `/loop` and autonomous sessions from running it.
-- Name plugin agents with the plugin prefix wherever a caller names them (`skills: [lz-oop:lz-review]`,
+- Name plugin agents with the plugin prefix wherever a caller names them (`skills: [lz-oop:lz-oop-review]`,
   `subagent_type: "lz-oop:reviewer"`). A bare name silently falls back to the default agent in a skill's `agent:`
   field, and fails in an Agent call.
 - Point at bundled files with `${CLAUDE_SKILL_DIR}` inside a skill and `${CLAUDE_PLUGIN_ROOT}` across skills.
