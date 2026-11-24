@@ -47,7 +47,8 @@ export function trustDecision(input: string, pluginRoot: string): TrustDecision 
 if (import.meta.main) {
   const { CLAUDE_PLUGIN_ROOT: pluginRoot = '' } = process.env;
 
-  // The hook never allows: it asks for a trusted call in auto mode, and otherwise leaves the decision to the settings.
+  // The hook never allows: it asks for input it cannot read and, in auto mode, for any call but the untrusted command;
+  // otherwise it leaves the decision to the settings.
   if (trustDecision(readFileSync(0, 'utf8'), pluginRoot) === 'ask') {
     process.stdout.write(
       JSON.stringify({

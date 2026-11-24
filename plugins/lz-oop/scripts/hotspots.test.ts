@@ -216,7 +216,7 @@ test('the report names what the walk did not enter, so the reader leaves it unre
 
   assert.match(
     renderHotspots(root, '12 months ago', measured, rankHotspots(measured.files, 30)),
-    /\nLeft out, not entered \(links, folders it may not list, names ending in a dot or a space\): linked\.\n/,
+    /\nLeft out, not entered \(links, folders it may not list, names ending in a dot or a space, other repositories\): linked\.\n/,
   );
 });
 

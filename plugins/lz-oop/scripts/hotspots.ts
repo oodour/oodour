@@ -153,7 +153,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
     ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join('; ')}`] : []),
     ...(measured.skipped.length > 0
       ? [
-          'Left out, not entered (links, folders it may not list, names ending in a dot or a space): ' +
+          'Left out, not entered (links, folders it may not list, names ending in a dot or a space, other repositories): ' +
             `${measured.skipped.join(', ')}.`,
         ]
       : []),
