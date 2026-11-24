@@ -211,8 +211,9 @@ test('counting the commits reads no pack that the multi-pack-index names outside
   const outside = `pack-${name.slice('../../../out/pack-'.length)}`;
   mkdirSync(join(root, 'out'));
 
-  for (const ending of ['.idx', '.pack', '.rev']) {
-    renameSync(join(pack, `${name}${ending}`), join(root, 'out', `${outside}${ending}`));
+  // Git before 2.41 writes no .rev file by default.
+  for (const file of readdirSync(pack).filter((each) => each.startsWith(`${name}.`))) {
+    renameSync(join(pack, file), join(root, 'out', `${outside}${file.slice(name.length)}`));
   }
 
   const index = join(pack, 'multi-pack-index');
