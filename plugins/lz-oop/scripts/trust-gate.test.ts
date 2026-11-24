@@ -6,8 +6,8 @@ import { trustDecision } from './trust-gate.ts';
 
 const root = 'C:/plugins/lz-oop/1.0.0';
 const script = `${root}/scripts/lz-oop.ts`;
-const call = (command: string, mode = 'auto'): string =>
-  JSON.stringify({ permission_mode: mode, tool_name: 'Bash', tool_input: { command } });
+const call = (command: string, mode = 'auto', tool = 'Bash'): string =>
+  JSON.stringify({ permission_mode: mode, tool_name: tool, tool_input: { command } });
 
 test('in auto mode the trusted command asks the developer', () => {
   assert.equal(trustDecision(call(`node ${script} --trusted-repository hotspots -- D:/repo`), root), 'ask');
@@ -53,15 +53,31 @@ test('in auto mode a call that PowerShell or a line break could split into anoth
 });
 
 test('in auto mode the untrusted command passes with a quoted scope and the plugin path written with backslashes', () => {
+  const backslashed = script.replaceAll('/', '\\');
+  const calls = [
+    call(`node ${script} hotspots --since "2 years ago" -- "D:/my repo"`),
+    call(`node "${backslashed}" hotspots -- D:/repo`),
+    call(`node ${backslashed} hotspots -- D:/repo`, 'auto', 'PowerShell'),
+    call(`node ${script} hotspots --limit 50 -- packages/@org/lib`),
+  ];
+
+  assert.deepEqual(
+    calls.map((input) => trustDecision(input, root)),
+    calls.map(() => undefined),
+  );
+});
+
+test('in auto mode a Bash path whose backslashes Bash would remove or change asks, since Node then opens another file', () => {
+  const backslashed = script.replaceAll('/', '\\');
   const commands = [
-    `node ${script} hotspots --since "2 years ago" -- "D:/my repo"`,
-    `node ${script.replaceAll('/', '\\')} hotspots -- D:/repo`,
-    `node ${script} hotspots --limit 50 -- packages/@org/lib`,
+    `node ${backslashed} hotspots -- D:/repo`,
+    `node C:\\plugins/lz-oop/1.0.0/scripts/lz-oop.ts hotspots -- D:/repo`,
+    `node "${backslashed.replace('\\', '\\\\')}" hotspots -- D:/repo`,
   ];
 
   assert.deepEqual(
     commands.map((command) => trustDecision(call(command), root)),
-    commands.map(() => undefined),
+    commands.map(() => 'ask'),
   );
 });
 

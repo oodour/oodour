@@ -13,11 +13,17 @@ const untrustedForm =
 
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
 
-function isUntrustedForm(command: string, pluginRoot: string): boolean {
+// Bash removes a backslash outside quotes, so there the path Node opens is not the one written.
+function isUntrustedForm(command: string, pluginRoot: string, tool: unknown): boolean {
   const script = untrustedForm.exec(command)?.groups;
-  const path = script?.['quoted'] ?? script?.['bare'];
+  const bare = script?.['bare'];
+  const path = script?.['quoted'] ?? bare;
 
-  return path !== undefined && withSlashes(path) === `${withSlashes(pluginRoot)}/scripts/lz-oop.ts`;
+  return (
+    path !== undefined &&
+    !(tool === 'Bash' && bare?.includes('\\') === true) &&
+    withSlashes(path) === `${withSlashes(pluginRoot)}/scripts/lz-oop.ts`
+  );
 }
 
 function parsedOrUndefined(input: string): unknown {
@@ -37,7 +43,10 @@ export function trustDecision(input: string, pluginRoot: string): TrustDecision 
 
   const command = fieldOf(fieldOf(parsed, 'tool_input'), 'command');
 
-  if (fieldOf(parsed, 'permission_mode') !== 'auto' || (typeof command === 'string' && isUntrustedForm(command, pluginRoot))) {
+  if (
+    fieldOf(parsed, 'permission_mode') !== 'auto' ||
+    (typeof command === 'string' && isUntrustedForm(command, pluginRoot, fieldOf(parsed, 'tool_name')))
+  ) {
     return undefined;
   }
 
