@@ -8,7 +8,7 @@ import { folderWith, networkShare, refusedByGit, repositoryWith, setForTest } fr
 import { runCommand } from './lz-oop.ts';
 
 const cli = join(import.meta.dirname, 'lz-oop.ts');
-const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
 
 test('hotspots prints the hot-spot report for the scope it is given, counting commits in a trusted repository', (context) => {
   const root = repositoryWith(context, [{ 'a.ts': 'export const a = (n: number) => (n > 0 ? n : 0);' }]);

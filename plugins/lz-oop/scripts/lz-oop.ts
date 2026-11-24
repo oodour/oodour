@@ -16,7 +16,7 @@ export interface CommandResult {
   readonly stderr: string;
 }
 
-const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [<folder>] [--since <date>] [--limit <count>]\n';
+const usage = 'usage: node lz-oop.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
 const trustFlag = '--trusted-repository';
 
 function parseCommand(args: readonly string[]): HotspotsCommand | string {
