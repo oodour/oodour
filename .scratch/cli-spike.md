@@ -129,6 +129,26 @@ invoking it, and background subagents. Each is one more eval case.
   with no Skill call, was refused the same Read ("Claude requested permissions to read from ..."). So 7e7099c fixes the
   reviewer's Read grant too (measured, one run each).
 
+**Update, 2026-11-24, a plugin folder whose path has a space** (Lars: "Item 1, the space in the profile path: OK")
+[measured, one haiku run each, slim `claude -p` without the plain `Read` rule, Skill allowed, plugin copies under
+`D:/tmp/slim-claude-p/lz-space/plug <X>/`]:
+
+- `Read(${CLAUDE_PLUGIN_ROOT}/**)` granted the Read from the spaced folder in every variant.
+- The old rule `Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts hotspots *)` refused the quoted command
+  (`bashMiss:no-rule-match`), and refused it from a folder without a space too: it matched only while the model left
+  the path unquoted.
+- A rule with the quotes written in, `Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/lz-oop.ts" hotspots *)`, let the quoted
+  untrusted command run from the spaced folder (`ruleSource: "command"`); the trusted form stayed refused.
+- A `bin/lz-oop` launcher with `Bash(lz-oop hotspots *)` also ran, but its command never names `lz-oop.ts`, so the
+  trust-gate hook's `if` would not see it, and the docs say claude.ai and Cowork do not install a plugin with a
+  top-level `bin/` [docs, not measured]. Not taken.
+- The trust-gate hook started from the spaced folder in both forms, the shipped shell form with quotes and the exec form
+  (`"command": "node", "args": [...]`), shown by a probe hook that logged each start; the slim runner sets
+  `disableAllHooks`, so these runs turned it off. Issue #38800 (quotes stripped) did not reproduce.
+- aa113d1 quotes the path in the skill's commands and grant, moves the hook to the exec form the hooks reference
+  recommends for a path placeholder, and quotes the README's rule. At aa113d1, a real `/lz-oop:lz-audit` session from
+  the spaced folder wrote the quoted command itself and ran it under the skill's grant, and read its references.
+
 ## Login note
 
 The isolated `CLAUDE_CONFIG_DIR` cannot run a session: it has no login [measured], and copying Lars's
