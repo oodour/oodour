@@ -65,9 +65,11 @@ are the house style: where they are not, a cure can use a module of functions or
 Code that changes often and is hard to understand costs the most; plot each file on those two axes, beside how many
 files depend on it.
 
-The command from step 1 measures the last 12 months (`--since <date>` for another period) and prints 30 rows
-(`--limit <count>` for more); put either option before the `--`. Lines above the table state the period, the history,
-the thresholds and what was left out; the table has one row per production file, named from the repository's top folder:
+The command from step 1 measures the last 12 months (`--since <date>` for another period, with the date written out,
+such as `--since 2026-01-01`: Claude Code asks the developer before a command that works it out with `$(...)`) and
+prints 30 rows (`--limit <count>` for more); put either option before the `--`. Lines above the table state the period,
+the history, the thresholds and what was left out; the table has one row per production file, named from the
+repository's top folder:
 
 - **Commits**: commits in the period, a renamed file counted with its old paths. The history line says when an untrusted
   repository, a shallow clone, a partial clone (renames not followed), a treeless clone or a missing repository (no
