@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryHolding, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { gitIn } from './git.ts';
@@ -410,6 +410,57 @@ test('a reftable table that leads to a network path through a link is refused', 
   writeFiles(join(root, '.git', 'reftable'), { 'tables.list': '../../shared/table.ref\n' });
 
   assert.throws(() => gitIn(root), /^Error: git: .+tables\.list names a path that leads to a network path \(\.\.\/\.\.\/shared\/table\.ref\)$/);
+});
+
+// A repository whose objects borrow from a chain of `length` object stores, each naming the next in its alternates.
+function borrowingChain(context: TestContext, length: number): { readonly root: string; readonly lent: readonly string[] } {
+  const base = folderWith(context, {});
+  const lent = Array.from({ length }, (_, index) => join(base, `lent${String(index + 1)}`));
+  const stores = [join(base, 'repo', '.git', 'objects'), ...lent];
+
+  for (const [index, store] of stores.entries()) {
+    writeFiles(store, { 'info/alternates': `${stores[index + 1] ?? ''}\n` });
+  }
+
+  return { root: join(base, 'repo'), lent };
+}
+
+test('a link to a network path in the sixth object store of a borrowing chain is refused, since Git reads that store', (context) => {
+  const { root, lent } = borrowingChain(context, 6);
+  const link = join(lent[5] ?? '', 'pack');
+  symlinkSync(share, link, 'dir');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, { message: `git: ${link} leads to a network path` });
+});
+
+test('a link to a network path in the seventh object store of a borrowing chain is accepted, since Git stops before it', (context) => {
+  const { root, lent } = borrowingChain(context, 7);
+  symlinkSync(share, join(lent[6] ?? '', 'pack'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, () => '');
+  });
+});
+
+test('an http-alternates file that names a network path is refused like an alternates file', (context) => {
+  const root = folderWith(context, { '.git/objects/info/http-alternates': `${share}\\objects\n` });
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, {
+    message: `git: ${join(root, '.git', 'objects', 'info', 'http-alternates')} names a network path (${share}\\objects)`,
+  });
+});
+
+test('a link in the git folder that leads back to it is walked once', (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  symlinkSync(join(root, '.git'), join(root, '.git', 'again'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, () => '');
+  });
 });
 
 test('a reftable table named by a network path is refused, naming the list and the line', (context) => {

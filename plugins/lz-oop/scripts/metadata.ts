@@ -119,17 +119,22 @@ function linesOf(file: string): readonly string[] {
     : [];
 }
 
-// Git reads borrowed objects from the folders an alternates file names, each line a path from the objects folder, and
-// follows their own alternates files up to this deep.
+// Git reads borrowed objects from the folders an alternates file names, each line a path from the objects folder. It
+// takes the alternates files of borrowed folders too, down to a folder this many borrowings deep, and reads the objects
+// of the folders that one names but not their alternates.
 const mostAlternates = 5;
 
 function assertLocalAlternates(objects: string, walked: Set<string>, cwds: readonly string[], depth = 0): void {
+  if (depth > mostAlternates) {
+    return;
+  }
+
   for (const file of [join(objects, 'info', 'alternates'), join(objects, 'info', 'http-alternates')]) {
     for (const line of linesOf(file)) {
       const refusal = `${file} names a network path (${line})`;
       const lent = namesNetworkPath(line) ? refuse(refusal) : readingsFrom(objects, line, cwds, refusal);
 
-      for (const reading of depth < mostAlternates ? lent : []) {
+      for (const reading of lent) {
         assertLocalLinks(reading, walked);
         assertLocalAlternates(reading, walked, cwds, depth + 1);
       }
