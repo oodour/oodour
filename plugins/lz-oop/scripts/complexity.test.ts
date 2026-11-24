@@ -36,6 +36,12 @@ test('a file below a node_modules or .git folder is measured like any other', ()
   }
 });
 
+test("a file's own ESLint comments neither turn the count off nor read as a parse error", () => {
+  const text = '/* eslint lz/complexity: "off" */\n/* eslint-disable */\nconst f = (a: number) => (a ? 1 : 2);';
+
+  assert.deepEqual(functionComplexity('a.ts', text), { functions: [{ name: 'Arrow function', line: 3, complexity: 2 }] });
+});
+
 test('a file the parser cannot read gives the place it stopped', () => {
   const result = functionComplexity('src/a.ts', 'function (\n');
 
