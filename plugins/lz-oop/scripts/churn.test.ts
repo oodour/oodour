@@ -86,20 +86,67 @@ test('a partial clone is known by any spelling Git reads as true', (context) => 
   commitFiles(origin, { 'b.ts': 'one\ntwo\nthree\nfour\nfive\n' });
   const clone = partialCloneOf(context, origin);
 
-  for (const spelling of ['ON', 'yes', '1', '2k', '0x1a', '-010']) {
+  for (const spelling of ['ON', 'yes', '1', '2k', '0x1a', '0x12', '0x1ab', '-010']) {
     runGit(clone, ['config', 'remote.origin.promisor', spelling]);
 
     assert.deepEqual(churn(gitOf(clone), '2025-11-23'), { commits: new Map([['a.ts', 2], ['b.ts', 1]]), limits: ['partial'] }, spelling);
   }
 });
 
-for (const filter of ['tree:0', 'combine:blob:none+tree:0']) {
+for (const filter of ['tree:0', 'combine:blob:none+tree:0', 'combine:blob:none+blob:limit=1k+tree:0']) {
   test(`a treeless clone (${filter}) has no commit counts, since its older commits list no files`, (context) => {
     const clone = partialCloneOf(context, repositoryWith(context, [{ 'a.ts': 'one' }, { 'a.ts': 'two' }]), filter);
 
     assert.equal(churn(gitOf(clone), '2025-11-23'), 'treeless');
   });
 }
+
+const gitWithConfig =
+  (config: string): Git =>
+  (args) =>
+    args[0] === 'config' ? config : '';
+
+test('a remote without a promisor key or a true value leaves the clone whole', () => {
+  const configs = [
+    'remote.origin.promisor=false',
+    'remote.origin.promisor=off',
+    'remote.origin.promisor=0',
+    'remote.origin.promisor=0x0',
+    'remote.origin.promisor=xtrue',
+    'remote.origin.promisor=true1',
+    'remote.origin.promisors=true',
+    'branch.remote.x.promisor=true',
+    'alias.p=extensions.partialclone=origin',
+    'alias.t=remote.origin.partialclonefilter=tree:0',
+  ];
+
+  for (const config of configs) {
+    assert.deepEqual(churn(gitWithConfig(`${config}\n`), '2025-11-23'), { commits: new Map(), limits: [] }, config);
+  }
+});
+
+test('a promisor key with no value marks a partial clone', () => {
+  assert.deepEqual(churn(gitWithConfig('remote.origin.promisor\n'), '2025-11-23'), {
+    commits: new Map(),
+    limits: ['partial'],
+  });
+});
+
+test("a log format in the repository's own config names no file", (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one' }]);
+  runGit(root, ['config', 'format.pretty', 'format:x%x09y.ts']);
+
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['a.ts', 1]]), limits: [] });
+});
+
+test("a rename is followed even when the repository's config turns rename detection off", (context) => {
+  const root = repositoryWith(context, [{ 'a.ts': 'one\ntwo\nthree\nfour\nfive\nsix\n' }]);
+  runGit(root, ['mv', 'a.ts', 'b.ts']);
+  runGit(root, ['commit', '-q', '-m', 'rename']);
+  runGit(root, ['config', 'diff.renames', 'false']);
+
+  assert.deepEqual(churn(gitOf(root), '2025-11-23'), { commits: new Map([['b.ts', 2]]), limits: [] });
+});
 
 test('a repository without commits has nothing to count', (context) => {
   const root = repositoryWith(context, []);
