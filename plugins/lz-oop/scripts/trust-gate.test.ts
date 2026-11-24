@@ -34,19 +34,41 @@ test('in auto mode any other call of an lz-oop.ts asks, since its words could re
   );
 });
 
-test('in auto mode the untrusted command passes with a quoted scope and the plugin path written with backslashes', () => {
-  const commands = [`node ${script} hotspots --since "2 years ago" -- "D:/my repo"`, `node ${script.replaceAll('/', '\\')} hotspots -- D:/repo`];
+test('in auto mode a call that PowerShell or a line break could split into another command asks', () => {
+  const trusted = `node ${script} --trusted-repository hotspots -- D:/repo`;
+  const commands = [
+    `node ${script} hotspots (${trusted})`,
+    `node ${script} hotspots @(${trusted})`,
+    `node ${script} hotspots -- D:/repo, (${trusted})`,
+    `node ${script} hotspots { ${trusted} }`,
+    `node\n${script} hotspots -- D:/repo`,
+    `node ${script} hotspots\n${trusted}`,
+    `node ${script} hotspots\r${trusted}`,
+  ];
 
   assert.deepEqual(
     commands.map((command) => trustDecision(call(command), root)),
-    [undefined, undefined],
+    commands.map(() => 'ask'),
   );
 });
 
-test('input the hook cannot read asks when it holds the trust flag, and leaves the decision otherwise', () => {
+test('in auto mode the untrusted command passes with a quoted scope and the plugin path written with backslashes', () => {
+  const commands = [
+    `node ${script} hotspots --since "2 years ago" -- "D:/my repo"`,
+    `node ${script.replaceAll('/', '\\')} hotspots -- D:/repo`,
+    `node ${script} hotspots --limit 50 -- packages/@org/lib`,
+  ];
+
+  assert.deepEqual(
+    commands.map((command) => trustDecision(call(command), root)),
+    commands.map(() => undefined),
+  );
+});
+
+test('input the hook cannot read asks, since the hook runs only for calls that name lz-oop.ts', () => {
   assert.deepEqual(
     [trustDecision(`{"tool_input": "node ${script} --trusted-repository hotspots`, root), trustDecision('not json', root)],
-    ['ask', undefined],
+    ['ask', 'ask'],
   );
 });
 

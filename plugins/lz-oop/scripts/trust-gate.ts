@@ -7,8 +7,9 @@ function fieldOf(value: unknown, name: string): unknown {
 }
 
 // The plugin's own script, then the command name as the first argument: the CLI reads trust only from the first one.
-// No shell operator may follow, since one could start a second command.
-const untrustedForm = /^\s*node\s+(?:"(?<quoted>[^"]+)"|(?<bare>\S+))\s+hotspots(?:\s[^;&|<>$`\r\n]*)?$/;
+// Only plain argument characters may follow: Bash and PowerShell each have characters that start a second command.
+const untrustedForm =
+  /^[ \t]*node[ \t]+(?:"(?<quoted>[^"]+)"|(?<bare>[^\s"]+))[ \t]+hotspots(?:[ \t][\p{L}\p{N} \t"'/\\:._~=+@-]*)?$/u;
 
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
 
@@ -30,9 +31,8 @@ function parsedOrUndefined(input: string): unknown {
 export function trustDecision(input: string, pluginRoot: string): TrustDecision {
   const parsed = parsedOrUndefined(input);
 
-  // Input it cannot read could still be a trusted call; any other call runs as it would without the hook.
   if (parsed === undefined) {
-    return input.includes('--trusted-repository') ? 'ask' : undefined;
+    return 'ask';
   }
 
   const command = fieldOf(fieldOf(parsed, 'tool_input'), 'command');
