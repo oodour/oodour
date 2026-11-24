@@ -305,7 +305,9 @@ test('a commondir file that is a link to a network path is refused, naming the f
   const root = folderWith(context, { '.git/config': '' });
   symlinkSync(`${share}\\commondir`, join(root, '.git', 'commondir'), 'file');
 
-  assert.throws(() => assertLocalMetadata(root, () => ''), {
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, {
     message: `git: ${join(root, '.git', 'commondir')} leads to a network path`,
   });
 });
@@ -413,7 +415,9 @@ test('a reftable table that leads to a network path through a link is refused', 
 test('a reftable table named by a network path is refused, naming the list and the line', (context) => {
   const root = folderWith(context, { '.git/reftable/tables.list': `${share}\\table.ref\n` });
 
-  assert.throws(() => assertLocalMetadata(root, () => ''), {
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, {
     message: `git: ${join(root, '.git', 'reftable', 'tables.list')} names a network path (${share}\\table.ref)`,
   });
 });
@@ -423,7 +427,9 @@ test('a list of tables that is a link to a network path is refused, naming the l
   mkdirSync(join(root, '.git', 'reftable'));
   symlinkSync(`${share}\\tables.list`, join(root, '.git', 'reftable', 'tables.list'), 'file');
 
-  assert.throws(() => assertLocalMetadata(root, () => ''), {
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, {
     message: `git: ${join(root, '.git', 'reftable', 'tables.list')} leads to a network path`,
   });
 });
