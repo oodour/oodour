@@ -301,6 +301,15 @@ test('a commondir file that is a link is read like any other', (context) => {
   assert.throws(() => gitIn(tree), /^Error: git: .+commondir points to a network path/);
 });
 
+test('a commondir file that is a link to a network path is refused, naming the file', (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  symlinkSync(`${share}\\commondir`, join(root, '.git', 'commondir'), 'file');
+
+  assert.throws(() => assertLocalMetadata(root, () => ''), {
+    message: `git: ${join(root, '.git', 'commondir')} leads to a network path`,
+  });
+});
+
 test('a link in the git folder that leads to a network path is refused before Git runs', (context) => {
   const root = repositoryHolding(context, { 'a.ts': '' });
   rmSync(join(root, '.git', 'info'), { recursive: true, force: true });
