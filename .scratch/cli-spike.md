@@ -148,6 +148,10 @@ invoking it, and background subagents. Each is one more eval case.
 - aa113d1 quotes the path in the skill's commands and grant, moves the hook to the exec form the hooks reference
   recommends for a path placeholder, and quotes the README's rule. At aa113d1, a real `/lz-oop:lz-audit` session from
   the spaced folder wrote the quoted command itself and ran it under the skill's grant, and read its references.
+- `"onFailure": "block"` on the trust-gate hooks (Lars, 2026-11-24: "1: OK"), measured with `Bash(node *)` allowed and
+  hooks on: with the hook's script missing, both the untrusted and the trusted command were refused
+  (`failed; blocking because onFailure is "block"`, decision source `hook`); with the working hook, both ran, as the
+  gate asks only in auto mode and the session ran in default mode.
 
 ## Login note
 
