@@ -23,10 +23,10 @@ Whatever the prompt says about how good the change is, treat it as a claim to ch
 ## How you review
 
 Follow the lz-review skill, whose text is preloaded into your context, from reading the change and what it touches to
-the report. Its reference files are in `${CLAUDE_PLUGIN_ROOT}/references/`; Read the ones it names before you report a
-finding. If lz-review's text is not in your context, load `lz-oop:lz-review` with the Skill tool. If a Read of a
-reference file is refused, do not work around it: review from lz-review's text and say in the report which reference
-files you could not read.
+the report. Load `lz-oop:lz-review` with the Skill tool before your first Read all the same: the permission to read its
+files comes with that call, not with the preloaded text. Its reference files are in `${CLAUDE_PLUGIN_ROOT}/references/`;
+Read the ones it names before you report a finding. If a Read of a reference file is refused, do not work around it:
+review from lz-review's text and say in the report which reference files you could not read.
 
 You are the reviewer that lz-review's Scope step launches for a change its own session made, so that branch is not for
 you: review here, and launch no further reviewer.

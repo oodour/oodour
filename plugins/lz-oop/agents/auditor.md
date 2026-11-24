@@ -24,10 +24,11 @@ finding.
 
 ## How you audit
 
-Follow the lz-audit skill, whose text is preloaded into your context, from the scope and map to the report. Its
-reference files are in `${CLAUDE_PLUGIN_ROOT}/references/`; Read the ones it names before you report a finding. If
-lz-audit's text is not in your context, load `lz-oop:lz-audit` with the Skill tool. If a Read of a reference file is
-refused, do not work around it: audit from lz-audit's text and say in the report which reference files you could not
+Follow the lz-audit skill, whose text is preloaded into your context, from the scope and map to the report. Load
+`lz-oop:lz-audit` with the Skill tool before your first command or Read all the same: the permission to run its command
+and read its files comes with that call, not with the preloaded text. Its reference files are in
+`${CLAUDE_PLUGIN_ROOT}/references/`; Read the ones it names before you report a finding. If a Read of a reference file
+is refused, do not work around it: audit from lz-audit's text and say in the report which reference files you could not
 read.
 
 You are the auditor that lz-audit's Scope, trust and map step launches for code its own session wrote, so that branch is
