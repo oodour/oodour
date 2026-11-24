@@ -66,6 +66,11 @@ The metadata check stays on the trusted path as a best-effort alarm for plain ne
 - In auto mode the hook asks even when an allow rule grants the trusted command (measured), so unattended trusted
   audits run in another permission mode. The hook's filter matches the text `lz-oop.ts` in the command, so a command
   that names the script another way (a glob, a variable) never reaches it; no text filter can close that.
+- The hook guards only the plugin's own command. In an untrusted audit, the skill's text alone keeps the model from
+  running Git, tests, linters or package scripts; in auto mode such a command goes to Claude Code's own classifier, and
+  `git blame` and `git log -S` start a program the repository's config names (measured). A hook that asked about every
+  Git command would prompt on the developer's own Git reads in every session with the plugin on (Claude's decision,
+  2026-11-24: not done).
 - A repository's own `.claude/settings.json` could hold an allow rule for the trusted command. In a `claude -p` run such
   a rule did not grant trust; whether an interactive session that has accepted the folder's trust honours it was not
   measured.

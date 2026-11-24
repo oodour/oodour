@@ -61,7 +61,9 @@ Bash(node <plugin folder>/scripts/lz-oop.ts --trusted-repository hotspots *)
 The plugin folder is where Claude Code installed the plugin, under `~/.claude/plugins/cache/`, and its last part is the
 version, so renew the rule after an update. Write the folder out in full: a `*` in it also matches a path that steps
 back with `..` to a `lz-oop.ts` inside the audited repository. In auto mode the plugin's hook asks you before the
-trusted command runs, even when a rule allows it, so run unattended trusted audits in another permission mode.
+trusted command runs, even when a rule allows it, so run unattended trusted audits in another permission mode. The hook
+guards that command only: in an untrusted audit, the skill's instructions are what keep Claude from running Git, tests
+or linters, and in auto mode Claude Code's own checks decide such a command.
 
 The trust check is no stronger than your permission settings. A broad allow rule such as `Bash(node *)` or
 `Bash(git *)`, or a session with permission checks turned off, lets Claude run those commands on any repository, so keep
