@@ -402,7 +402,7 @@ test('a .git file without `gitdir: ` names no folder', (context) => {
 });
 
 test("a work tree whose repository's common folder is a network path is refused before Git runs", (context) => {
-  const root = repositoryHolding(context, { 'a.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
   const tree = join(folderWith(context, {}), 'tree');
   runGit(root, ['worktree', 'add', '-q', tree]);
   writeFiles(join(root, '.git', 'worktrees', 'tree'), { commondir: `${share}\\repo.git\n` });
@@ -411,7 +411,7 @@ test("a work tree whose repository's common folder is a network path is refused 
 });
 
 test('a commondir that steps back after a link is read with the step taken by its text too', (context) => {
-  const root = repositoryHolding(context, { 'a.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
   const tree = join(folderWith(context, {}), 'tree');
   const treeGit = join(root, '.git', 'worktrees', 'tree');
   const deep = join(folderWith(context, {}), 'deep');
@@ -427,7 +427,7 @@ test('a commondir that steps back after a link is read with the step taken by it
 });
 
 test('a commondir file that is a link is read like any other', (context) => {
-  const root = repositoryHolding(context, { 'a.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
   const tree = join(folderWith(context, {}), 'tree');
   const elsewhere = folderWith(context, { commondir: `${share}\\repo.git\n` });
   runGit(root, ['worktree', 'add', '-q', tree]);
@@ -516,7 +516,7 @@ test("a folder that holds only some of a bare repository's parts is not read as 
 });
 
 test("from a linked work tree, the repository's own config is checked", (context) => {
-  const root = repositoryHolding(context, { 'a.ts': '' });
+  const root = repositoryWith(context, [{ 'a.ts': '' }]);
   const tree = join(folderWith(context, {}), 'tree');
   runGit(root, ['worktree', 'add', '-q', tree]);
   runGit(root, ['config', 'core.hooksPath', share]);
