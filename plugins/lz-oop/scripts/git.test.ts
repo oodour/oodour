@@ -130,6 +130,96 @@ test('a config file an include names is checked like the config itself', (contex
   assert.throws(() => gitIn(root), /^Error: git: mailmap\.file in .+included names a network path/);
 });
 
+// A config reader that returns, for each file, entries as `git config --list -z` writes them.
+const configsOf =
+  (configs: Readonly<Record<string, readonly (readonly [string, string?])[]>>): ConfigReader =>
+  (file) =>
+    (configs[file] ?? []).map(([key, value]) => (value === undefined ? key : `${key}\n${value}`)).join('\0');
+
+function homeFor(context: TestContext, files: Readonly<Record<string, string>>): string {
+  const home = folderWith(context, files);
+  setForTest(context, 'USERPROFILE', home);
+  setForTest(context, 'HOME', home);
+
+  return home;
+}
+
+test('a config value that starts with ~/ is read from the home folder', (context) => {
+  const home = homeFor(context, {});
+  symlinkSync(share, join(home, 'shared'), 'dir');
+  const root = folderWith(context, { '.git/config': '' });
+  const readConfig = configsOf({ [join(root, '.git', 'config')]: [['core.excludesfile', '~/shared/ignore']] });
+
+  assert.throws(() => {
+    assertLocalMetadata(root, readConfig);
+  }, /core\.excludesfile in .+ leads to a network path \(~\/shared\/ignore\)$/);
+});
+
+test('an include that starts with ~/ is read from the home folder', (context) => {
+  const home = homeFor(context, { included: '' });
+  const root = folderWith(context, { '.git/config': '' });
+  const readConfig = configsOf({
+    [join(root, '.git', 'config')]: [['include.path', '~/included']],
+    [join(home, 'included')]: [['core.hookspath', share]],
+  });
+
+  assert.throws(() => {
+    assertLocalMetadata(root, readConfig);
+  }, /core\.hookspath in .+included names a network path/);
+});
+
+test('a key with no value names no path, even when a path by its name leads to a network path', (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  symlinkSync(share, join(root, 'core.shared'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, configsOf({ [join(root, '.git', 'config')]: [['core.shared']] }));
+  });
+});
+
+test("only a remote's own url and pushurl may name a network path", (context) => {
+  for (const key of ['x.remote.origin.url', 'remote.origin.urls']) {
+    const root = folderWith(context, { '.git/config': '' });
+
+    assert.throws(() => {
+      assertLocalMetadata(root, configsOf({ [join(root, '.git', 'config')]: [[key, share]] }));
+    }, /names a network path/, key);
+  }
+});
+
+test('only include.path and includeIf.<condition>.path keys are read as includes', (context) => {
+  const included = (key: string): (() => void) => {
+    const root = folderWith(context, { '.git/config': '', '.git/included': '' });
+    const readConfig = configsOf({
+      [join(root, '.git', 'config')]: [[key, 'included']],
+      [join(root, '.git', 'included')]: [['core.hookspath', share]],
+    });
+
+    return () => {
+      assertLocalMetadata(root, readConfig);
+    };
+  };
+
+  assert.throws(included('includeif.onbranch:main.path'), /core\.hookspath in .+included names a network path/);
+
+  for (const key of ['x.includeif.onbranch:main.path', 'includeif.onbranch:main.paths']) {
+    assert.doesNotThrow(included(key), key);
+  }
+});
+
+test('a prefix Git strips from the start of a value is not stripped from inside it', (context) => {
+  // Each prefix sits after a slash, so removing it would leave `//host/share`.
+  const shared = share.replaceAll('\\', '/');
+
+  for (const value of [`/:(optional)${shared.slice(1)}`, `/%(prefix)/${shared.slice(1)}`, `/files:/${shared}`]) {
+    const root = folderWith(context, { '.git/config': '' });
+
+    assert.doesNotThrow(() => {
+      assertLocalMetadata(root, configsOf({ [join(root, '.git', 'config')]: [['core.excludesfile', value]] }));
+    }, value);
+  }
+});
+
 test('an include whose name is not UTF-8 is read as Git reads it', { skip: process.platform !== 'win32' }, (context) => {
   const root = repositoryHolding(context, { 'a.ts': '' });
   appendFileSync(join(root, '.git', 'config'), Buffer.from('[include]\n\tpath = \xE9vil\n', 'latin1'));
