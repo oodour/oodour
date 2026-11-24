@@ -52,12 +52,16 @@ The metadata check stays on the trusted path as a best-effort alarm for plain ne
 ## Consequences
 
 - An untrusted audit has no commit counts, no `git log -S` or `git blame`, and no lint results from the team's own
-  config, and its report says so. Its rows are named from the scope, not from the repository's top folder.
+  config, and its report says so. Its rows are named from the scope, not from the repository's top folder. Its file
+  list leaves out what the repository's `.gitignore` files and `.git/info/exclude` ignore, read as text with the
+  `ignore` package (Lars, 2026-11-24: "Approve adding the `ignore` package as agreed"), but not what the developer's
+  global excludes file ignores.
 - The trust check is no stronger than the developer's permission settings. Lars, 2026-11-23: "Broad permission grants:
   OK". A rule such as `Bash(node *)` or `Bash(git *)`, or a session with permission checks off, lets Claude run those
   commands on any repository; the plugin's README says to keep allow rules narrow.
 - In auto mode the hook asks even when an allow rule grants the trusted command (measured), so unattended trusted
-  audits run in another permission mode.
+  audits run in another permission mode. The hook's filter matches the text `lz-oop.ts` in the command, so a command
+  that names the script another way (a glob, a variable) never reaches it; no text filter can close that.
 - A repository's own `.claude/settings.json` could hold an allow rule for the trusted command. In a `claude -p` run such
   a rule did not grant trust; whether an interactive session that has accepted the folder's trust honours it was not
   measured.

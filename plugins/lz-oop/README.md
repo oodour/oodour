@@ -37,15 +37,16 @@ Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 ```
 
 `lz-audit` measures hot spots with the plugin's own command, `scripts/lz-oop.ts`, which needs Node.js 22.18 or later.
-Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser) when it installs the plugin, with npm
-from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run `npm ci` in that folder
-first.
+Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser, and `ignore`) when it installs the
+plugin, with npm from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run `npm ci`
+in that folder first.
 
 ## Trusted repositories
 
 Git, a test runner, a linter and a package script can start programs that a repository's own config names, and on
 Windows open paths that lead to other machines. So `lz-audit` treats every repository as untrusted: its command starts
-no Git process, the audit runs none of the repository's tools, and the report has no commit counts and says why.
+no Git process and reads the repository's `.gitignore` files as text, the audit runs none of the repository's tools, and
+the report has no commit counts and says why.
 
 To trust a repository, ask for a trusted audit in your own message. Claude Code then asks your permission for the
 trusted command, `node <plugin folder>/scripts/lz-oop.ts --trusted-repository hotspots -- <scope>`.
