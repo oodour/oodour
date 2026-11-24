@@ -349,6 +349,46 @@ test('a link in a folder that a link in the git folder leads to is checked too',
   assert.throws(() => gitIn(root), /^Error: git: .+heads leads to a network path$/);
 });
 
+test('a link that leads to a network path in a folder below the git folder is refused, naming the link', (context) => {
+  const root = folderWith(context, { '.git/config': '', '.git/refs/heads/.keep': '' });
+  const link = join(root, '.git', 'refs', 'heads', 'shared');
+  symlinkSync(share, link, 'dir');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, { message: `git: ${link} leads to a network path` });
+});
+
+test('a .git that is a link to a network path is refused, naming the .git', (context) => {
+  const root = folderWith(context, {});
+  symlinkSync(share, join(root, '.git'), 'dir');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, { message: `git: ${join(root, '.git')} leads to a network path` });
+});
+
+test("a folder that holds only some of a bare repository's parts is not read as one, as Git does not", (context) => {
+  const lookAlike = (parts: readonly string[]): (() => void) => {
+    const root = folderWith(context, {
+      '.git/config': '',
+      config: '',
+      ...Object.fromEntries(parts.map((part) => (part === 'HEAD' ? ['HEAD', 'ref: refs/heads/main\n'] : [`${part}/.keep`, '']))),
+    });
+    const sharedHooks: ConfigReader = (file) => (file === join(root, 'config') ? `core.hookspath\n${share}` : '');
+
+    return () => {
+      assertLocalMetadata(root, sharedHooks);
+    };
+  };
+
+  for (const parts of [['HEAD'], ['HEAD', 'objects'], ['HEAD', 'refs'], ['objects', 'refs']]) {
+    assert.doesNotThrow(lookAlike(parts), parts.join(', '));
+  }
+
+  assert.throws(lookAlike(['HEAD', 'objects', 'refs']), /core\.hookspath in .+config names a network path/);
+});
+
 test("from a linked work tree, the repository's own config is checked", (context) => {
   const root = repositoryHolding(context, { 'a.ts': '' });
   const tree = join(folderWith(context, {}), 'tree');
