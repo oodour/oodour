@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { TestContext } from 'node:test';
@@ -60,13 +60,38 @@ export function commitFiles(root: string, files: Files, date?: string): void {
   runGit(root, ['commit', '-q', '-m', 'change'], date);
 }
 
+let initialised: string | undefined;
+
+// Each test copies one repository that `git init` made once per test process: on Windows, starting Git costs several
+// times what copying its files does.
+function initialisedGitFolder(): string {
+  if (initialised === undefined) {
+    const folder = realpathSync.native(mkdtempSync(join(tmpdir(), 'lz-oop-')));
+    process.once('exit', () => {
+      rmSync(folder, { recursive: true, force: true });
+    });
+    runGit(folder, ['init', '-q']);
+    initialised = join(folder, '.git');
+  }
+
+  return initialised;
+}
+
 export function repositoryWith(context: TestContext, commits: readonly Files[]): string {
   const root = folderWith(context, {});
-  runGit(root, ['init', '-q']);
+  cpSync(initialisedGitFolder(), join(root, '.git'), { recursive: true });
 
   for (const files of commits) {
     commitFiles(root, files);
   }
+
+  return root;
+}
+
+// For tests that read no history: the files are in the work tree, uncommitted, which spares two Git starts.
+export function repositoryHolding(context: TestContext, files: Files): string {
+  const root = repositoryWith(context, []);
+  writeFiles(root, files);
 
   return root;
 }
