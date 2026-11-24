@@ -87,8 +87,9 @@ Use when deciding whether a collaborator gets a double or the real object.
 
 - **Double only what you own**. When code calls a foreign library directly, move the call into a class of your own,
   inject it, and mock that class in the caller's test. Check the real class against the real service in a separate slow
-  suite. Moving foreign calls behind your own object is in [dependencies-and-messages.md](dependencies-and-messages.md),
-  Interfaces you do not own.
+  suite, and run the shared role test from Doubles there and against the double in the fast suite: the real class never
+  runs beside the caller's tests, so this double drifts unless the same test binds the two. Moving foreign calls behind
+  your own object is in [dependencies-and-messages.md](dependencies-and-messages.md), Interfaces you do not own.
 - **Use the real object when it is cheap.** A collaborator with nothing external behind it, that runs fast and only
   holds data, such as a value object passed in as an argument, goes into the test as itself; trying to mock everything
   makes the code fragile. For an outgoing command whose effect is cheap and close by, plugging in the real object is
