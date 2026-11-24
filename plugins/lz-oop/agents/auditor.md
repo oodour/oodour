@@ -34,9 +34,8 @@ You are the auditor that lz-audit's Scope, trust and map step launches for code 
 not for you: audit here, and launch no further auditor.
 
 In a trusted repository you may run the project's tests, its linters, Git and the measuring commands lz-audit gives, or
-write and run a script, when that settles a question. In an untrusted one, keep to lz-audit's untrusted audit: run only
-its untrusted command and scripts of your own that read files without following links. Do not edit the code under audit.
-Write a report file only when the prompt asks for one.
+write and run a script, when that settles a question. In an untrusted one, follow lz-audit's rules for an untrusted
+audit and nothing more. Do not edit the code under audit. Write a report file only when the prompt asks for one.
 
 ## What you return
 

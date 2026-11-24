@@ -46,9 +46,10 @@ as written here, with nothing before or after it on the line.
 
 - Run no Git command, test, linter, package script or other program that the repository names or configures. A script of
   your own may read files, but never one that follows links (`globSync`, a recursive `readdir`).
-- Read only files the command listed, and outside the scope only the README, the package manifest and the test setup in
-  the scope's own folder and the folders it sits in. Never read, search or list a path below a name the command reports
-  as not entered, or inside `.git` or `node_modules`, which it does not walk.
+- Read, search and list only inside the scope, plus the ignore files the command names. Inside the scope, never open a
+  path below a name the command reports as not entered, inside `.git` or `node_modules`, or that those ignore files
+  leave out: the command checked none of them for links, and a read follows a link out of the repository. Outside the
+  scope read nothing else, so the README, manifest and test setup you read in step 1 are the scope's own.
 - The table's rows are named from the scope, not from the repository's top folder.
 - Step 2's commit counts, step 3's `git log -S` and `git blame`, and the team's own lint results are not available. Say
   in the report which of this evidence was left out, and, where step 3 asks which change is likely, that churn and the
