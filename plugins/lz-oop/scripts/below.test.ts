@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { symlinkSync } from 'node:fs';
-import { join, sep } from 'node:path';
+import { basename, join, parse, sep } from 'node:path';
 import { test } from 'node:test';
-import { cachedLocalPath, localPath, placeBelow } from './below.ts';
+import { cachedLocalPath, childPath, localPath, pathBelow, placeBelow } from './below.ts';
 import { folderWith, networkShare } from './fixtures.ts';
 
 test('a path with no link on the way is direct, whether or not it exists', (context) => {
@@ -81,6 +81,88 @@ test('a step back after a missing folder can still lead to a network path', (con
   const local = cachedLocalPath();
 
   assert.deepEqual([local(join(root, 'missing', 'a.ts')), local(`${root}/missing/../share/a.ts`)], [join(root, 'missing', 'a.ts'), undefined]);
+});
+
+test('the parent of the root, or a path through it, is not below the root', (context) => {
+  const root = folderWith(context, {});
+
+  assert.deepEqual([pathBelow(root, '..'), pathBelow(root, join('..', 'a.ts')), pathBelow(root, 'a.ts')], [undefined, undefined, 'a.ts']);
+});
+
+test('a relative path that steps back past the root has no place, even after a dot or an empty segment', (context) => {
+  const root = folderWith(context, { 'lib/a.ts': '' });
+  const place = placeBelow(root);
+
+  assert.deepEqual(
+    [place('../a.ts'), place('lib/./../../a.ts'), place('lib//../../a.ts'), place('lib/../a.ts')],
+    [undefined, undefined, undefined, 'direct'],
+  );
+});
+
+test('an absolute path that steps back out of the root, or back through a link leading outside, has no place', (context) => {
+  const outside = folderWith(context, { 'x/a.ts': '' });
+  const root = folderWith(context, { 'a.ts': '' });
+  symlinkSync(join(outside, 'x'), join(root, 'out'), 'junction');
+  const place = placeBelow(root);
+
+  assert.deepEqual(
+    [place(`${root}${sep}lib${sep}..${sep}..${sep}${basename(root)}${sep}a.ts`), place(`${root}${sep}out${sep}..${sep}a.ts`)],
+    [undefined, undefined],
+  );
+});
+
+test('a link whose relative target leads outside has no place', (context) => {
+  const outside = folderWith(context, { 'x/a.ts': '' });
+  const root = folderWith(context, { 'a.ts': '' });
+  symlinkSync(join('..', basename(outside), 'x'), join(root, 'out'), 'dir');
+
+  assert.equal(placeBelow(root)(join(root, 'out', 'a.ts')), undefined);
+});
+
+test('a path through forty links has a place and one through forty-one has none', (context) => {
+  const root = folderWith(context, { 'end/a.ts': '' });
+  const chainOf = (name: string, count: number): void => {
+    for (let index = 0; index < count; index += 1) {
+      symlinkSync(index + 1 < count ? `${name}${String(index + 1)}` : 'end', join(root, `${name}${String(index)}`), 'dir');
+    }
+  };
+  chainOf('forty', 40);
+  chainOf('more', 41);
+  const place = placeBelow(root);
+
+  assert.deepEqual([place(join(root, 'forty0', 'a.ts')), place(join(root, 'more0', 'a.ts'))], ['linked', undefined]);
+});
+
+test('a child of the filesystem root takes no second separator', (context) => {
+  const root = folderWith(context, {});
+  const filesystemRoot = parse(root).root;
+
+  assert.deepEqual([childPath(filesystemRoot, 'a.ts'), childPath(root, 'a.ts')], [`${filesystemRoot}a.ts`, `${root}${sep}a.ts`]);
+});
+
+test('two separators inside a path do not make it a network path', (context) => {
+  const root = folderWith(context, {});
+
+  assert.equal(localPath(`${root}${sep}${sep}a.ts`), join(root, 'a.ts'));
+});
+
+test('a path the system refuses to read for another reason than an unreachable entry throws', (context) => {
+  const root = folderWith(context, {});
+
+  assert.throws(() => localPath(join(root, 'a\0b.ts')), { code: 'ERR_INVALID_ARG_VALUE' });
+});
+
+test('the cached local path reads each entry once, so a link made afterwards goes unseen', (context) => {
+  const elsewhere = folderWith(context, { 'a.ts': '' });
+  const root = folderWith(context, {});
+  const local = cachedLocalPath();
+  const before = local(join(root, 'later', 'a.ts'));
+  symlinkSync(elsewhere, join(root, 'later'), 'junction');
+
+  assert.deepEqual(
+    [before, local(join(root, 'later', 'a.ts')), localPath(join(root, 'later', 'a.ts'))],
+    [join(root, 'later', 'a.ts'), join(root, 'later', 'a.ts'), join(elsewhere, 'a.ts')],
+  );
 });
 
 test('links that lead to each other have no place', (context) => {

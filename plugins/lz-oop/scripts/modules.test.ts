@@ -77,15 +77,18 @@ test('a tsconfig.json that extends a file outside the root is read without it', 
 });
 
 test('configs and imports are read through a file system that has nothing outside the root', (context) => {
-  const outside = folderWith(context, { 'x.json': '{}' });
+  const outside = folderWith(context, { 'x.json': '{}', 'sub/w.json': '{}' });
   const root = folderWith(context, { 'y.json': '{}', 'lib/z.json': '{}' });
   const files = boundedTo(root);
 
   assert.deepEqual(
-    [files.fileExists(join(outside, 'x.json')), files.readFile(join(outside, 'x.json')), files.directoryExists(outside)],
-    [false, undefined, false],
+    [files.fileExists(join(outside, 'x.json')), files.readFile(join(outside, 'x.json')), files.directoryExists(outside), files.getDirectories(outside)],
+    [false, undefined, false, []],
   );
-  assert.deepEqual([files.fileExists(join(root, 'y.json')), files.readFile(join(root, 'y.json')), files.directoryExists(join(root, 'lib'))], [true, '{}', true]);
+  assert.deepEqual(
+    [files.fileExists(join(root, 'y.json')), files.readFile(join(root, 'y.json')), files.directoryExists(join(root, 'lib')), files.getDirectories(root)],
+    [true, '{}', true, ['lib']],
+  );
 });
 
 test('a link inside the root that leads outside it leads nowhere', (context) => {
@@ -147,6 +150,16 @@ test('an import of a JavaScript file with a declaration file beside it names the
   assert.deepEqual(modules.get('a.js')?.imports, ['lib.js', 'other.mjs']);
 });
 
+test('a folder whose name ends in .d.ts does not change which JavaScript file a declaration file stands for', (context) => {
+  const modules = modulesOf(context, {
+    'a.js': "import { b } from './types.d.ts/lib.js';",
+    'types.d.ts/lib.js': 'export const b = 1;',
+    'types.d.ts/lib.d.ts': 'export declare const b: number;',
+  });
+
+  assert.deepEqual(modules.get('a.js')?.imports, ['types.d.ts/lib.js']);
+});
+
 test('a file whose statements only pass on what other files export only re-exports', (context) => {
   const modules = modulesOf(context, {
     'index.ts': "export * from './a'; export { b } from './b'; import { c } from './c'; export { c };",
@@ -173,6 +186,18 @@ test('the concrete classes of a file are the classes it exports that are not abs
   });
 
   assert.deepEqual(modules.get('a.ts')?.concreteClasses, ['A', 'D']);
+});
+
+test('an exported default class without a name is named default', (context) => {
+  const modules = modulesOf(context, { 'a.ts': 'export default class {}', 'b.ts': "import A from './a';" });
+
+  assert.deepEqual([modules.get('a.ts')?.concreteClasses, modules.get('b.ts')?.concreteClassesNamed], [['default'], ['default']]);
+});
+
+test('a class another file exports under the name of a class declared here is not one of this file', (context) => {
+  const modules = modulesOf(context, { 'a.ts': "class Store {}\nexport { Store } from './b';", 'b.ts': 'export class Store {}' });
+
+  assert.deepEqual(modules.get('a.ts')?.concreteClasses, []);
 });
 
 test('a class declared first and exported later by name or as the default is exported', (context) => {
@@ -217,6 +242,38 @@ test('a concrete class imported through files that re-export it is named', (cont
     ['a.ts', 'b.ts'].map((file) => modules.get(file)?.concreteClassesNamed),
     [['Store'], ['Store']],
   );
+});
+
+test('export * passes on every name but the default', (context) => {
+  const modules = modulesOf(context, {
+    'clock.ts': 'export default class SystemClock {}',
+    'index.ts': "export * from './clock';",
+    'a.ts': "import Clock from './index';",
+  });
+
+  assert.deepEqual(modules.get('a.ts')?.concreteClassesNamed, []);
+});
+
+test('a class is found through whichever re-export has it, also when files re-export each other', (context) => {
+  const modules = modulesOf(context, {
+    'store.ts': 'export class Store {}',
+    'other.ts': "export * from './index';",
+    'index.ts': "export * from './other'; export * from './store';",
+    'a.ts': "import { Store } from './index';",
+  });
+
+  assert.deepEqual(modules.get('a.ts')?.concreteClassesNamed, ['Store']);
+});
+
+test('a file is not its own dependent, and files that re-export each other are passed through once', (context) => {
+  const modules = modulesOf(context, {
+    'lib.ts': "import { other } from './index';\nexport const lib = 1;",
+    'index.ts': "export * from './lib'; export * from './barrel';",
+    'barrel.ts': "export * from './index';",
+    'a.ts': "import { lib } from './barrel';",
+  });
+
+  assert.deepEqual(dependentsThroughReexports(modules).get('lib.ts'), ['a.ts']);
 });
 
 test('the dependents of a file are the files that import it, directly or through files that only re-export it', (context) => {
