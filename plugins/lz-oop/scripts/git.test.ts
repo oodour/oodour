@@ -284,6 +284,33 @@ test('a .git file is read as Git reads it, keeping the spaces after `gitdir: `',
   assert.throws(() => gitIn(root), /^Error: git: .+\.git points to a path that leads to a network path \( linked\)$/);
 });
 
+test('a .git file is read without all the line ends at its end', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir: shared\n\r\n' });
+  symlinkSync(share, join(root, 'shared'), 'dir');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, /points to a path that leads to a network path \(shared\)$/);
+});
+
+test('a .git file keeps a line end inside the name, as Git does, so the name without it is not read', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir: shared\nlink\n' });
+  symlinkSync(share, join(root, 'sharedlink'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, () => '');
+  });
+});
+
+test('a .git file without `gitdir: ` names no folder', (context) => {
+  const root = folderWith(context, { '.git': 'gitdir; shared\n' });
+  symlinkSync(share, join(root, 'shared'), 'dir');
+
+  assert.doesNotThrow(() => {
+    assertLocalMetadata(root, () => '');
+  });
+});
+
 test("a work tree whose repository's common folder is a network path is refused before Git runs", (context) => {
   const root = repositoryHolding(context, { 'a.ts': '' });
   const tree = join(folderWith(context, {}), 'tree');
