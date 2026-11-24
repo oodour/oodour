@@ -40,12 +40,14 @@ export interface Measured {
   readonly reexportsOnly: readonly string[];
   readonly parseErrors: readonly string[];
   readonly skipped: readonly string[];
+  readonly ignoreFiles: readonly string[];
+  readonly scopeIgnored: boolean;
 }
 
 // A repository not trusted runs no Git: Git starts programs its config names and opens paths its metadata names.
 export function measureScope(scope: string, since: string, trusted: boolean): Measured {
   const repository = trusted ? gitIn(scope) : undefined;
-  const { root, all, inScope, skipped } = sources(scope, repository);
+  const { root, all, inScope, skipped, ignoreFiles, scopeIgnored } = sources(scope, repository);
   const uncounted = !trusted && repositoryTop(scope) !== undefined ? 'untrusted' : 'no repository';
   const counted = repository ? churn(repository.git, since) : uncounted;
   const commitsOf = (file: string): number => (typeof counted === 'string' ? 0 : (counted.commits.get(file) ?? 0));
@@ -84,7 +86,24 @@ export function measureScope(scope: string, since: string, trusted: boolean): Me
     reexportsOnly,
     parseErrors: measured.flatMap((result) => ('parseError' in result ? [result.parseError] : [])),
     skipped,
+    ignoreFiles,
+    scopeIgnored,
   };
+}
+
+function ignoredLines({ ignoreFiles, scopeIgnored }: Measured): string[] {
+  const files = ignoreFiles.join(', ');
+
+  if (scopeIgnored) {
+    return [`Left out, ignored: the whole scope, which lies in a folder that ${files} ignores.`];
+  }
+
+  return ignoreFiles.length > 0
+    ? [
+        `Left out, ignored: files that ${files} match, committed files too; the global excludes file ` +
+          '(core.excludesFile) is not read.',
+      ]
+    : [];
 }
 
 const limitClauses: Readonly<Record<HistoryLimit, string>> = {
@@ -129,12 +148,7 @@ export function renderHotspots(scope: string, since: string, measured: Measured,
       `complex at a largest function of ${String(complexity)} or more (${percentile}, at least ${String(policy.leastComplexity)}); ` +
       `many dependents at ${String(dependents)} production files or more ` +
       `(one in ${String(policy.dependentsShare)}, at least ${String(policy.leastDependents)}).`,
-    ...(measured.history === 'untrusted'
-      ? [
-          "Left out, ignored: what the repository's .gitignore files and .git/info/exclude ignore; the global excludes " +
-            'file (core.excludesFile) is not read.',
-        ]
-      : []),
+    ...ignoredLines(measured),
     ...(measured.reexportsOnly.length > 0 ? [`Left out, only re-exporting: ${measured.reexportsOnly.join(', ')}.`] : []),
     ...(measured.parseErrors.length > 0 ? [`Left out, not parsed: ${measured.parseErrors.join('; ')}`] : []),
     ...(measured.skipped.length > 0

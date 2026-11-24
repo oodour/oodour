@@ -24,6 +24,8 @@ test("a repository's JavaScript and TypeScript files are its sources, named from
     all: ['src/a.ts', 'src/b.jsx'],
     inScope: ['src/a.ts', 'src/b.jsx'],
     skipped: [],
+    ignoreFiles: [],
+    scopeIgnored: false,
   });
 });
 
@@ -108,6 +110,30 @@ test('in a repository not trusted, the ignore files above the scope and in .git/
   assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
 });
 
+test('in a repository not trusted, a scope inside an ignored folder holds no source, as Git re-includes nothing there', (context) => {
+  const root = folderWith(context, { '.gitignore': 'a/\n', 'a/.gitignore': '!*.ts\n', 'a/b/x.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(join(root, 'a', 'b'), undefined).all, []);
+});
+
+test('a repository nested below the scope is reported, not walked, as Git lists it as one entry', (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
+  runGit(root, ['init', '-q']);
+  runGit(join(root, 'n'), ['init', '-q']);
+
+  const { all, skipped } = sources(root, undefined);
+
+  assert.deepEqual({ all, skipped }, { all: ['a.ts'], skipped: ['n'] });
+});
+
+test('in a repository not trusted, an ignore file named in another case is read where Git reads it', (context) => {
+  const root = folderWith(context, { 'sub/.GITIGNORE': 'out/\n', 'sub/out/a.ts': '', 'sub/b.ts': '' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+});
+
 test('in a repository not trusted, the sources are the files Git itself would list', (context) => {
   const ignored = [
     '# a comment',
@@ -127,10 +153,13 @@ test('in a repository not trusted, the sources are the files Git itself would li
     'spaced.ts   ',
     'case.ts',
     'two**stars.ts',
+    'sub2/out/',
   ];
   const root = folderWith(context, {
     '.gitignore': ignored.join('\n'),
     'sub/.gitignore': '!y.gen.ts\n',
+    'sub2/.gitignore': '!out/\n',
+    'sub2/out/x.ts': '',
     ...Object.fromEntries(
       [
         'x.gen.ts',
@@ -175,7 +204,14 @@ test('outside a repository a folder whose name ends in a dot holds no source and
   writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
   outsideAnyRepository(context);
 
-  assert.deepEqual(sources(root, undefined), { root, all: ['a.ts'], inScope: ['a.ts'], skipped: ['odd.'] });
+  assert.deepEqual(sources(root, undefined), {
+    root,
+    all: ['a.ts'],
+    inScope: ['a.ts'],
+    skipped: ['odd.'],
+    ignoreFiles: [],
+    scopeIgnored: false,
+  });
 });
 
 test('a folder renamed only in case outside Git keeps its sources', { skip: process.platform === 'linux' }, (context) => {
@@ -196,7 +232,9 @@ test('the walk enters no link, so no file behind one is listed', (context) => {
 test('the walk lists nothing in a .git or node_modules folder', (context) => {
   const root = folderWith(context, { 'a.ts': '', '.git/hooks/b.ts': '', 'node_modules/x/c.ts': '' });
 
-  assert.deepEqual(filesBelow(root), { files: ['a.ts'], skipped: [] });
+  const { files, skipped } = filesBelow(root);
+
+  assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: [] });
 });
 
 test('the walk reports the links it did not enter, so nothing reads through them', (context) => {
@@ -205,7 +243,9 @@ test('the walk reports the links it did not enter, so nothing reads through them
   symlinkSync(join(outside, 'x.ts'), join(root, 'b.ts'), 'file');
   symlinkSync(join(outside, 'lib'), join(root, 'sub', 'linked'), 'junction');
 
-  assert.deepEqual(filesBelow(root), { files: ['sub/a.ts'], skipped: ['b.ts', 'sub/linked'] });
+  const { files, skipped } = filesBelow(root);
+
+  assert.deepEqual({ files, skipped }, { files: ['sub/a.ts'], skipped: ['b.ts', 'sub/linked'] });
 });
 
 test('the walk reports a name ending in a dot or a space, which Windows may open as another name', (context) => {
@@ -215,7 +255,9 @@ test('the walk reports a name ending in a dot or a space, which Windows may open
   writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
   writeFileSync(exact(join(root, 'b.ts ')), '');
 
-  assert.deepEqual(filesBelow(root), { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] });
+  const { files, skipped } = filesBelow(root);
+
+  assert.deepEqual({ files, skipped }, { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] });
 });
 
 test('the walk reports a folder it may not list instead of failing', { skip: process.getuid?.() === 0 }, (context) => {
@@ -232,7 +274,9 @@ test('the walk reports a folder it may not list instead of failing', { skip: pro
   lock(true);
 
   try {
-    assert.deepEqual(filesBelow(root), { files: ['a.ts'], skipped: ['locked'] });
+    const { files, skipped } = filesBelow(root);
+
+    assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: ['locked'] });
   } finally {
     lock(false);
   }
@@ -253,5 +297,7 @@ test('outside a repository the sources are the files below the scope, without no
     all: ['b.mjs', 'src/a.ts'],
     inScope: ['b.mjs', 'src/a.ts'],
     skipped: [],
+    ignoreFiles: [],
+    scopeIgnored: false,
   });
 });
