@@ -30,7 +30,19 @@ descriptions, are superseded or unsettled.
 | Subagent tools limited to the role (a read-only reviewer gets Read, Grep, Glob) | both agents had no `tools` field, so every tool, Edit and Agent included | fixed: reviewer `Read, Grep, Glob, Bash, PowerShell, Skill`; auditor the same plus `Write` for its measuring scripts. PowerShell because the trust gate already covers Windows sessions without Git Bash |
 | Pushy description lines (synthesis: inferred, drop them) | lz-oop's "Load it first, before reading any code" | kept: an inference, not a stated rule, and the trigger cases measure it |
 
-## Not yet verified
+## Verified on 2026-11-25
 
-The agents' `tools` lists change what they can do; their eval cases (review-own-change, audit cases that launch the
-auditor) have not run on this version. The names A/B running today uses copies made before this change.
+The agents' `tools` lists were checked on main (32daa54) after the names A/B, whose copies predate this change.
+
+- Eval cases audit-hot-spots, review-developer-diff and review-own-change: Sonnet 5.5 at 5 runs and Opus 5.5 at 3 runs,
+  every run 1.00, no run errors ($6.96 in all). In the 3 kept Opus review-own-change sandboxes the review skill launched
+  `lz-oop:reviewer` each time; the reviewer called only Read and Grep (10 to 14 calls), with no tool errors.
+- No eval case launches the auditor: the audit skill launches it only when the session changed code in the audited scope,
+  and audit-hot-spots audits inline. One slim `claude -p` session on Sonnet 5.5 ($0.21) added a method to a scratch
+  repository and then asked for an audit: the skill launched `lz-oop:auditor`, which called Skill, Read and Bash, all on
+  its list, and returned a usable audit. Its three refused calls (two `node` scripts and a `git -C ... log`) were refused
+  by the slim run's offline permission list ("This command requires approval"), not by the agent's `tools` list. It
+  did not use Write.
+- Not covered: an auditor run where the measuring scripts are allowed, and PowerShell, which the slim run disallows.
+- Follow-up, not started: an eval case where the session changes code and then audits, so the auditor path has a
+  standing check.
