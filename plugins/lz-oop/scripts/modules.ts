@@ -206,13 +206,22 @@ function importResolver(root: string, files: readonly string[]): (path: string) 
   const scanned = new Set(files);
   const system = boundedTo(root);
   const optionsFor = compilerOptions(system);
+  // One cache per set of compiler options: without it TypeScript probes the same folders again for every import.
+  const caches = new Map<ts.CompilerOptions, ts.ModuleResolutionCache>();
+  const cacheFor = (options: ts.CompilerOptions): ts.ModuleResolutionCache => {
+    const known = caches.get(options) ?? ts.createModuleResolutionCache(root, (name) => name, options);
+    caches.set(options, known);
+
+    return known;
+  };
 
   return (path) => {
     const resolvers = optionsFor(path).map((options) => {
       const format = ts.getImpliedNodeFormatForFile(path, undefined, system, options);
+      const cache = cacheFor(options);
 
       return (specifier: string): string | undefined => {
-        const resolved = ts.resolveModuleName(specifier, path, options, system, undefined, undefined, format);
+        const resolved = ts.resolveModuleName(specifier, path, options, system, cache, undefined, format);
         const imported = resolved.resolvedModule && relative(root, resolved.resolvedModule.resolvedFileName).replaceAll('\\', '/');
 
         return [imported, imported?.replace(/\.d\.([cm]?)ts$/, '.$1js')].find((file) => file !== undefined && scanned.has(file));
