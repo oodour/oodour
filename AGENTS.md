@@ -182,6 +182,12 @@ type-checks, lints and tests all of them.
   reviewers, it is useful to them to be able to write and run verification scripts."; the evidence is the review of
   `LayZeeDK/thermos-claude-plugin` pull request 1, where 117 of 155 reviewer runs used Write or Edit for findings files
   and scratch verification scripts, never on the code under review).
+- The review and audit collect lz-oop's metrics and smells through the published lz-oop ESLint and Fallow packages,
+  which the skills offer to install and set up for the session or for good; until those packages are published, evals
+  and slim `claude -p` runs use builds packed from `packages/` (Lars, 2026-11-25: "Wait for lz-oop ESLint/Fallow
+  packages to be published. The skills offer to install and set up the published lz-oop packages temporarily or
+  permanently. We create temporary builds/packages/tarballs for evals and slim `claude -p` runs until the packages have
+  been published.").
 
 ## Nx workspace
 
