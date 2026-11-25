@@ -6,9 +6,13 @@
   "description": "ESLint rules and presets for object-oriented design in JavaScript and TypeScript.",
   "homepage": "https://github.com/LayZeeDK/lz-oop#readme-ov-file",
   "exports": {
-    ".": "./src/index.ts",
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
     "./package.json": "./package.json"
   },
+  "files": ["dist"],
   "peerDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
     "@typescript-eslint/eslint-plugin": "^8.72.1",

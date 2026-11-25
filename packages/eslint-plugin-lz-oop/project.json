@@ -41,6 +41,26 @@
       ],
       "outputs": []
     },
+    "build": {
+      "command": "tsc -p packages/eslint-plugin-lz-oop/tsconfig.build.json",
+      "cache": true,
+      "inputs": ["default", "ruleDependencies", { "externalDependencies": ["@types/node"] }],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node -e \"require('node:fs').mkdirSync('dist/packages', { recursive: true })\"",
+          "npm pack ./packages/eslint-plugin-lz-oop --pack-destination dist/packages"
+        ],
+        "parallel": false
+      },
+      "dependsOn": ["build"],
+      "cache": true,
+      "inputs": ["default"],
+      "outputs": ["{workspaceRoot}/dist/packages/layzee-eslint-plugin-lz-oop-*.tgz"]
+    },
     "mutate": {
       "command": "node --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.eslint-plugin-lz-oop.config.ts",
       "cache": false,

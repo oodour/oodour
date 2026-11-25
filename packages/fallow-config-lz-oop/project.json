@@ -17,6 +17,19 @@
       "cache": true,
       "inputs": ["default", { "externalDependencies": ["ajv"] }, { "runtime": "node --version" }],
       "outputs": []
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node -e \"require('node:fs').mkdirSync('dist/packages', { recursive: true })\"",
+          "npm pack ./packages/fallow-config-lz-oop --pack-destination dist/packages"
+        ],
+        "parallel": false
+      },
+      "cache": true,
+      "inputs": ["default"],
+      "outputs": ["{workspaceRoot}/dist/packages/layzee-fallow-config-lz-oop-*.tgz"]
     }
   }
 }

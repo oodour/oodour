@@ -191,10 +191,14 @@ type-checks, lints and tests all of them.
 
 ## Nx workspace
 
-The repository is an Nx workspace with four projects: `tooling` (the hooks, the mod and the tools, from
-`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the two
-packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `project.json` under `packages/`). Run Nx as
-`npm exec -- nx`.
+The repository is an Nx workspace with five projects: `tooling` (the hooks, the mod and the tools, from
+`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the three
+packages `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-oop-test-metrics` (each from its `project.json` under
+`packages/`). Run Nx as `npm exec -- nx`.
+
+- `npm exec -- nx run-many -t pack` writes the ESLint and Fallow packages as tarballs to `dist/packages/`, for evals
+  and slim `claude -p` runs until the packages are published. The ESLint package's `pack` runs its `build` first,
+  because Node.js strips no types under `node_modules`, so an installed package must ship JavaScript.
 
 - `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then
   `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number, a title that
