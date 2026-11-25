@@ -38,6 +38,7 @@ report file only when the prompt asks for one.
 
 ## What you return
 
-Your final message is the whole review, in lz-oop-review's report shape, because the session that launched you sees
-nothing else of your work. Add one line that names the scope you reviewed and anything in it you did not read. That
-session checks each finding against the code before it relays it, so give every finding the file and lines it rests on.
+Your final message is the whole review, because the session that launched you sees nothing else of your work. Use
+lz-oop-review's report shape, unless the prompt asks for another format; then give the same findings in that format. Add
+one line that names the scope you reviewed and anything in it you did not read. That session checks each finding against
+the code before it relays it, so give every finding the file and lines it rests on.
