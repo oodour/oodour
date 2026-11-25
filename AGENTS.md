@@ -194,7 +194,9 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
   Prettier configs with Nx defaults"; "~3.6.2 it is").
 - `npm exec -- nx run lz-oop:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
   the plugin and `evals/lz-oop/` into `dist/eval/lz-oop/`, because `claude plugin eval` reads cases only below a
-  plugin root and the cases stay out of the distributed plugin. `nx run lz-oop:eval-real` does the same for the
+  plugin root and the cases stay out of the distributed plugin. It passes `--allow-tools Write Edit`, because the eval
+  withholds those tools unless the run grants them; a case still gets only the tools its `allowed_tools` lists, and
+  audit-own-change is the one that lists them. `nx run lz-oop:eval-real` does the same for the
   real-repository cases in `evals/lz-oop-real/`, whose scaffold scripts unpack a pinned commit of a local clone, and
   passes `--scaffold` so those scripts run. Every eval round waits for Lars's go-ahead (Lars,
   2026-11-15: "block on me before each round of runs so that I may check remaining token budget in our Claude

@@ -101,8 +101,9 @@ export function pluginTargets(
   return {
     'pre-eval': assembleTarget(root, evals, assembled),
     'pre-eval-real': assembleTarget(root, `${evals}-real`, `${assembled}-real`),
+    // Write and Edit reach a case only when the run grants them; a case still gets only the tools it lists.
     eval: {
-      command: `claude plugin eval ${assembled}`,
+      command: `claude plugin eval ${assembled} --allow-tools Write Edit`,
       dependsOn: ['pre-eval'],
       cache: false,
     },

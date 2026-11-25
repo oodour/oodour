@@ -44,5 +44,12 @@ The agents' `tools` lists were checked on main (32daa54) after the names A/B, wh
   by the slim run's offline permission list ("This command requires approval"), not by the agent's `tools` list. It
   did not use Write.
 - Not covered: an auditor run where the measuring scripts are allowed, and PowerShell, which the slim run disallows.
-- Follow-up, not started: an eval case where the session changes code and then audits, so the auditor path has a
-  standing check.
+- Follow-up, done the same evening (Lars: "Follow up eval case: OK"): eval case audit-own-change, where the session
+  creates two files, adds a plan, then asks for an audit. Its first run ($1.55) launched no auditor in any run: the
+  eval withholds Write and Edit unless the run grants them, so Sonnet stopped and Opus had another agent write the
+  files. The `eval` target now passes `--allow-tools Write Edit`. The rerun ($3.19; Lars: "Rerun of audit-own-change
+  ... OK") launched `lz-oop:auditor` in all 8 runs (Sonnet 5, Opus 3); the mailer grader passed 8 of 8; the auditor
+  called only Skill, Read, Grep, Glob and Bash (Bash withheld by the eval). The switch grader passed 1 of 8 because it
+  demanded that finding rank first; all 7 failing replies named it with a cure, ranked after injecting the mailer,
+  which is sound with no tests and no history, so the grader no longer asks for a rank. The revised grader has not run
+  yet; Claude infers 8 of 8 from those replies.

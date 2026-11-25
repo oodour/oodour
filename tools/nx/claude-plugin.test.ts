@@ -201,7 +201,7 @@ test('pre-eval assembles the plugin and its eval cases outside the distributed p
 test('eval runs the assembled copy after pre-eval and is never cached', () => {
   const { eval: evaluate } = pluginTargets('plugins/demo', 'demo', [], noFolders);
 
-  assert.equal(evaluate?.command, 'claude plugin eval dist/eval/demo');
+  assert.equal(evaluate?.command, 'claude plugin eval dist/eval/demo --allow-tools Write Edit');
   assert.deepEqual(evaluate.dependsOn, ['pre-eval']);
   assert.equal(evaluate.cache, false);
 });
