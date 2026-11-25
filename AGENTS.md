@@ -175,6 +175,13 @@ type-checks, lints and tests all of them.
   Claude model guidelines in `~/.claude/research/`; where two sources conflict, the newer date and the newer model
   generation win. The plugin-dev and skill-creator plugins' plugin and skill guidelines apply too, but recent research
   outranks them where they conflict (Lars, 2026-11-25).
+- The reviewer and auditor agents have no `tools` list, so they keep every tool, Write, Edit, Bash and PowerShell
+  included: they write and run verification scripts and findings files. A tools allowlist would not make them
+  read-only anyway, because Bash can still write. This wins over the guideline that limits a subagent to its role's
+  tools (Lars, 2026-11-25: "If they had Write/Edit/Bash/PowerShell tool access, that was intentional. Although they are
+  reviewers, it is useful to them to be able to write and run verification scripts."; the evidence is the review of
+  `LayZeeDK/thermos-claude-plugin` pull request 1, where 117 of 155 reviewer runs used Write or Edit for findings files
+  and scratch verification scripts, never on the code under review).
 
 ## Nx workspace
 

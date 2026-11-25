@@ -27,7 +27,7 @@ descriptions, are superseded or unsettled.
 | Instructions in one place | each skill routes to the references that hold the steps; no repeated closers | complies |
 | Sonnet 5.5 adds unasked tests, docs and files | every skill changes code only on request and then stops | complies |
 | Opus 5.5 states unverified inferences as fact | review says which areas were not read; audit says which evidence was left out and that its ranking is a judgement | complies |
-| Subagent tools limited to the role (a read-only reviewer gets Read, Grep, Glob) | both agents had no `tools` field, so every tool, Edit and Agent included | fixed: reviewer `Read, Grep, Glob, Bash, PowerShell, Skill`; auditor the same plus `Write` for its measuring scripts. PowerShell because the trust gate already covers Windows sessions without Git Bash |
+| Subagent tools limited to the role (a read-only reviewer gets Read, Grep, Glob) | both agents had no `tools` field, so every tool, Edit and Agent included | fixed: reviewer `Read, Grep, Glob, Bash, PowerShell, Skill`; auditor the same plus `Write` for its measuring scripts. PowerShell because the trust gate already covers Windows sessions without Git Bash. **Reverted the same day**: Lars ruled the full tool set intentional ("Although they are reviewers, it is useful to them to be able to write and run verification scripts."), so both agents again have no `tools` field (AGENTS.md records the ruling). The check below measured the allowlists, which no longer ship |
 | Pushy description lines (synthesis: inferred, drop them) | lz-oop's "Load it first, before reading any code" | kept: an inference, not a stated rule, and the trigger cases measure it |
 
 ## Verified on 2026-11-25
