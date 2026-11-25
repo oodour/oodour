@@ -112,7 +112,7 @@ describe('fallowrc.json and strict.json', () => {
     );
     const root = scratchProject(t, 'duplicates-', files);
     const run = spawnSync(
-      `${fallow} dupes --root . --config ${consumerConfig(root, 'fallowrc.json', files)} --no-cache --format json --quiet`,
+      `${fallow} dupes --root "${root}" --config "${join(root, consumerConfig(root, 'fallowrc.json', files))}" --no-cache --format json --quiet`,
       { cwd: root, encoding: 'utf8', env: fallowEnv, shell: true },
     );
     const report: unknown = JSON.parse(run.stdout);
@@ -189,13 +189,14 @@ function pathOf(value: unknown, ...keys: readonly (string | number)[]): unknown 
 }
 
 function complexityFindings(configFile: string): readonly (readonly unknown[])[] {
-  const root = fileURLToPath(new URL('../fixtures/consumer/', import.meta.url));
+  const root = fileURLToPath(new URL('../fixtures/consumer', import.meta.url));
 
   return complexityReport(root, configFile).map((finding) => [finding['name'], finding['exceeded']]);
 }
 
 function complexityReport(root: string, configFile: string): readonly Readonly<Record<string, unknown>>[] {
-  const run = spawnSync(`${fallow} health --root . --config ${configFile} --no-cache --format json --quiet`, {
+  // npx runs its command in the enclosing workspace package, not in `cwd`, so Fallow gets absolute paths.
+  const run = spawnSync(`${fallow} health --root "${root}" --config "${join(root, configFile)}" --no-cache --format json --quiet`, {
     cwd: root,
     encoding: 'utf8',
     env: fallowEnv,
