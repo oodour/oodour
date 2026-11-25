@@ -169,6 +169,12 @@ type-checks, lints and tests all of them.
 - Point at bundled files with `${CLAUDE_SKILL_DIR}` inside a skill and `${CLAUDE_PLUGIN_ROOT}` across skills.
 - Verify a change to a skill or agent with a real run, the eval suite below, after Lars's go-ahead for the round.
   Judge from the subagent's transcript what it received, not from the model's answer.
+- The plugin officially supports Opus 5.5 and Sonnet 5.5, the models the evals cover (Lars, 2026-11-25: "Official
+  support (covered by evals) only for Opus 5.5 and Sonnet 5.5").
+- The plugin, its skills and its agents follow the model-specific guidelines for the supported models and the general
+  Claude model guidelines in `~/.claude/research/`; where two sources conflict, the newer date and the newer model
+  generation win. The plugin-dev and skill-creator plugins' plugin and skill guidelines apply too, but recent research
+  outranks them where they conflict (Lars, 2026-11-25).
 
 ## Nx workspace
 
@@ -192,7 +198,9 @@ packages `eslint-plugin-lz-oop` and `fallow-config-lz-oop` (each from its `proje
   real-repository cases in `evals/lz-oop-real/`, whose scaffold scripts unpack a pinned commit of a local clone, and
   passes `--scaffold` so those scripts run. Every eval round waits for Lars's go-ahead (Lars,
   2026-11-15: "block on me before each round of runs so that I may check remaining token budget in our Claude
-  plan").
+  plan"). A round covers Opus at 3 runs a case and Sonnet at 5 (Lars, 2026-11-25: "Our evals should cover Opus at n=3
+  and Sonnet at n=5. If skills work in Sonnet, they usually also work in Opus."): `--model claude-opus-5-5 --runs 3`
+  and `--model claude-sonnet-5-5 --runs 5`.
 - `test` and `overlap` are never cached: both read the git-ignored store, which Nx cannot hash.
 - After editing `tools/nx/claude-plugin.ts`, run `npm exec -- nx daemon --stop`. The daemon keeps the plugin it loaded
   and serves the old inferred `lz-oop` targets until it restarts; the next Nx command starts a fresh one.

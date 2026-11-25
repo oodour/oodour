@@ -36,6 +36,9 @@ Status: 0.0.0, a scaffold under evaluation. Not yet recommended for use.
 /plugin install lz-oop@lz-oop
 ```
 
+The plugin supports Claude Opus 5.5 and Claude Sonnet 5.5, the models its evals cover. Other models may work but are not
+tested.
+
 `lz-oop-audit` measures hot spots with the plugin's own command, `scripts/lz-oop.ts`, which needs Node.js 22.18 or
 later. Claude Code installs its packages (TypeScript, ESLint and its TypeScript parser, and `ignore`) when it installs
 the plugin, with npm from your `PATH`. A plugin loaded from a folder in place (`--plugin-dir`) gets no install: run
