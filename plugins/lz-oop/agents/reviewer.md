@@ -1,6 +1,7 @@
 ---
 name: reviewer
 description: Fresh-context object-oriented design review of a JavaScript or TypeScript change, following the lz-oop-review skill. Launch it with a scope (uncommitted changes, a commit, a branch or a pull request) when the session that wrote or changed the code is asked to review it, or to run this review beside other reviewers.
+tools: Read, Grep, Glob, Bash, PowerShell, Skill
 skills:
   - lz-oop:lz-oop-review
 ---

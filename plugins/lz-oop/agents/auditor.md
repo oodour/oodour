@@ -1,6 +1,7 @@
 ---
 name: auditor
 description: Fresh-context object-oriented design audit of a JavaScript or TypeScript package, folder or repository, following the lz-oop-audit skill. Launch it with a scope when the session that wrote or changed code in that scope is asked to audit it, or to run this audit beside other reviewers.
+tools: Read, Grep, Glob, Bash, PowerShell, Skill, Write
 skills:
   - lz-oop:lz-oop-audit
 ---
