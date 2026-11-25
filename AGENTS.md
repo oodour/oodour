@@ -187,7 +187,17 @@ type-checks, lints and tests all of them.
   and slim `claude -p` runs use builds packed from `packages/` (Lars, 2026-11-25: "Wait for lz-oop ESLint/Fallow
   packages to be published. The skills offer to install and set up the published lz-oop packages temporarily or
   permanently. We create temporary builds/packages/tarballs for evals and slim `claude -p` runs until the packages have
-  been published.").
+  been published."). Under trial since the same day: the metric logic moves into a core package without ESLint, which
+  the ESLint rules and the plugin's own command (`hotspots` and a measuring command) both use, so the review and audit
+  measure with no install step; an untrusted audit uses only the metrics that need no type information, and Fallow is
+  not bundled (Lars, 2026-11-25: "1-2: OK, let's try that and see how it works out, then re-evaluate."). The skills still
+  offer the published packages for a team's own lint setup. The layout: a core package; an `lz-oop` CLI package on top
+  of it, holding `hotspots` and the measuring command; the plugin depends on the CLI package from the registry through a
+  thin `scripts/lz-oop.ts` that keeps the command line the skills pre-approve and the trust gate reads; the ESLint
+  package and `lz-oop-test-metrics` use the core too (Lars, 2026-11-25, proposing it: "We could ship an `lz-oop` CLI in
+  a separate package which could be used by the `lz-oop` Claude plugin and ship a separate `lz-oop` core package which
+  could be used by the CLI and the ESLint/Fallow packages"; then "Adopt the three-package layout: OK"). It replaces the
+  earlier ruling that bundled the command in the plugin.
 
 ## Nx workspace
 
