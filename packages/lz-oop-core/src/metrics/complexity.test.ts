@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { complexity, measure, parseSource, unitName } from '../index.ts';
 
 function complexities(text: string): string[] {
-  const source = parseSource(text);
+  const source = parseSource(text, 'file.ts');
 
   if ('parseError' in source) {
     throw new Error(source.parseError);
@@ -32,12 +32,15 @@ describe('complexity', () => {
         switch (a) { case 1: break; default: break; }
         a ?? b;
         a ||= b;
+        a &&= b;
+        a ??= b;
+        a += b;
         a?.b;
         a?.();
         return a ? 1 : 2;
       }`;
 
-    assert.deepEqual(complexities(text), ["Function 'f': 15"]);
+    assert.deepEqual(complexities(text), ["Function 'f': 17"]);
   });
 
   it('keeps a nested function out of the count of the function around it', () => {

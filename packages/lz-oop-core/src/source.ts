@@ -14,9 +14,9 @@ export interface ParseFailure {
 }
 
 /** Parses with typescript-estree as `@typescript-eslint/parser` does by default. Reads no file and no configuration. */
-export function parseSource(text: string, file = 'file.ts'): Source | ParseFailure {
+export function parseSource(text: string, file: string): Source | ParseFailure {
   try {
-    return { file, text, ast: parse(text, { filePath: file, jsx: false, loc: true, range: true }) };
+    return { file, text, ast: parse(text, { filePath: file, loc: true }) };
   } catch (error) {
     if (error instanceof TSError) {
       return { parseError: `${file}:${String(error.lineNumber)}:${String(error.column)} ${error.message}` };

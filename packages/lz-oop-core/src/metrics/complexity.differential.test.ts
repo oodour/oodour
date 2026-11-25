@@ -131,8 +131,19 @@ describe("complexity against ESLint's complexity rule", () => {
         }
         [Symbol.iterator] = function* () { yield 1; };
         m(c = 1) { return { n() { return c ||= 2; } }; }
+        accessor g = this.x ?? 1;
       }
-      const B = class { static { while (B) {} } };`;
+      const B = class { static { while (B) {} } };
+      const k = 'key';
+      const o = {
+        [k]: function named() { return k && 1; },
+        [/re/g]() {},
+        1n() {},
+        [\`t\`]() {},
+        [\`t\${k}\`]: function other() {},
+        null() {},
+        get [k]() { return 1; },
+      };`;
     const eslint = eslintUnits(join(workspace, 'classes.ts'), text);
 
     assert.ok(eslint.length >= 10, eslint.join('\n'));

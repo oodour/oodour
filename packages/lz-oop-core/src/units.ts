@@ -4,21 +4,26 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-est
  * The kinds of unit the walk opens and closes; a metric names the kinds it measures.
  *
  * - `function`: a function declaration, function expression or arrow function.
- * - `field-initializer`: the value of a class field (`PropertyDefinition` or `AccessorProperty`), unless that value is
- *   itself a function, which is a `function` unit and nothing more.
+ * - `field-initializer`: the value of a class field (a `PropertyDefinition`; ESLint opens no unit for an `accessor`
+ *   field's value), unless that value is itself a function, which is a `function` unit and nothing more.
  * - `static-block`: a class `static { }` block.
  */
 export type UnitKind = 'function' | 'field-initializer' | 'static-block';
 
-export interface Unit {
-  readonly kind: UnitKind;
+type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+
+interface UnitAt<TKind extends UnitKind, TNode extends TSESTree.Node> {
+  readonly kind: TKind;
   /** The node the unit is reported on: the function, the field's value, the static block. */
-  readonly node: TSESTree.Node;
+  readonly node: TNode;
   /** The node that holds `node`. */
   readonly parent: TSESTree.Node | undefined;
-  /** The unit around this one, of any kind. */
-  readonly enclosing: Unit | undefined;
 }
+
+export type Unit =
+  | UnitAt<'function', FunctionNode>
+  | UnitAt<'field-initializer', TSESTree.Node>
+  | UnitAt<'static-block', TSESTree.StaticBlock>;
 
 /** Which slot of its parent a node fills (`test`, `alternate`, `body`...). */
 export interface Position {
@@ -26,23 +31,20 @@ export interface Position {
   readonly key: string | undefined;
 }
 
-/** The kinds of unit a node opens, outer first. */
-export function unitKindsOf(node: TSESTree.Node, { parent, key }: Position): readonly UnitKind[] {
+/** The unit a node opens, if any. */
+export function unitAt(node: TSESTree.Node, { parent, key }: Position): Unit | undefined {
   if (isFunction(node)) {
-    return ['function'];
+    return { kind: 'function', node, parent };
   }
 
   if (node.type === AST_NODE_TYPES.StaticBlock) {
-    return ['static-block'];
+    return { kind: 'static-block', node, parent };
   }
 
-  const field =
-    parent?.type === AST_NODE_TYPES.PropertyDefinition || parent?.type === AST_NODE_TYPES.AccessorProperty;
-
-  return field && key === 'value' ? ['field-initializer'] : [];
+  return parent?.type === AST_NODE_TYPES.PropertyDefinition && key === 'value'
+    ? { kind: 'field-initializer', node, parent }
+    : undefined;
 }
-
-type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
 
 function isFunction(node: TSESTree.Node): node is FunctionNode {
   return (
@@ -56,8 +58,8 @@ function isFunction(node: TSESTree.Node): node is FunctionNode {
  * The name ESLint's `complexity` rule gives the unit, such as `Method 'total'`, `Arrow function`, `Class field
  * initializer`. ESLint's other rules name functions with the lower-case first word, as `getFunctionNameWithKind` does.
  */
-export function unitName({ kind, node, parent }: Unit): string {
-  switch (kind) {
+export function unitName(unit: Unit): string {
+  switch (unit.kind) {
     case 'field-initializer': {
       return 'Class field initializer';
     }
@@ -67,7 +69,7 @@ export function unitName({ kind, node, parent }: Unit): string {
     }
 
     case 'function': {
-      const name = isFunction(node) ? functionNameWithKind(node, parent) : 'function';
+      const name = functionNameWithKind(unit.node, unit.parent);
 
       return name.charAt(0).toUpperCase() + name.slice(1);
     }
@@ -157,11 +159,7 @@ function staticPropertyName({ key, computed }: Member): string | undefined {
     }
 
     case AST_NODE_TYPES.Literal: {
-      if ('regex' in key) {
-        return `/${key.regex.pattern}/${key.regex.flags}`;
-      }
-
-      return 'bigint' in key ? key.bigint : String(key.value);
+      return String(key.value);
     }
 
     case AST_NODE_TYPES.TemplateLiteral: {

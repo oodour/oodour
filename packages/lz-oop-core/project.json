@@ -56,6 +56,11 @@
       "cache": true,
       "inputs": ["default"],
       "outputs": ["{workspaceRoot}/dist/packages/layzee-lz-oop-core-*.tgz"]
+    },
+    "mutate": {
+      "command": "node --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.lz-oop-core.config.ts",
+      "cache": false,
+      "parallelism": false
     }
   }
 }

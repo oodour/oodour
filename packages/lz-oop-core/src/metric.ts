@@ -1,7 +1,7 @@
 import type { TSESTree } from '@typescript-eslint/typescript-estree';
 import { visitorKeys } from '@typescript-eslint/visitor-keys';
 import type { Source } from './source.ts';
-import { type Position, type Unit, type UnitKind, unitKindsOf } from './units.ts';
+import { type Position, type Unit, unitAt, type UnitKind } from './units.ts';
 
 /**
  * A metric is a fold over the nodes of a unit. The walk owns the stack of units; the metric says what a fresh unit
@@ -121,7 +121,7 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
   const thisWalk = {};
   const runs = metrics.map((metric) => metric[start](source, thisWalk));
 
-  walk(source.ast, { parent: undefined, key: undefined }, undefined, runs);
+  walk(source.ast, { parent: undefined, key: undefined }, runs);
 
   return {
     of<TValue>(metric: Metric<TValue>) {
@@ -136,16 +136,12 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
   };
 }
 
-function walk(node: TSESTree.Node, at: Position, enclosing: Unit | undefined, runs: readonly Run<unknown>[]): void {
-  const opened: Unit[] = [];
-  let inner = enclosing;
+function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown>[]): void {
+  const unit = unitAt(node, at);
 
-  for (const kind of unitKindsOf(node, at)) {
-    inner = { kind, node, parent: at.parent, enclosing: inner };
-    opened.push(inner);
-
+  if (unit !== undefined) {
     for (const run of runs) {
-      run.open(inner);
+      run.open(unit);
     }
   }
 
@@ -158,7 +154,7 @@ function walk(node: TSESTree.Node, at: Position, enclosing: Unit | undefined, ru
 
     for (const item of Array.isArray(child) ? child : [child]) {
       if (isNode(item)) {
-        walk(item, { parent: node, key }, inner, runs);
+        walk(item, { parent: node, key }, runs);
       }
     }
   }
@@ -167,13 +163,14 @@ function walk(node: TSESTree.Node, at: Position, enclosing: Unit | undefined, ru
     run.leave(node, at);
   }
 
-  for (const unit of opened.reverse()) {
+  if (unit !== undefined) {
     for (const run of runs) {
       run.close(unit);
     }
   }
 }
 
+/** A child under a visitor key is a node, `null`, or (in a sparse array pattern) a hole. */
 function isNode(value: unknown): value is TSESTree.Node {
-  return typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string';
+  return typeof value === 'object' && value !== null && 'type' in value;
 }
