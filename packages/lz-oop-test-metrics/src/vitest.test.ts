@@ -8,6 +8,10 @@ import { TestMetricsReporter } from './vitest.ts';
 
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'vitest');
 const vitest = join(import.meta.dirname, '..', '..', '..', 'node_modules', 'vitest', 'vitest.mjs');
+// The reporter imports the core package, which this workspace runs from source under the condition this run was given.
+// Vite's default config loader bundles the config and resolves packages without Node's conditions; the native loader
+// leaves the import to Node.
+const vitestRun = [...process.execArgv.filter((flag) => flag.startsWith('--conditions')), vitest, 'run', '--configLoader', 'native'];
 
 /** The fixture's coverage when no test called `classify`, its one listed function. */
 function uncalledClassify() {
@@ -56,7 +60,7 @@ test('the reporter prints nothing and leaves the run passing when it finds nothi
 });
 
 test('the same Vitest run without coverage passes, so a failed run with coverage is the reporter failing it', () => {
-  const run = spawnSync(process.execPath, [vitest, 'run', '--coverage.enabled=false'], {
+  const run = spawnSync(process.execPath, [...vitestRun, '--coverage.enabled=false'], {
     cwd: fixture,
     encoding: 'utf8',
   });
@@ -66,7 +70,7 @@ test('the same Vitest run without coverage passes, so a failed run with coverage
 
 for (const provider of ['v8', 'istanbul']) {
   test(`a Vitest run with ${provider} coverage reports each function at the CRAP limit and fails, and flags untested code`, () => {
-    const run = spawnSync(process.execPath, [vitest, 'run', `--coverage.provider=${provider}`], {
+    const run = spawnSync(process.execPath, [...vitestRun, `--coverage.provider=${provider}`], {
       cwd: fixture,
       encoding: 'utf8',
     });

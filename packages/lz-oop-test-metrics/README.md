@@ -12,10 +12,11 @@ Each signal prints a stop-and-look message on one line, led by the function's fi
 terminals link to it. It names the concept, Untested Code, what it found and the cure. Only CRAP lines fail the run. The other two are pointers to read, not gates.
 
 The path count is the one that the `complexity` rule of ESLint counts, so it matches the `complexity` rule of
-`eslint-plugin-lz-oop`. The reporters run that rule on each covered file themselves.
+`eslint-plugin-lz-oop`. The reporters count it with the lz-oop metrics core, which a test holds equal to ESLint's rule,
+so they need no ESLint.
 
-The package is private and unpublished for now. Measured with Vitest 5.1.0 (both coverage providers), Node.js 22.23.1
-and 24.22.0, and ESLint 10.13.0.
+The package is private and unpublished for now. Measured with Vitest 5.1.0 (both coverage providers) and Node.js 22.23.1
+and 24.22.0. Inside this repository, run Node.js with `--conditions=@layzee/source` so the core loads from its source.
 
 The package ships its TypeScript source, and Node.js refuses to strip types from a file under `node_modules`. An
 installed copy stops with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, so for now import the reporters by path from a

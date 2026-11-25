@@ -1,7 +1,5 @@
-import { dirname, resolve } from 'node:path';
-import { type JSSyntaxElement, Linter, type Rule } from 'eslint';
-import { builtinRules } from 'eslint/use-at-your-own-risk';
-import * as parser from '@typescript-eslint/parser';
+import { complexity, measure, parseSource, type Unit, unitName } from '@layzee/lz-oop-core';
+import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
 
 /** A place in a source file: a line from 1 and a column from 0, as ESLint counts them. */
 export interface Position {
@@ -45,130 +43,51 @@ export interface FunctionSite {
   readonly publicMethod: boolean;
 }
 
-const functionTypes = new Set(['ArrowFunctionExpression', 'FunctionDeclaration', 'FunctionExpression']);
-
 /** Every function in the source, each with the complexity ESLint's `complexity` rule gives it. */
-export function functionsIn(file: string, source: string): FunctionSite[] {
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
-  const complexity = builtinRules.get('complexity');
+export function functionsIn(file: string, text: string): FunctionSite[] {
+  const source = parseSource(text, file);
 
-  if (!complexity?.meta) {
-    throw new Error("ESLint's complexity rule could not be loaded.");
+  if ('parseError' in source) {
+    throw new Error(source.parseError);
   }
 
-  const sites: FunctionSite[] = [];
-  const reported = new Set<ReturnType<typeof nodeOf>>();
-  // A class field whose value is a function is reported for the function, then for the initializer, on one node.
-  const count = (descriptor: Rule.ReportDescriptor) => {
-    const node = nodeOf(descriptor);
-
-    if (!reported.has(node)) {
-      reported.add(node);
-      sites.push(siteOf(descriptor));
-    }
-  };
-  const counting: Rule.RuleModule = {
-    meta: complexity.meta,
-    create(context) {
-      // ESLint freezes the context, so an object that inherits from it shadows `report` instead.
-      const listening: unknown = Object.create(context, { report: { value: count } });
-
-      if (!isRuleContext(listening)) {
-        throw new Error('The listening context lost the rule context it inherits from.');
-      }
-
-      return complexity.create(listening);
-    },
-  };
-
-  // ESLint matches `files` against the path below its cwd, so a file outside the run's folder would match no config.
-  const fatal = new Linter({ cwd: dirname(resolve(file)) }).verify(
-    source,
-    [
-      {
-        files: ['**'],
-        languageOptions: { parser },
-        linterOptions: { noInlineConfig: true },
-        plugins: { metrics: { rules: { complexity: counting } } },
-        rules: { 'metrics/complexity': ['error', 0] },
-      },
-    ],
-    file,
-  ).find((message) => message.fatal === true);
-
-  // The counting rule reports through `sites`, never as a message; the other messages are notes on the inline config
-  // comments the count ignores.
-  if (fatal) {
-    throw new Error(`${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`);
-  }
-
-  return sites;
+  return measure(source, [complexity])
+    .of(complexity)
+    .map(({ unit, value }) => siteOf(unit, value));
 }
 
-function nodeOf(descriptor: Rule.ReportDescriptor) {
-  return 'node' in descriptor ? descriptor.node : undefined;
-}
-
-function siteOf(descriptor: Rule.ReportDescriptor): FunctionSite {
-  const node = nodeOf(descriptor);
-  const name = descriptor.data?.['name'];
-  const complexity = descriptor.data?.['complexity'];
-
-  if (!node?.loc || typeof name !== 'string' || typeof complexity !== 'number') {
-    throw new Error("ESLint's complexity rule reported without a located function node, a name or a count.");
-  }
-
-  const variable = name.includes("'") ? undefined : variableHolding(node);
+function siteOf(unit: Unit, complexity: number): FunctionSite {
+  const name = unitName(unit);
+  const variable = name.includes("'") ? undefined : variableHolding(unit.parent);
+  const { loc } = unit.node;
+  // A class field initializer or static block is its own body.
+  const body = unit.kind === 'function' ? unit.node.body : unit.node;
 
   return {
     name: variable === undefined ? name : `${name} '${variable}'`,
     complexity,
-    start: positionOf(node.loc.start),
-    bodyStart: positionOf((bodyOf(node).loc ?? node.loc).start),
-    end: positionOf(node.loc.end),
-    publicMethod: isPublicMethod(node),
+    start: positionOf(loc.start),
+    bodyStart: positionOf(body.loc.start),
+    end: positionOf(loc.end),
+    publicMethod: isPublicMethod(unit.parent),
   };
 }
 
-function isPublicMethod(node: JSSyntaxElement): boolean {
-  const parent: unknown = 'parent' in node ? node.parent : undefined;
-
+function isPublicMethod(parent: TSESTree.Node | undefined): boolean {
   return (
-    isSyntaxElement(parent) &&
-    parent.type === 'MethodDefinition' &&
-    'kind' in parent &&
+    parent?.type === AST_NODE_TYPES.MethodDefinition &&
     parent.kind !== 'constructor' &&
-    'key' in parent &&
-    isSyntaxElement(parent.key) &&
-    parent.key.type !== 'PrivateIdentifier' &&
-    !('accessibility' in parent && (parent.accessibility === 'private' || parent.accessibility === 'protected'))
+    parent.key.type !== AST_NODE_TYPES.PrivateIdentifier &&
+    parent.accessibility !== 'private' &&
+    parent.accessibility !== 'protected'
   );
 }
 
 /** The name of the variable the function is the value of, as in `const double = (n) => n * 2`. */
-function variableHolding(node: JSSyntaxElement): string | undefined {
-  const parent: unknown = 'parent' in node ? node.parent : undefined;
-
-  if (!isSyntaxElement(parent) || parent.type !== 'VariableDeclarator' || !('id' in parent)) {
-    return undefined;
-  }
-
-  const { id } = parent;
-
-  return isSyntaxElement(id) && 'name' in id && typeof id.name === 'string' ? id.name : undefined;
-}
-
-/** A function's body, or the node itself for a class field initializer or static block, which is its own body. */
-function bodyOf(node: JSSyntaxElement): JSSyntaxElement {
-  return functionTypes.has(node.type) && 'body' in node && isSyntaxElement(node.body) ? node.body : node;
-}
-
-function isSyntaxElement(value: unknown): value is JSSyntaxElement {
-  return typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string';
-}
-
-function isRuleContext(value: unknown): value is Rule.RuleContext {
-  return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
+function variableHolding(parent: TSESTree.Node | undefined): string | undefined {
+  return parent?.type === AST_NODE_TYPES.VariableDeclarator && parent.id.type === AST_NODE_TYPES.Identifier
+    ? parent.id.name
+    : undefined;
 }
 
 function positionOf({ line, column }: Position): Position {

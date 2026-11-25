@@ -8,7 +8,9 @@ import { createTestMetricsReporter } from './node-test.ts';
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'node-test');
 // A run started from inside `node --test` inherits NODE_TEST_CONTEXT and reports to its parent instead of running alone.
 const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'));
+// The reporter imports the core package, which this workspace runs from source under the condition this run was given.
 const testRun = [
+  ...process.execArgv.filter((flag) => flag.startsWith('--conditions')),
   '--test',
   '--test-reporter=./reporter.ts',
   '--test-reporter-destination=stdout',
