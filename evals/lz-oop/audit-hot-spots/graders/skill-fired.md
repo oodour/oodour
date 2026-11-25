@@ -1,7 +1,0 @@
----
-type: tool_used
-tool: Skill
-input_match: '"skill"\s*:\s*"(?:[\w-]+:)?lz-oop-audit"'
----
-
-The lz-oop-audit skill was invoked.

@@ -24,12 +24,12 @@
     ]
   },
   "enabledPlugins": {
-    "oracle-scrub@lz-oop-dev": true,
-    "oracle-guard@lz-oop-dev": true,
+    "oracle-scrub@oodour-dev": true,
+    "oracle-guard@oodour-dev": true,
     "nx@nx-claude-plugins": true
   },
   "extraKnownMarketplaces": {
-    "lz-oop-dev": {
+    "oodour-dev": {
       "source": {
         "source": "directory",
         "path": ".claude/mods"

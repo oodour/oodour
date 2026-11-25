@@ -1,0 +1,137 @@
+---
+name: oodour
+description: Object-oriented design coach for JavaScript and TypeScript. Load it first, before reading any code, when a developer asks where a new requirement, feature or variant should go in existing code or how to fit it in; how to change a function or method that many callers use in small safe steps; how to shape classes, objects or modules; whether to DRY up or extract code that looks alike; whether one file, class or module is well designed (dependencies, conditionals, inheritance, duplication); which test to write next while working test-first, or the smallest change that makes a failing test pass; how to unit-test a class's messages (what to assert, what to mock, why tests break on every refactoring); or what a design principle, smell or pattern means for their code. Not for reviewing a change set or auditing a package, and not for other languages.
+allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/**)
+---
+
+# oodour: object-oriented design coach
+
+## Classify each request first
+
+1. **Shape**: code that is about to be written, or existing code that must change for a new requirement.
+2. **Judge**: whether one piece of existing code is well designed, with no change requested yet.
+3. **Tests**: writing code test-first, choosing the next test, or how to test an object's messages.
+4. **Explain**: what a principle, smell or pattern means, for this code or in general.
+5. **Not a design question**: a bug, a rename, functional code where objects would not help, or another language. Answer
+   it directly without this skill's procedures.
+
+A review of a whole change set (a diff, a branch, a pull request) belongs to the `oodour-review` skill, and an audit of
+a package or repository to the `oodour-audit` skill.
+
+Inspect the project before advising: its language and module style, framework conventions, and how its existing code and
+tests are written. Advice must fit the codebase, including codebases where classes are not the house style: a module of
+functions or a record of closures can play a role as well as a class can.
+
+Advise on a question; change code only on an explicit request to do so, then stop.
+
+When you did change code, end by offering a design review of the change by the `oodour:reviewer` agent, which starts
+with fresh context and so without your reasons for the change. When the developer asked for a review of it, run that
+review, not the offer: launch `oodour:reviewer` with the scope as step 1 of the `oodour-review` skill describes, and
+check its findings against the code before you relay them.
+
+This file only routes. Before you answer each request, follow-up questions included, Read each reference file the
+matching section below names for the request, and every further reference that file sends you to for the smell or
+practice at hand: the steps, the exceptions and the sources are there, not here. An answer written from this file alone
+is incomplete.
+
+## Shape: new code, or code that must change
+
+1. Pin down what the requirement asks for, and build nothing it does not ask for.
+2. Name the shape of the change and open the matching leaf:
+   - a new kind of thing that a conditional switches on, or a flag argument that steers shared code:
+     `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`;
+   - shared code that callers keep bending with parameters, or duplication you are tempted to remove:
+     `${CLAUDE_PLUGIN_ROOT}/references/duplication-and-abstraction.md` (also for naming a new concept, section Naming);
+   - a collaborator created or reached for inside the class, a chain of calls through other objects, a sender that walks
+     a collaborator through its steps, or deciding which methods should be public:
+     `${CLAUDE_PLUGIN_ROOT}/references/dependencies-and-messages.md`;
+   - a class hierarchy to add to or replace: `${CLAUDE_PLUGIN_ROOT}/references/inheritance.md`;
+   - a raw number, string or boolean that stands for a domain idea and gets passed around:
+     `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, section Primitive Obsession;
+   - outside data (CSV rows, arrays, loose JSON) read by position or key in many places:
+     `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Raw structures from outside;
+   - a requirement that lands on an already oversized class: build it as a new small object that works with that class,
+     not as one more branch inside it, then open `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`. Start
+     this while a central, often-changed class is still of moderate size: such classes usually convert to objects well,
+     while attempts on very large ones often fail.
+3. New code: start with the plainest version that passes its tests and reads clearly, and keep its duplication until the
+   abstraction is plain to see. Stop there if nothing is going to change (Shameless Green). Say so when a short
+   procedure with no conditionals is the better answer, and recommend objects once conditionals start to accumulate.
+4. A change to existing code is two separate jobs: restructure until the change is easy, then add it. Follow the
+   Open/Closed path each time a requirement lands:
+   1. Can the change go in without editing the code that is there? Then add it, test-first.
+   2. If not, and you can see how to make it open, restructure first, with the tests green and unchanged, until the
+      change is easy; then add the change, test-first. What open code looks like:
+      `${CLAUDE_PLUGIN_ROOT}/references/variants-and-conditionals.md`, the Done line of Adding a kind.
+   3. If you cannot see how, remove the easiest well-understood smell, run the tests, and ask step 1 again, taking the
+      smells on one at a time. A way to open the code tends to appear as the smells go; keep an improvement even when
+      the code is still closed. To choose which smell to start on, sketch in a comment the conditional the change would
+      need; the smells it would create (Switch Statement, Long Function) point at the cure, then delete the sketch.
+
+   The path is done when the change itself went in as an addition and the tests that pinned the old behaviour never
+   changed. To decide whether a restructuring can stop, or whether more structure is worth adding when no change is
+   waiting, also check `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`, step 6.
+
+5. Restructure in small steps, with a test run between every two of them. Undo a step that turns the suite red and take
+   a smaller one. Never rewrite the whole class in one go. Stop once the code passes the TRUE check in judging-design
+   step 6, one refactoring short of where you could go (the last one would make the code more general than any current
+   requirement needs), and take that last one once there is evidence it will pay; a requested change that needs it is
+   such evidence. When the developer asked for a named cure, such as an audit finding or a smell to remove, that request
+   is the evidence: the cure's own Done line decides where to stop, and leaving part of the named smell in place for a
+   later change does not count as stopping one short. To change a signature, a parameter or a return type across its
+   senders in such steps, to rename a field that several methods use, or to take a long method or function apart (above
+   all one with no tests), use `${CLAUDE_PLUGIN_ROOT}/references/changing-in-steps.md`.
+
+Answer with the recommended structure, what it makes easy, what it costs, and which future request would change it, the
+first small step, the test that drives it, and the rules for each restructuring step: run the tests after every edit,
+and undo an edit that turns them red instead of fixing forward. When the red shows that a test checks how the code works
+rather than what it does, undo the edit, rewrite that test to check what the code does while the suite is green, then
+make the edit again. That rewrite keeps the behaviour the test pins, so it does not count as changing the tests in
+step 4. A test written first for the change is red on purpose until the change goes in. Stop there unless the developer
+asked you to change the code.
+
+A Shape answer, in outline:
+
+```md
+**Structure:** <the objects and the one place that chooses among them>
+**Makes easy:** <the change that becomes an addition> **Costs:** <indirection, files, what is harder to follow>
+**Would change it:** <the future request that would make this the wrong shape>
+**First step:** <one restructuring with the tests green and unchanged>, then run the tests.
+**Test that drives the change:** <its name and the example it pins>
+```
+
+## Judge: one piece of existing code
+
+Follow `${CLAUDE_PLUGIN_ROOT}/references/judging-design.md`. It gives the verdict and names each smell, and its step 4
+names the reference file that holds each smell's cure; it does not hold those cures itself. Open that file for every
+smell you report before you recommend a cure. Read the code's callers too, and look for other places that switch on the
+same kind or create the same collaborator: a cost this code imposes may show only there.
+
+## Tests
+
+- Writing code test-first, or choosing the next test: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`.
+- Tests that break whenever the code is restructured: `${CLAUDE_PLUGIN_ROOT}/references/test-first.md`, section Tests
+  while restructuring, and `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md` (next bullet).
+- What to assert for an object's messages, doubles, and tests that are hard to write:
+  `${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`. Treat a test that is hard to write as news about the design,
+  and say what in the design causes it.
+- Keeping a fake or other player of a role honest with one shared test, and writing that test in Vitest, Jest or
+  `node:test`: `${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`, section Role tests.
+
+Answer with the next test (its name and the example it pins), why it comes next, and the smallest change that turns it
+green; for a question about testing an object, say what each test asserts and which collaborators get a double, and name
+its kind: a stub when it only answers, a mock or spy when the test checks a command it received, a fake when it is a
+lighter working version (`${CLAUDE_PLUGIN_ROOT}/references/testing-messages.md`, Doubles); for tests that break on
+restructuring, name each test that checks how rather than what, and say what it should assert instead.
+
+## Explain
+
+Answer from the leaf that covers the idea, tied to the developer's code where there is code. When no leaf covers the
+idea, say so and answer in general terms.
+
+## JavaScript and TypeScript
+
+Where an idea does not carry over to JavaScript or TypeScript as stated, use the equivalent in
+`${CLAUDE_PLUGIN_ROOT}/references/javascript-and-typescript.md`. Write TypeScript by default, in syntax that Node.js can
+strip (no `enum`, `namespace` or constructor parameter properties), and add a JavaScript note where the languages
+differ.

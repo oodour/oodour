@@ -1,0 +1,28 @@
+{
+  "name": "@oodour/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Code metrics for object-oriented design in JavaScript and TypeScript, measured in one walk of a typescript-estree tree.",
+  "homepage": "https://github.com/oodour/oodour#readme-ov-file",
+  "exports": {
+    ".": {
+      "@oodour/source": "./src/index.ts",
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "peerDependencies": {
+    "typescript": ">=4.8.4 <6.1.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "^8.72.1",
+    "@typescript-eslint/visitor-keys": "^8.72.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.72.1",
+    "eslint": "^10.0.0"
+  }
+}

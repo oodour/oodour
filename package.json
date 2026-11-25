@@ -1,5 +1,5 @@
 {
-  "name": "lz-oop-tooling",
+  "name": "oodour-tooling",
   "private": true,
   "type": "module",
   "description": "Type-check, lint and test the oracle firewall's hooks, mod and tools.",

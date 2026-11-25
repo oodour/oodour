@@ -1,6 +1,6 @@
 # Every lint rule reports at error, and a disable comment must say why
 
-`@layzee/eslint-plugin-lz-oop` turns every rule its presets enable on at `error`, the size and complexity limits
+`@oodour/eslint-plugin` turns every rule its presets enable on at `error`, the size and complexity limits
 included. The plugin is built for AI coding agents, and an error makes the agent decide: change the code, or turn the
 rule off with a reason. Lars, 2026-11-18: "Times are changing. This is a pluign built for AI coding agents who work at a
 rate much faster than humans. We keep the error severity instead of warn because it forces the AI coding agent to make a

@@ -5,7 +5,7 @@
     "target": "es2024",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "customConditions": ["@layzee/source"],
+    "customConditions": ["@oodour/source"],
     "lib": ["es2025"],
     "types": ["node"],
     "allowImportingTsExtensions": true,

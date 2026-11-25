@@ -32,10 +32,10 @@ test('a grader file without a single-quoted input_match is refused', () => {
 
 test('in the real eval cases, every reference leaf of the plugin has a case that asks for it alone', () => {
   const root = join(import.meta.dirname, '..');
-  const leaves = readdirSync(join(root, 'plugins/lz-oop/references'))
+  const leaves = readdirSync(join(root, 'plugins/oodour/references'))
     .filter((file) => file.endsWith('.md'))
     .map((file) => file.slice(0, -'.md'.length));
-  const patterns = ['evals/lz-oop', 'evals/lz-oop-real'].flatMap((suite) =>
+  const patterns = ['evals/oodour', 'evals/oodour-real'].flatMap((suite) =>
     readdirSync(join(root, suite))
       .map((name) => join(root, suite, name, 'graders', 'leaf-read.md'))
       .filter((file) => existsSync(file))

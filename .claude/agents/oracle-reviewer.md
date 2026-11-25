@@ -34,8 +34,8 @@ adapt. So:
    named terms used for a different concept without saying so (silent redefinition), her named
    technique presented as the project's own (unattributed borrowing), and wording copied from the
    source (too close).
-4. **Drafts under `plugins/lz-oop/` cite no source in their text.** The plugin credits its works once, in
-   `plugins/lz-oop/ATTRIBUTION.md`, and names patterns, principles and practices without a title or a person (Lars,
+4. **Drafts under `plugins/oodour/` cite no source in their text.** The plugin credits its works once, in
+   `plugins/oodour/ATTRIBUTION.md`, and names patterns, principles and practices without a title or a person (Lars,
    2026-11-19: "The distributed parts of the skills shouldn't mention titles of books, talks, articles, or other
    sources."). For such a draft, a technique from a work listed there counts as credited, so it is never
    `needs-attribution`; and a statement of what a named pattern, principle or practice means, or of its steps, is a

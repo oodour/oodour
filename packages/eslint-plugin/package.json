@@ -1,0 +1,25 @@
+{
+  "name": "@oodour/eslint-plugin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ESLint rules and presets for object-oriented design in JavaScript and TypeScript.",
+  "homepage": "https://github.com/oodour/oodour#readme-ov-file",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "peerDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "eslint": "^10.0.0",
+    "typescript": ">=4.8.4 <6.1.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.72.1"
+  }
+}

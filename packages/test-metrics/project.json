@@ -1,0 +1,50 @@
+{
+  "name": "test-metrics",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/test-metrics/src",
+  "targets": {
+    "typecheck": {
+      "command": "tsc -p packages/test-metrics/tsconfig.json",
+      "inputs": [
+        "default",
+        "^default",
+        { "externalDependencies": ["typescript", "@types/node", "@typescript-eslint/typescript-estree", "vitest"] }
+      ]
+    },
+    "lint": {
+      "command": "eslint packages/test-metrics",
+      "inputs": [
+        "default",
+        "^default",
+        "eslintConfig",
+        { "externalDependencies": ["@types/node", "@typescript-eslint/typescript-estree", "vitest"] }
+      ]
+    },
+    "test": {
+      "command": "node --conditions=@oodour/source --test \"packages/test-metrics/src/**/*.test.ts\"",
+      "cache": true,
+      "inputs": [
+        "default",
+        "^default",
+        {
+          "externalDependencies": [
+            "@typescript-eslint/typescript-estree",
+            "@typescript-eslint/visitor-keys",
+            "typescript",
+            "vitest",
+            "@vitest/coverage-v8",
+            "@vitest/coverage-istanbul"
+          ]
+        },
+        { "runtime": "node --version" }
+      ],
+      "outputs": []
+    },
+    "mutate": {
+      "command": "node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.test-metrics.config.ts",
+      "cache": false,
+      "parallelism": false
+    }
+  }
+}

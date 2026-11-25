@@ -2,8 +2,10 @@
 
 Agent-agnostic rules for this repository. `CLAUDE.md` imports this file.
 
-This repository will hold `lz-oop`, a Claude Code marketplace plugin that helps people design
-object-oriented code the way Sandi Metz teaches it. Its research draws on her copyrighted book,
+This repository will hold OOdour (`oodour`), a Claude Code marketplace plugin that helps people design
+object-oriented code the way Sandi Metz teaches it. It was named lz-oop until 2026-11-26 (Lars: "The name is
+"OOdour", not "Oodour", "OO" as in "OOP"."); quotes from before then keep the old name. Prose writes OOdour; package,
+file, skill and agent names write `oodour`, and the npm scope is `@oodour`. Its research draws on her copyrighted book,
 talks and articles, held locally in full text behind a firewall. The firewall is the most
 important rule here.
 
@@ -77,10 +79,10 @@ output), stop reading it, do not use it, and tell Lars.
   are free: Shameless Green, the Flocking Rules, the Law of Demeter.
 - In research notes and plans, cite as the oracles do: `Ch.<n> (<your own words>)` for the book, the
   talk or article title with its year for the others. Never derive a chapter number from a file name.
-- In the distributed plugin's skills, references and agents (`plugins/lz-oop/`), cite no source: no chapter number,
+- In the distributed plugin's skills, references and agents (`plugins/oodour/`), cite no source: no chapter number,
   no title of a book, talk or article, no stand-in such as "the book" or "the talk", and no "her" or "she" for an
   author. Name the pattern, principle or practice, state its meaning, intent and steps in your own words, and have
-  `oracle-reviewer` gate the result. The works are credited once, in `plugins/lz-oop/ATTRIBUTION.md`; add a work
+  `oracle-reviewer` gate the result. The works are credited once, in `plugins/oodour/ATTRIBUTION.md`; add a work
   there in the same change that first draws on it. Leave out sources-and-attribution sections, statements of where
   the plugin's reading comes from, claims about material the plugin cannot read, and asides that give the agent
   nothing to act on (Lars, 2026-11-15: "Ideally, it shouldn't be necessary for the distributed skill or reference
@@ -157,14 +159,14 @@ type-checks, lints and tests all of them.
 
 ## The plugin's skills and agents
 
-- The plugin stands alone: its shipped files (`plugins/lz-oop/`) name none of the maintainer's own plugins or skills.
+- The plugin stands alone: its shipped files (`plugins/oodour/`) name none of the maintainer's own plugins or skills.
   Describe an idea in its own words instead of pointing at another tool, and credit people and their works, not tools.
 - Every concept a rule's message names, every rule and every Fallow check traces to the sources, and code metrics
   count as traced ([ADR 0003](docs/adr/0003-every-concept-rule-and-check-traces-to-the-sources.md)).
 - No skill sets `disable-model-invocation: true`. In Claude Code it also makes the Skill tool refuse the skill,
   stops `skills:` preloading, and keeps `/loop` and autonomous sessions from running it.
-- Name plugin agents with the plugin prefix wherever a caller names them (`skills: [lz-oop:lz-oop-review]`,
-  `subagent_type: "lz-oop:reviewer"`). A bare name silently falls back to the default agent in a skill's `agent:`
+- Name plugin agents with the plugin prefix wherever a caller names them (`skills: [oodour:oodour-review]`,
+  `subagent_type: "oodour:reviewer"`). A bare name silently falls back to the default agent in a skill's `agent:`
   field, and fails in an Agent call.
 - Point at bundled files with `${CLAUDE_SKILL_DIR}` inside a skill and `${CLAUDE_PLUGIN_ROOT}` across skills.
 - Verify a change to a skill or agent with a real run, the eval suite below, after Lars's go-ahead for the round.
@@ -182,7 +184,7 @@ type-checks, lints and tests all of them.
   reviewers, it is useful to them to be able to write and run verification scripts."; the evidence is the review of
   `LayZeeDK/thermos-claude-plugin` pull request 1, where 117 of 155 reviewer runs used Write or Edit for findings files
   and scratch verification scripts, never on the code under review).
-- The review and audit collect lz-oop's metrics and smells through the published lz-oop ESLint and Fallow packages,
+- The review and audit collect OOdour's metrics and smells through the published OOdour ESLint and Fallow packages,
   which the skills offer to install and set up for the session or for good; until those packages are published, evals
   and slim `claude -p` runs use builds packed from `packages/` (Lars, 2026-11-25: "Wait for lz-oop ESLint/Fallow
   packages to be published. The skills offer to install and set up the published lz-oop packages temporarily or
@@ -192,10 +194,10 @@ type-checks, lints and tests all of them.
   measure with no install step; an untrusted audit uses only the metrics that need no type information, and Fallow is
   not bundled (Lars, 2026-11-25: "1-2: OK, let's try that and see how it works out, then re-evaluate."; then, to
   Claude's recommendation to keep the core and start building it: "1-2: OK"). The skills still
-  offer the published packages for a team's own lint setup. The layout: a core package; an `lz-oop` CLI package on top
-  of it, holding `hotspots` and the measuring command; the plugin depends on the CLI package from the registry through a
-  thin `scripts/lz-oop.ts` that keeps the command line the skills pre-approve and the trust gate reads; the ESLint
-  package and `lz-oop-test-metrics` use the core too (Lars, 2026-11-25, proposing it: "We could ship an `lz-oop` CLI in
+  offer the published packages for a team's own lint setup. The layout: a core package (`@oodour/core`); a CLI package
+  (`@oodour/cli`) on top of it, holding `hotspots` and the measuring command; the plugin depends on the CLI package from
+  the registry through a thin `scripts/oodour.ts` that keeps the command line the skills pre-approve and the trust gate
+  reads; the ESLint package and `@oodour/test-metrics` use the core too (Lars, 2026-11-25, proposing it: "We could ship an `lz-oop` CLI in
   a separate package which could be used by the `lz-oop` Claude plugin and ship a separate `lz-oop` core package which
   could be used by the CLI and the ESLint/Fallow packages"; then "Adopt the three-package layout: OK"). It replaces the
   earlier ruling that bundled the command in the plugin.
@@ -203,13 +205,13 @@ type-checks, lints and tests all of them.
 ## Nx workspace
 
 The repository is an Nx workspace with six projects: `tooling` (the hooks, the mod and the tools, from
-`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the four
-packages `lz-oop-core`, `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-oop-test-metrics` (each from its
-`project.json` under `packages/`). Run Nx as `npm exec -- nx`.
+`project.json`), `oodour` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the four
+packages `core`, `eslint-plugin`, `fallow-config` and `test-metrics` (each from its `project.json` under `packages/`,
+published as `@oodour/<name>`). Run Nx as `npm exec -- nx`.
 
-- The packages are npm workspaces of the root `package.json`, so `npm install` links each into `node_modules/@layzee/`.
-  A package that others import (the core) lists its source under the `@layzee/source` export condition, which the root
-  `tsconfig.json` sets as a custom condition; run Node.js with `--conditions=@layzee/source` to test against the source
+- The packages are npm workspaces of the root `package.json`, so `npm install` links each into `node_modules/@oodour/`.
+  A package that others import (the core) lists its source under the `@oodour/source` export condition, which the root
+  `tsconfig.json` sets as a custom condition; run Node.js with `--conditions=@oodour/source` to test against the source
   without a build. Without the condition, an import resolves to the package's `dist/`, as a registry install does.
 - `npm exec -- nx run-many -t pack` writes the core, ESLint and Fallow packages as tarballs to `dist/packages/`, for
   evals and slim `claude -p` runs until the packages are published. The core's and the ESLint package's `pack` run
@@ -218,19 +220,19 @@ packages `lz-oop-core`, `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-o
 
 - `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then
   `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number, a title that
-  `plugins/lz-oop/ATTRIBUTION.md` lists (two words or more), a stand-in such as "the book", or "her" or "she" (see "What
+  `plugins/oodour/ATTRIBUTION.md` lists (two words or more), a stand-in such as "the book", or "her" or "she" (see "What
   you write").
 - Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
   it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
   `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and
   `.prettierignore` follow what Nx 24.0.6 generates for a new workspace (Lars, 2026-11-16: "align EditorConfig and
   Prettier configs with Nx defaults"; "~3.6.2 it is").
-- `npm exec -- nx run lz-oop:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
-  the plugin and `evals/lz-oop/` into `dist/eval/lz-oop/`, because `claude plugin eval` reads cases only below a
+- `npm exec -- nx run oodour:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies
+  the plugin and `evals/oodour/` into `dist/eval/oodour/`, because `claude plugin eval` reads cases only below a
   plugin root and the cases stay out of the distributed plugin. It passes `--allow-tools Write Edit`, because the eval
   withholds those tools unless the run grants them; a case still gets only the tools its `allowed_tools` lists, and
-  audit-own-change is the one that lists them. `nx run lz-oop:eval-real` does the same for the
-  real-repository cases in `evals/lz-oop-real/`, whose scaffold scripts unpack a pinned commit of a local clone, and
+  audit-own-change is the one that lists them. `nx run oodour:eval-real` does the same for the
+  real-repository cases in `evals/oodour-real/`, whose scaffold scripts unpack a pinned commit of a local clone, and
   passes `--scaffold` so those scripts run. Every eval round waits for Lars's go-ahead (Lars,
   2026-11-15: "block on me before each round of runs so that I may check remaining token budget in our Claude
   plan"). A round covers Opus at 3 runs a case and Sonnet at 5 (Lars, 2026-11-25: "Our evals should cover Opus at n=3
@@ -238,15 +240,15 @@ packages `lz-oop-core`, `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-o
   and `--model claude-sonnet-5-5 --runs 5`.
 - `test` and `overlap` are never cached: both read the git-ignored store, which Nx cannot hash.
 - After editing `tools/nx/claude-plugin.ts`, run `npm exec -- nx daemon --stop`. The daemon keeps the plugin it loaded
-  and serves the old inferred `lz-oop` targets until it restarts; the next Nx command starts a fresh one.
+  and serves the old inferred `oodour` targets until it restarts; the next Nx command starts a fresh one.
 - Never set `NX_DAEMON=false` or pass `--skip-nx-cache` (Lars, 2026-11-15: "this Nx workspace may never use
   `NX_DAEMON=false` or `--skip-nx-cache` which is always a smell indicating a misconfigured workspace or
   environment"). Fix the configuration instead.
 - Avoid adding environment variables of the repository's own. When one is needed, prefix a public one (a plugin user
-  may set it) with `LZ_OOP_` and an internal one (tests, tooling) with `_LZ_OOP_INTERNAL_` (Lars, 2026-11-24: "Keep in
-  mind that env variables for internal use should be prexifed with `_LZ_OOP_INTERNAL_`" and "Public env variables
-  should be prefixed with `LZ_OOP_` but generally avoid custom env variables").
-- `_LZ_OOP_INTERNAL_TEST_TEMP` moves the scripts' test temporary folders, for instance to a Dev Drive. Nx loads it
+  may set it) with `OODOUR_` and an internal one (tests, tooling) with `_OODOUR_INTERNAL_` (Lars, 2026-11-24, before
+  the rename: "Keep in mind that env variables for internal use should be prexifed with `_LZ_OOP_INTERNAL_`" and
+  "Public env variables should be prefixed with `LZ_OOP_` but generally avoid custom env variables").
+- `_OODOUR_INTERNAL_TEST_TEMP` moves the scripts' test temporary folders, for instance to a Dev Drive. Nx loads it
   from a git-ignored `.env.local` at the workspace root; `TEMP` itself cannot go there, as Nx never lets an env file
   replace a variable the shell already set. Lars chose this over a user-level `TEMP` and a per-run `--env.TEMP=`
   (2026-11-24: "1: Option A"). A `TEMP` inside the workspace fails the tests that need a folder outside any repository.

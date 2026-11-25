@@ -1,5 +1,5 @@
 {
-  "name": "lz-oop",
+  "name": "oodour",
   "owner": {
     "name": "Lars Gyrup Brink Nielsen",
     "email": "larsbrinknielsen@gmail.com"
@@ -7,8 +7,8 @@
   "description": "Object-oriented design coaching for JavaScript and TypeScript in Claude Code.",
   "plugins": [
     {
-      "name": "lz-oop",
-      "source": "./plugins/lz-oop",
+      "name": "oodour",
+      "source": "./plugins/oodour",
       "description": "Coaches object-oriented design in JavaScript and TypeScript, based on Sandi Metz's principles and practices."
     }
   ]

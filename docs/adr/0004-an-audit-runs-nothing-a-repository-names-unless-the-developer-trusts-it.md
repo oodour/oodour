@@ -1,9 +1,9 @@
 # An audit runs nothing a repository names unless the developer trusts it
 
-`lz-oop-audit` audits repositories the developer may not have written. Git, test runners, linters and package scripts start
+`oodour-audit` audits repositories the developer may not have written. Git, test runners, linters and package scripts start
 programs that a repository's own config names, and on Windows a path that Git opens can lead to another machine and send
 it the developer's credentials. So every repository is untrusted by default: the plugin's command starts no Git process
-and walks the folder itself without entering links, and the skill and the `lz-oop:auditor` agent run nothing the
+and walks the folder itself without entering links, and the skill and the `oodour:auditor` agent run nothing the
 repository names. Git and the repository's own tools run only after the developer asks for a trusted audit in their own
 message and approves the trusted command at Claude Code's permission prompt.
 
@@ -28,10 +28,10 @@ The metadata check stays on the trusted path as a best-effort alarm for plain ne
   counts.
 - Where nobody can answer a prompt, the developer grants it in advance with an allow rule for the trusted command, or
   `--allowedTools` for one run. Lars, 2026-11-23: "How unattended runs grant trust: OK". The rule must name the plugin
-  folder in full: with a `*` over the version folder, a `claude -p` run also ran a `lz-oop.ts` planted in the audited
+  folder in full: with a `*` over the version folder, a `claude -p` run also ran an `oodour.ts` (then `lz-oop.ts`) planted in the audited
   repository, reached by `..` from the plugin folder (measured, Claude Code 2.1.327).
 - In auto mode a classifier decides prompts and could approve the trusted command with nobody asked. The plugin's
-  PreToolUse hook answers "ask" for any `lz-oop.ts` call in auto mode other than the plugin's own untrusted command, and
+  PreToolUse hook answers "ask" for any `oodour.ts` call in auto mode other than the plugin's own untrusted command, and
   gives no decision in other modes. Lars, 2026-11-24, "1: OK", to keeping it. An organisation's managed settings can
   block plugin hooks, so nothing else depends on it.
 
@@ -64,7 +64,7 @@ The metadata check stays on the trusted path as a best-effort alarm for plain ne
   OK". A rule such as `Bash(node *)` or `Bash(git *)`, or a session with permission checks off, lets Claude run those
   commands on any repository; the plugin's README says to keep allow rules narrow.
 - In auto mode the hook asks even when an allow rule grants the trusted command (measured), so unattended trusted
-  audits run in another permission mode. The hook's filter matches the text `lz-oop.ts` in the command, so a command
+  audits run in another permission mode. The hook's filter matches the text `oodour.ts` in the command, so a command
   that names the script another way (a glob, a variable) never reaches it; no text filter can close that.
 - The hook guards only the plugin's own command. In an untrusted audit, the skill's text alone keeps the model from
   running Git, tests, linters or package scripts; in auto mode such a command goes to Claude Code's own classifier, and

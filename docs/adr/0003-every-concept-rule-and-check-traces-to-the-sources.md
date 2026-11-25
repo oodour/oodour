@@ -1,6 +1,6 @@
 # Every concept, rule and Fallow check traces to the sources, and code metrics count as traced
 
-lz-oop teaches what its sources teach, so each concept a message names, each lint rule and each Fallow check the
+OOdour (then named lz-oop) teaches what its sources teach, so each concept a message names, each lint rule and each Fallow check the
 presets turn on has an origin in the sealed sources, and the plugin does not invent concept names. Lars, 2026-11-20: "I
 would prefer that we don't invent concepts. lz-oop is based on oracle. Every concept, rule, or Fallow check it includes
 should have an origin in oracle (Sandi Metz, Katrina Owen, and other sources they reference)."

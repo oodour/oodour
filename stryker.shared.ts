@@ -1,5 +1,5 @@
 // The options every Stryker configuration shares: stryker.config.ts for the tooling,
-// stryker.eslint-plugin-lz-oop.config.ts for the ESLint plugin and stryker.lz-oop-test-metrics.config.ts for the
+// stryker.eslint-plugin.config.ts for the ESLint plugin and stryker.test-metrics.config.ts for the
 // test reporters.
 import { availableParallelism, freemem } from 'node:os';
 import { pathToFileURL } from 'node:url';

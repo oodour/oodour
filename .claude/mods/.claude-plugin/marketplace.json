@@ -1,7 +1,7 @@
 {
-  "name": "lz-oop-dev",
+  "name": "oodour-dev",
   "owner": { "name": "Lars Gyrup Brink Nielsen" },
-  "description": "Repository-internal mods for developing lz-oop. Not for consumers.",
+  "description": "Repository-internal mods for developing OOdour. Not for consumers.",
   "plugins": [
     {
       "name": "oracle-scrub",

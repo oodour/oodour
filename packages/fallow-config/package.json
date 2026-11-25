@@ -1,0 +1,9 @@
+{
+  "name": "@oodour/fallow-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fallow limits that point a health run at the places OOdour's audit looks first.",
+  "main": "fallowrc.json",
+  "files": ["fallowrc.json", "strict.json", "README.md"]
+}

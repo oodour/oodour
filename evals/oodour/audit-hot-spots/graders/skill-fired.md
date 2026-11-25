@@ -1,0 +1,7 @@
+---
+type: tool_used
+tool: Skill
+input_match: '"skill"\s*:\s*"(?:[\w-]+:)?oodour-audit"'
+---
+
+The oodour-audit skill was invoked.

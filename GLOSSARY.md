@@ -1,4 +1,4 @@
-# lz-oop
+# OOdour
 
 Coaching object-oriented design in JavaScript and TypeScript the way Sandi Metz teaches it: skills that advise, lint
 rules that check, both written from sources the repository keeps sealed.
@@ -75,7 +75,7 @@ none.
 _Avoid_: cure (the cure is the refactoring; the remedy is how the rule helps apply it)
 
 **Wrapped rule**:
-A rule of this plugin that runs an existing ESLint, typescript-eslint or third-party rule with lz-oop's options and a
+A rule of this plugin that runs an existing ESLint, typescript-eslint or third-party rule with OOdour's options and a
 message of its own that names the concept and its cure. The rule it wraps is a duplicate.
 _Avoid_: borrowed rule, proxy rule
 

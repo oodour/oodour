@@ -1,7 +1,7 @@
 # The size limits are set in what ESLint counts, not copied from Sandi Metz's numbers
 
-The plugin's Size limits entry (`plugins/lz-oop/references/smells.md`) gives Sandi Metz's numbers: a method of at most
-5 lines, a class of at most 100, at most 4 parameters. `@layzee/eslint-plugin-lz-oop` defaults to 7, 110 and 3 instead,
+The plugin's Size limits entry (`plugins/oodour/references/smells.md`) gives Sandi Metz's numbers: a method of at most
+5 lines, a class of at most 100, at most 4 parameters. `@oodour/eslint-plugin` defaults to 7, 110 and 3 instead,
 because each lint rule counts differently from the way those numbers are stated, or because she has said a lower
 number may fit better. Do not "align" the lint defaults with the reference; the difference is deliberate.
 

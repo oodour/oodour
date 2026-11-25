@@ -1,0 +1,27 @@
+{
+  "name": "@oodour/test-metrics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vitest and node:test reporters that flag untested code from the coverage of the test run: CRAP scores, public methods no test called, and branch paths no test took.",
+  "homepage": "https://github.com/oodour/oodour#readme-ov-file",
+  "exports": {
+    ".": "./src/index.ts",
+    "./vitest": "./src/vitest.ts",
+    "./node-test": "./src/node-test.ts",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.8.4 <6.1.0",
+    "vitest": "^5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@oodour/core": "0.0.0",
+    "@typescript-eslint/typescript-estree": "^8.72.1"
+  }
+}

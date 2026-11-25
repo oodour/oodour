@@ -50,7 +50,7 @@
       "outputs": []
     },
     "mutate": {
-      "command": "node --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.config.ts",
+      "command": "node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.config.ts",
       "cache": false,
       "parallelism": false
     }
