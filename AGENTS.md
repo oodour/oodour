@@ -187,10 +187,11 @@ type-checks, lints and tests all of them.
   and slim `claude -p` runs use builds packed from `packages/` (Lars, 2026-11-25: "Wait for lz-oop ESLint/Fallow
   packages to be published. The skills offer to install and set up the published lz-oop packages temporarily or
   permanently. We create temporary builds/packages/tarballs for evals and slim `claude -p` runs until the packages have
-  been published."). Under trial since the same day: the metric logic moves into a core package without ESLint, which
+  been published."). Adopted the same day after a trial: the metric logic moves into a core package without ESLint, which
   the ESLint rules and the plugin's own command (`hotspots` and a measuring command) both use, so the review and audit
   measure with no install step; an untrusted audit uses only the metrics that need no type information, and Fallow is
-  not bundled (Lars, 2026-11-25: "1-2: OK, let's try that and see how it works out, then re-evaluate."). The skills still
+  not bundled (Lars, 2026-11-25: "1-2: OK, let's try that and see how it works out, then re-evaluate."; then, to
+  Claude's recommendation to keep the core and start building it: "1-2: OK"). The skills still
   offer the published packages for a team's own lint setup. The layout: a core package; an `lz-oop` CLI package on top
   of it, holding `hotspots` and the measuring command; the plugin depends on the CLI package from the registry through a
   thin `scripts/lz-oop.ts` that keeps the command line the skills pre-approve and the trust gate reads; the ESLint
