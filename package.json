@@ -6,6 +6,9 @@
   "scripts": {
     "check": "nx run-many -t typecheck lint test test-mods validate overlap citations && nx format:check --all"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "nx": {
     "includedScripts": []
   },

@@ -1,0 +1,61 @@
+{
+  "name": "lz-oop-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/lz-oop-core/src",
+  "namedInputs": {
+    "coreDependencies": [
+      {
+        "externalDependencies": [
+          "typescript",
+          "@typescript-eslint/typescript-estree",
+          "@typescript-eslint/visitor-keys",
+          "@types/node"
+        ]
+      }
+    ]
+  },
+  "targets": {
+    "typecheck": {
+      "command": "tsc -p packages/lz-oop-core/tsconfig.json",
+      "inputs": ["default", "coreDependencies"]
+    },
+    "lint": {
+      "command": "eslint packages/lz-oop-core",
+      "inputs": ["default", "eslintConfig", "coreDependencies"]
+    },
+    "test": {
+      "command": "node --test \"packages/lz-oop-core/src/**/*.test.ts\"",
+      "cache": true,
+      "inputs": [
+        "default",
+        "{workspaceRoot}/packages/*/src/**/*.ts",
+        "{workspaceRoot}/plugins/lz-oop/scripts/**/*.ts",
+        "coreDependencies",
+        { "externalDependencies": ["eslint"] },
+        { "runtime": "node --version" }
+      ],
+      "outputs": []
+    },
+    "build": {
+      "command": "tsc -p packages/lz-oop-core/tsconfig.build.json",
+      "cache": true,
+      "inputs": ["default", "coreDependencies"],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node -e \"require('node:fs').mkdirSync('dist/packages', { recursive: true })\"",
+          "npm pack ./packages/lz-oop-core --pack-destination dist/packages"
+        ],
+        "parallel": false
+      },
+      "dependsOn": ["build"],
+      "cache": true,
+      "inputs": ["default"],
+      "outputs": ["{workspaceRoot}/dist/packages/layzee-lz-oop-core-*.tgz"]
+    }
+  }
+}

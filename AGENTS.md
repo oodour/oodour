@@ -202,14 +202,19 @@ type-checks, lints and tests all of them.
 
 ## Nx workspace
 
-The repository is an Nx workspace with five projects: `tooling` (the hooks, the mod and the tools, from
-`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the three
-packages `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-oop-test-metrics` (each from its `project.json` under
-`packages/`). Run Nx as `npm exec -- nx`.
+The repository is an Nx workspace with six projects: `tooling` (the hooks, the mod and the tools, from
+`project.json`), `lz-oop` (the plugin, inferred by `tools/nx/claude-plugin.ts` from its manifest), and the four
+packages `lz-oop-core`, `eslint-plugin-lz-oop`, `fallow-config-lz-oop` and `lz-oop-test-metrics` (each from its
+`project.json` under `packages/`). Run Nx as `npm exec -- nx`.
 
-- `npm exec -- nx run-many -t pack` writes the ESLint and Fallow packages as tarballs to `dist/packages/`, for evals
-  and slim `claude -p` runs until the packages are published. The ESLint package's `pack` runs its `build` first,
-  because Node.js strips no types under `node_modules`, so an installed package must ship JavaScript.
+- The packages are npm workspaces of the root `package.json`, so `npm install` links each into `node_modules/@layzee/`.
+  A package that others import (the core) lists its source under the `@layzee/source` export condition, which the root
+  `tsconfig.json` sets as a custom condition; run Node.js with `--conditions=@layzee/source` to test against the source
+  without a build. Without the condition, an import resolves to the package's `dist/`, as a registry install does.
+- `npm exec -- nx run-many -t pack` writes the core, ESLint and Fallow packages as tarballs to `dist/packages/`, for
+  evals and slim `claude -p` runs until the packages are published. The core's and the ESLint package's `pack` run
+  their `build` first, because Node.js strips no types under `node_modules`, so an installed package must ship
+  JavaScript.
 
 - `npm run check` runs `nx run-many -t typecheck lint test test-mods validate overlap citations`, then
   `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number, a title that
