@@ -1,12 +1,13 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../create-rule.ts';
+import { type RepeatedSwitch, repeatedSwitches as repeatedSwitchesMetric } from '@oodour/core';
+import { defineMetricRule } from '../define-metric-rule.ts';
 
 /**
  * Reports every switch in a file whose case labels, compared as source text in any order and without `default`, match
  * those of another switch in the file. ESLint sees one file at a time, so repetition across files goes unreported.
  */
-export const repeatedSwitches = createRule<[], 'found'>({
+export const repeatedSwitches = defineMetricRule<[], 'found', readonly RepeatedSwitch[]>({
   name: 'repeated-switches',
+  metric: repeatedSwitchesMetric,
   meta: {
     type: 'suggestion',
     docs: {
@@ -27,26 +28,11 @@ export const repeatedSwitches = createRule<[], 'found'>({
     schema: [],
     defaultOptions: [],
   },
-  create(context) {
-    const switchesByCases = new Map<string, TSESTree.SwitchStatement[]>();
-
-    return {
-      SwitchStatement(node) {
-        const cases = node.cases.flatMap(({ test }) => (test === null ? [] : [context.sourceCode.getText(test)]))
-          .toSorted()
-          .join(', ');
-
-        switchesByCases.set(cases, [...(switchesByCases.get(cases) ?? []), node]);
-      },
-      'Program:exit'() {
-        [...switchesByCases]
-          .filter(([cases, switches]) => cases !== '' && switches.length > 1)
-          .forEach(([cases, switches]) => {
-            switches.forEach((node) => {
-              context.report({ node, messageId: 'found', data: { count: switches.length, cases } });
-            });
-          });
-      },
-    };
+  check({ value }, context) {
+    for (const { cases, switches } of value) {
+      for (const node of switches) {
+        context.report({ node, messageId: 'found', data: { count: switches.length, cases } });
+      }
+    }
   },
 });
