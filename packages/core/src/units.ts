@@ -8,8 +8,9 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-est
  *   field's value), unless that value is itself a function, which is a `function` unit and nothing more.
  * - `static-block`: a class `static { }` block.
  * - `class`: a class declaration or class expression.
+ * - `file`: the whole file, its `Program` node.
  */
-export type UnitKind = 'function' | 'field-initializer' | 'static-block' | 'class';
+export type UnitKind = 'function' | 'field-initializer' | 'static-block' | 'class' | 'file';
 
 type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
 type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
@@ -26,7 +27,8 @@ export type Unit =
   | UnitAt<'function', FunctionNode>
   | UnitAt<'field-initializer', TSESTree.Node>
   | UnitAt<'static-block', TSESTree.StaticBlock>
-  | UnitAt<'class', ClassNode>;
+  | UnitAt<'class', ClassNode>
+  | UnitAt<'file', TSESTree.Program>;
 
 /** Which slot of its parent a node fills (`test`, `alternate`, `body`...). */
 export interface Position {
@@ -42,6 +44,10 @@ export function unitsAt(node: TSESTree.Node, { parent, key }: Position): readonl
 
   if (node.type === AST_NODE_TYPES.StaticBlock) {
     return [{ kind: 'static-block', node, parent }];
+  }
+
+  if (node.type === AST_NODE_TYPES.Program) {
+    return [{ kind: 'file', node, parent }];
   }
 
   const units: Unit[] =
@@ -78,6 +84,10 @@ export function unitName(unit: Unit): string {
 
     case 'class': {
       return unit.node.id === null ? 'Anonymous class' : `Class '${unit.node.id.name}'`;
+    }
+
+    case 'file': {
+      return 'File';
     }
 
     case 'function': {
