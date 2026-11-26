@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { abcSize, complexity, type Metric } from '@oodour/core';
+import { abcSize, complexity, defineMetric, type Metric } from '@oodour/core';
 import * as parser from '@typescript-eslint/parser';
 import { Linter } from 'eslint';
 import { defineMetricRule } from './define-metric-rule.ts';
@@ -52,6 +52,33 @@ test('two metric rules on one file each report their own metric', () => {
     '1 m/abc {"assignments":0,"sends":1,"conditions":2}',
     '1 m/paths 2',
     '4 m/paths 2',
+  ]);
+});
+
+test('two metric rules on one file share one walk', () => {
+  const visits: string[] = [];
+  const tracing = (label: string): Metric<number> =>
+    defineMetric({
+      name: label,
+      units: ['function'],
+      open: () => 0,
+      enter: (node) => {
+        visits.push(`${label} ${node.type}`);
+      },
+      close: (): number | undefined => undefined,
+    });
+  const registeredTracers = { meta: { name: 'tracers' }, rules: { a: reportingEach('a', tracing('a')), b: reportingEach('b', tracing('b')) } };
+  const tracers: { readonly meta: { readonly name: string } } = registeredTracers;
+
+  new Linter().verify('function f() { g(); }', [
+    { files: ['**'], languageOptions: { parser }, plugins: { t: tracers }, rules: { 't/a': 'error', 't/b': 'error' } },
+  ]);
+
+  assert.deepEqual(visits.slice(0, 4), [
+    'a FunctionDeclaration',
+    'b FunctionDeclaration',
+    'a Identifier',
+    'b Identifier',
   ]);
 });
 

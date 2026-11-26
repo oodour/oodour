@@ -70,6 +70,13 @@ describe('abcSize', () => {
     ]);
   });
 
+  it('names itself abc-size where a run left it out', () => {
+    const source = parseSource('', 'file.ts');
+
+    assert.ok(!('parseError' in source));
+    assert.throws(() => measure(source, []).of(abcSize), /^Error: The metric 'abc-size' was not measured/);
+  });
+
   it('scores functions only, not class field initializers or static blocks', () => {
     assert.deepEqual(counts('class A { x = g(); static { if (A) {} } m() { return 1; } }'), ["Method 'm': 0/0/0"]);
   });
