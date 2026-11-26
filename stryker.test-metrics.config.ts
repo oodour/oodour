@@ -10,15 +10,23 @@
 // The end-to-end tests run the reporters in child processes, which per-test coverage cannot see, so they reach no
 // mutant through lz-node-test's runner; the unit tests carry the score there.
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
-import { nodeTestRunnerOptions, sharedOptions } from './stryker.shared.ts';
+import { nodeTestRunnerOptions, sharedOptions, sourceCondition } from './stryker.shared.ts';
 
 const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
 const testFiles = 'packages/test-metrics/src/**/*.test.ts';
 
 const runnerOptions: PartialStrykerOptions =
   nodeTestRunner === undefined
-    ? { testRunner: 'command', commandRunner: { command: `node --test "${testFiles}"` }, timeoutMS: 60000 }
-    : { ...(await nodeTestRunnerOptions(nodeTestRunner)), lzNodeTest: { testFiles: [testFiles] }, timeoutMS: 60000 };
+    ? {
+        testRunner: 'command',
+        commandRunner: { command: `node ${sourceCondition} --test "${testFiles}"` },
+        timeoutMS: 60000,
+      }
+    : {
+        ...(await nodeTestRunnerOptions(nodeTestRunner)),
+        lzNodeTest: { testFiles: [testFiles], nodeArgs: [sourceCondition] },
+        timeoutMS: 60000,
+      };
 
 const config: PartialStrykerOptions = {
   ...sharedOptions,
