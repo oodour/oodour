@@ -1,19 +1,15 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../create-rule.ts';
+import { type ClassLines, classLines } from '@oodour/core';
+import { defineMetricRule } from '../define-metric-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
-
-/** Every line a token or comment spans, so a multi-line template literal or block comment counts on each line. */
-function linesOf({ loc }: { readonly loc: TSESTree.SourceLocation }): number[] {
-  return Array.from({ length: loc.end.line - loc.start.line + 1 }, (_, offset) => loc.start.line + offset);
-}
 
 // The option names and meanings of core `max-lines`, at the 110 lines Lars ruled for JavaScript and TypeScript classes.
 const defaults = { max: 110, skipBlankLines: true, skipComments: true };
 
 type Options = [Partial<typeof defaults>];
 
-export const maxClassLines = createRule<Options, 'found'>({
+export const maxClassLines = defineMetricRule<Options, 'found', ClassLines>({
   name: 'max-class-lines',
+  metric: classLines,
   meta: {
     type: 'suggestion',
     docs: {
@@ -43,34 +39,17 @@ export const maxClassLines = createRule<Options, 'found'>({
     ],
     defaultOptions: [defaults],
   },
-  create(context, [options]) {
+  check({ unit, value: { code, comments, blank } }, context, [options]) {
     // `createRule` has merged the defaults in already; this spread only gives the type checker the same knowledge.
     const { max, skipBlankLines, skipComments } = { ...defaults, ...options };
-    const { sourceCode } = context;
+    const lineCount = code + (skipComments ? 0 : comments) + (skipBlankLines ? 0 : blank);
 
-    return {
-      'ClassDeclaration, ClassExpression'(node: TSESTree.ClassDeclaration | TSESTree.ClassExpression) {
-        const codeLines = new Set(sourceCode.getTokens(node).flatMap(linesOf));
-        const commentLines = new Set(sourceCode.getCommentsInside(node).flatMap(linesOf));
-        const counts = (text: string, line: number): boolean => {
-          if (codeLines.has(line)) {
-            return true;
-          }
-
-          return commentLines.has(line) ? !skipComments : !skipBlankLines && text.trim() === '';
-        };
-        const lineCount = sourceCode.lines
-          .slice(node.loc.start.line - 1, node.loc.end.line)
-          .filter((text, index) => counts(text, node.loc.start.line + index)).length;
-
-        if (lineCount > max) {
-          context.report({
-            node,
-            messageId: 'found',
-            data: { name: node.id === null ? 'An anonymous class' : `Class '${node.id.name}'`, lineCount, max },
-          });
-        }
-      },
-    };
+    if (lineCount > max && unit.kind === 'class') {
+      context.report({
+        node: unit.node,
+        messageId: 'found',
+        data: { name: unit.node.id === null ? 'An anonymous class' : `Class '${unit.node.id.name}'`, lineCount, max },
+      });
+    }
   },
 });
