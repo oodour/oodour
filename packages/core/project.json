@@ -8,8 +8,11 @@
       {
         "externalDependencies": [
           "typescript",
+          "@typescript-eslint/scope-manager",
           "@typescript-eslint/typescript-estree",
           "@typescript-eslint/visitor-keys",
+          "esquery",
+          "@types/esquery",
           "@types/node"
         ]
       }
@@ -32,7 +35,7 @@
         "{workspaceRoot}/packages/*/src/**/*.ts",
         "{workspaceRoot}/plugins/oodour/scripts/**/*.ts",
         "coreDependencies",
-        { "externalDependencies": ["eslint"] },
+        { "externalDependencies": ["eslint", "@typescript-eslint/parser"] },
         { "runtime": "node --version" }
       ],
       "outputs": []
