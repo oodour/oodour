@@ -59,6 +59,44 @@ describe('measure', () => {
     assert.match(measured[0]?.value ?? '', />CallExpression@value/);
   });
 
+  it('opens both units of a class that is a field value, the field initializer first, and closes them in reverse', () => {
+    const events: string[] = [];
+    const order = defineMetric({
+      name: 'order',
+      units: ['field-initializer', 'class'],
+      open: (unit) => {
+        events.push(`open ${unitName(unit)}`);
+      },
+      close: (_state, unit) => {
+        events.push(`close ${unitName(unit)}`);
+
+        return undefined;
+      },
+    });
+
+    measure(sourceOf('class A { b = class B {}; }'), [order]);
+
+    assert.deepEqual(events, [
+      "open Class 'A'",
+      'open Class field initializer',
+      "open Class 'B'",
+      "close Class 'B'",
+      'close Class field initializer',
+      "close Class 'A'",
+    ]);
+  });
+
+  it('names an anonymous class', () => {
+    const classes = defineMetric({ name: 'classes', units: ['class'], open: () => undefined, close: () => 1 });
+
+    assert.deepEqual(
+      measure(sourceOf('const A = class {};'), [classes])
+        .of(classes)
+        .map(({ unit }) => unitName(unit)),
+      ['Anonymous class'],
+    );
+  });
+
   it('feeds several metrics from one walk', () => {
     const measured = measure(sourceOf('function f(a) { return a ?? 1; }'), [trace, complexity]);
 

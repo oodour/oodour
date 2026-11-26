@@ -7,10 +7,12 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-est
  * - `field-initializer`: the value of a class field (a `PropertyDefinition`; ESLint opens no unit for an `accessor`
  *   field's value), unless that value is itself a function, which is a `function` unit and nothing more.
  * - `static-block`: a class `static { }` block.
+ * - `class`: a class declaration or class expression.
  */
-export type UnitKind = 'function' | 'field-initializer' | 'static-block';
+export type UnitKind = 'function' | 'field-initializer' | 'static-block' | 'class';
 
 type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
 
 interface UnitAt<TKind extends UnitKind, TNode extends TSESTree.Node> {
   readonly kind: TKind;
@@ -23,7 +25,8 @@ interface UnitAt<TKind extends UnitKind, TNode extends TSESTree.Node> {
 export type Unit =
   | UnitAt<'function', FunctionNode>
   | UnitAt<'field-initializer', TSESTree.Node>
-  | UnitAt<'static-block', TSESTree.StaticBlock>;
+  | UnitAt<'static-block', TSESTree.StaticBlock>
+  | UnitAt<'class', ClassNode>;
 
 /** Which slot of its parent a node fills (`test`, `alternate`, `body`...). */
 export interface Position {
@@ -31,19 +34,24 @@ export interface Position {
   readonly key: string | undefined;
 }
 
-/** The unit a node opens, if any. */
-export function unitAt(node: TSESTree.Node, { parent, key }: Position): Unit | undefined {
+/** The units a node opens, outermost first: a class that is a field's value opens the field initializer, then the class. */
+export function unitsAt(node: TSESTree.Node, { parent, key }: Position): readonly Unit[] {
   if (isFunction(node)) {
-    return { kind: 'function', node, parent };
+    return [{ kind: 'function', node, parent }];
   }
 
   if (node.type === AST_NODE_TYPES.StaticBlock) {
-    return { kind: 'static-block', node, parent };
+    return [{ kind: 'static-block', node, parent }];
   }
 
-  return parent?.type === AST_NODE_TYPES.PropertyDefinition && key === 'value'
-    ? { kind: 'field-initializer', node, parent }
-    : undefined;
+  const units: Unit[] =
+    parent?.type === AST_NODE_TYPES.PropertyDefinition && key === 'value' ? [{ kind: 'field-initializer', node, parent }] : [];
+
+  if (node.type === AST_NODE_TYPES.ClassDeclaration || node.type === AST_NODE_TYPES.ClassExpression) {
+    units.push({ kind: 'class', node, parent });
+  }
+
+  return units;
 }
 
 function isFunction(node: TSESTree.Node): node is FunctionNode {
@@ -66,6 +74,10 @@ export function unitName(unit: Unit): string {
 
     case 'static-block': {
       return 'Class static block';
+    }
+
+    case 'class': {
+      return unit.node.id === null ? 'Anonymous class' : `Class '${unit.node.id.name}'`;
     }
 
     case 'function': {

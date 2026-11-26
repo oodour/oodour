@@ -1,7 +1,7 @@
 import type { TSESTree } from '@typescript-eslint/typescript-estree';
 import { visitorKeys } from '@typescript-eslint/visitor-keys';
 import type { Source } from './source.ts';
-import { type Position, type Unit, unitAt, type UnitKind } from './units.ts';
+import { type Position, type Unit, type UnitKind, unitsAt } from './units.ts';
 
 /**
  * A metric is a fold over the nodes of a unit. The walk owns the stack of units; the metric says what a fresh unit
@@ -10,7 +10,8 @@ import { type Position, type Unit, unitAt, type UnitKind } from './units.ts';
  * What the walk guarantees:
  *
  * 1. A node that opens a unit opens it before `enter` runs for that node, and closes it after `leave`. So a function
- *    sitting in a scored position (a ternary's `alternate`) receives the score for that position itself.
+ *    sitting in a scored position (a ternary's `alternate`) receives the score for that position itself. A node that
+ *    opens two units (a class as a field's value) opens them outermost first and closes them in reverse.
  * 2. `state` is the state of the innermost open unit of a kind the metric measures. Outside every such unit, `enter`
  *    and `leave` are not called.
  * 3. Children are visited in typescript-eslint's visitor-key order, the order ESLint walks them in.
@@ -137,9 +138,9 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
 }
 
 function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown>[]): void {
-  const unit = unitAt(node, at);
+  const units = unitsAt(node, at);
 
-  if (unit !== undefined) {
+  for (const unit of units) {
     for (const run of runs) {
       run.open(unit);
     }
@@ -163,7 +164,7 @@ function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown>[]):
     run.leave(node, at);
   }
 
-  if (unit !== undefined) {
+  for (const unit of units.toReversed()) {
     for (const run of runs) {
       run.close(unit);
     }
