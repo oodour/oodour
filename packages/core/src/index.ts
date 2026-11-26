@@ -13,6 +13,7 @@ export { type ClassLines, classLines } from './metrics/class-lines.ts';
 export { complexity } from './metrics/complexity.ts';
 export { type ClumpHolder, type DataClump, dataClumps } from './metrics/data-clumps.ts';
 export { type Envy, featureEnvy } from './metrics/feature-envy.ts';
+export { type FlagArgument, flagArgument } from './metrics/flag-argument.ts';
 export { type FlogCounts, flogScore } from './metrics/flog-score.ts';
 export { type HalsteadCounts, halsteadVolume } from './metrics/halstead-volume.ts';
 export { maxParams, type ParameterCount } from './metrics/max-params.ts';

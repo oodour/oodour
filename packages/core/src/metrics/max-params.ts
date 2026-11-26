@@ -1,6 +1,7 @@
 import type { Variable } from '@typescript-eslint/scope-manager';
 import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
+import { propertyName } from '../property-name.ts';
 import { scopesOf } from '../source.ts';
 import type { Unit } from '../units.ts';
 
@@ -118,33 +119,4 @@ function destructuringTarget(reference: TSESTree.Node): TSESTree.Node | undefine
 
 function isCallee(member: TSESTree.MemberExpression): boolean {
   return member.parent.type === AST_NODE_TYPES.CallExpression && member.parent.callee === member;
-}
-
-/**
- * The name a member expression reads or a pattern property unpacks, `null` for a private name or a key computed at run
- * time. A computed key counts by its value only when it is a literal or a template without expressions; ESLint's
- * `getPropertyName` also folds constant expressions such as `'a' + 'b'`.
- */
-function propertyName(node: TSESTree.MemberExpression | TSESTree.Property): string | null {
-  const key = node.type === AST_NODE_TYPES.MemberExpression ? node.property : node.key;
-
-  if (node.computed) {
-    return constantString(key);
-  }
-
-  if (key.type === AST_NODE_TYPES.Literal) {
-    return String(key.value);
-  }
-
-  return key.type === AST_NODE_TYPES.Identifier ? key.name : null;
-}
-
-function constantString(node: TSESTree.Node): string | null {
-  if (node.type === AST_NODE_TYPES.Literal) {
-    return 'regex' in node ? `/${node.regex.pattern}/${node.regex.flags}` : String(node.value);
-  }
-
-  return node.type === AST_NODE_TYPES.TemplateLiteral && node.expressions.length === 0
-    ? (node.quasis[0]?.value.cooked ?? null)
-    : null;
 }
