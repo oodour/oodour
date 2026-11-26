@@ -1,4 +1,4 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
 
 /** The expression without the type assertions around it, which change only its static type. */
 export function withoutTypeAssertions(expression: TSESTree.Expression): TSESTree.Expression {

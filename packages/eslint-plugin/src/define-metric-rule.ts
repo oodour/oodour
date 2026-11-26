@@ -42,7 +42,9 @@ export function defineMetricRule<TOptions extends readonly unknown[], TMessageId
 
       return {
         'Program:exit'() {
-          const { scopeManager } = sourceCode;
+          const { scopeManager, parserServices } = sourceCode;
+          const program = parserServices?.program;
+          const esTreeNodeToTSNodeMap = parserServices?.esTreeNodeToTSNodeMap;
 
           batch.measured ??= measure(
             {
@@ -50,6 +52,7 @@ export function defineMetricRule<TOptions extends readonly unknown[], TMessageId
               text: sourceCode.text,
               ast: sourceCode.ast,
               ...(scopeManager === null ? {} : { scopes: scopeManager }),
+              ...(program && esTreeNodeToTSNodeMap ? { types: { program, esTreeNodeToTSNodeMap } } : {}),
             },
             [...batch.metrics],
           );

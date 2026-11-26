@@ -1,4 +1,5 @@
-import { AST_NODE_TYPES, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
+import type { Variable } from '@typescript-eslint/scope-manager';
+import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
 import { withoutTypeAssertions } from './without-type-assertions.ts';
 
 /**
@@ -15,10 +16,10 @@ export interface HeldValue {
  * Whether the variable is given at least one value and every value passes the test. The values are those its
  * declarations, plain `=` assignments and logical assignments (`||=`, `&&=`, `??=`) give it. A variable whose value
  * comes from outside the function, as a parameter or a loop variable does, or that is written any other way, holds
- * values the rule cannot know, so it fails. It does not check which function declares the variable or gives it each
+ * values the source does not show, so it fails. It does not check which function declares the variable or gives it each
  * value; a caller that cares checks that itself.
  */
-export function holdsOnly(variable: TSESLint.Scope.Variable, test: (value: HeldValue) => boolean): boolean {
+export function holdsOnly(variable: Pick<Variable, 'defs' | 'references'>, test: (value: HeldValue) => boolean): boolean {
   const values: HeldValue[] = [];
 
   for (const { node } of variable.defs) {

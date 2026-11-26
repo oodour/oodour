@@ -1,5 +1,6 @@
-import { analyze, type ScopeManager } from '@typescript-eslint/scope-manager';
+import { analyze, type ScopeManager, type Variable } from '@typescript-eslint/scope-manager';
 import { parse, simpleTraverse, TSError, type TSESTree } from '@typescript-eslint/typescript-estree';
+import type ts from 'typescript';
 
 /** One parsed file. Every metric reads from this; none parses again. */
 export interface Source {
@@ -10,6 +11,14 @@ export interface Source {
   readonly ast: TSESTree.Program;
   /** The scope analysis of a caller that already has one, such as ESLint's; `scopesOf` builds it otherwise. */
   readonly scopes?: ScopeManager;
+  /** The program of a caller that type-checked the file, such as ESLint's typed linting; the core never builds one. */
+  readonly types?: ExistingTypes;
+}
+
+/** A program and the map from this tree's nodes to its nodes; structurally typescript-eslint's parser services. */
+export interface ExistingTypes {
+  readonly program: ts.Program;
+  readonly esTreeNodeToTSNodeMap: { get(node: TSESTree.Node): ts.Node };
 }
 
 export interface ParseFailure {
@@ -46,4 +55,22 @@ export function scopesOf(source: Source): ScopeManager {
   analyzed.set(source, scopes);
 
   return scopes;
+}
+
+const resolvedBySource = new WeakMap<Source, Map<TSESTree.Identifier | TSESTree.JSXIdentifier, Variable>>();
+
+/** The variable a name reads or writes, or `undefined` for one the scope analysis leaves unresolved, such as a global. */
+export function variableOf(source: Source, name: TSESTree.Identifier): Variable | undefined {
+  let resolved = resolvedBySource.get(source);
+
+  if (resolved === undefined) {
+    resolved = new Map(
+      scopesOf(source).scopes.flatMap(({ references }) =>
+        references.flatMap(({ identifier, resolved: variable }) => (variable ? [[identifier, variable] as const] : [])),
+      ),
+    );
+    resolvedBySource.set(source, resolved);
+  }
+
+  return resolved.get(name);
 }
