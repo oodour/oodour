@@ -23,8 +23,7 @@ export const maxParams = defineMetric({
   units: ['function', 'declared-function'],
   open: () => undefined,
   close: (_state, unit, source): ParameterCount | undefined => {
-    // Stryker disable next-line ConditionalExpression,LogicalOperator,StringLiteral,EqualityOperator: the metric opens only these two kinds; the check narrows the node's type
-    if ((unit.kind !== 'function' && unit.kind !== 'declared-function') || isCallbackArgument(unit)) {
+    if (isCallbackArgument(unit)) {
       return undefined;
     }
 

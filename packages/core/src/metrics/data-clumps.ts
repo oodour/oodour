@@ -1,6 +1,5 @@
 import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
-import { defineMetric } from '../metric.ts';
-import type { Unit } from '../units.ts';
+import { defineMetric, type UnitOf } from '../metric.ts';
 
 /** A function of a scope and the names of its parameters. */
 export interface ClumpHolder {
@@ -33,7 +32,7 @@ export const dataClumps = defineMetric({
   },
 });
 
-function holdersOf(unit: Unit): readonly ClumpHolder[] {
+function holdersOf(unit: UnitOf<'class' | 'file'>): readonly ClumpHolder[] {
   switch (unit.kind) {
     case 'class': {
       return unit.node.body.body.flatMap((member) => {
@@ -45,10 +44,6 @@ function holdersOf(unit: Unit): readonly ClumpHolder[] {
 
     case 'file': {
       return moduleFunctions(unit.node).map((fn) => ({ node: fn, names: parameterNames(fn) }));
-    }
-
-    default: {
-      return [];
     }
   }
 }

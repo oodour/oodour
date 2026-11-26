@@ -7,7 +7,7 @@ const defaults = { max: 110, skipBlankLines: true, skipComments: true };
 
 type Options = [Partial<typeof defaults>];
 
-export const maxClassLines = defineMetricRule<Options, 'found', ClassLines>({
+export const maxClassLines = defineMetricRule<Options, 'found', ClassLines, 'class'>({
   name: 'max-class-lines',
   metric: classLines,
   meta: {
@@ -44,7 +44,7 @@ export const maxClassLines = defineMetricRule<Options, 'found', ClassLines>({
     const { max, skipBlankLines, skipComments } = { ...defaults, ...options };
     const lineCount = code + (skipComments ? 0 : comments) + (skipBlankLines ? 0 : blank);
 
-    if (lineCount > max && unit.kind === 'class') {
+    if (lineCount > max) {
       context.report({
         node: unit.node,
         messageId: 'found',

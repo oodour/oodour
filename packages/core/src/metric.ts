@@ -16,61 +16,67 @@ import { type Position, type Unit, type UnitKind, unitsAt } from './units.ts';
  *    and `leave` are not called.
  * 3. Children are visited in typescript-eslint's visitor-key order, the order ESLint walks them in.
  */
-export interface MetricDefinition<TValue, TState> {
+export interface MetricDefinition<TValue, TState, TKind extends UnitKind = UnitKind> {
   /** Also the name the measuring command prints. */
   readonly name: string;
-  readonly units: readonly UnitKind[];
-  readonly open: (unit: Unit, source: Source) => TState;
+  readonly units: readonly TKind[];
+  readonly open: (unit: UnitOf<TKind>, source: Source) => TState;
   readonly enter?: (node: TSESTree.Node, state: TState, at: Position, source: Source) => void;
   readonly leave?: (node: TSESTree.Node, state: TState, at: Position, source: Source) => void;
   /** `undefined` means the unit has nothing to report. */
-  readonly close: (state: TState, unit: Unit, source: Source) => TValue | undefined;
+  readonly close: (state: TState, unit: UnitOf<TKind>, source: Source) => TValue | undefined;
 }
 
+/** The units of the given kinds. An intersection, not `Extract`, so a metric of fewer kinds fits where any is taken. */
+export type UnitOf<TKind extends UnitKind> = Unit & { readonly kind: TKind };
+
 /** One value of one metric for one unit. */
-export interface Measurement<TValue> {
-  readonly unit: Unit;
+export interface Measurement<TValue, TKind extends UnitKind = UnitKind> {
+  readonly unit: UnitOf<TKind>;
   readonly value: TValue;
 }
 
 /** One metric's pass over one file, with its state type closed over. */
-interface Run<TValue> {
+interface Run<TValue, TKind extends UnitKind> {
   open(unit: Unit): void;
   enter(node: TSESTree.Node, at: Position): void;
   leave(node: TSESTree.Node, at: Position): void;
   close(unit: Unit): void;
-  readonly measurements: readonly Measurement<TValue>[];
+  readonly measurements: readonly Measurement<TValue, TKind>[];
 }
 
 const start: unique symbol = Symbol('start');
 const read: unique symbol = Symbol('read');
 
 /** A defined metric. Its state type is gone, so metrics of different shapes sit in one array. */
-export interface Metric<TValue> {
+export interface Metric<TValue, TKind extends UnitKind = UnitKind> {
   readonly name: string;
-  readonly units: readonly UnitKind[];
+  readonly units: readonly TKind[];
   /** Starts this metric's pass over one file, filed under the walk it belongs to. */
-  readonly [start]: (source: Source, walk: object) => Run<TValue>;
+  readonly [start]: (source: Source, walk: object) => Run<TValue, TKind>;
   /** This metric's measurements from a walk, or undefined when the walk did not include it. */
-  readonly [read]: (walk: object) => readonly Measurement<TValue>[] | undefined;
+  readonly [read]: (walk: object) => readonly Measurement<TValue, TKind>[] | undefined;
 }
 
 /** The one way to make a metric. */
-export function defineMetric<TValue, TState>(definition: MetricDefinition<TValue, TState>): Metric<TValue> {
+export function defineMetric<TValue, TState, TKind extends UnitKind>(
+  definition: MetricDefinition<TValue, TState, TKind>,
+): Metric<TValue, TKind> {
   const { name, units, open, enter, leave, close } = definition;
-  const measures = new Set(units);
-  const runs = new WeakMap<object, Run<TValue>>();
+  const measures = new Set<UnitKind>(units);
+  const isMeasured = (unit: Unit): unit is UnitOf<TKind> => measures.has(unit.kind);
+  const runs = new WeakMap<object, Run<TValue, TKind>>();
 
   return {
     name,
     units,
     [read]: (walk) => runs.get(walk)?.measurements,
     [start]: (source, walk) => {
-      const states: { readonly unit: Unit; readonly state: TState; readonly at: number }[] = [];
-      const slots: (Measurement<TValue> | undefined)[] = [];
-      const run: Run<TValue> = {
+      const states: { readonly unit: UnitOf<TKind>; readonly state: TState; readonly at: number }[] = [];
+      const slots: (Measurement<TValue, TKind> | undefined)[] = [];
+      const run: Run<TValue, TKind> = {
         open(unit) {
-          if (measures.has(unit.kind)) {
+          if (isMeasured(unit)) {
             states.push({ unit, state: open(unit, source), at: slots.length });
             slots.push(undefined);
           }
@@ -97,8 +103,8 @@ export function defineMetric<TValue, TState>(definition: MetricDefinition<TValue
           }
 
           states.pop();
-          const value = close(top.state, unit, source);
-          slots[top.at] = value === undefined ? undefined : { unit, value };
+          const value = close(top.state, top.unit, source);
+          slots[top.at] = value === undefined ? undefined : { unit: top.unit, value };
         },
         get measurements() {
           return slots.filter((slot) => slot !== undefined);
@@ -114,7 +120,7 @@ export function defineMetric<TValue, TState>(definition: MetricDefinition<TValue
 
 export interface Measurements {
   /** In source order of where each unit starts. Throws for a metric that was not in the run. */
-  of<TValue>(metric: Metric<TValue>): readonly Measurement<TValue>[];
+  of<TValue, TKind extends UnitKind>(metric: Metric<TValue, TKind>): readonly Measurement<TValue, TKind>[];
 }
 
 /** One walk of the tree for all the given metrics. No I/O. */
@@ -125,7 +131,7 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
   walk(source.ast, { parent: undefined, key: undefined }, runs);
 
   return {
-    of<TValue>(metric: Metric<TValue>) {
+    of<TValue, TKind extends UnitKind>(metric: Metric<TValue, TKind>) {
       const measurements = metric[read](thisWalk);
 
       if (measurements === undefined) {
@@ -137,7 +143,7 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
   };
 }
 
-function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown>[]): void {
+function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown, UnitKind>[]): void {
   const units = unitsAt(node, at);
 
   for (const unit of units) {

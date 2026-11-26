@@ -9,7 +9,7 @@ type Options = [{ readonly max: number }];
  * Flog score of each function: Flog's weighted ABC, where an event deeper in the function weighs more, translated from
  * Ruby to JavaScript and TypeScript. A callback passed to a call counts toward the function around it.
  */
-export const flogScore = defineMetricRule<Options, 'found', FlogCounts>({
+export const flogScore = defineMetricRule<Options, 'found', FlogCounts, 'function'>({
   name: 'flog-score',
   metric: flogScoreMetric,
   meta: {
@@ -42,7 +42,7 @@ export const flogScore = defineMetricRule<Options, 'found', FlogCounts>({
   check({ unit, value: { a, b, c } }, context, [{ max }]) {
     const total = Math.hypot(a, b, c);
 
-    if (total > max && unit.kind === 'function') {
+    if (total > max) {
       const name = ASTUtils.getFunctionNameWithKind(unit.node, context.sourceCode);
       const data = { name, score: total.toFixed(1), a: a.toFixed(1), b: b.toFixed(1), c: c.toFixed(1), max };
 

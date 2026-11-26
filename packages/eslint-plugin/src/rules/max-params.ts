@@ -1,21 +1,17 @@
-import { maxParams as maxParamsMetric, type ParameterCount } from '@oodour/core';
-import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
+import { maxParams as maxParamsMetric, type ParameterCount, type UnitOf } from '@oodour/core';
+import { AST_NODE_TYPES, ASTUtils, type TSESLint } from '@typescript-eslint/utils';
 import { defineMetricRule } from '../define-metric-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
 
 type Options = [{ readonly max: number }];
 
-type FunctionNode =
-  | TSESTree.ArrowFunctionExpression
-  | TSESTree.FunctionDeclaration
-  | TSESTree.FunctionExpression
-  | TSESTree.TSDeclareFunction;
+type MeasuredKind = 'function' | 'declared-function';
 
 /**
  * Counts parameters as values the function depends on, as the core's `maxParams` does: the keys of a pattern or of an
  * options object the body only reads, one for a parameter of a named type. A callback argument is not checked.
  */
-export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', ParameterCount>({
+export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', ParameterCount, MeasuredKind>({
   name: 'max-params',
   metric: maxParamsMetric,
   meta: {
@@ -52,7 +48,7 @@ export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', Parame
     defaultOptions: [{ max: 4 }],
   },
   check({ unit, value: { count, keys } }, context, [{ max }]) {
-    if (count > max && (unit.kind === 'function' || unit.kind === 'declared-function')) {
+    if (count > max) {
       const name = nameOf(unit.node, context.sourceCode);
 
       context.report({ node: unit.node, messageId: keys > 0 ? 'foundKeys' : 'found', data: { name, count, keys, max } });
@@ -60,7 +56,7 @@ export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', Parame
   },
 });
 
-function nameOf(node: FunctionNode, sourceCode: Readonly<TSESLint.SourceCode>): string {
+function nameOf(node: UnitOf<MeasuredKind>['node'], sourceCode: Readonly<TSESLint.SourceCode>): string {
   if (node.type === AST_NODE_TYPES.TSDeclareFunction) {
     return node.id === null ? 'function' : `function '${node.id.name}'`;
   }

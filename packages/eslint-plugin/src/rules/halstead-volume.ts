@@ -9,7 +9,7 @@ type Options = [{ readonly max: number }];
  * Halstead volume of each function: its length (operators and operands used) times the base-2 logarithm of its
  * vocabulary (distinct operators and operands). A nested function and type-only syntax are left out of the count.
  */
-export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts>({
+export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts, 'function'>({
   name: 'halstead-volume',
   metric: halsteadVolumeMetric,
   meta: {
@@ -40,7 +40,7 @@ export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts>
     defaultOptions: [{ max: 750 }],
   },
   check({ unit, value: { length, vocabulary, volume } }, context, [{ max }]) {
-    if (volume > max && unit.kind === 'function') {
+    if (volume > max) {
       const name = ASTUtils.getFunctionNameWithKind(unit.node, context.sourceCode);
 
       context.report({

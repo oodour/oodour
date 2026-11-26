@@ -31,9 +31,7 @@ export const flogScore = defineMetric({
   name: 'flog-score',
   units: ['function'],
   open: () => undefined,
-  close: (_state, { node }): FlogCounts | undefined =>
-    // Stryker disable next-line ConditionalExpression: the metric opens only function units; the check narrows the node's type
-    isFunction(node) && !isCallback(node) ? score(node) : undefined,
+  close: (_state, { node }): FlogCounts | undefined => (isCallback(node) ? undefined : score(node)),
 });
 
 const isNode = (value: unknown): value is TSESTree.Node =>

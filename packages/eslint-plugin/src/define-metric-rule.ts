@@ -1,4 +1,4 @@
-import { measure, type Measurement, type Measurements, type Metric } from '@oodour/core';
+import { measure, type Measurement, type Measurements, type Metric, type UnitKind } from '@oodour/core';
 import { ESLintUtils } from '@typescript-eslint/utils';
 import type { RuleContext, SourceCode } from '@typescript-eslint/utils/ts-eslint';
 import { createRule, type OopRuleDefinition, type OopRuleModule } from './create-rule.ts';
@@ -11,12 +11,16 @@ interface Batch {
 
 const batches = new WeakMap<SourceCode, Batch>();
 
-export interface MetricRuleDefinition<TOptions extends readonly unknown[], TMessageIds extends string, TValue>
-  extends Omit<OopRuleDefinition<TOptions, TMessageIds>, 'create'> {
-  readonly metric: Metric<TValue>;
+export interface MetricRuleDefinition<
+  TOptions extends readonly unknown[],
+  TMessageIds extends string,
+  TValue,
+  TKind extends UnitKind = UnitKind,
+> extends Omit<OopRuleDefinition<TOptions, TMessageIds>, 'create'> {
+  readonly metric: Metric<TValue, TKind>;
   /** Called once per measured unit, in source order; reports through `context` or passes. */
   readonly check: (
-    measurement: Measurement<TValue>,
+    measurement: Measurement<TValue, TKind>,
     context: Readonly<RuleContext<TMessageIds, TOptions>>,
     options: Readonly<TOptions>,
   ) => void;
@@ -27,9 +31,12 @@ export interface MetricRuleDefinition<TOptions extends readonly unknown[], TMess
  * reach `Program:exit` walks the file once for the whole batch: every rule has registered by then, since ESLint creates
  * all rules before it walks.
  */
-export function defineMetricRule<TOptions extends readonly unknown[], TMessageIds extends string, TValue>(
-  definition: MetricRuleDefinition<TOptions, TMessageIds, TValue>,
-): OopRuleModule<TMessageIds, TOptions> {
+export function defineMetricRule<
+  TOptions extends readonly unknown[],
+  TMessageIds extends string,
+  TValue,
+  TKind extends UnitKind = UnitKind,
+>(definition: MetricRuleDefinition<TOptions, TMessageIds, TValue, TKind>): OopRuleModule<TMessageIds, TOptions> {
   const { metric, check, ...rule } = definition;
 
   return createRule({
@@ -41,6 +48,7 @@ export function defineMetricRule<TOptions extends readonly unknown[], TMessageId
         // Throws typescript-eslint's own error, which says how to turn type information on, when the file has none.
         ESLintUtils.getParserServices(context);
       }
+
       const batch = batches.get(sourceCode) ?? { metrics: new Set() };
 
       batches.set(sourceCode, batch);
