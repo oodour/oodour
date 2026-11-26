@@ -47,7 +47,13 @@ export const flagArgument = defineMetric({
       const name = calleeName(node.callee);
 
       if (name !== undefined) {
-        callsByName.set(name, [...(callsByName.get(name) ?? []), node]);
+        const calls = callsByName.get(name);
+
+        if (calls === undefined) {
+          callsByName.set(name, [node]);
+        } else {
+          calls.push(node);
+        }
       }
     }
   },

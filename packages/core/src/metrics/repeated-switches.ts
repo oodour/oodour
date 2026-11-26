@@ -27,7 +27,13 @@ export const repeatedSwitches = defineMetric({
       .toSorted()
       .join(', ');
 
-    switchesByCases.set(cases, [...(switchesByCases.get(cases) ?? []), node]);
+    const switches = switchesByCases.get(cases);
+
+    if (switches === undefined) {
+      switchesByCases.set(cases, [node]);
+    } else {
+      switches.push(node);
+    }
   },
   close(switchesByCases): readonly RepeatedSwitch[] | undefined {
     const repeated = [...switchesByCases]
