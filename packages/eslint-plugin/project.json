@@ -64,7 +64,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/oodour-eslint-plugin-*.tgz"]
     },
     "mutate": {
-      "command": "node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.eslint-plugin.config.ts",
+      "command": "node --conditions=@oodour/source --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.eslint-plugin.config.ts",
       "cache": false,
       "parallelism": false
     }

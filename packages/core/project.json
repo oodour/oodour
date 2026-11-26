@@ -58,7 +58,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/oodour-core-*.tgz"]
     },
     "mutate": {
-      "command": "node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.core.config.ts",
+      "command": "node --conditions=@oodour/source --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.core.config.ts",
       "cache": false,
       "parallelism": false
     }

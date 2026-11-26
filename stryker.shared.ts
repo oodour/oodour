@@ -20,7 +20,8 @@ export const sharedOptions = {
 
 /**
  * The options that run lz-node-test's node:test runner from its source entry in a pinned lz-node-test checkout, after
- * adding that checkout's Node.js mutators and numeric-literal mutator to Stryker's own.
+ * adding that checkout's Node.js mutators and numeric-literal mutator to Stryker's own. Its packages load from source
+ * only under lz-node-test's own export condition, `@layzee/source`, so every `mutate` command passes it beside ours.
  */
 export async function nodeTestRunnerOptions(runner: string): Promise<PartialStrykerOptions> {
   const packages = new URL('../../', pathToFileURL(runner));

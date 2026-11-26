@@ -42,7 +42,7 @@
       "outputs": []
     },
     "mutate": {
-      "command": "node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.test-metrics.config.ts",
+      "command": "node --conditions=@oodour/source --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run stryker.test-metrics.config.ts",
       "cache": false,
       "parallelism": false
     }

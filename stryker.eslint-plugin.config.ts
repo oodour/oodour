@@ -4,7 +4,7 @@
 // lz-node-test's node:test runner, which runs per mutant only the test files whose tests reach it, and adds that
 // checkout's Node.js mutators and numeric-literal mutator to Stryker's own:
 //   LZ_NODE_TEST_RUNNER=<checkout>/packages/stryker-node-test-runner/src/index.ts \
-//     node --conditions=@oodour/source node_modules/@stryker-mutator/core/bin/stryker.js run \
+//     node --conditions=@oodour/source --conditions=@layzee/source node_modules/@stryker-mutator/core/bin/stryker.js run \
 //     stryker.eslint-plugin.config.ts
 // Unset, it falls back to Stryker's command runner, which runs the whole suite for every mutant.
 // While iterating, add --incremental; finish with one run without it, as an incremental run copies older results into
