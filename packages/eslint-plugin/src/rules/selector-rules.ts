@@ -1,5 +1,5 @@
+import { builtInConstructors as builtInNames } from '@oodour/core';
 import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
-import { builtInConstructors as builtInNames } from '../built-in-constructors.ts';
 
 // Framework classes for a component's own form state and event streams, which frameworks create in place.
 const frameworkStateNames = [

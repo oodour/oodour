@@ -1,9 +1,9 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
-import { builtInConstructors } from '../built-in-constructors.ts';
-import { createRule } from '../create-rule.ts';
+import { type ManualDispatch, manualDispatch as manualDispatchMetric } from '@oodour/core';
+import { defineMetricRule } from '../define-metric-rule.ts';
 
-export const manualDispatch = createRule<[], 'found'>({
+export const manualDispatch = defineMetricRule<[], 'found', readonly ManualDispatch[]>({
   name: 'manual-dispatch',
+  metric: manualDispatchMetric,
   meta: {
     type: 'suggestion',
     docs: {
@@ -24,41 +24,9 @@ export const manualDispatch = createRule<[], 'found'>({
     schema: [],
     defaultOptions: [],
   },
-  create(context) {
-    return {
-      IfStatement(node) {
-        const { parent } = node;
-
-        if (parent.type === AST_NODE_TYPES.IfStatement && parent.alternate === node) {
-          return;
-        }
-
-        const subjects = chainOf(node).flatMap(({ test }) =>
-          test.type === AST_NODE_TYPES.BinaryExpression && test.operator === 'instanceof' && !isErrorOrBuiltIn(test.right)
-            ? [context.sourceCode.getText(test.left)]
-            : [],
-        );
-        const subject = subjects.find((candidate, index) => subjects.indexOf(candidate) !== index);
-
-        if (subject !== undefined) {
-          context.report({ node, messageId: 'found', data: { subject } });
-        }
-      },
-    };
+  check({ value }, context) {
+    for (const { node, subject } of value) {
+      context.report({ node, messageId: 'found', data: { subject } });
+    }
   },
 });
-
-/**
- * Narrowing a caught error by its class is how JavaScript catches by type, and telling built-in values apart is
- * validation at a boundary: neither is a choice among the program's own classes.
- */
-function isErrorOrBuiltIn(node: TSESTree.Expression): boolean {
-  return node.type === AST_NODE_TYPES.Identifier && (node.name.endsWith('Error') || builtInConstructors.has(node.name));
-}
-
-/** The `if` and each `else if` that follows it. */
-function chainOf(node: TSESTree.IfStatement): readonly TSESTree.IfStatement[] {
-  const { alternate } = node;
-
-  return alternate?.type === AST_NODE_TYPES.IfStatement ? [node, ...chainOf(alternate)] : [node];
-}

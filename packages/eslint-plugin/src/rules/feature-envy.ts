@@ -1,6 +1,6 @@
+import { builtInConstructors } from '@oodour/core';
 import { AST_NODE_TYPES, ASTUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import { builtInConstructors } from '../built-in-constructors.ts';
 import { createRule } from '../create-rule.ts';
 import { holdsOnly } from '../holds-only.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
