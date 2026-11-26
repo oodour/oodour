@@ -1,6 +1,5 @@
-// The options every Stryker configuration shares: stryker.config.ts for the tooling,
-// stryker.eslint-plugin.config.ts for the ESLint plugin and stryker.test-metrics.config.ts for the
-// test reporters.
+// The options every Stryker configuration shares: stryker.config.ts for the tooling, stryker.core.config.ts for the
+// core, stryker.eslint-plugin.config.ts for the ESLint plugin and stryker.test-metrics.config.ts for the test reporters.
 import { availableParallelism, freemem } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
@@ -23,7 +22,50 @@ export const sharedOptions = {
  * rather than its build, which may be stale or missing. The test processes need it of their own, as they do not inherit
  * Stryker's.
  */
-export const sourceCondition = '--conditions=@oodour/source';
+const sourceCondition = '--conditions=@oodour/source';
+
+/**
+ * The argument that points a test process's `@oodour/core` imports at the sandbox's copy of the core (see
+ * stryker.sandbox-core.ts), for the packages whose tests reach the core.
+ */
+export const sandboxCore = '--import=./stryker.sandbox-core.ts';
+
+export interface RunnerSetup {
+  readonly testFiles: readonly string[];
+  /** Node arguments for the test processes beside `sourceCondition`. */
+  readonly nodeArgs?: readonly string[];
+  /** The command runner's timeout, which runs the whole suite per mutant. */
+  readonly commandTimeoutMS: number;
+  readonly timeoutFactor?: number;
+}
+
+/**
+ * The test runner options of a package's configuration. With LZ_NODE_TEST_RUNNER set to the runner's source entry in an
+ * lz-node-test checkout at a pinned commit, lz-node-test's node:test runner, which runs per mutant only the test files
+ * whose tests reach it; unset, Stryker's command runner, which runs the whole suite for every mutant.
+ */
+export async function runnerOptions({
+  testFiles,
+  nodeArgs = [],
+  commandTimeoutMS,
+  timeoutFactor,
+}: RunnerSetup): Promise<PartialStrykerOptions> {
+  const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
+  const args = [sourceCondition, ...nodeArgs];
+
+  if (nodeTestRunner === undefined) {
+    const files = testFiles.map((pattern) => `"${pattern}"`).join(' ');
+
+    return { testRunner: 'command', commandRunner: { command: `node ${args.join(' ')} --test ${files}` }, timeoutMS: commandTimeoutMS };
+  }
+
+  return {
+    ...(await nodeTestRunnerOptions(nodeTestRunner)),
+    lzNodeTest: { testFiles: [...testFiles], nodeArgs: args },
+    ...(timeoutFactor === undefined ? {} : { timeoutFactor }),
+    timeoutMS: 60000,
+  };
+}
 
 /**
  * The options that run lz-node-test's node:test runner from its source entry in a pinned lz-node-test checkout, after

@@ -10,29 +10,18 @@
 // While iterating, add --incremental; finish with one run without it, as an incremental run copies older results into
 // the report and misses changes to test utilities, fixtures and config.
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
-import { nodeTestRunnerOptions, sharedOptions, sourceCondition } from './stryker.shared.ts';
-
-const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
-const testFiles = 'packages/eslint-plugin/src/**/*.test.ts';
-
-const runnerOptions: PartialStrykerOptions =
-  nodeTestRunner === undefined
-    ? {
-        testRunner: 'command',
-        commandRunner: { command: `node ${sourceCondition} --test "${testFiles}"` },
-        timeoutMS: 30000,
-      }
-    : {
-        ...(await nodeTestRunnerOptions(nodeTestRunner)),
-        lzNodeTest: { testFiles: [testFiles], nodeArgs: [sourceCondition] },
-        // Test files that start typescript-eslint's project service start slowly, and slower still beside the checker.
-        timeoutFactor: 3,
-        timeoutMS: 60000,
-      };
+import { runnerOptions, sandboxCore, sharedOptions } from './stryker.shared.ts';
 
 const config: PartialStrykerOptions = {
   ...sharedOptions,
-  ...runnerOptions,
+  ...(await runnerOptions({
+    testFiles: ['packages/eslint-plugin/src/**/*.test.ts'],
+    // The rules' tests then load the sandbox's core, not the working tree's through node_modules.
+    nodeArgs: [sandboxCore],
+    commandTimeoutMS: 30000,
+    // Test files that start typescript-eslint's project service start slowly, and slower still beside the checker.
+    timeoutFactor: 3,
+  })),
   tsconfigFile: 'packages/eslint-plugin/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/eslint-plugin.html' },
   mutate: ['packages/eslint-plugin/src/**/*.ts', '!packages/eslint-plugin/src/**/*.test.ts'],
