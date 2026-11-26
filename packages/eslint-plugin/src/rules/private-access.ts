@@ -1,7 +1,7 @@
 import { type PrivateAccess, privateAccess as privateAccessMetric } from '@oodour/core';
 import { defineMetricRule } from '../define-metric-rule.ts';
 
-type Options = [{ readonly underscore?: boolean }];
+type Options = [{ readonly underscore: boolean }];
 
 export const privateAccess = defineMetricRule<Options, 'found', readonly PrivateAccess[]>({
   name: 'private-access',
@@ -37,7 +37,7 @@ export const privateAccess = defineMetricRule<Options, 'found', readonly Private
   },
   check({ value: accesses }, context, [{ underscore }]) {
     for (const { node, nonPublic, underscored } of accesses) {
-      const member = nonPublic ?? (underscore === true ? underscored : undefined);
+      const member = nonPublic ?? (underscore ? underscored : undefined);
 
       if (member !== undefined) {
         context.report({ node, messageId: 'found', data: { member } });
