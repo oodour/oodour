@@ -60,6 +60,7 @@ describe('dataClumps', () => {
     ].join('\n');
 
     assert.deepEqual(clumps(text), []);
+    assert.deepEqual(measure(sourceOf(text), [dataClumps]).of(dataClumps), []);
   });
 
   it('names itself data-clumps where a run left it out', () => {

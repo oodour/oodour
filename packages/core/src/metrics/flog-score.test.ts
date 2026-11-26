@@ -46,6 +46,10 @@ describe('flogScore', () => {
     assert.deepEqual(scores('function f() { const g = () => h(); }'), ["Function 'f': 1.0/0.0/0.0", 'Arrow function: 0.0/0.0/1.0']);
   });
 
+  it('goes by its name', () => {
+    assert.equal(flogScore.name, 'flog-score');
+  });
+
   it('leaves type-only syntax out', () => {
     assert.deepEqual(scores('function f(x: Array<number>): number { return x as unknown as number; }'), [
       "Function 'f': 0.0/0.0/0.0",

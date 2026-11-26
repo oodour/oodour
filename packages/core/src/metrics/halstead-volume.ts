@@ -63,6 +63,7 @@ export const halsteadVolume = defineMetric({
 });
 
 function isTypeOnly(node: TSESTree.Node, { parent, key }: Position): boolean {
+  // Stryker disable next-line ConditionalExpression: every other typeAnnotation key sits inside a node already type-only
   return typeOnly.has(node.type) || (parent !== undefined && typeAssertions.has(parent.type) && key === 'typeAnnotation');
 }
 
@@ -87,6 +88,7 @@ function countsOf(range: Range, { functions, types }: Skipped, { ast, file }: So
 function tokensWithin(tokens: readonly TSESTree.Token[], [start, end]: Range): TSESTree.Token[] {
   const inside: TSESTree.Token[] = [];
 
+  // Stryker disable next-line EqualityOperator: past the last token the index reads undefined, which ends the loop too
   for (let index = firstAtOrAfter(tokens, start); index < tokens.length; index += 1) {
     const token = tokens[index];
 

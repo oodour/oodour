@@ -65,6 +65,15 @@ describe('featureEnvy', () => {
     assert.deepEqual(envies(text), ['n: p 3/1']);
   });
 
+  it('counts a use of super as a use of its own object', () => {
+    assert.deepEqual(envies('class A extends B { m(o) { super.x(); return o.a + o.b + o.c; } }'), ['m: o 3/1']);
+  });
+
+  it('has no measurement for a file without envy, and goes by its name', () => {
+    assert.deepEqual(measure(sourceOf('class A { m() { this.x; } }'), [featureEnvy]).of(featureEnvy), []);
+    assert.equal(featureEnvy.name, 'feature-envy');
+  });
+
   it('looks through type assertions', () => {
     assert.deepEqual(envies('class A { m(o: unknown) { this.x; (o as any).a; o!.b; (<any>o).c; } }'), ['m: o 3/1']);
   });

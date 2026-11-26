@@ -63,12 +63,14 @@ const resolvedBySource = new WeakMap<Source, Map<TSESTree.Identifier | TSESTree.
 export function variableOf(source: Source, name: TSESTree.Identifier): Variable | undefined {
   let resolved = resolvedBySource.get(source);
 
+  // Stryker disable next-line ConditionalExpression: a rebuilt map holds the same variables; the cache only saves time
   if (resolved === undefined) {
     resolved = new Map(
       scopesOf(source).scopes.flatMap(({ references }) =>
         references.flatMap(({ identifier, resolved: variable }) => (variable ? [[identifier, variable] as const] : [])),
       ),
     );
+    // Stryker disable next-line CallExpression: a rebuilt map holds the same variables; the cache only saves time
     resolvedBySource.set(source, resolved);
   }
 
