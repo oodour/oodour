@@ -20,9 +20,11 @@
   "dependencies": {
     "@typescript-eslint/scope-manager": "^8.72.1",
     "@typescript-eslint/typescript-estree": "^8.72.1",
-    "@typescript-eslint/visitor-keys": "^8.72.1"
+    "@typescript-eslint/visitor-keys": "^8.72.1",
+    "esquery": "^1.7.0"
   },
   "devDependencies": {
+    "@types/esquery": "^1.5.4",
     "@typescript-eslint/parser": "^8.72.1",
     "eslint": "^10.0.0"
   }

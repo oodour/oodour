@@ -1,5 +1,7 @@
+import { defineSelectorMetric } from '@oodour/core';
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
-import { createRule, type OopRuleModule, type Remedy, type Tier } from './create-rule.ts';
+import type { OopRuleModule, Remedy, Tier } from './create-rule.ts';
+import { defineMetricRule } from './define-metric-rule.ts';
 
 export type SelectorFix = (
   node: TSESTree.Node,
@@ -43,16 +45,11 @@ function remedyOf(row: SelectorRemedyFields): Remedy {
 }
 
 export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMessageId, []> {
-  const childStepInHas = row.selectors.find((selector) => /:has\(\s*>/.test(selector));
+  const { fix, suggest } = row;
 
-  if (childStepInHas !== undefined) {
-    throw new Error(
-      `${row.name}: "${childStepInHas}" puts a child step in :has(> ...), which esquery 1.7 silently matches nothing for once the step is longer than one node; use a descendant or sibling (~) form.`,
-    );
-  }
-
-  return createRule<[], SelectorMessageId>({
+  return defineMetricRule<[], SelectorMessageId, readonly TSESTree.Node[]>({
     name: row.name,
+    metric: defineSelectorMetric(row.name, row.selectors),
     meta: {
       type: 'suggestion',
       docs: {
@@ -69,9 +66,8 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
       schema: [],
       defaultOptions: [],
     },
-    create: (context) => {
-      const { fix, suggest } = row;
-      const report = (node: TSESTree.Node): void => {
+    check({ value: nodes }, context) {
+      for (const node of nodes) {
         context.report({
           node,
           messageId: 'found',
@@ -82,9 +78,7 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
                 suggest: [{ messageId: 'suggestion', fix: (fixer) => suggest.fix(node, fixer, context.sourceCode) }],
               }),
         });
-      };
-
-      return Object.fromEntries(row.selectors.map((selector) => [selector, report]));
+      }
     },
   });
 }

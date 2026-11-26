@@ -19,6 +19,7 @@ export { maxParams, type ParameterCount } from './metrics/max-params.ts';
 export { type PrivateAccess, privateAccess } from './metrics/private-access.ts';
 export { type ManualDispatch, manualDispatch } from './metrics/manual-dispatch.ts';
 export { type RepeatedSwitch, repeatedSwitches } from './metrics/repeated-switches.ts';
+export { defineSelectorMetric } from './metrics/selector-matches.ts';
 export { type TypeHoppingChain, typeHoppingChain } from './metrics/type-hopping-chain.ts';
 export {
   type ExistingTypes,
