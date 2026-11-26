@@ -18,8 +18,9 @@ export const manualDispatch = defineMetric({
   name: 'manual-dispatch',
   units: ['file'],
   open: (): ManualDispatch[] => [],
-  enter(node, dispatches, { parent, key }, { text }) {
-    if (node.type !== AST_NODE_TYPES.IfStatement || (parent?.type === AST_NODE_TYPES.IfStatement && key === 'alternate')) {
+  enter(node, dispatches, { key }, { text }) {
+    // Only an `if` has an `alternate` slot that can hold an `if`, so the node is an `else if`.
+    if (node.type !== AST_NODE_TYPES.IfStatement || key === 'alternate') {
       return;
     }
 

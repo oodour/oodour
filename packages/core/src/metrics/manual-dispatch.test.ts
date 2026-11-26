@@ -42,8 +42,23 @@ describe('manualDispatch', () => {
     );
   });
 
+  it('counts a class whose name only starts with Error', () => {
+    assert.deepEqual(chains('if (e instanceof ErrorPage) {} else if (e instanceof ErrorBox) {}'), ['1: e']);
+  });
+
   it('leaves out other tests and a subject tested once', () => {
-    assert.deepEqual(chains('if (a instanceof Dog) {} else if (a) {} else if (b instanceof Dog) {}'), []);
+    assert.deepEqual(
+      chains('if (a instanceof Dog) {} else if (a) {} else if (a in Cat) {} else if (b instanceof Dog) {}'),
+      [],
+    );
+  });
+
+  it('has nothing to report for a file without such a chain', () => {
+    assert.deepEqual(measure(sourceOf('if (a instanceof Dog) {}'), [manualDispatch]).of(manualDispatch), []);
+  });
+
+  it('starts a chain at an if that is the consequent of another if', () => {
+    assert.deepEqual(chains('if (q) if (a instanceof X) {} else if (a instanceof Y) {}'), ['1: a']);
   });
 
   it('finds chains in functions and classes', () => {
