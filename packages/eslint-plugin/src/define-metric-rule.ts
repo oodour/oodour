@@ -1,4 +1,5 @@
 import { measure, type Measurement, type Measurements, type Metric } from '@oodour/core';
+import { ESLintUtils } from '@typescript-eslint/utils';
 import type { RuleContext, SourceCode } from '@typescript-eslint/utils/ts-eslint';
 import { createRule, type OopRuleDefinition, type OopRuleModule } from './create-rule.ts';
 
@@ -35,6 +36,11 @@ export function defineMetricRule<TOptions extends readonly unknown[], TMessageId
     ...rule,
     create(context, options) {
       const { sourceCode } = context;
+
+      if (rule.meta.docs.requiresTypeChecking) {
+        // Throws typescript-eslint's own error, which says how to turn type information on, when the file has none.
+        ESLintUtils.getParserServices(context);
+      }
       const batch = batches.get(sourceCode) ?? { metrics: new Set() };
 
       batches.set(sourceCode, batch);

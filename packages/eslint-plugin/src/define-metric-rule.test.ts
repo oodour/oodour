@@ -86,6 +86,31 @@ test('a metric rule alone reports what it reports beside another', () => {
   assert.deepEqual(lint(['paths'], 'function f(p) { return p ? 1 : 2; }'), ['1 m/paths 2']);
 });
 
+test('a metric rule that requires type checking fails on a file without type information, saying so', () => {
+  const typed = defineMetricRule<[], 'found', number>({
+    name: 'typed',
+    metric: complexity,
+    meta: {
+      type: 'suggestion',
+      docs: { ...docs, requiresTypeChecking: true },
+      messages: { found: '{{value}}' },
+      schema: [],
+      defaultOptions: [],
+    },
+    check() {},
+  });
+  const registeredTyped = { meta: { name: 'typed-rules' }, rules: { typed } };
+  const typedRules: { readonly meta: { readonly name: string } } = registeredTyped;
+
+  assert.throws(
+    () =>
+      new Linter().verify('function f() {}', [
+        { files: ['**'], languageOptions: { parser }, plugins: { t: typedRules }, rules: { 't/typed': 'error' } },
+      ]),
+    /requires type information/,
+  );
+});
+
 test('a disable comment silences a metric rule for its line', () => {
   assert.deepEqual(lint(['paths'], '// eslint-disable-next-line m/paths\nfunction f() {}'), []);
 });
