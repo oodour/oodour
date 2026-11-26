@@ -11,6 +11,7 @@ export { type AbcCounts, abcSize } from './metrics/abc-size.ts';
 export { type ClassLines, classLines } from './metrics/class-lines.ts';
 export { complexity } from './metrics/complexity.ts';
 export { type ClumpHolder, type DataClump, dataClumps } from './metrics/data-clumps.ts';
+export { type FlogCounts, flogScore } from './metrics/flog-score.ts';
 export { type HalsteadCounts, halsteadVolume } from './metrics/halstead-volume.ts';
 export { maxParams, type ParameterCount } from './metrics/max-params.ts';
 export { type ManualDispatch, manualDispatch } from './metrics/manual-dispatch.ts';
