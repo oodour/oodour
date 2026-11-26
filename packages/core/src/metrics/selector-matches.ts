@@ -45,11 +45,11 @@ export function defineSelectorMetric(
 // esquery's types describe ESTree nodes and typescript-estree's describe its superset; at run time both are the same
 // objects, which esquery reads only by their `type` and the visitor keys.
 function isEstreeNode(value: object): value is EstreeNode {
-  return 'type' in value && typeof value.type === 'string';
+  return 'type' in value && typeof value.type === 'string' && Object.hasOwn(keys, value.type);
 }
 
 function isTreeNode(value: unknown): value is TSESTree.Node {
-  return typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string';
+  return typeof value === 'object' && value !== null && isEstreeNode(value);
 }
 
 /** The visitor keys of every node type, without the entries the map's type allows to be missing. */
