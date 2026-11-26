@@ -42,9 +42,17 @@ export function defineMetricRule<TOptions extends readonly unknown[], TMessageId
 
       return {
         'Program:exit'() {
-          batch.measured ??= measure({ file: context.filename, text: sourceCode.text, ast: sourceCode.ast }, [
-            ...batch.metrics,
-          ]);
+          const { scopeManager } = sourceCode;
+
+          batch.measured ??= measure(
+            {
+              file: context.filename,
+              text: sourceCode.text,
+              ast: sourceCode.ast,
+              ...(scopeManager === null ? {} : { scopes: scopeManager }),
+            },
+            [...batch.metrics],
+          );
 
           for (const measurement of batch.measured.of(metric)) {
             check(measurement, context, options);

@@ -4,13 +4,15 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-est
  * The kinds of unit the walk opens and closes; a metric names the kinds it measures.
  *
  * - `function`: a function declaration, function expression or arrow function.
+ * - `declared-function`: a `TSDeclareFunction`, such as an overload signature or a `declare function`, which has
+ *   parameters and no body.
  * - `field-initializer`: the value of a class field (a `PropertyDefinition`; ESLint opens no unit for an `accessor`
  *   field's value), unless that value is itself a function, which is a `function` unit and nothing more.
  * - `static-block`: a class `static { }` block.
  * - `class`: a class declaration or class expression.
  * - `file`: the whole file, its `Program` node.
  */
-export type UnitKind = 'function' | 'field-initializer' | 'static-block' | 'class' | 'file';
+export type UnitKind = 'function' | 'declared-function' | 'field-initializer' | 'static-block' | 'class' | 'file';
 
 type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
 type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
@@ -25,6 +27,7 @@ interface UnitAt<TKind extends UnitKind, TNode extends TSESTree.Node> {
 
 export type Unit =
   | UnitAt<'function', FunctionNode>
+  | UnitAt<'declared-function', TSESTree.TSDeclareFunction>
   | UnitAt<'field-initializer', TSESTree.Node>
   | UnitAt<'static-block', TSESTree.StaticBlock>
   | UnitAt<'class', ClassNode>
@@ -40,6 +43,10 @@ export interface Position {
 export function unitsAt(node: TSESTree.Node, { parent, key }: Position): readonly Unit[] {
   if (isFunction(node)) {
     return [{ kind: 'function', node, parent }];
+  }
+
+  if (node.type === AST_NODE_TYPES.TSDeclareFunction) {
+    return [{ kind: 'declared-function', node, parent }];
   }
 
   if (node.type === AST_NODE_TYPES.StaticBlock) {
@@ -88,6 +95,10 @@ export function unitName(unit: Unit): string {
 
     case 'file': {
       return 'File';
+    }
+
+    case 'declared-function': {
+      return unit.node.id === null ? 'Function' : `Function '${unit.node.id.name}'`;
     }
 
     case 'function': {
