@@ -20,6 +20,7 @@
     "typescript": ">=4.8.4 <6.1.0"
   },
   "dependencies": {
+    "@oodour/core": "0.0.0",
     "@typescript-eslint/utils": "^8.72.1"
   }
 }

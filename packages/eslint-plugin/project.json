@@ -24,17 +24,18 @@
   "targets": {
     "typecheck": {
       "command": "tsc -p packages/eslint-plugin/tsconfig.json",
-      "inputs": ["default", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
+      "inputs": ["default", "^default", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
     },
     "lint": {
       "command": "eslint packages/eslint-plugin",
-      "inputs": ["default", "eslintConfig", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
+      "inputs": ["default", "^default", "eslintConfig", "ruleDependencies", { "externalDependencies": ["@types/node"] }]
     },
     "test": {
-      "command": "node --test \"packages/eslint-plugin/src/**/*.test.ts\"",
+      "command": "node --conditions=@oodour/source --test \"packages/eslint-plugin/src/**/*.test.ts\"",
       "cache": true,
       "inputs": [
         "default",
+        "^default",
         "{workspaceRoot}/plugins/oodour/references/*.md",
         "ruleDependencies",
         { "runtime": "node --version" }
@@ -44,7 +45,8 @@
     "build": {
       "command": "tsc -p packages/eslint-plugin/tsconfig.build.json",
       "cache": true,
-      "inputs": ["default", "ruleDependencies", { "externalDependencies": ["@types/node"] }],
+      "dependsOn": ["^build"],
+      "inputs": ["default", "^default", "ruleDependencies", { "externalDependencies": ["@types/node"] }],
       "outputs": ["{projectRoot}/dist"]
     },
     "pack": {

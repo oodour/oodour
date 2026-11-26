@@ -1,40 +1,17 @@
-import { ASTUtils, type TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../create-rule.ts';
+import { type AbcCounts, abcSize as abcSizeMetric } from '@oodour/core';
+import { ASTUtils } from '@typescript-eslint/utils';
+import { defineMetricRule } from '../define-metric-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
 
 type Options = [{ readonly max: number }];
-
-type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
-
-interface Counts {
-  a: number;
-  b: number;
-  c: number;
-}
-
-const comparison = 'BinaryExpression[operator=/^([=!]==?|[<>]=?)$/]';
-const assignments = ['VariableDeclarator[init!=null]', 'AssignmentExpression', 'UpdateExpression'];
-const sends = ['CallExpression', 'NewExpression'];
-// Constructs 99 Bottles of OOP scores, then the ones it never scores, counted as RuboCop's Metrics/AbcSize does.
-const conditions = [
-  comparison,
-  `:matches(IfStatement, ConditionalExpression, WhileStatement, DoWhileStatement, ForStatement) > :not(${comparison}).test`,
-  ':matches(IfStatement, ConditionalExpression) > :not(IfStatement).alternate',
-  'SwitchCase',
-  'LogicalExpression',
-  'AssignmentExpression[operator=/^(\\|\\||&&|\\?\\?)=$/]',
-  'ForInStatement',
-  'ForOfStatement',
-  'CatchClause',
-  ':matches(MemberExpression, CallExpression)[optional=true]',
-];
 
 /**
  * ABC size as 99 Bottles of OOP counts it: assignments, sends (calls and `new`) and conditions, combined as the length
  * of the vector. Each function is scored alone; a nested function's counts are its own.
  */
-export const abcSize = createRule<Options, 'found'>({
+export const abcSize = defineMetricRule<Options, 'found', AbcCounts>({
   name: 'abc-size',
+  metric: abcSizeMetric,
   meta: {
     type: 'suggestion',
     docs: {
@@ -69,37 +46,13 @@ export const abcSize = createRule<Options, 'found'>({
     ],
     defaultOptions: [{ max: 15 }],
   },
-  create(context, [{ max }]) {
-    const stack: Counts[] = [];
-    const add =
-      (key: keyof Counts) =>
-      (): void => {
-        const top = stack.at(-1);
+  check({ unit, value: { assignments: a, sends: b, conditions: c } }, context, [{ max }]) {
+    const size = Math.hypot(a, b, c);
 
-        if (top !== undefined) {
-          top[key] += 1;
-        }
-      };
+    if (size > max && unit.kind === 'function') {
+      const name = ASTUtils.getFunctionNameWithKind(unit.node, context.sourceCode);
 
-    return {
-      ':function'() {
-        stack.push({ a: 0, b: 0, c: 0 });
-      },
-      ':function:exit'(node: FunctionNode) {
-        // Stryker disable next-line LzJsNumericLiteral: every function's exit follows the entry that pushed its counts, so the fallback never runs
-        const { a, b, c } = stack.pop() ?? { a: 0, b: 0, c: 0 };
-        const size = Math.hypot(a, b, c);
-
-        if (size > max) {
-          const name = ASTUtils.getFunctionNameWithKind(node, context.sourceCode);
-
-          context.report({ node, messageId: 'found', data: { name, size: size.toFixed(1), a, b, c, max } });
-        }
-      },
-      // One listener per selector: a node that two selectors match, such as `p && q` as an if test, counts twice.
-      ...Object.fromEntries(assignments.map((selector) => [selector, add('a')])),
-      ...Object.fromEntries(sends.map((selector) => [selector, add('b')])),
-      ...Object.fromEntries(conditions.map((selector) => [selector, add('c')])),
-    };
+      context.report({ node: unit.node, messageId: 'found', data: { name, size: size.toFixed(1), a, b, c, max } });
+    }
   },
 });
