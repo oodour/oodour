@@ -1,12 +1,11 @@
-import { holdsOnly, withoutTypeAssertions } from '@oodour/core';
-import { AST_NODE_TYPES, ASTUtils, type TSESTree } from '@typescript-eslint/utils';
-import ts from 'typescript';
-import { createRule } from '../create-rule.ts';
+import { type PrivateAccess, privateAccess as privateAccessMetric } from '@oodour/core';
+import { defineMetricRule } from '../define-metric-rule.ts';
 
 type Options = [{ readonly underscore?: boolean }];
 
-export const privateAccess = createRule<Options, 'found'>({
+export const privateAccess = defineMetricRule<Options, 'found', readonly PrivateAccess[]>({
   name: 'private-access',
+  metric: privateAccessMetric,
   meta: {
     type: 'suggestion',
     docs: {
@@ -36,125 +35,13 @@ export const privateAccess = createRule<Options, 'found'>({
     ],
     defaultOptions: [{ underscore: false }],
   },
-  create(context, [{ underscore }]) {
-    const { program, esTreeNodeToTSNodeMap } = context.sourceCode.parserServices ?? {};
-    // The compiler lets a class read another instance's private members through a dot, and any code read them
-    // through brackets with a string key.
-    const nonPublicName = ({ object, property, computed }: TSESTree.MemberExpression): string | undefined => {
-      const name =
-        !computed && property.type === AST_NODE_TYPES.Identifier
-          ? property.name
-          : property.type === AST_NODE_TYPES.Literal && typeof property.value === 'string'
-            ? property.value
-            : undefined;
+  check({ value: accesses }, context, [{ underscore }]) {
+    for (const { node, nonPublic, underscored } of accesses) {
+      const member = nonPublic ?? (underscore === true ? underscored : undefined);
 
-      if (!program || !esTreeNodeToTSNodeMap || name === undefined) {
-        return undefined;
+      if (member !== undefined) {
+        context.report({ node, messageId: 'found', data: { member } });
       }
-
-      const checker = program.getTypeChecker();
-      const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(object)));
-      const isNonPublic = (declaration: ts.Declaration): boolean =>
-        (ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) !== 0;
-
-      return (type.isUnion() ? type.types : [type]).some(
-        (member) => member.getProperty(name)?.declarations?.some(isNonPublic) === true,
-      )
-        ? name
-        : undefined;
-    };
-    const underscoreName = ({ computed, property }: TSESTree.MemberExpression): string | undefined =>
-      underscore === true &&
-      !computed &&
-      property.type === AST_NODE_TYPES.Identifier &&
-      property.name.startsWith('_') &&
-      !property.name.startsWith('__')
-        ? property.name
-        : undefined;
-
-    const isOwnObject = (object: TSESTree.Expression): boolean => {
-      const bare = withoutTypeAssertions(object);
-      const variable =
-        bare.type === AST_NODE_TYPES.Identifier
-          ? ASTUtils.findVariable(context.sourceCode.getScope(bare), bare)
-          : undefined;
-
-      return (
-        bare.type === AST_NODE_TYPES.ThisExpression ||
-        bare.type === AST_NODE_TYPES.Super ||
-        (variable !== null &&
-          variable !== undefined &&
-          holdsOnly(
-            variable,
-            ({ expressions, part }) =>
-              !part &&
-              expressions.some(
-                (value) =>
-                  value.type === AST_NODE_TYPES.ThisExpression &&
-                  // Stryker disable next-line MethodExpression: holdsOnly accepts only declarators, and two declarators of one variable sit in one function or static block, so some and every agree
-                  variable.defs.every(({ node }) => thisOwner(node) === thisOwner(value)),
-              ),
-          ))
-      );
-    };
-
-    return {
-      MemberExpression(node) {
-        if (isOwnObject(node.object)) {
-          return;
-        }
-
-        const member = nonPublicName(node) ?? underscoreName(node);
-
-        if (member !== undefined && !namesEnclosingClass(node.object, context.sourceCode.getAncestors(node))) {
-          context.report({ node, messageId: 'found', data: { member } });
-        }
-      },
-    };
+    }
   },
 });
-
-/** Whether the object is the name of a class that encloses the access, which then reaches its own static member. */
-function namesEnclosingClass(object: TSESTree.Expression, ancestors: TSESTree.Node[]): boolean {
-  return (
-    object.type === AST_NODE_TYPES.Identifier &&
-    ancestors.some((ancestor) => classNameOf(ancestor) === object.name)
-  );
-}
-
-/**
- * The node that decides what `this` means at the given node: the nearest function that is not an arrow, field
- * initializer (auto-accessor fields included) or static block around it, or none at the top level of a module.
- */
-function thisOwner(node: TSESTree.Node): TSESTree.Node | undefined {
-  let owner = node.parent;
-
-  while (
-    owner &&
-    owner.type !== AST_NODE_TYPES.FunctionDeclaration &&
-    owner.type !== AST_NODE_TYPES.FunctionExpression &&
-    owner.type !== AST_NODE_TYPES.PropertyDefinition &&
-    owner.type !== AST_NODE_TYPES.AccessorProperty &&
-    owner.type !== AST_NODE_TYPES.StaticBlock
-  ) {
-    owner = owner.parent;
-  }
-
-  return owner;
-}
-
-/** A class's own name, or for an unnamed class expression the name of the variable that holds it. */
-function classNameOf(node: TSESTree.Node): string | undefined {
-  if (node.type === AST_NODE_TYPES.ClassDeclaration || node.type === AST_NODE_TYPES.ClassExpression) {
-    const holder = node.parent;
-
-    return (
-      node.id?.name ??
-      (holder.type === AST_NODE_TYPES.VariableDeclarator && holder.id.type === AST_NODE_TYPES.Identifier
-        ? holder.id.name
-        : undefined)
-    );
-  }
-
-  return undefined;
-}

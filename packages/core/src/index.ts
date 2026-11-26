@@ -1,5 +1,4 @@
 export { builtInConstructors } from './built-in-constructors.ts';
-export { type HeldValue, holdsOnly } from './holds-only.ts';
 export {
   defineMetric,
   measure,
@@ -17,6 +16,7 @@ export { type FlagArgument, flagArgument } from './metrics/flag-argument.ts';
 export { type FlogCounts, flogScore } from './metrics/flog-score.ts';
 export { type HalsteadCounts, halsteadVolume } from './metrics/halstead-volume.ts';
 export { maxParams, type ParameterCount } from './metrics/max-params.ts';
+export { type PrivateAccess, privateAccess } from './metrics/private-access.ts';
 export { type ManualDispatch, manualDispatch } from './metrics/manual-dispatch.ts';
 export { type RepeatedSwitch, repeatedSwitches } from './metrics/repeated-switches.ts';
 export {
@@ -28,4 +28,3 @@ export {
   variableOf,
 } from './source.ts';
 export { type Position, type Unit, type UnitKind, unitName } from './units.ts';
-export { withoutTypeAssertions } from './without-type-assertions.ts';
