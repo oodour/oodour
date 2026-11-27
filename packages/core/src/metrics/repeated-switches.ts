@@ -16,29 +16,21 @@ export interface RepeatedSwitch {
 export const repeatedSwitches = defineMetric({
   name: 'repeated-switches',
   units: ['file'],
-  open: () => new Map<string, TSESTree.SwitchStatement[]>(),
-  enter(node, switchesByCases, _at, { text }) {
-    if (node.type !== AST_NODE_TYPES.SwitchStatement) {
-      return;
-    }
-
-    const cases = node.cases
-      .flatMap(({ test }) => (test === null ? [] : [text.slice(...test.range)]))
-      .toSorted()
-      .join(', ');
-
-    const switches = switchesByCases.get(cases);
-
-    if (switches === undefined) {
-      switchesByCases.set(cases, [node]);
-    } else {
+  open: (): TSESTree.SwitchStatement[] => [],
+  enter(node, switches) {
+    if (node.type === AST_NODE_TYPES.SwitchStatement) {
       switches.push(node);
     }
   },
-  close(switchesByCases): readonly RepeatedSwitch[] | undefined {
-    const repeated = [...switchesByCases]
-      .filter(([cases, switches]) => cases !== '' && switches.length > 1)
-      .map(([cases, switches]) => ({ cases, switches }));
+  close(switches, _unit, { text }): readonly RepeatedSwitch[] | undefined {
+    const casesOf = (node: TSESTree.SwitchStatement): string =>
+      node.cases
+        .flatMap(({ test }) => (test === null ? [] : [text.slice(...test.range)]))
+        .toSorted()
+        .join(', ');
+    const repeated = [...Map.groupBy(switches, casesOf)]
+      .filter(([cases, group]) => cases !== '' && group.length > 1)
+      .map(([cases, group]) => ({ cases, switches: group }));
 
     return repeated.length === 0 ? undefined : repeated;
   },

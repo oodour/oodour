@@ -24,7 +24,7 @@ interface State {
   readonly returns: TSESTree.ReturnStatement[][];
   readonly proven: FlagArgument[];
   readonly unproven: Candidate[];
-  readonly callsByName: Map<string, TSESTree.CallExpression[]>;
+  readonly calls: TSESTree.CallExpression[];
 }
 
 /**
@@ -37,24 +37,14 @@ interface State {
 export const flagArgument = defineMetric({
   name: 'flag-argument',
   units: ['file'],
-  open: (): State => ({ returns: [], proven: [], unproven: [], callsByName: new Map() }),
-  enter(node, { returns, callsByName }) {
+  open: (): State => ({ returns: [], proven: [], unproven: [], calls: [] }),
+  enter(node, { returns, calls }) {
     if (isFunction(node)) {
       returns.push([]);
     } else if (node.type === T.ReturnStatement) {
       returns.at(-1)?.push(node);
     } else if (node.type === T.CallExpression) {
-      const name = calleeName(node.callee);
-
-      if (name !== undefined) {
-        const calls = callsByName.get(name);
-
-        if (calls === undefined) {
-          callsByName.set(name, [node]);
-        } else {
-          calls.push(node);
-        }
-      }
+      calls.push(node);
     }
   },
   leave(node, state, _at, source) {
@@ -62,7 +52,8 @@ export const flagArgument = defineMetric({
       checkParameters(node, state, source);
     }
   },
-  close: ({ proven, unproven, callsByName }): readonly FlagArgument[] | undefined => {
+  close: ({ proven, unproven, calls }): readonly FlagArgument[] | undefined => {
+    const callsByName = Map.groupBy(calls, ({ callee }) => calleeName(callee));
     const called = unproven.filter(({ fn, index }) => {
       const name = functionName(fn);
 
@@ -70,6 +61,7 @@ export const flagArgument = defineMetric({
     });
     const flags = [...proven, ...called]
       .map(({ param, fn, name }) => ({ param, fn, name }))
+      // Stryker disable next-line LzJsNumericLiteral: flag parameters never nest (one with a function in its default value is no flag), so either end of their ranges orders them the same
       .sort((a, b) => a.param.range[0] - b.param.range[0]);
 
     return flags.length > 0 ? flags : undefined;
