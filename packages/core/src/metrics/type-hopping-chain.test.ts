@@ -65,11 +65,12 @@ describe('typeHoppingChain', () => {
     assert.deepEqual(measure(source, [typeHoppingChain]).of(typeHoppingChain), []);
   });
 
-  it('follows a chain through a method call, and ends it at a call nothing reads from', () => {
-    assert.deepEqual(chains(`${declarations}\norder.customer.getAddress().city;\norder.customer.getAddress();`), [
-      ['order.customer.getAddress().city', 3],
-      ['order.customer.getAddress', 2],
-    ]);
+  it('follows a chain through a method call', () => {
+    assert.deepEqual(chains(`${declarations}\norder.customer.getAddress().city;`), [['order.customer.getAddress().city', 3]]);
+  });
+
+  it('ends a chain at a call nothing reads from', () => {
+    assert.deepEqual(chains(`${declarations}\norder.customer.getAddress();`), [['order.customer.getAddress', 2]]);
   });
 
   it('starts a chain of its own at an argument of a call that is read from', () => {
