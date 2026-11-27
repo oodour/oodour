@@ -1,8 +1,9 @@
 import type { TSESTree } from '@typescript-eslint/typescript-estree';
 import { visitorKeys } from '@typescript-eslint/visitor-keys';
 import esquery from 'esquery';
-import type { Node as EstreeNode } from 'estree';
 import { defineMetric, type Metric } from '../metric.ts';
+
+type EstreeNode = Parameters<typeof esquery.match>[0];
 
 /**
  * A metric of the nodes in each file that any of the esquery selectors matches, as an ESLint rule with a listener per
@@ -13,7 +14,7 @@ import { defineMetric, type Metric } from '../metric.ts';
 export function defineSelectorMetric(
   name: string,
   selectors: readonly [string, ...string[]],
-): Metric<readonly TSESTree.Node[]> {
+): Metric<readonly TSESTree.Node[], 'file'> {
   const childStepInHas = selectors.find((selector) => /:has\(\s*>/.test(selector));
 
   if (childStepInHas !== undefined) {
@@ -34,6 +35,7 @@ export function defineSelectorMetric(
       }
 
       const matches = parsed.flatMap((selector) =>
+        // Stryker disable next-line ObjectLiteral: without the keys esquery iterates each node's own keys and reaches the same nodes
         esquery.match(node, selector, { visitorKeys: keys }).flatMap((match: unknown) => (isTreeNode(match) ? [match] : [])),
       );
 
@@ -45,10 +47,12 @@ export function defineSelectorMetric(
 // esquery's types describe ESTree nodes and typescript-estree's describe its superset; at run time both are the same
 // objects, which esquery reads only by their `type` and the visitor keys.
 function isEstreeNode(value: object): value is EstreeNode {
+  // Stryker disable next-line ConditionalExpression: true for every node of a parsed tree; the check carries the type across
   return 'type' in value && typeof value.type === 'string' && Object.hasOwn(keys, value.type);
 }
 
 function isTreeNode(value: unknown): value is TSESTree.Node {
+  // Stryker disable next-line ConditionalExpression: true for every match esquery returns; the check carries the type across
   return typeof value === 'object' && value !== null && isEstreeNode(value);
 }
 
