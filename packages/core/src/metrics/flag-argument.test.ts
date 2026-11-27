@@ -55,4 +55,13 @@ describe('flagArgument', () => {
   it('lists the flags in source order', () => {
     assert.deepEqual(flags('function f(a) { if (a) {} } function g(b: boolean) { if (b) {} } f(1);'), ['a', 'b']);
   });
+
+  it('reads every call of a function, not only the first', () => {
+    assert.deepEqual(flags('function f(on) { if (on) {} } f(x); f(true);'), ['on']);
+  });
+
+  it('has no measurement for a file without flags, and goes by its name', () => {
+    assert.deepEqual(measure(sourceOf('function f(a) { return a; }'), [flagArgument]).of(flagArgument), []);
+    assert.equal(flagArgument.name, 'flag-argument');
+  });
 });

@@ -30,10 +30,16 @@ describe('defineSelectorMetric', () => {
   });
 
   it('has no measurement for a file it matches nothing in', () => {
-    assert.deepEqual(matches(['SwitchStatement'], 'f();'), []);
+    const metric = defineSelectorMetric('test-selectors', ['SwitchStatement']);
+    const source = parseSource('f();', 'file.ts');
+
+    assert.ok(!('parseError' in source));
+    assert.deepEqual(measure(source, [metric]).of(metric), []);
   });
 
   it('refuses a child step inside :has, which esquery matches nothing for', () => {
     assert.throws(() => defineSelectorMetric('bad', ['A:has(> B > C)']), /^Error: bad: "A:has\(> B > C\)" puts a child step/);
+    assert.throws(() => defineSelectorMetric('bad', ['A:has( > B > C)']), /puts a child step/);
+    assert.doesNotThrow(() => defineSelectorMetric('fine', ['A:has(B > C)']));
   });
 });
