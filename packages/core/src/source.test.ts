@@ -29,6 +29,15 @@ function identifiers(source: Source, name: string): TSESTree.Identifier[] {
   return found;
 }
 
+describe('parseSource', () => {
+  it('reports a file nested too deep for the parser as a parse failure, as ESLint does', () => {
+    const depth = 20_000;
+    const failure = parseSource(`const x = ${'['.repeat(depth)}${']'.repeat(depth)};`, 'deep.ts');
+
+    assert.deepEqual(failure, { parseError: 'deep.ts Maximum call stack size exceeded' });
+  });
+});
+
 describe('scopesOf', () => {
   it('analyses a module as a module, with a module scope', () => {
     const scopes = scopesOf(sourceOf('export const a = 1;'));

@@ -22,7 +22,10 @@ export interface ExistingTypes {
 }
 
 export interface ParseFailure {
-  /** `<file>:<line>:<column> <message>`, with the line and column ESLint gives for the same error. */
+  /**
+   * `<file>:<line>:<column> <message>`, with the line and column ESLint gives for the same error; `<file> <message>` for
+   * a file nested too deep to parse, which has no position.
+   */
   readonly parseError: string;
 }
 
@@ -37,6 +40,11 @@ export function parseSource(text: string, file: string): Source | ParseFailure {
   } catch (error) {
     if (error instanceof TSError) {
       return { parseError: `${file}:${String(error.lineNumber)}:${String(error.column)} ${error.message}` };
+    }
+
+    // A file nested too deep overflows the parser's stack; ESLint reports that as a parsing error of the file too.
+    if (error instanceof RangeError) {
+      return { parseError: `${file} ${error.message}` };
     }
 
     throw error;
