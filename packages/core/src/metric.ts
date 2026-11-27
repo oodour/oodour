@@ -156,6 +156,7 @@ function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown, Uni
     run.enter(node, at);
   }
 
+  // Stryker disable next-line ArrayDeclaration: a key no node has yields no children, so a seeded fallback walks nothing
   for (const key of visitorKeys[node.type] ?? []) {
     const child: unknown = Reflect.get(node, key);
 

@@ -34,7 +34,7 @@ function chains(text: string): [string, number][] {
 
 const declarations = [
   'interface Address { city: string }',
-  'interface Customer { address: Address; name: string }',
+  'interface Customer { address: Address; name: string; getAddress(): Address }',
   'interface Order { customer: Customer }',
   'declare const order: Order;',
   'declare const names: Record<string, number>;',
@@ -63,6 +63,19 @@ describe('typeHoppingChain', () => {
     const source = typedSource(`${declarations}\norder.customer;`);
 
     assert.deepEqual(measure(source, [typeHoppingChain]).of(typeHoppingChain), []);
+  });
+
+  it('follows a chain through a method call, and ends it at a call nothing reads from', () => {
+    assert.deepEqual(chains(`${declarations}\norder.customer.getAddress().city;\norder.customer.getAddress();`), [
+      ['order.customer.getAddress().city', 3],
+      ['order.customer.getAddress', 2],
+    ]);
+  });
+
+  it('starts a chain of its own at an argument of a call that is read from', () => {
+    const text = `${declarations}\ndeclare function lookup(name: string): string;\nlookup(order.customer.name).length;`;
+
+    assert.deepEqual(chains(text), [['order.customer.name', 2]]);
   });
 
   it('starts a chain of its own at a computed key', () => {

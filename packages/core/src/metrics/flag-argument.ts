@@ -59,10 +59,9 @@ export const flagArgument = defineMetric({
 
       return name !== undefined && (callsByName.get(name) ?? []).some((call) => isFlagLiteral(call.arguments[index]));
     });
-    const flags = [...proven, ...called]
-      .map(({ param, fn, name }) => ({ param, fn, name }))
-      // Stryker disable next-line LzJsNumericLiteral: flag parameters never nest (one with a function in its default value is no flag), so either end of their ranges orders them the same
-      .sort((a, b) => a.param.range[0] - b.param.range[0]);
+    // Stryker disable next-line LzJsNumericLiteral: flag parameters never nest (one with a function in its default value is no flag), so either end of their ranges orders them the same
+    const byStart = (a: FlagArgument, b: FlagArgument): number => a.param.range[0] - b.param.range[0];
+    const flags = [...proven, ...called].map(({ param, fn, name }) => ({ param, fn, name })).sort(byStart);
 
     return flags.length > 0 ? flags : undefined;
   },

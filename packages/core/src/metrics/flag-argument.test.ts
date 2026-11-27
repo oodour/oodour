@@ -56,6 +56,10 @@ describe('flagArgument', () => {
     assert.deepEqual(flags('function f(a) { if (a) {} } function g(b: boolean) { if (b) {} } f(1);'), ['a', 'b']);
   });
 
+  it('passes a function without a name, whatever calls without a name pass', () => {
+    assert.deepEqual(flags('[function (on) { if (on) {} }]; pick()(true);'), []);
+  });
+
   it('reads every call of a function, not only the first', () => {
     assert.deepEqual(flags('function f(on) { if (on) {} } f(x); f(true);'), ['on']);
   });
