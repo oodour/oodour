@@ -8,17 +8,20 @@
 //     stryker.core.config.ts
 // Unset, it falls back to Stryker's command runner, which runs the whole suite for every mutant.
 //
-// The ESLint package tests the core too, through its rules, so its tests run here as well. Each test process loads
-// stryker.sandbox-core.ts first, which points its `@oodour/core` imports at the sandbox's mutated copy instead of the
-// real one the workspace links into node_modules. The test-metrics suite stays out: its tests that run node:test on
-// fixtures report lines one off under this run.
+// The ESLint package and the test reporters test the core too, through their rules and reports, so their tests run here
+// as well. Each test process loads stryker.sandbox-core.ts first, which points its `@oodour/core` imports at the
+// sandbox's mutated copy instead of the real one the workspace links into node_modules.
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
 import { runnerOptions, sandboxCore, sharedOptions } from './stryker.shared.ts';
 
 const config: PartialStrykerOptions = {
   ...sharedOptions,
   ...(await runnerOptions({
-    testFiles: ['packages/core/src/**/*.test.ts', 'packages/eslint-plugin/src/**/*.test.ts'],
+    testFiles: [
+      'packages/core/src/**/*.test.ts',
+      'packages/eslint-plugin/src/**/*.test.ts',
+      'packages/test-metrics/src/**/*.test.ts',
+    ],
     nodeArgs: [sandboxCore],
     commandTimeoutMS: 60000,
     // The ESLint package's test files that start typescript-eslint's project service start slowly.
@@ -27,6 +30,9 @@ const config: PartialStrykerOptions = {
   tsconfigFile: 'packages/core/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/core.html' },
   mutate: ['packages/core/src/**/*.ts', '!packages/core/src/**/*.test.ts'],
+  // The default puts `// @ts-nocheck` atop every file in the sandbox, the test reporters' fixtures included, which moves
+  // each fixture line their end-to-end tests expect down by one.
+  disableTypeChecks: 'packages/core/src/**/*.ts',
   incrementalFile: 'reports/stryker-incremental/core.json',
 };
 
