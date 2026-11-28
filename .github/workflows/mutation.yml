@@ -1,52 +1,41 @@
 name: Mutation testing
 
-# Manual runs only: a run takes about an hour.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
-    inputs:
-      target:
-        description: What to mutate
-        type: choice
-        options: [tooling, core]
-        default: tooling
 
 permissions:
   contents: read
 
 concurrency:
-  group: mutation-${{ github.ref }}-${{ inputs.target }}
+  group: mutation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  tooling:
-    if: inputs.target == 'tooling'
+  # One job per Stryker configuration, side by side. Each runs lz-node-test's node:test runner, which runs per mutant only
+  # the tests that reach it; Stryker's command runner runs every suite for each mutant and mostly times out here. The
+  # runner loads from the source of a checkout at a pinned commit, beside this repository's checkout so that Stryker's
+  # sandbox does not copy it.
+  stryker:
+    name: ${{ matrix.target }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      # Stryker's dry run runs the whole tooling suite first and skips the tests that read the git-ignored sealed store.
-      - run: node node_modules/@stryker-mutator/core/bin/stryker.js run stryker.config.ts --concurrency 4
-      - if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: mutation-report
-          path: reports/mutation/
-          if-no-files-found: ignore
-
-  # The core's run needs lz-node-test's runner, which runs per mutant only the tests that reach it; with Stryker's
-  # command runner it would run every suite for each of some 2,500 mutants. The runner loads from the source of a
-  # checkout at a pinned commit, beside this repository's checkout so that Stryker's sandbox does not copy it.
-  core:
-    if: inputs.target == 'core'
-    runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: tooling
+            config: stryker.config.ts
+          - target: scripts
+            config: stryker.oodour-scripts.config.ts
+          - target: core
+            config: stryker.core.config.ts
+          - target: eslint-plugin
+            config: stryker.eslint-plugin.config.ts
+          - target: test-metrics
+            config: stryker.test-metrics.config.ts
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -71,13 +60,13 @@ jobs:
         working-directory: oodour
       - run: >-
           node --conditions=@oodour/source --conditions=@layzee/source
-          node_modules/@stryker-mutator/core/bin/stryker.js run stryker.core.config.ts --concurrency 4
+          node_modules/@stryker-mutator/core/bin/stryker.js run ${{ matrix.config }} --concurrency 4
         working-directory: oodour
         env:
           LZ_NODE_TEST_RUNNER: ${{ github.workspace }}/lz-node-test/packages/stryker-node-test-runner/src/index.ts
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: mutation-report-core
+          name: mutation-report-${{ matrix.target }}
           path: oodour/reports/mutation/
           if-no-files-found: ignore
