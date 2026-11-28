@@ -238,9 +238,11 @@ published as `@oodour/<name>`). Run Nx as `npm exec -- nx`.
   cover almost everything the repo with a print width of 80 (JSON, HTML, Markdown, and YAML may be extended to 120 or
   no line limit), configured by a root EditorConfig. I would suggest excluding Markdown from Prettier formatting to
   prevent formatting churn."). `.git-blame-ignore-revs` lists the commit that reformatted the repository. A
-  `// Stryker disable next-line` comment covers only the line below it, so when Prettier splits a statement, move the
-  comment to the line that holds the mutant, or wrap the statement in a `// Stryker disable <Mutator>` and
-  `// Stryker restore <Mutator>` pair. Fix a failing format check with `npm exec -- nx format:write --all`. The
+  Stryker reads a directive only as the leading comment of a node, and a `// Stryker disable next-line` covers only the
+  line where that node starts, so when Prettier splits a statement, wrap it in a `// Stryker disable <Mutator>` and
+  `// Stryker restore <Mutator>` pair. Put the restore before the next statement: after a function's last statement it
+  is never read, and the disable runs to the end of the file. A comment inside a method chain leads the property name,
+  not the call's arguments. Fix a failing format check with `npm exec -- nx format:write --all`. The
   Prettier version range and the base `.editorconfig`, `.prettierrc` and
   `.prettierignore` follow what Nx 24.0.6 generates for a new workspace (Lars, 2026-11-16: "align EditorConfig and
   Prettier configs with Nx defaults"; "~3.6.2 it is").

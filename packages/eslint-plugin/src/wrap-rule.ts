@@ -164,6 +164,21 @@ export function wrapRule<TOptions extends readonly unknown[]>(
   });
 }
 
+function isRuleContext(
+  value: unknown,
+): value is Readonly<RuleContext<string, unknown[]>> {
+  // Stryker disable ConditionalExpression: `true` holds for its one argument, which inherits from a rule context; `false` throws for every wrapped rule, which every wrapper test kills
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'report' in value &&
+    typeof value.report === 'function' &&
+    'sourceCode' in value &&
+    typeof value.sourceCode === 'object'
+  );
+}
+
+// Stryker restore ConditionalExpression
 function isUpstreamRule(value: unknown): value is UpstreamRule {
   return (
     typeof value === 'object' &&
@@ -177,19 +192,4 @@ function isUpstreamRule(value: unknown): value is UpstreamRule {
     typeof value.meta.schema === 'object' &&
     value.meta.schema !== null
   );
-}
-
-function isRuleContext(
-  value: unknown,
-): value is Readonly<RuleContext<string, unknown[]>> {
-  // Stryker disable ConditionalExpression: `true` holds for its one argument, which inherits from a rule context; `false` throws for every wrapped rule, which every wrapper test kills
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'report' in value &&
-    typeof value.report === 'function' &&
-    'sourceCode' in value &&
-    typeof value.sourceCode === 'object'
-  );
-  // Stryker restore ConditionalExpression
 }

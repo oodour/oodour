@@ -37,8 +37,10 @@ export function attributedTitles(text: string): string[] {
     .split('\n')
     .flatMap((line) => {
       const books = [...line.matchAll(/_([^_]+)_/g)].map(
-        // Stryker disable next-line StringLiteral: the group always takes part in a match, so the default never applies
-        ([, title = '']) => title.replace(/:.*/, ''),
+        (
+          // Stryker disable next-line StringLiteral: the group always takes part in a match, so the default never applies
+          [, title = ''],
+        ) => title.replace(/:.*/, ''),
       );
 
       if (books.length > 0) {

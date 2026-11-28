@@ -86,9 +86,9 @@ function isTypeOnly(node: TSESTree.Node, { parent, key }: Position): boolean {
       typeAssertions.has(parent.type) &&
       key === 'typeAnnotation')
   );
-  // Stryker restore ConditionalExpression
 }
 
+// Stryker restore ConditionalExpression
 function countsOf(
   range: Range,
   { functions, types }: Skipped,

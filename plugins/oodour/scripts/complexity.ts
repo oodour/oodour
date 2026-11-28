@@ -14,6 +14,17 @@ export type Complexity =
   | { readonly functions: readonly FunctionComplexity[] }
   | { readonly parseError: string };
 
+function isRuleContext(value: unknown): value is Rule.RuleContext {
+  // Stryker disable ConditionalExpression: `true` holds for the one value checked, which inherits from ESLint's context; `false` throws on every file, which every complexity test kills
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'report' in value &&
+    'sourceCode' in value
+  );
+}
+
+// Stryker restore ConditionalExpression
 export function functionComplexity(file: string, text: string): Complexity {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
   const complexity = builtinRules.get('complexity');
@@ -84,15 +95,4 @@ export function functionComplexity(file: string, text: string): Complexity {
         parseError: `${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`,
       }
     : { functions };
-}
-
-function isRuleContext(value: unknown): value is Rule.RuleContext {
-  // Stryker disable ConditionalExpression: `true` holds for the one value checked, which inherits from ESLint's context; `false` throws on every file, which every complexity test kills
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'report' in value &&
-    'sourceCode' in value
-  );
-  // Stryker restore ConditionalExpression
 }

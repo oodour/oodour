@@ -9,7 +9,6 @@ export const refuse = (reason: string): never => {
 const windowsPaths = sep === '\\';
 
 const driveRelative = (name: string): RegExpExecArray | null =>
-  // Stryker disable next-line ConditionalExpression: windowsPaths is true where the mutants run, and its own mutants make it false
   windowsPaths ? /^([a-z]:)(?![\\/])(.*)/is.exec(name) : null;
 
 // Not `resolve`, which would take a `..` by its text only; readingsOf takes it both ways. Git on Windows opens a name

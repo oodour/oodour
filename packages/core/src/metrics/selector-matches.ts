@@ -59,9 +59,9 @@ function isEstreeNode(value: object): value is EstreeNode {
     typeof value.type === 'string' &&
     Object.hasOwn(keys, value.type)
   );
-  // Stryker restore ConditionalExpression
 }
 
+// Stryker restore ConditionalExpression
 function isTreeNode(value: unknown): value is TSESTree.Node {
   // Stryker disable next-line ConditionalExpression: true for every match esquery returns; the check carries the type across
   return typeof value === 'object' && value !== null && isEstreeNode(value);
