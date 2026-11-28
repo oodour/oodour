@@ -2,7 +2,8 @@ import { optionalPluginRule, sizeRemedy, wrapRule } from '../wrap-rule.ts';
 
 export const cognitiveComplexity = wrapRule({
   name: 'cognitive-complexity',
-  wraps: 'sonarjs/cognitive-complexity',
+  // Stryker disable next-line StringLiteral: read only by the error for a rule that could not be loaded, which needs eslint-plugin-sonarjs absent, and the tests run with it installed
+  wraps:'sonarjs/cognitive-complexity',
   upstream: optionalPluginRule('eslint-plugin-sonarjs', 'cognitive-complexity'),
   docs: {
     description: 'Report a function that is harder to follow than allowed, by its cognitive complexity',

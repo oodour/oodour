@@ -20,37 +20,82 @@ test('an installed plugin package that fails to load throws its error', () => {
   assert.throws(() => optionalPluginRule('eslint-plugin-broken', 'some-rule', broken), SyntaxError);
 });
 
-const wrapperOfMissingRule: unknown = wrapRule({
-  name: 'some-limit',
-  wraps: 'absent/some-limit',
-  upstream: optionalPluginRule('eslint-plugin-absent', 'some-limit', notInstalled),
-  docs: {
-    description: 'Some limit',
-    concept: 'Some smell',
-    cures: ['Some cure'],
-    requiresTypeChecking: false,
-    remedy: sizeRemedy,
-    tier: 'strict',
-  },
-  message: 'Some message.',
-  defaultOptions: [5],
+test('an installed plugin package that fails to load with another error code throws its error', () => {
+  const unreadable = (): never => {
+    throw Object.assign(new Error('Operation not permitted'), { code: 'EPERM' });
+  };
+
+  assert.throws(() => optionalPluginRule('eslint-plugin-unreadable', 'some-rule', unreadable), { code: 'EPERM' });
 });
 
-function lintWith(setting: Linter.RuleEntry): readonly Linter.LintMessage[] {
-  if (!isRuleModule(wrapperOfMissingRule)) {
+test('a plugin package whose rules are not an object has no rule to load', () => {
+  assert.equal(
+    optionalPluginRule('eslint-plugin-odd', 'some-rule', () => ({ rules: null })),
+    undefined,
+  );
+});
+
+test('a rule of an installed plugin package loads as the module the package holds under its name', () => {
+  const someRule = { create: () => ({}) };
+
+  assert.equal(
+    optionalPluginRule('eslint-plugin-some', 'some-rule', () => ({ rules: { 'some-rule': someRule } })),
+    someRule,
+  );
+});
+
+function wrapperOf(upstream: unknown): unknown {
+  return wrapRule({
+    name: 'some-limit',
+    wraps: 'absent/some-limit',
+    upstream,
+    docs: {
+      description: 'Some limit',
+      concept: 'Some smell',
+      cures: ['Some cure'],
+      requiresTypeChecking: false,
+      remedy: sizeRemedy,
+      tier: 'strict',
+    },
+    message: 'Some message.',
+    defaultOptions: [5],
+  });
+}
+
+function lintWith(setting: Linter.RuleEntry, upstream: unknown): readonly Linter.LintMessage[] {
+  const wrapper = wrapperOf(upstream);
+
+  if (!isRuleModule(wrapper)) {
     throw new Error('The wrapper is not a rule module.');
   }
 
   return new Linter().verify('const a = 1;', {
-    plugins: { test: { rules: { 'some-limit': wrapperOfMissingRule } } },
+    plugins: { test: { rules: { 'some-limit': wrapper } } },
     rules: { 'test/some-limit': setting },
   });
 }
 
+const missingRule = optionalPluginRule('eslint-plugin-absent', 'some-limit', notInstalled);
+
 test('a wrapper of a rule whose plugin is not installed loads, and stays silent while it is off', () => {
-  assert.deepEqual(lintWith('off'), []);
+  assert.deepEqual(lintWith('off', missingRule), []);
 });
 
 test('a wrapper of a rule whose plugin is not installed names the rule it wraps when a config turns it on', () => {
-  assert.throws(() => lintWith(['error', 7]), /wraps absent\/some-limit, which could not be loaded/);
+  assert.throws(() => lintWith(['error', 7], missingRule), /wraps absent\/some-limit, which could not be loaded/);
+});
+
+const create = (): object => ({});
+const notRules: Readonly<Record<string, unknown>> = {
+  'an object with neither create nor meta': {},
+  'a create that is not a function': { create: 'create', meta: { schema: [] } },
+  'a schema that is not an object': { create, meta: { schema: 'none' } },
+  'a null schema': { create, meta: { schema: null } },
+};
+
+Object.entries(notRules).forEach(([what, upstream]) => {
+  test(`a wrapper of what loaded as ${what} counts its rule as not loaded`, () => {
+    assert.deepEqual(lintWith('off', upstream), []);
+    assert.throws(() => lintWith(['error', 7], upstream), /wraps absent\/some-limit, which could not be loaded/);
+  });
 });

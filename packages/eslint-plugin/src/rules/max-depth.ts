@@ -2,7 +2,8 @@ import { coreRule, sizeRemedy, wrapRule } from '../wrap-rule.ts';
 
 export const maxDepth = wrapRule({
   name: 'max-depth',
-  wraps: 'max-depth',
+  // Stryker disable next-line StringLiteral: read only by the error for a rule that could not be loaded, and ESLint core has this one
+  wraps:'max-depth',
   upstream: coreRule('max-depth'),
   docs: {
     description: 'Report blocks nested deeper than allowed',

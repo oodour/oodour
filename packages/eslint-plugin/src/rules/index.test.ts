@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import plugin from '../index.ts';
 import { rules } from './index.ts';
 import { selectorRules } from './selector-rules.ts';
 
@@ -80,6 +84,32 @@ test('every report message is a stop-and-look message that names its concept and
   );
 
   assert.deepEqual(nonConforming, []);
+});
+
+test('a rule says it requires type checking exactly when it fails on a file without type information', () => {
+  const failsWithoutTypes = (name: string): boolean => {
+    try {
+      new Linter().verify(
+        'const a = 1;',
+        defineConfig({
+          files: ['**/*.ts'],
+          languageOptions: { parser: tseslint.parser },
+          plugins: { [plugin.meta.namespace]: plugin },
+          rules: { [`${plugin.meta.namespace}/${name}`]: 'error' },
+        }),
+        'file.ts',
+      );
+    } catch {
+      return true;
+    }
+
+    return false;
+  };
+  const mislabelled = Object.entries(rules).flatMap(([name, { meta }]) =>
+    failsWithoutTypes(name) === meta.docs.requiresTypeChecking ? [] : [name],
+  );
+
+  assert.deepEqual(mislabelled, []);
 });
 
 test('every rule file has a test file beside it', () => {
