@@ -16,7 +16,12 @@ type Options = [
  */
 export const classMethodsUseThis = wrapRule<Options>({
   name: 'class-methods-use-this',
-  upstream: pluginRule('@typescript-eslint', tseslintPlugin.rules, 'class-methods-use-this'),
+  upstream: pluginRule(
+    // Stryker disable next-line StringLiteral: the prefix shows only in the error for a rule that could not load, and typescript-eslint's plugin is a dependency, so it always loads
+    '@typescript-eslint',
+    tseslintPlugin.rules,
+    'class-methods-use-this',
+  ),
   docs: {
     description: 'Report a class method that uses no state of its object',
     concept: 'Feature Envy',
