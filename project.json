@@ -39,7 +39,7 @@
       "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\"",
       "configurations": {
         "ci": {
-          "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\" --ignore-pattern \".claude/mods/*/hooks/\""
+          "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\" --ignore-pattern \".claude/mods/*/hooks/register*.ts\""
         }
       },
       "inputs": [
