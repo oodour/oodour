@@ -8,11 +8,13 @@ export interface IgnoreFile {
 }
 
 // Git sets core.ignoreCase on the file systems of Windows and macOS when it creates a repository.
-const ignorecase = process.platform === 'win32' || process.platform === 'darwin';
+export const ignoresCase = (platform: NodeJS.Platform): boolean => platform === 'win32' || platform === 'darwin';
 
-export const isNamed = (name: string, gitName: string): boolean => (ignorecase ? name.toLowerCase() : name) === gitName;
+const hostIgnoresCase = ignoresCase(process.platform);
 
-export function ignoreFileIn(folder: string, text: string): IgnoreFile {
+export const isNamed = (name: string, gitName: string): boolean => (hostIgnoresCase ? name.toLowerCase() : name) === gitName;
+
+export function ignoreFileIn(folder: string, text: string, ignorecase = hostIgnoresCase): IgnoreFile {
   return { base: folder === '' ? '' : `${folder}/`, rules: ignore({ ignorecase }).add(text) };
 }
 

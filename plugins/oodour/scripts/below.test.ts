@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { symlinkSync } from 'node:fs';
+import fs, { mkdirSync, symlinkSync } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { basename, join, parse, sep } from 'node:path';
 import { test } from 'node:test';
 import { cachedLocalPath, childPath, localPath, pathBelow, placeBelow } from './below.ts';
@@ -150,6 +151,44 @@ test('a path the system refuses to read for another reason than an unreachable e
   const root = folderWith(context, {});
 
   assert.throws(() => localPath(join(root, 'a\0b.ts')), { code: 'ERR_INVALID_ARG_VALUE' });
+});
+
+test('nothing below a missing entry is read, not even a name the system refuses to read', (context) => {
+  const root = folderWith(context, {});
+  const below = join(root, 'missing', 'a\0b.ts');
+
+  assert.equal(localPath(below), below);
+});
+
+// The system's refusals are replaced for the test: no one account and system gives all three for an entry on disk.
+test('nothing below an entry the system cannot reach is read, so a link there is not followed', (context) => {
+  const elsewhere = folderWith(context, { 'a.ts': '' });
+  const root = folderWith(context, {});
+  const codes = ['ENOTDIR', 'ENAMETOOLONG', 'EACCES'];
+
+  for (const code of codes) {
+    mkdirSync(join(root, code));
+    symlinkSync(elsewhere, join(root, code, 'link'), 'junction');
+  }
+
+  const original = fs.lstatSync;
+  const replaced = context.mock.method(fs, 'lstatSync', (path: string, options: { readonly throwIfNoEntry: false }) => {
+    const code = codes.find((name) => path === join(root, name));
+
+    if (code !== undefined) {
+      throw Object.assign(new Error(`${code}: unreachable`), { code });
+    }
+
+    return original(path, options);
+  });
+  syncBuiltinESMExports();
+  context.after(() => {
+    replaced.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const through = codes.map((code) => join(root, code, 'link', 'a.ts'));
+
+  assert.deepEqual(through.map(localPath), through);
 });
 
 test('the cached local path reads each entry once, so a link made afterwards goes unseen', (context) => {

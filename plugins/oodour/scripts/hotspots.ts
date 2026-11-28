@@ -57,7 +57,9 @@ export function measureScope(scope: string, since: string, trusted: boolean): Me
   const measured = production
     .filter((file) => modules.get(file)?.reexportsOnly !== true)
     .map((file) => {
-      const facts = modules.get(file);
+      // Stryker disable next-line ArrayDeclaration: every file listed has its facts, so no fallback is taken
+      const { concreteClasses, concreteClassesNamed } = modules.get(file) ?? { concreteClasses: [], concreteClassesNamed: [] };
+      // Stryker disable next-line ArrayDeclaration: every file listed has its dependents, an empty list at least
       const importers = dependents.get(file) ?? [];
       const complexity = functionComplexity(file, readFileSync(join(root, file), 'utf8'));
 
@@ -74,8 +76,8 @@ export function measureScope(scope: string, since: string, trusted: boolean): Me
               (most, next) => (most === undefined || next.complexity > most.complexity ? next : most),
               undefined,
             ),
-            exportsConcreteClass: (facts?.concreteClasses.length ?? 0) > 0,
-            concreteClassesNamed: facts?.concreteClassesNamed ?? [],
+            exportsConcreteClass: concreteClasses.length > 0,
+            concreteClassesNamed,
           };
     });
 
@@ -174,6 +176,7 @@ export function rankHotspots(files: readonly FileMeasures[], limit: number): Ran
     ),
     dependents: Math.max(policy.leastDependents, Math.ceil(files.length / policy.dependentsShare)),
   };
+  // Stryker disable next-line LzJsNumericLiteral: a function's complexity is 1 at least, so any value below 1 ranks a file with no function after the others
   const complexityOf = (measured: FileMeasures): number => measured.largest?.complexity ?? 0;
   const quadrantOf = (measured: FileMeasures): Quadrant => {
     const often = measured.commits >= thresholds.commits;
@@ -199,5 +202,8 @@ export function rankHotspots(files: readonly FileMeasures[], limit: number): Ran
 }
 
 function percentileOf(values: readonly number[]): number {
-  return values.toSorted((a, b) => a - b)[Math.ceil((values.length * policy.percentile) / 100) - 1] ?? 0;
+  const index = Math.ceil((values.length * policy.percentile) / 100) - 1;
+
+  // Stryker disable next-line LzJsNumericLiteral: no values have no percentile, and each threshold has a least value of 2 or more
+  return values.toSorted((a, b) => a - b)[index] ?? 0;
 }

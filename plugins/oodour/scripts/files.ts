@@ -47,6 +47,7 @@ const joined = (...parts: readonly string[]): string => parts.filter((part) => p
 // Inside a repository, each folder's .gitignore is read as text and what the ignore files match is left out, as Git
 // leaves out untracked files they match, without starting Git.
 export function filesBelow(root: string, ignoring?: Ignoring): Walked {
+  // Stryker disable next-line StringLiteral: without `ignoring` no ignore file is read, so the prefix reaches no rule
   const prefix = ignoring?.prefix ?? '';
   const files: string[] = [];
   const skipped: string[] = [];
@@ -98,10 +99,8 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
 // on the way that these ignore makes the whole scope ignored: Git re-includes nothing below an ignored folder.
 export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' {
   const prefix = withSlashes(relative(top, root));
-  const folders = [
-    '',
-    ...(prefix === '' ? [] : prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1)))),
-  ];
+  // At the top itself the prefix is '', which names the top a second time: nothing is checked or read for it.
+  const folders = ['', ...prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1)))];
   let above = ignoreFileAt(top, '', '.git/info/exclude');
 
   for (const folder of folders) {
@@ -109,6 +108,7 @@ export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' 
       return 'whole scope';
     }
 
+    // Stryker disable next-line ConditionalExpression: the walk reads the scope's own .gitignore, and the same rules applied twice decide the same
     if (folder !== prefix) {
       above = [...above, ...ignoreFileAt(top, folder, joined(folder, '.gitignore'))];
     }

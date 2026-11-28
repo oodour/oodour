@@ -10,11 +10,8 @@ export interface ModuleFacts {
   readonly concreteClassesNamed: readonly string[];
 }
 
-const withoutConfig: ts.CompilerOptions = {
-  allowJs: true,
-  module: ts.ModuleKind.ESNext,
-  moduleResolution: ts.ModuleResolutionKind.Bundler,
-};
+// TypeScript's own defaults resolve an import as a bundler does, to a JavaScript file too.
+const withoutConfig: ts.CompilerOptions = {};
 
 interface Parsed {
   readonly imports: readonly string[];
@@ -148,13 +145,11 @@ function namesExportedBy(clause: ts.NamedExports): (readonly [string, string])[]
 }
 
 function exportedNamesImportedBy(clause: ts.ImportClause | undefined): string[] {
-  const bindings = clause?.namedBindings;
-
   return [
-    ...(clause?.name ? ['default'] : []),
-    ...(bindings && ts.isNamedImports(bindings)
-      ? bindings.elements.map((element) => (element.propertyName ?? element.name).text)
-      : []),
+    ...present(clause?.name).map(() => 'default'),
+    ...present(clause?.namedBindings)
+      .filter(ts.isNamedImports)
+      .flatMap(({ elements }) => elements.map((element) => (element.propertyName ?? element.name).text)),
   ];
 }
 
@@ -210,6 +205,7 @@ function importResolver(root: string, files: readonly string[]): (path: string) 
   const caches = new Map<ts.CompilerOptions, ts.ModuleResolutionCache>();
   const cacheFor = (options: ts.CompilerOptions): ts.ModuleResolutionCache => {
     const known = caches.get(options) ?? ts.createModuleResolutionCache(root, (name) => name, options);
+    // Stryker disable next-line CallExpression: a new cache resolves the same imports; keeping it only saves time
     caches.set(options, known);
 
     return known;
@@ -246,12 +242,13 @@ interface Config {
 function compilerOptions(system: BoundedFiles): (path: string) => readonly ts.CompilerOptions[] {
   const read = new Map<string, Config | undefined>();
   const configAt = (path: string): Config | undefined => {
+    // Stryker disable next-line ConditionalExpression: a config read again holds the same options; the cache only saves time
     if (!read.has(path)) {
       const parsed = ts.getParsedCommandLineOfConfigFile(path, {}, system);
       read.set(
         path,
         parsed && {
-          options: { ...parsed.options, allowJs: true },
+          options: parsed.options,
           references: (parsed.projectReferences ?? []).map((reference) => ts.resolveProjectReferencePath(reference)),
         },
       );

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, parse, relative } from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryHolding, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
@@ -317,6 +317,16 @@ test('a config value with a colon past its first folder is read from the folder,
     },
     /^Error: git: core\.excludesfile in .+config leads to a network path \(shared\/a:b\)$/,
   );
+});
+
+test('a config value is read from every folder a work tree could start at, up to the root of the file system', (context) => {
+  const root = folderWith(context, { '.git/config': '' });
+  symlinkSync(share, join(root, 'shared'), 'dir');
+  const fromFileSystemRoot = relative(parse(root).root, join(root, 'shared', 'ignore'));
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => `core.excludesfile\n${fromFileSystemRoot}`);
+  }, /^Error: git: core\.excludesfile in .+config leads to a network path \(.+ignore\)$/);
 });
 
 test('a folder that is a network path is refused before anything in it is read', () => {
@@ -670,6 +680,20 @@ test('a list of tables that is a link to a network path is refused, naming the l
   });
 });
 
+test('a list of tables that is a link to a network path, in a git folder behind a .git link, is refused by the name Git reads', (context) => {
+  const gitFolder = join(folderWith(context, { 'gd/config': '' }), 'gd');
+  const root = folderWith(context, {});
+  mkdirSync(join(gitFolder, 'reftable'));
+  symlinkSync(`${share}\\tables.list`, join(gitFolder, 'reftable', 'tables.list'), 'file');
+  symlinkSync(gitFolder, join(root, '.git'), 'dir');
+
+  assert.throws(() => {
+    assertLocalMetadata(root, () => '');
+  }, {
+    message: `git: ${join(root, '.git', 'reftable', 'tables.list')} leads to a network path`,
+  });
+});
+
 test('a git program in the folder is not the Git that runs', { skip: process.platform !== 'win32' }, (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
   copyFileSync(join(process.env['SystemRoot'] ?? 'C:/Windows', 'System32', 'hostname.exe'), join(root, 'lib', 'git.exe'));
@@ -705,6 +729,21 @@ test('a git that is not a program fails, rather than counting as no Git', (conte
   setForTest(context, 'PATH', notAProgram);
 
   assert.throws(() => gitIn(root), /^Error: spawnSync git /);
+});
+
+test('without git installed a folder outside any repository has no Git either', (context) => {
+  const folder = folderWith(context, {});
+  setForTest(context, 'PATH', '');
+
+  assert.equal(gitIn(folder), undefined);
+});
+
+test('a git that is not a program fails for a folder outside any repository too', (context) => {
+  const folder = folderWith(context, {});
+  const notAProgram = folderWith(context, { [process.platform === 'win32' ? 'git.exe' : 'git']: 'not a program\n' });
+  setForTest(context, 'PATH', notAProgram);
+
+  assert.throws(() => gitIn(folder), /^Error: spawnSync git /);
 });
 
 test('a repository Git refuses to open fails with what Git said, without its last newline', (context) => {

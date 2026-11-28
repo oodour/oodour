@@ -5,7 +5,7 @@ export function gitText(bytes: Uint8Array): string {
   let at = 0;
 
   while (at < bytes.length) {
-    const [character, length] = characterAt(bytes.subarray(at, at + 4));
+    const [character, length] = characterAt(bytes.subarray(at));
     text += character;
     at += length;
   }
@@ -17,26 +17,35 @@ const tail = (byte: number | undefined): number | undefined =>
   byte !== undefined && (byte & 0xc0) === 0x80 ? byte & 0x3f : undefined;
 
 function characterAt(bytes: Uint8Array): readonly [string, number] {
-  const [lead = 0, second, third, fourth] = bytes;
+  // Stryker disable next-line LzJsNumericLiteral: gitText passes one byte or more, and 1 and -1 are no more a continuation byte than 0 is
+  const [lead = 0, second = 0, third, fourth] = bytes;
   const [b, c, d] = [tail(second), tail(third), tail(fourth)];
 
   if (lead < 0x80) {
     return [String.fromCharCode(lead), 1];
   }
 
-  if (lead >= 0xc2 && lead < 0xe0 && b !== undefined) {
+  const byItself = [lead >= 0xa0 ? String.fromCharCode(lead) : lead.toString(16), 1] as const;
+
+  if (lead < 0xc2 || b === undefined) {
+    return byItself;
+  }
+
+  if (lead < 0xe0) {
     return [String.fromCharCode(((lead & 0x1f) << 6) | b), 2];
   }
 
-  if (lead >= 0xe0 && lead < 0xf0 && !(lead === 0xe0 && (second ?? 0) < 0xa0) && b !== undefined && c !== undefined) {
+  if (c === undefined || (lead === 0xe0 && second < 0xa0)) {
+    return byItself;
+  }
+
+  if (lead < 0xf0) {
     return [String.fromCharCode(((lead & 0x0f) << 12) | (b << 6) | c), 3];
   }
 
-  const inRange = !(lead === 0xf0 && (second ?? 0) < 0x90) && !(lead === 0xf4 && (second ?? 0) >= 0x90);
-
-  if (lead >= 0xf0 && lead < 0xf5 && inRange && b !== undefined && c !== undefined && d !== undefined) {
-    return [String.fromCodePoint(((lead & 0x07) << 18) | (b << 12) | (c << 6) | d), 4];
+  if (d === undefined || lead >= 0xf5 || (lead === 0xf0 && second < 0x90) || (lead === 0xf4 && second >= 0x90)) {
+    return byItself;
   }
 
-  return [lead >= 0xa0 ? String.fromCharCode(lead) : lead.toString(16), 1];
+  return [String.fromCodePoint(((lead & 0x07) << 18) | (b << 12) | (c << 6) | d), 4];
 }

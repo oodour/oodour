@@ -11,7 +11,8 @@ export function pathBelow(root: string, path: string): string | undefined {
   return below === '..' || below.startsWith(`..${sep}`) || isAbsolute(below) ? undefined : below;
 }
 
-const segmentsOf = (path: string): readonly string[] => path.split(sep === '\\' ? /[\\/]/ : '/');
+// Where the separator is a backslash, a slash separates too.
+const segmentsOf = (path: string): readonly string[] => path.split(sep).flatMap((part) => part.split('/'));
 
 interface Walk {
   readonly base: string;

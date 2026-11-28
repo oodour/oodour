@@ -68,10 +68,8 @@ export function commitsPerCurrentPath(newestFirstLog: string): Map<string, numbe
       const path = laterPath.get(to ?? from) ?? to ?? from;
 
       commits.set(path, (commits.get(path) ?? 0) + 1);
-
-      if (to !== undefined) {
-        laterPath.set(from, path);
-      }
+      // Without a rename this names the path the line already counts for.
+      laterPath.set(from, path);
     }
   }
 

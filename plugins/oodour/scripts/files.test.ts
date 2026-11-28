@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs, { chmodSync, type Dirent, existsSync, mkdirSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { userInfo } from 'node:os';
 import { join } from 'node:path';
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import { folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { filesBelow, isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
@@ -28,6 +29,22 @@ const readsPastLock = (folder: string): boolean => {
     return false;
   }
 };
+
+// Lists folders through `listing` for the test, which gets the folder and a way to list it as it is: for what no
+// account or no system can set up on disk.
+function listFoldersWith(context: TestContext, listing: (folder: string, asItIs: () => Dirent[]) => Dirent[]): void {
+  const original = fs.readdirSync;
+  const replaced = context.mock.method(fs, 'readdirSync', (folder: string, options: { readonly withFileTypes: true }) =>
+    listing(folder, () => original(folder, options)),
+  );
+  syncBuiltinESMExports();
+  context.after(() => {
+    replaced.mock.restore();
+    syncBuiltinESMExports();
+  });
+}
+
+const refusal = (code: string): Error => Object.assign(new Error(`${code}: refused`), { code });
 
 test("a repository's JavaScript and TypeScript files are its sources, named from its top folder", (context) => {
   const root = folderWith(context, {
@@ -363,6 +380,62 @@ test('the walk fails on a scope it may not list, rather than report it empty', (
 test('the walk lists no FIFO or other file that is neither a plain file nor a folder', { skip: process.platform === 'win32' }, (context) => {
   const root = folderWith(context, { 'a.ts': '' });
   spawnSync('mkfifo', [join(root, 'pipe.ts')]);
+
+  assert.deepEqual(filesBelow(root).files, ['a.ts']);
+});
+
+test('the walk reports a folder the system refuses to list, for either reason it gives, whatever the account may list', (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'denied/x.ts': '', 'forbidden/y.ts': '' });
+  const codes = new Map([
+    [join(root, 'denied'), 'EPERM'],
+    [join(root, 'forbidden'), 'EACCES'],
+  ]);
+  listFoldersWith(context, (folder, asItIs) => {
+    const code = codes.get(folder);
+
+    if (code !== undefined) {
+      throw refusal(code);
+    }
+
+    return asItIs();
+  });
+
+  const { files, skipped } = filesBelow(root);
+
+  assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: ['denied', 'forbidden'] });
+});
+
+test('the walk fails on a folder the system cannot list for another reason than a refusal', (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'broken/x.ts': '' });
+  listFoldersWith(context, (folder, asItIs) => {
+    if (folder === join(root, 'broken')) {
+      throw refusal('EIO');
+    }
+
+    return asItIs();
+  });
+
+  assert.throws(() => filesBelow(root), { code: 'EIO' });
+});
+
+test('the walk fails on a scope the system refuses to list, whatever the account may list', (context) => {
+  const root = folderWith(context, { 'a.ts': '' });
+  listFoldersWith(context, (folder, asItIs) => {
+    if (folder === root) {
+      throw refusal('EPERM');
+    }
+
+    return asItIs();
+  });
+
+  assert.throws(() => filesBelow(root), { code: 'EPERM' });
+});
+
+test('the walk lists no entry that is neither a plain file nor a folder, on any system', (context) => {
+  const root = folderWith(context, { 'a.ts': '', 'pipe.ts': '' });
+  listFoldersWith(context, (_, asItIs) =>
+    asItIs().map((entry) => (entry.name === 'pipe.ts' ? Object.assign(entry, { isFile: () => false }) : entry)),
+  );
 
   assert.deepEqual(filesBelow(root).files, ['a.ts']);
 });

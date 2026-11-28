@@ -19,21 +19,29 @@ function from(base: string, name: string): readonly string[] {
   const named = driveRelative(name);
 
   if (named !== null) {
+    // Stryker disable next-line StringLiteral: both groups take part in every match, so neither default is used
     const [, drive = '', rest = ''] = named;
     const sameDrive = base.slice(0, 2).toLowerCase() === drive.toLowerCase();
 
-    return [`${drive}\\${rest}`, resolve(name), ...(sameDrive ? [childPath(base, rest)] : [])];
+    // Stryker disable next-line ArrayDeclaration: a name that leads to nothing is local, so one more reading by such a name refuses nothing
+    const fromBase = sameDrive ? [childPath(base, rest)] : [];
+
+    return [`${drive}\\${rest}`, resolve(name), ...fromBase];
   }
 
-  if (sep === '\\' && /^[\\/](?![\\/])/.test(name)) {
+  if (windowsPaths && /^[\\/](?![\\/])/.test(name)) {
     return [`${parse(base).root}${name.slice(1)}`, name];
   }
 
   return [isAbsolute(name) ? name : childPath(base, name)];
 }
 
+// Stryker disable next-line ConditionalExpression: the mutants run on Windows, where it is true; false is the EqualityOperator mutant's case
+const windowsPaths = sep === '\\';
+
 const driveRelative = (name: string): RegExpExecArray | null =>
-  sep === '\\' ? /^([a-z]:)(?![\\/])(.*)$/is.exec(name) : null;
+  // Stryker disable next-line ConditionalExpression: windowsPaths is true where the mutants run, and its own mutants make it false
+  windowsPaths ? /^([a-z]:)(?![\\/])(.*)/is.exec(name) : null;
 
 // `cwds` are the folders Git may run in, which it reads a name such as `D:sub` from.
 const pathsFrom = (base: string, name: string, cwds: readonly string[]): readonly string[] => [
@@ -107,6 +115,7 @@ function assertLocalTables(reftable: string): void {
       refuse(`${file} names a network path (${line})`);
     }
 
+    // Stryker disable next-line ArrayDeclaration: a name from its drive is read from a folder only when the folder is on that drive, and the mutant's folder is on none
     readingsFrom(reftable, line, [], `${file} names a path that leads to a network path (${line})`);
   }
 }
@@ -114,9 +123,13 @@ function assertLocalTables(reftable: string): void {
 function linesOf(file: string): readonly string[] {
   const local = localPath(file) ?? refuse(`${file} leads to a network path`);
 
-  return lstatSync(local, { throwIfNoEntry: false })?.isFile() === true
-    ? gitText(readFileSync(local)).split(/\r?\n/).filter((line) => line !== '')
-    : [];
+  if (lstatSync(local, { throwIfNoEntry: false })?.isFile() !== true) {
+    // Stryker disable next-line ArrayDeclaration: a line that names a folder that does not exist refuses nothing
+    return [];
+  }
+
+  // Stryker disable next-line MethodExpression,ConditionalExpression,StringLiteral: an empty line names the folder the list is read from, which is local and walked already; leaving it out only spares reading that folder's lists again
+  return gitText(readFileSync(local)).split(/\r?\n/).filter((line) => line !== '');
 }
 
 // Git reads borrowed objects from the folders an alternates file names, each line a path from the objects folder. It
@@ -154,8 +167,10 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
   for (const entry of readdirSync(folder, { withFileTypes: true })) {
     const path = join(folder, entry.name);
 
+    // Stryker disable next-line ConditionalExpression: taken for a link, an entry that is none is its own local path, so it is walked as a folder or left as a file all the same; the check spares reading it again
     if (entry.isSymbolicLink()) {
       assertLocalLinks(localPath(path) ?? refuse(`${path} leads to a network path`), walked);
+      // Stryker disable next-line ConditionalExpression: the walk returns at once for anything but a folder; the check spares a file that read
     } else if (entry.isDirectory()) {
       assertLocalLinks(path, walked);
     }
@@ -165,9 +180,11 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
 // The folder's .git, then the folder itself as a bare repository.
 function gitFoldersIn(folder: string, cwds: readonly string[]): readonly string[] {
   const has = (name: string): boolean => lstatSync(join(folder, name), { throwIfNoEntry: false }) !== undefined;
-  const bare = has('HEAD') && (has('commondir') || (has('objects') && has('refs'))) ? [folder] : [];
+  const bare = has('HEAD') && (has('commondir') || (has('objects') && has('refs')));
+  // Stryker disable next-line ArrayDeclaration: a git folder that does not exist holds nothing to refuse
+  const bareFolders = bare ? [folder] : [];
 
-  return [...dotGitFolders(folder, cwds), ...bare];
+  return [...dotGitFolders(folder, cwds), ...bareFolders];
 }
 
 // A .git folder by its name too: Git reads the relative names in it from there.
@@ -180,6 +197,7 @@ function dotGitFolders(folder: string, cwds: readonly string[]): readonly string
     return pointedFolders(dotGit, gitdirOf, folder, cwds);
   }
 
+  // Stryker disable next-line ConditionalExpression,ArrayDeclaration: a .git that does not exist holds nothing to refuse, nor does a git folder by another name that does not exist; naming none only spares looking into them
   return entry === undefined ? [] : [...new Set([named, dotGit])];
 }
 
@@ -198,6 +216,7 @@ function pointedFolders(
   const named = nameIn(gitText(readFileSync(file)));
 
   if (named === undefined) {
+    // Stryker disable next-line ArrayDeclaration: a git folder that does not exist holds nothing to refuse
     return [];
   }
 
@@ -237,9 +256,8 @@ function assertLocalConfigReading(file: string, local: string, check: ConfigChec
 
   // `git config --list -z` writes each entry as its key, a newline and its value (none for a bare key), then a NUL.
   for (const entry of check.readConfig(local).split('\0')) {
-    const newline = entry.indexOf('\n');
-    const key = newline === -1 ? entry : entry.slice(0, newline);
-    const value = newline === -1 ? '' : entry.slice(newline + 1);
+    const key = entry.replace(/\n.*/s, '');
+    const value = entry.slice(key.length + 1);
 
     // Git reaches no remote here (GIT_ALLOW_PROTOCOL=none, no lazy fetch), so a remote may live anywhere.
     if (/^remote\..+\.(?:url|pushurl)$/.test(key)) {

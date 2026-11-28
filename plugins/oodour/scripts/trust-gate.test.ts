@@ -86,6 +86,7 @@ test('in auto mode a Bash path whose backslashes Bash would remove or change ask
 
 test("without a plugin folder every call asks, since no script is then the plugin's own", () => {
   assert.equal(trustDecision(call('node /scripts/oodour.ts hotspots -- D:/repo'), ''), 'ask');
+  assert.equal(trustDecision(call('node undefined/scripts/oodour.ts hotspots -- D:/repo'), undefined), 'ask');
 });
 
 test('input the hook cannot read asks, since the hook runs only for calls that name oodour.ts', () => {

@@ -8,6 +8,10 @@ test('valid UTF-8 reads as UTF-8', () => {
   assert.equal(gitText(Buffer.from('a/é€\u{1F600}', 'utf8')), 'a/é€\u{1F600}');
 });
 
+test('the highest ASCII byte reads as its character', () => {
+  assert.equal(named(0x7f), '\u007F');
+});
+
 test('a surrogate written as UTF-8 reads as that lone surrogate', () => {
   assert.equal(named(0xed, 0xa0, 0x80), '\uD800');
 });

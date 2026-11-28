@@ -14,13 +14,14 @@ const untrustedForm =
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
 
 // Bash removes a backslash outside quotes, so there the path Node opens is not the one written.
-function isUntrustedForm(command: string, pluginRoot: string, tool: unknown): boolean {
+function isUntrustedForm(command: string, pluginRoot: string | undefined, tool: unknown): boolean {
   const script = untrustedForm.exec(command)?.groups;
   const bare = script?.['bare'];
   const path = script?.['quoted'] ?? bare;
 
   return (
     path !== undefined &&
+    pluginRoot !== undefined &&
     pluginRoot !== '' &&
     !(tool === 'Bash' && bare?.includes('\\') === true) &&
     withSlashes(path) === `${withSlashes(pluginRoot)}/scripts/oodour.ts`
@@ -35,7 +36,7 @@ function parsedOrUndefined(input: string): unknown {
   }
 }
 
-export function trustDecision(input: string, pluginRoot: string): TrustDecision {
+export function trustDecision(input: string, pluginRoot: string | undefined): TrustDecision {
   const parsed = parsedOrUndefined(input);
 
   if (parsed === undefined) {
@@ -55,7 +56,7 @@ export function trustDecision(input: string, pluginRoot: string): TrustDecision 
 }
 
 if (import.meta.main) {
-  const { CLAUDE_PLUGIN_ROOT: pluginRoot = '' } = process.env;
+  const { CLAUDE_PLUGIN_ROOT: pluginRoot } = process.env;
 
   // The hook never allows: it asks for input it cannot read and, in auto mode, for any call but the untrusted command;
   // otherwise it leaves the decision to the settings.

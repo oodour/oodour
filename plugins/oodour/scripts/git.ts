@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync, type StdioOptions } from 'node:child_process';
 import { lstatSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
@@ -39,6 +39,9 @@ const childOptions = () =>
     env: { ...process.env, GIT_ALLOW_PROTOCOL: 'none', GIT_NO_LAZY_FETCH: '1', LANGUAGE: 'C', LC_ALL: 'C' },
   }) as const;
 
+// Stryker disable next-line ArrayDeclaration: an empty list pipes all three streams, which keeps Git's errors off this process's stderr as well, and Git reads the end of input from a pipe nothing is written to as it does from no input
+const quiet: StdioOptions = ['ignore', 'pipe', 'pipe'];
+
 export interface Repository {
   readonly git: Git;
   readonly top: string;
@@ -48,11 +51,7 @@ export interface Repository {
 // Read with no includes followed, so a file an include names is checked before git opens it.
 const readConfig: ConfigReader = (file) =>
   gitText(
-    execFileSync('git', ['config', '--file', file, '--list', '-z'], {
-      ...childOptions(),
-      encoding: 'buffer',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }),
+    execFileSync('git', ['config', '--file', file, '--list', '-z'], { ...childOptions(), encoding: 'buffer', stdio: quiet }),
   );
 
 // Finds a repository the way Git starts to, by a `.git` entry in the folder or one above it, without starting Git.
@@ -104,9 +103,12 @@ export function gitIn(folder: string): Repository | undefined {
     throw new Error(`git: ${probe.stderr.trim()}`);
   }
 
-  const [shownTop = '', prefix = ''] = probe.stdout.split('\n');
-  const git: Git = (args) =>
-    execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer: 1024 ** 3, stdio: ['ignore', 'pipe', 'pipe'] });
+  const shown = probe.stdout.split('\n');
+  // Stryker disable next-line StringLiteral: Git prints both lines whenever it exits with 0, so neither default is used
+  const [shownTop = '', prefix = ''] = shown;
+  // Stryker disable next-line LzJsNumericLiteral: each of these limits is past the longest string Node.js holds, about half a gibibyte, so output between two of them fails either way
+  const maxBuffer = 1024 ** 3;
+  const git: Git = (args) => execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer, stdio: quiet });
   // The repository's own config can set its work tree anywhere, a network share included.
   const top = resolve(shownTop);
 

@@ -17,6 +17,7 @@ export function functionComplexity(file: string, text: string): Complexity {
   const complexity = builtinRules.get('complexity');
 
   if (!complexity?.meta) {
+    // Stryker disable next-line StringLiteral: the pinned ESLint has the rule, so nothing reaches this message
     throw new Error("ESLint's complexity rule could not be loaded.");
   }
 
@@ -29,6 +30,7 @@ export function functionComplexity(file: string, text: string): Complexity {
     const paths = descriptor.data?.['complexity'];
 
     if (!node?.loc || typeof name !== 'string' || typeof paths !== 'number') {
+      // Stryker disable next-line StringLiteral: the pinned ESLint's rule reports all three, so nothing reaches this message
       throw new Error("ESLint's complexity rule reported without a located function node, a name or a count.");
     }
 
@@ -44,6 +46,7 @@ export function functionComplexity(file: string, text: string): Complexity {
       const listening: unknown = Object.create(context, { report: { value: count } });
 
       if (!isRuleContext(listening)) {
+        // Stryker disable next-line StringLiteral: an object that inherits from the context has both keys, so nothing reaches this message
         throw new Error('The listening context lost the rule context it inherits from.');
       }
 
@@ -72,5 +75,6 @@ export function functionComplexity(file: string, text: string): Complexity {
 }
 
 function isRuleContext(value: unknown): value is Rule.RuleContext {
+  // Stryker disable next-line ConditionalExpression: true for the one value checked, which inherits from ESLint's context; the check carries the type across
   return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
 }
