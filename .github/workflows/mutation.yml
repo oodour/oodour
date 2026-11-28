@@ -34,8 +34,18 @@ jobs:
             config: stryker.oodour-scripts.config.ts
           - target: core
             config: stryker.core.config.ts
-          - target: eslint-plugin
+          # The ESLint package took 37 minutes as one job: its mutants run 58 tests each on average, where the other
+          # jobs' run 11 to 14. Three file sets share it out. The second is everything in rules/ the first leaves, and
+          # the third everything outside rules/, so a new file always lands in one of them.
+          - target: eslint-plugin-rules-a-i
             config: stryker.eslint-plugin.config.ts
+            mutate: packages/eslint-plugin/src/rules/[a-i]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+          - target: eslint-plugin-rules-j-z
+            config: stryker.eslint-plugin.config.ts
+            mutate: packages/eslint-plugin/src/rules/[!a-i]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+          - target: eslint-plugin-rest
+            config: stryker.eslint-plugin.config.ts
+            mutate: packages/eslint-plugin/src/**/*.ts,!packages/eslint-plugin/src/rules/**,!packages/eslint-plugin/src/**/*.test.ts
           - target: test-metrics
             config: stryker.test-metrics.config.ts
     steps:
@@ -63,8 +73,10 @@ jobs:
       - run: >-
           node --conditions=@oodour/source --conditions=@layzee/source
           node_modules/@stryker-mutator/core/bin/stryker.js run ${{ matrix.config }} --concurrency 4
+          ${MUTATE:+--mutate "$MUTATE"}
         working-directory: oodour
         env:
+          MUTATE: ${{ matrix.mutate }}
           LZ_NODE_TEST_RUNNER: ${{ github.workspace }}/lz-node-test/packages/stryker-node-test-runner/src/index.ts
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
