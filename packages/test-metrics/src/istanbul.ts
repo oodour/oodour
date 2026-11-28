@@ -25,10 +25,12 @@ export function measuredFromIstanbul(
 ): MeasuredFunction[] {
   const statements = Object.entries(coverage.statementMap).map(([id, range]) => ({
     range,
+    // Stryker disable next-line LzJsNumericLiteral: a missing count is not above zero as 0 or as -1
     ran: (coverage.s[id] ?? 0) > 0,
   }));
   const branches = Object.entries(coverage.branchMap).map(([id, { loc }]) => ({
     range: { start: loc.start, end: loc.start },
+    // Stryker disable next-line ArrayDeclaration: the mutant's one entry is a string, which the zero filter drops as it drops none
     untaken: (coverage.b[id] ?? []).filter((count) => count === 0).length,
   }));
 
@@ -46,6 +48,7 @@ export function measuredFromIstanbul(
       within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner));
     const own = statements.filter(isOwn);
     const untestedBranches = branches.filter(isOwn).reduce((sum, { untaken }) => sum + untaken, 0);
+    // Stryker disable next-line LzJsNumericLiteral: a missing count is not above zero as 0 or as -1
     const called = (coverage.f[id] ?? 0) > 0;
     const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : Number(called);
 
