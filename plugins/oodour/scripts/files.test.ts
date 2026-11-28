@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { userInfo } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -15,6 +15,17 @@ const lockFor = (folder: string, on: boolean): void => {
     spawnSync('icacls', [folder, ...(on ? ['/deny', `${user}:(RD)`] : ['/remove:d', user])]);
   } else {
     chmodSync(folder, on ? 0o000 : 0o755);
+  }
+};
+
+// Root, and an administrator such as a hosted Windows runner's account, list a folder whatever its permissions say.
+const readsPastLock = (folder: string): boolean => {
+  try {
+    readdirSync(folder);
+
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -312,12 +323,18 @@ test('the walk reports a name ending in a dot or a space, which Windows may open
   assert.deepEqual({ files, skipped }, { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] });
 });
 
-test('the walk reports a folder it may not list instead of failing', { skip: process.getuid?.() === 0 }, (context) => {
+test('the walk reports a folder it may not list instead of failing', (context) => {
   const root = folderWith(context, { 'a.ts': '', 'locked/x.ts': '' });
   const locked = join(root, 'locked');
   lockFor(locked, true);
 
   try {
+    if (readsPastLock(locked)) {
+      context.skip('this account lists a folder it is denied');
+
+      return;
+    }
+
     const { files, skipped } = filesBelow(root);
 
     assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: ['locked'] });
@@ -326,11 +343,17 @@ test('the walk reports a folder it may not list instead of failing', { skip: pro
   }
 });
 
-test('the walk fails on a scope it may not list, rather than report it empty', { skip: process.getuid?.() === 0 }, (context) => {
+test('the walk fails on a scope it may not list, rather than report it empty', (context) => {
   const root = folderWith(context, { 'a.ts': '' });
   lockFor(root, true);
 
   try {
+    if (readsPastLock(root)) {
+      context.skip('this account lists a folder it is denied');
+
+      return;
+    }
+
     assert.throws(() => filesBelow(root), { code: process.platform === 'win32' ? 'EPERM' : 'EACCES' });
   } finally {
     lockFor(root, false);
