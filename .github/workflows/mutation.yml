@@ -27,11 +27,12 @@ jobs:
   # where the configurations' own formula would take three.
   #
   # No job may take more than 15 minutes, so a configuration that would is shared out between file sets. Each set's
-  # last pattern group takes whatever the others leave, so a new file always lands in one of them.
+  # last job takes the exact complement of the others, so a new file always lands in one of them. A shard's --mutate
+  # replaces its configuration's own list, so each shard repeats the exclusions its include pattern can match.
   stryker:
     name: ${{ matrix.target }}
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-    timeout-minutes: 30
+    timeout-minutes: 20
     defaults:
       run:
         shell: bash
@@ -41,8 +42,8 @@ jobs:
         include:
           - target: tooling
             config: stryker.config.ts
-          # Six of the scripts' tests run on Windows only (drive and network paths) and none off Windows only, so the
-          # scripts reach their score there. As one job they took 44 minutes.
+          # The scripts reach their score on Windows only (see stryker.oodour-scripts.config.ts). As one job they took
+          # 44 minutes.
           - target: scripts-a-c
             config: stryker.oodour-scripts.config.ts
             os: windows-latest
@@ -70,14 +71,14 @@ jobs:
           - target: scripts-rest
             config: stryker.oodour-scripts.config.ts
             os: windows-latest
-            mutate: plugins/oodour/scripts/[!a-l]*.ts,!plugins/oodour/scripts/metadata*.ts,!plugins/oodour/scripts/*.test.ts
+            mutate: plugins/oodour/scripts/[!a-l]*.ts,!plugins/oodour/scripts/metadata.ts,!plugins/oodour/scripts/metadata-*.ts,!plugins/oodour/scripts/*.test.ts
           # The core took 19 minutes as one job.
           - target: core-metrics-a-f
             config: stryker.core.config.ts
             mutate: packages/core/src/metrics/[a-f]*.ts,!packages/core/src/**/*.test.ts
           - target: core-metrics-g-z
             config: stryker.core.config.ts
-            mutate: packages/core/src/metrics/[!a-f]*.ts,!packages/core/src/**/*.test.ts
+            mutate: packages/core/src/metrics/**/*.ts,!packages/core/src/metrics/[a-f]*.ts,!packages/core/src/**/*.test.ts
           - target: core-rest
             config: stryker.core.config.ts
             mutate: packages/core/src/**/*.ts,!packages/core/src/metrics/**,!packages/core/src/**/*.test.ts
@@ -94,7 +95,7 @@ jobs:
             mutate: packages/eslint-plugin/src/rules/[j-m]*.ts,!packages/eslint-plugin/src/**/*.test.ts
           - target: eslint-plugin-rules-n-z
             config: stryker.eslint-plugin.config.ts
-            mutate: packages/eslint-plugin/src/rules/[!a-m]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+            mutate: packages/eslint-plugin/src/rules/**/*.ts,!packages/eslint-plugin/src/rules/[a-m]*.ts,!packages/eslint-plugin/src/**/*.test.ts
           - target: eslint-plugin-rest
             config: stryker.eslint-plugin.config.ts
             mutate: packages/eslint-plugin/src/**/*.ts,!packages/eslint-plugin/src/rules/**,!packages/eslint-plugin/src/**/*.test.ts

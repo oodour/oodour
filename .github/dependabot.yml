@@ -6,5 +6,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # One pull request a week for every action, since each runs the whole mutation matrix.
+    groups:
+      actions:
+        patterns: ['*']
     commit-message:
       prefix: ci

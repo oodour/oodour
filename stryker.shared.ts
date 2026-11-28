@@ -16,6 +16,8 @@ export const sharedOptions = {
   checkers: ['typescript'],
   reporters: ['clear-text', 'progress', 'html'],
   ignorePatterns: ['/.oracle', '/plans', '/reports', '/dist', '/.nx', '/evals'],
+  // Every mutant is killed or carries a reasoned disable, so a survivor fails the run.
+  thresholds: { high: 100, low: 100, break: 100 },
 } satisfies PartialStrykerOptions;
 
 /**

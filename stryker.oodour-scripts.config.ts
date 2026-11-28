@@ -1,8 +1,9 @@
+// CI runs this configuration on Windows only. Nine of the scripts' tests run on Windows only (drive and network paths)
+// and two off Windows only (links and FIFOs), and some disable reasons hold only on Windows (a platform constant is true
+// where the mutants run), so the scripts reach their score there. A run on Linux or macOS shows survivors.
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
 import { nodeTestRunnerOptions, sharedOptions } from './stryker.shared.ts';
 
-// CI runs this configuration on Windows only, where six tests run that are skipped elsewhere, and some disable reasons
-// hold only there (a platform constant is true where the mutants run). A run on Linux or macOS shows survivors.
 const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
 const testFiles = 'plugins/oodour/scripts/*.test.ts';
 
@@ -18,8 +19,6 @@ const config: PartialStrykerOptions = {
   htmlReporter: { fileName: 'reports/mutation/oodour-scripts.html' },
   mutate: ['plugins/oodour/scripts/*.ts', '!plugins/oodour/scripts/*.test.ts', '!plugins/oodour/scripts/fixtures.ts'],
   incrementalFile: 'reports/stryker-incremental/oodour-scripts.json',
-  // Every mutant is killed or carries a reasoned disable, so a survivor fails the run.
-  thresholds: { high: 100, low: 100, break: 100 },
 };
 
 export default config;

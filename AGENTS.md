@@ -229,7 +229,10 @@ published as `@oodour/<name>`). Run Nx as `npm exec -- nx`.
   `overlap`. A clean clone has no store and none of the declarations a Claude Code session writes beside each mod, so
   the tooling targets' `ci` configuration skips the one test that reads the store and leaves each mod's `register`
   module out of type-check and lint. Those run locally only. Add a new check to both scripts, or say here why CI cannot
-  run it. `.github/workflows/mutation.yml` runs each Stryker configuration as its own job on every push.
+  run it. `.github/workflows/mutation.yml` runs every Stryker configuration on each push to main and each pull
+  request, shared out into jobs of under 15 minutes each (Lars, 2026-11-28: "Every CI job above 15 minutes is too
+  long."); the scripts' jobs run on Windows. A newer push replaces a running mutation run; to keep the result for one
+  commit, start the workflow by hand with that commit as its `ref`, which no later run cancels.
 - Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
   it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
   `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and

@@ -34,8 +34,6 @@ const config: PartialStrykerOptions = {
   // each fixture line their end-to-end tests expect down by one.
   disableTypeChecks: 'packages/core/src/**/*.ts',
   incrementalFile: 'reports/stryker-incremental/core.json',
-  // Every mutant is killed or carries a reasoned disable, so a survivor fails the run.
-  thresholds: { high: 100, low: 100, break: 100 },
 };
 
 export default config;
