@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { folderWith, repositoryWith, runGit } from './fixtures.ts';
+import { builtInMockForTest, folderWith, repositoryWith, runGit } from './fixtures.ts';
 
 test("the tests' Git reads neither the system's nor the developer's config", (context) => {
   const root = repositoryWith(context, []);
@@ -19,12 +19,7 @@ test("the tests' Git reads neither the system's nor the developer's config", (co
 test('a repository with the commits of one built before is a copy of it, made without starting Git', (context) => {
   const commits = [{ 'a.ts': 'one' }, { 'a.ts': 'two', 'b/c.ts': 'three' }];
   const first = repositoryWith(context, commits);
-  const started = context.mock.method(childProcess, 'execFileSync');
-  syncBuiltinESMExports();
-  context.after(() => {
-    started.mock.restore();
-    syncBuiltinESMExports();
-  });
+  const started = builtInMockForTest(context, () => context.mock.method(childProcess, 'execFileSync'));
 
   const second = repositoryWith(context, commits);
 

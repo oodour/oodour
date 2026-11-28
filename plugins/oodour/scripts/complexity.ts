@@ -75,6 +75,6 @@ export function functionComplexity(file: string, text: string): Complexity {
 }
 
 function isRuleContext(value: unknown): value is Rule.RuleContext {
-  // Stryker disable next-line ConditionalExpression: true for the one value checked, which inherits from ESLint's context; the check carries the type across
+  // Stryker disable next-line ConditionalExpression: `true` holds for the one value checked, which inherits from ESLint's context; `false` throws on every file, which every complexity test kills
   return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
 }

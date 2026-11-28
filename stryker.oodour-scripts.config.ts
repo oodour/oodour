@@ -1,6 +1,8 @@
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
 import { nodeTestRunnerOptions, sharedOptions } from './stryker.shared.ts';
 
+// CI runs this configuration on Windows only, where six tests run that are skipped elsewhere, and some disable reasons
+// hold only there (a platform constant is true where the mutants run). A run on Linux or macOS shows survivors.
 const { LZ_NODE_TEST_RUNNER: nodeTestRunner } = process.env;
 const testFiles = 'plugins/oodour/scripts/*.test.ts';
 

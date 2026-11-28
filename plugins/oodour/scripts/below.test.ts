@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import fs, { mkdirSync, symlinkSync } from 'node:fs';
-import { syncBuiltinESMExports } from 'node:module';
 import { basename, join, parse, sep } from 'node:path';
 import { test } from 'node:test';
 import { cachedLocalPath, childPath, localPath, pathBelow, placeBelow } from './below.ts';
-import { folderWith, networkShare } from './fixtures.ts';
+import { builtInMockForTest, folderWith, networkShare } from './fixtures.ts';
 
 test('a path with no link on the way is direct, whether or not it exists', (context) => {
   const root = folderWith(context, { 'lib/a.ts': '' });
@@ -172,20 +171,17 @@ test('nothing below an entry the system cannot reach is read, so a link there is
   }
 
   const original = fs.lstatSync;
-  const replaced = context.mock.method(fs, 'lstatSync', (path: string, options: { readonly throwIfNoEntry: false }) => {
-    const code = codes.find((name) => path === join(root, name));
+  builtInMockForTest(context, () =>
+    context.mock.method(fs, 'lstatSync', (path: string, options: { readonly throwIfNoEntry: false }) => {
+      const code = codes.find((name) => path === join(root, name));
 
-    if (code !== undefined) {
-      throw Object.assign(new Error(`${code}: unreachable`), { code });
-    }
+      if (code !== undefined) {
+        throw Object.assign(new Error(`${code}: unreachable`), { code });
+      }
 
-    return original(path, options);
-  });
-  syncBuiltinESMExports();
-  context.after(() => {
-    replaced.mock.restore();
-    syncBuiltinESMExports();
-  });
+      return original(path, options);
+    }),
+  );
   const through = codes.map((code) => join(root, code, 'link', 'a.ts'));
 
   assert.deepEqual(through.map(localPath), through);

@@ -3,7 +3,8 @@ import { lstatSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathBelow } from './below.ts';
 import { gitText } from './git-text.ts';
-import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
+import { assertLocalMetadata } from './metadata.ts';
+import type { ConfigReader } from './metadata-config.ts';
 
 export type Git = (args: readonly string[]) => string;
 
@@ -106,7 +107,7 @@ export function gitIn(folder: string): Repository | undefined {
   const shown = probe.stdout.split('\n');
   // Stryker disable next-line StringLiteral: Git prints both lines whenever it exits with 0, so neither default is used
   const [shownTop = '', prefix = ''] = shown;
-  // Stryker disable next-line LzJsNumericLiteral: each of these limits is past the longest string Node.js holds, about half a gibibyte, so output between two of them fails either way
+  // Stryker disable next-line LzJsNumericLiteral: 1023 ** 3, 1025 ** 3 and 1024 ** 4 are each past the longest string Node.js holds, about half a gibibyte, so output between two of them fails either way; 1024 ** 2 is killed by "Git output past a mebibyte is read whole"
   const maxBuffer = 1024 ** 3;
   const git: Git = (args) => execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer, stdio: quiet });
   // The repository's own config can set its work tree anywhere, a network share included.

@@ -99,7 +99,8 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
 // on the way that these ignore makes the whole scope ignored: Git re-includes nothing below an ignored folder.
 export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' {
   const prefix = withSlashes(relative(top, root));
-  // At the top itself the prefix is '', which names the top a second time: nothing is checked or read for it.
+  // At the top itself the prefix is '', which names the top a second time. The top and the scope's own .gitignore are
+  // then read again here or by the walk, and the same rules applied twice decide the same.
   const folders = ['', ...prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1)))];
   let above = ignoreFileAt(top, '', '.git/info/exclude');
 
@@ -108,10 +109,7 @@ export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' 
       return 'whole scope';
     }
 
-    // Stryker disable next-line ConditionalExpression: the walk reads the scope's own .gitignore, and the same rules applied twice decide the same
-    if (folder !== prefix) {
-      above = [...above, ...ignoreFileAt(top, folder, joined(folder, '.gitignore'))];
-    }
+    above =[...above, ...ignoreFileAt(top, folder, joined(folder, '.gitignore'))];
   }
 
   return { prefix, above };

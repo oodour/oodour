@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs, { chmodSync, type Dirent, existsSync, mkdirSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
-import { syncBuiltinESMExports } from 'node:module';
 import { userInfo } from 'node:os';
 import { join } from 'node:path';
 import { test, type TestContext } from 'node:test';
-import { folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
+import { builtInMockForTest, folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { filesBelow, isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 import { ignoreFileIn, isIgnored } from './gitignore.ts';
@@ -34,14 +33,11 @@ const readsPastLock = (folder: string): boolean => {
 // account or no system can set up on disk.
 function listFoldersWith(context: TestContext, listing: (folder: string, asItIs: () => Dirent[]) => Dirent[]): void {
   const original = fs.readdirSync;
-  const replaced = context.mock.method(fs, 'readdirSync', (folder: string, options: { readonly withFileTypes: true }) =>
-    listing(folder, () => original(folder, options)),
+  builtInMockForTest(context, () =>
+    context.mock.method(fs, 'readdirSync', (folder: string, options: { readonly withFileTypes: true }) =>
+      listing(folder, () => original(folder, options)),
+    ),
   );
-  syncBuiltinESMExports();
-  context.after(() => {
-    replaced.mock.restore();
-    syncBuiltinESMExports();
-  });
 }
 
 const refusal = (code: string): Error => Object.assign(new Error(`${code}: refused`), { code });

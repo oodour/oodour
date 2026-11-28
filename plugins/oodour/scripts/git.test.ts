@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import childProcess from 'node:child_process';
-import { syncBuiltinESMExports } from 'node:module';
 import { appendFileSync, copyFileSync, mkdirSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 import { join, parse, relative } from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { pathToFileURL } from 'node:url';
-import { folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryHolding, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
+import { builtInMockForTest, folderWith, gitAtLeast, networkShare, outsideAnyRepository, refusedByGit, repositoryHolding, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
 import { gitIn } from './git.ts';
-import { assertLocalMetadata, type ConfigReader } from './metadata.ts';
+import { assertLocalMetadata } from './metadata.ts';
+import type { ConfigReader } from './metadata-config.ts';
 
 test('in a repository, Git runs in the folder it was asked about', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
@@ -17,14 +17,8 @@ test('in a repository, Git runs in the folder it was asked about', (context) => 
 
 test('finding a repository starts Git twice: to read its config, then to ask where the folder is in it', (context) => {
   const root = repositoryWith(context, [{ 'lib/a.ts': '' }]);
-  const spawned = context.mock.method(childProcess, 'spawnSync');
-  const executed = context.mock.method(childProcess, 'execFileSync');
-  syncBuiltinESMExports();
-  context.after(() => {
-    spawned.mock.restore();
-    executed.mock.restore();
-    syncBuiltinESMExports();
-  });
+  const spawned = builtInMockForTest(context, () => context.mock.method(childProcess, 'spawnSync'));
+  const executed = builtInMockForTest(context, () => context.mock.method(childProcess, 'execFileSync'));
 
   const repository = gitIn(join(root, 'lib'));
 

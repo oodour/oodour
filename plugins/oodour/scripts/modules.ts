@@ -242,7 +242,7 @@ interface Config {
 function compilerOptions(system: BoundedFiles): (path: string) => readonly ts.CompilerOptions[] {
   const read = new Map<string, Config | undefined>();
   const configAt = (path: string): Config | undefined => {
-    // Stryker disable next-line ConditionalExpression: a config read again holds the same options; the cache only saves time
+    // Stryker disable next-line ConditionalExpression: `true` reads the config again, which holds the same options and only costs time; `false` reads none, which "an import through a path the nearest tsconfig.json maps names the file it maps to" kills
     if (!read.has(path)) {
       const parsed = ts.getParsedCommandLineOfConfigFile(path, {}, system);
       read.set(

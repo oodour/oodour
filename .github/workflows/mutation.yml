@@ -63,10 +63,14 @@ jobs:
             config: stryker.oodour-scripts.config.ts
             os: windows-latest
             mutate: plugins/oodour/scripts/metadata.ts
+          - target: scripts-metadata-parts
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/metadata-*.ts,!plugins/oodour/scripts/*.test.ts
           - target: scripts-rest
             config: stryker.oodour-scripts.config.ts
             os: windows-latest
-            mutate: plugins/oodour/scripts/[!a-l]*.ts,!plugins/oodour/scripts/metadata.ts,!plugins/oodour/scripts/*.test.ts
+            mutate: plugins/oodour/scripts/[!a-l]*.ts,!plugins/oodour/scripts/metadata*.ts,!plugins/oodour/scripts/*.test.ts
           # The core took 19 minutes as one job.
           - target: core-metrics-a-f
             config: stryker.core.config.ts

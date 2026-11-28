@@ -12,6 +12,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import type { TestContext } from 'node:test';
@@ -174,6 +175,22 @@ export function outsideAnyRepository(context: TestContext): void {
 
 export function refusedByGit(context: TestContext): void {
   setForTest(context, 'GIT_TEST_ASSUME_DIFFERENT_OWNER', '1');
+}
+
+// Puts a mock of a built-in's method in place for the rest of the test. A module that imported the method by name sees
+// the mock, and the original again once the test ends, only after syncBuiltinESMExports.
+export function builtInMockForTest<TMock extends { readonly mock: { restore(): void } }>(
+  context: TestContext,
+  install: () => TMock,
+): TMock {
+  const mocked = install();
+  syncBuiltinESMExports();
+  context.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+
+  return mocked;
 }
 
 export function setForTest(context: TestContext, variable: string, value: string | undefined): void {
