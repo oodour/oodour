@@ -170,8 +170,12 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
     // Stryker disable next-line ConditionalExpression: taken for a link, an entry that is none is its own local path, so it is walked as a folder or left as a file all the same; the check spares reading it again
     if (entry.isSymbolicLink()) {
       assertLocalLinks(localPath(path) ?? refuse(`${path} leads to a network path`), walked);
-      // Stryker disable next-line ConditionalExpression: the walk returns at once for anything but a folder; the check spares a file that read
-    } else if (entry.isDirectory()) {
+
+      continue;
+    }
+
+    // Stryker disable next-line ConditionalExpression: the walk returns at once for anything but a folder; the check spares a file that read
+    if (entry.isDirectory()) {
       assertLocalLinks(path, walked);
     }
   }
