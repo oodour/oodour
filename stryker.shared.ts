@@ -1,5 +1,6 @@
-// The options every Stryker configuration shares: stryker.config.ts for the tooling, stryker.core.config.ts for the
-// core, stryker.eslint-plugin.config.ts for the ESLint plugin and stryker.test-metrics.config.ts for the test reporters.
+// The options every Stryker configuration shares: stryker.config.ts for the tooling, stryker.oodour-scripts.config.ts
+// for the plugin's scripts, stryker.core.config.ts for the core, stryker.eslint-plugin.config.ts for the ESLint plugin
+// and stryker.test-metrics.config.ts for the test reporters.
 import { availableParallelism, freemem } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import type { PartialStrykerOptions } from '@stryker-mutator/api/core';
