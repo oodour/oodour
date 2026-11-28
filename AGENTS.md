@@ -114,7 +114,9 @@ output), stop reading it, do not use it, and tell Lars.
   available in the latest major Node.js LTS version"). Claude's reading: TypeScript supports a proposal when it
   compiles the syntax or ships the API's types; a feature allowed on one ground only still needs a runtime that has
   it, so say which runtimes lack it. Check status in the `web-platform-dx/web-features` data and the latest LTS line
-  of `https://nodejs.org/dist/index.json`, not from memory.
+  of `https://nodejs.org/dist/index.json`, not from memory. An API that only the latest LTS line has stays out of the
+  plugin's scripts while their `engines` range admits an older line that lacks it (Lars, 2026-11-28, approving
+  Claude's recommendation when Node.js 26 became the latest LTS line: "1-2: OK").
 - Run `node tools/source-overlap.ts <file>` on any prose you wrote from an oracle answer before you
   commit it.
 
@@ -142,8 +144,9 @@ lz-tdd to use for oracle work, and what each must not do near the store:
 
 The hooks, the mod and the tools meet the script bar in `~/.claude/references/lars-skill-authoring.md`
 (Lars, 2026-11-15: "Claude mod and hook scripts should meet the same bar as those I require for user-scope
-skill scripts"): erasable-syntax TypeScript with `.test.ts` tests on Node.js 22 and 24. `npm run check`
-type-checks, lints and tests all of them.
+skill scripts"): erasable-syntax TypeScript with `.test.ts` tests on Node.js 22, 24 and 26, the three LTS lines
+(Lars, 2026-11-28: "1-2: OK", to adding 26). `npm run check` type-checks, lints and tests all of them; CI runs it
+on each of the three.
 
 ## Words and decisions
 
