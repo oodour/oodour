@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, matchesGlob } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -56,12 +56,22 @@ function shards(): readonly Shard[] {
   return include.flatMap((entry: unknown) => shardOf(entry) ?? []);
 }
 
-async function ownPatterns(config: string): Promise<readonly string[]> {
-  const options: unknown = field(
-    await import(new URL(config, import.meta.url).href),
-    'default',
+// Loaded in a child process without LZ_NODE_TEST_RUNNER: with it set, as in the mutation workflow, a configuration loads
+// lz-node-test's mutators, which load only under lz-node-test's own export condition.
+function ownPatterns(config: string): readonly string[] {
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([name]) => name !== 'LZ_NODE_TEST_RUNNER',
+    ),
   );
-  const mutate = field(options, 'mutate');
+  const script = `const { default: config } = await import(${JSON.stringify(new URL(config, import.meta.url).href)}); console.log(JSON.stringify(config.mutate));`;
+  const mutate: unknown = JSON.parse(
+    execFileSync(process.execPath, ['--input-type=module', '--eval', script], {
+      cwd: root,
+      env,
+      encoding: 'utf8',
+    }),
+  );
 
   assert.ok(
     Array.isArray(mutate) &&
@@ -84,12 +94,16 @@ function takes(patterns: readonly string[], file: string): boolean {
   );
 }
 
-const tracked = execFileSync('git', ['ls-files', '--', '*.ts'], {
-  cwd: root,
-  encoding: 'utf8',
-})
-  .split('\n')
-  .filter((file) => file !== '');
+// Read from the folders, not from Git: Stryker runs this test in a sandbox copy that Git ignores.
+const sources = ['packages', 'plugins'].flatMap((folder) =>
+  readdirSync(`${root}/${folder}`, { recursive: true, encoding: 'utf8' })
+    .map((file) => `${folder}/${file.replaceAll('\\', '/')}`)
+    .filter(
+      (file) =>
+        file.endsWith('.ts') &&
+        !/\/(?:node_modules|dist|coverage)\//.test(file),
+    ),
+);
 
 // A file added later must land in a shard too: a name for every first letter, in every folder a shard reads and in a
 // folder below it.
@@ -116,10 +130,10 @@ test('mutation.yml shares out at least one configuration', () => {
 });
 
 for (const [config, configShards] of byConfig) {
-  test(`every file ${config} mutates lands in exactly one of its shards, and no other file in any`, async () => {
-    const own = await ownPatterns(config);
+  test(`every file ${config} mutates lands in exactly one of its shards, and no other file in any`, () => {
+    const own = ownPatterns(config);
     const candidates = withNewNames(
-      tracked.filter(
+      sources.filter(
         (file) =>
           takes(own, file) ||
           configShards.some((shard) => takes(shard.patterns, file)),
@@ -138,7 +152,7 @@ for (const [config, configShards] of byConfig) {
 
     assert.ok(
       candidates.some((file) => takes(own, file)),
-      `${config} mutates a tracked file`,
+      `${config} mutates a file that exists`,
     );
     assert.deepEqual(wrong, []);
   });
