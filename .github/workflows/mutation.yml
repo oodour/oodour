@@ -9,15 +9,17 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request replaces its run. On main every push keeps its own run, so each commit gets a result.
 concurrency:
-  group: mutation-${{ github.ref }}
+  group: mutation-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   # One job per Stryker configuration, side by side. Each runs lz-node-test's node:test runner, which runs per mutant only
   # the tests that reach it; Stryker's command runner runs every suite for each mutant and mostly times out here. The
   # runner loads from the source of a checkout at a pinned commit, beside this repository's checkout so that Stryker's
-  # sandbox does not copy it.
+  # sandbox does not copy it. The runner has four cores and nothing else to leave one free for, so the run takes all four
+  # where the configurations' own formula would take three.
   stryker:
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
@@ -69,4 +71,4 @@ jobs:
         with:
           name: mutation-report-${{ matrix.target }}
           path: oodour/reports/mutation/
-          if-no-files-found: ignore
+          if-no-files-found: error

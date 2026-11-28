@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Type-check, lint and test the oracle firewall's hooks, mod and tools.",
   "scripts": {
-    "check": "nx run-many -t typecheck lint test test-mods validate overlap citations && nx format:check --all"
+    "check": "nx run-many -t typecheck lint test test-mods validate overlap citations && nx format:check --all",
+    "check:ci": "nx run-many -t typecheck lint test test-mods validate citations --configuration=ci && nx format:check --all"
   },
   "workspaces": [
     "packages/*"

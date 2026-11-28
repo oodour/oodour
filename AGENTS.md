@@ -222,10 +222,11 @@ published as `@oodour/<name>`). Run Nx as `npm exec -- nx`.
   `nx format:check --all`. `citations` fails when the distributed plugin cites a chapter number, a title that
   `plugins/oodour/ATTRIBUTION.md` lists (two words or more), a stand-in such as "the book", or "her" or "she" (see "What
   you write").
-- CI (`.github/workflows/ci.yml`) runs the same targets with `--configuration=ci` and without `overlap`. A clean clone
-  has no store and none of the declarations a Claude Code session writes beside each mod, so the tooling targets' `ci`
-  configuration skips the one test that reads the store and leaves the mods' `hooks/` out of type-check and lint. Those
-  run locally only. `.github/workflows/mutation.yml` runs each Stryker configuration as its own job on every push.
+- CI (`.github/workflows/ci.yml`) runs `npm run check:ci`: the same targets with `--configuration=ci` and without
+  `overlap`. A clean clone has no store and none of the declarations a Claude Code session writes beside each mod, so
+  the tooling targets' `ci` configuration skips the one test that reads the store and leaves each mod's `register`
+  module out of type-check and lint. Those run locally only. Add a new check to both scripts, or say here why CI cannot
+  run it. `.github/workflows/mutation.yml` runs each Stryker configuration as its own job on every push.
 - Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
   it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
   `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and

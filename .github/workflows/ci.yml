@@ -8,14 +8,15 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request replaces its run. On main every push keeps its own run, so each commit gets a result.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  # What `npm run check` runs, less what a clean clone cannot: the overlap check and one tooling test read the git-ignored
-  # store, and the two mods' hooks type-check and lint against declarations that only a Claude Code session writes. The
-  # `ci` configuration of the tooling targets leaves those out. Mutation testing has its own workflow.
+  # `npm run check:ci` is `npm run check` less what a clean clone cannot run: the overlap check and one tooling test read
+  # the git-ignored store, and each mod's `register` module type-checks and lints against declarations that only a Claude
+  # Code session writes. Mutation testing has its own workflow.
   check:
     name: check (Node.js ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -35,5 +36,4 @@ jobs:
       - run: npm ci
       # The `validate` and `test-mods` targets run `claude plugin validate` and `claude plugin test`.
       - run: npm install --global @anthropic-ai/claude-code@2.1.327
-      - run: npm exec -- nx run-many -t typecheck lint test test-mods validate citations --configuration=ci
-      - run: npm exec -- nx format:check --all
+      - run: npm run check:ci
