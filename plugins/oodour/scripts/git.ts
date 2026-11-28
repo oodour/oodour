@@ -93,7 +93,11 @@ export function gitIn(folder: string): Repository | undefined {
   }
 
   if (probe.status !== 0) {
-    if (probe.stderr.includes('not a git repository')) {
+    // Git 2.56 words a .git file that points nowhere differently than Git 2.54 does.
+    if (
+      probe.stderr.includes('not a git repository') ||
+      probe.stderr.includes('gitfile does not point to a valid repository')
+    ) {
       return undefined;
     }
 
