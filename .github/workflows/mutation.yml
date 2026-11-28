@@ -29,6 +29,7 @@ jobs:
   # No job may take more than 15 minutes, so a configuration that would is shared out between file sets. Each set's
   # last job takes the exact complement of the others, so a new file always lands in one of them. A shard's --mutate
   # replaces its configuration's own list, so each shard repeats the exclusions its include pattern can match.
+  # mutation-shards.test.ts fails when a file the configuration mutates lands in no shard or in two.
   stryker:
     name: ${{ matrix.target }}
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
