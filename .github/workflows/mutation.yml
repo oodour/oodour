@@ -5,13 +5,18 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: The commit, branch or tag to test. Empty tests the branch the run starts from.
+        type: string
 
 permissions:
   contents: read
 
-# A newer push to a pull request replaces its run. On main every push keeps its own run, so each commit gets a result.
+# A newer push to a branch or pull request replaces its run, as the runs are costly. A run started by hand is never
+# replaced, so it gives a result for the one commit it names.
 concurrency:
-  group: mutation-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  group: mutation-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,10 +25,13 @@ jobs:
   # runner loads from the source of a checkout at a pinned commit, beside this repository's checkout so that Stryker's
   # sandbox does not copy it. The runner has four cores and nothing else to leave one free for, so the run takes all four
   # where the configurations' own formula would take three.
+  #
+  # No job may take more than 15 minutes, so a configuration that would is shared out between file sets. Each set's
+  # last pattern group takes whatever the others leave, so a new file always lands in one of them.
   stryker:
     name: ${{ matrix.target }}
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-    timeout-minutes: 60
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -34,21 +42,55 @@ jobs:
           - target: tooling
             config: stryker.config.ts
           # Six of the scripts' tests run on Windows only (drive and network paths) and none off Windows only, so the
-          # scripts reach their score there.
-          - target: scripts
+          # scripts reach their score there. As one job they took 44 minutes.
+          - target: scripts-a-c
             config: stryker.oodour-scripts.config.ts
             os: windows-latest
-          - target: core
+            mutate: plugins/oodour/scripts/[a-c]*.ts,!plugins/oodour/scripts/*.test.ts
+          - target: scripts-d-f
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/[d-f]*.ts,!plugins/oodour/scripts/*.test.ts,!plugins/oodour/scripts/fixtures.ts
+          - target: scripts-g
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/g*.ts,!plugins/oodour/scripts/*.test.ts
+          - target: scripts-h-l
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/[h-l]*.ts,!plugins/oodour/scripts/*.test.ts
+          - target: scripts-metadata
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/metadata.ts
+          - target: scripts-rest
+            config: stryker.oodour-scripts.config.ts
+            os: windows-latest
+            mutate: plugins/oodour/scripts/[!a-l]*.ts,!plugins/oodour/scripts/metadata.ts,!plugins/oodour/scripts/*.test.ts
+          # The core took 19 minutes as one job.
+          - target: core-metrics-a-f
             config: stryker.core.config.ts
+            mutate: packages/core/src/metrics/[a-f]*.ts,!packages/core/src/**/*.test.ts
+          - target: core-metrics-g-z
+            config: stryker.core.config.ts
+            mutate: packages/core/src/metrics/[!a-f]*.ts,!packages/core/src/**/*.test.ts
+          - target: core-rest
+            config: stryker.core.config.ts
+            mutate: packages/core/src/**/*.ts,!packages/core/src/metrics/**,!packages/core/src/**/*.test.ts
           # The ESLint package took 37 minutes as one job: its mutants run 58 tests each on average, where the other
-          # jobs' run 11 to 14. Three file sets share it out. The second is everything in rules/ the first leaves, and
-          # the third everything outside rules/, so a new file always lands in one of them.
-          - target: eslint-plugin-rules-a-i
+          # jobs' run 11 to 14.
+          - target: eslint-plugin-rules-a-d
             config: stryker.eslint-plugin.config.ts
-            mutate: packages/eslint-plugin/src/rules/[a-i]*.ts,!packages/eslint-plugin/src/**/*.test.ts
-          - target: eslint-plugin-rules-j-z
+            mutate: packages/eslint-plugin/src/rules/[a-d]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+          - target: eslint-plugin-rules-e-i
             config: stryker.eslint-plugin.config.ts
-            mutate: packages/eslint-plugin/src/rules/[!a-i]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+            mutate: packages/eslint-plugin/src/rules/[e-i]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+          - target: eslint-plugin-rules-j-m
+            config: stryker.eslint-plugin.config.ts
+            mutate: packages/eslint-plugin/src/rules/[j-m]*.ts,!packages/eslint-plugin/src/**/*.test.ts
+          - target: eslint-plugin-rules-n-z
+            config: stryker.eslint-plugin.config.ts
+            mutate: packages/eslint-plugin/src/rules/[!a-m]*.ts,!packages/eslint-plugin/src/**/*.test.ts
           - target: eslint-plugin-rest
             config: stryker.eslint-plugin.config.ts
             mutate: packages/eslint-plugin/src/**/*.ts,!packages/eslint-plugin/src/rules/**,!packages/eslint-plugin/src/**/*.test.ts
@@ -57,6 +99,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref }}
           path: oodour
           persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
