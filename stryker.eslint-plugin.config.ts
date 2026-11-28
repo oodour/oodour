@@ -26,6 +26,8 @@ const config: PartialStrykerOptions = {
   htmlReporter: { fileName: 'reports/mutation/eslint-plugin.html' },
   mutate: ['packages/eslint-plugin/src/**/*.ts', '!packages/eslint-plugin/src/**/*.test.ts'],
   incrementalFile: 'reports/stryker-incremental/eslint-plugin.json',
+  // Every mutant is killed or carries a reasoned disable, so a survivor fails the run.
+  thresholds: { high: 100, low: 100, break: 100 },
 };
 
 export default config;
