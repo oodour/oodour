@@ -130,6 +130,13 @@ test("in a repository not trusted, a scope folder's own .gitignore applies to th
   assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
 });
 
+test('in a repository not trusted, a file not named .gitignore is not read as one', (context) => {
+  const root = folderWith(context, { 'a.ts': 'b.ts\n', 'b.ts': 'a.ts\n' });
+  runGit(root, ['init', '-q']);
+
+  assert.deepEqual(sources(root, undefined).all, ['a.ts', 'b.ts']);
+});
+
 test("in a repository not trusted, a deeper .gitignore's anchored rule applies only below its own folder", (context) => {
   const root = folderWith(context, { 'lib/.gitignore': '/gen/\n', 'gen/a.ts': '', 'lib/gen/b.ts': '', 'lib/c.ts': '' });
   runGit(root, ['init', '-q']);
