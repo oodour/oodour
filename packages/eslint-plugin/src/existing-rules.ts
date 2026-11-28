@@ -29,11 +29,8 @@ export interface RuleSource {
   readonly rules: Readonly<Record<string, Stance>>;
 }
 
-const staticAdvice =
-  // Stryker disable next-line StringLiteral: nothing reads a conflict's reason at run time; it is there for the catalog's reader
-  'Right signal, wrong advice: it suggests making the method static. @oodour/class-methods-use-this reports the ' +
-  // Stryker disable next-line StringLiteral: nothing reads a conflict's reason at run time; it is there for the catalog's reader
-  'same methods with advice that fits.';
+// Stryker disable next-line StringLiteral: nothing reads a conflict's reason at run time; it is there for the catalog's reader
+const staticAdvice = 'Right signal, wrong advice: it suggests making the method static. @oodour/class-methods-use-this reports the same methods with advice that fits.';
 
 /** The one place this plugin takes a stance on a rule it does not own: one stance per rule name. */
 export const existingRules = {

@@ -301,11 +301,13 @@ describe('testRuleWithTypes gives type information to a rule that does not requi
     const env = Object.fromEntries(
       Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT' && name !== 'NODE_OPTIONS'),
     );
-    const { stdout } = spawnSync(process.execPath, ['--conditions=@oodour/source', '--test-reporter=tap', spec], {
-      encoding: 'utf8',
-      env,
-    });
+    const { status, stdout, stderr } = spawnSync(
+      process.execPath,
+      ['--conditions=@oodour/source', '--test-reporter=tap', spec],
+      { encoding: 'utf8', env, timeout: 120_000 },
+    );
 
+    assert.equal(status, 0, stderr);
     assert.match(stdout, /^# Subtest: feature-envy with type information$/m);
     assert.match(stdout, /^# pass 1$/m);
   });

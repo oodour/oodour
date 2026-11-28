@@ -1,5 +1,5 @@
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
-import { wrapRule } from '../wrap-rule.ts';
+import { pluginRule, wrapRule } from '../wrap-rule.ts';
 
 type Options = [
   {
@@ -16,9 +16,7 @@ type Options = [
  */
 export const classMethodsUseThis = wrapRule<Options>({
   name: 'class-methods-use-this',
-  // Stryker disable next-line StringLiteral: read only by the error for a rule that could not be loaded, and typescript-eslint, a dependency, has this one
-  wraps: '@typescript-eslint/class-methods-use-this',
-  upstream: tseslintPlugin.rules['class-methods-use-this'],
+  upstream: pluginRule('@typescript-eslint', tseslintPlugin.rules, 'class-methods-use-this'),
   docs: {
     description: 'Report a class method that uses no state of its object',
     concept: 'Feature Envy',

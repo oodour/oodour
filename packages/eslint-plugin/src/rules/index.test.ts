@@ -99,8 +99,13 @@ test('a rule says it requires type checking exactly when it fails on a file with
         }),
         'file.ts',
       );
-    } catch {
-      return true;
+    } catch (error) {
+      // Only typescript-eslint's error for a file without type information counts; a rule that crashes fails the test.
+      if (error instanceof Error && /requires type information/.test(error.message)) {
+        return true;
+      }
+
+      throw error;
     }
 
     return false;

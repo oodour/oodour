@@ -12,7 +12,7 @@ interface Batch {
 const batches = new WeakMap<SourceCode, Batch>();
 
 function needsSyntaxOnly(metric: Metric<unknown>): metric is Metric<unknown, UnitKind, 'syntax'> {
-  // Stryker disable next-line ConditionalExpression: a metric that needs types gets here only from a rule that does not require type checking, whose run fails with or without it
+  // Stryker disable next-line ConditionalExpression: `true` sends a metric that needs types down the syntax path only from a rule that does not require type checking, whose run fails with or without it; `false` measures no syntax rule without types, which every syntax rule's tests kill
   return metric.needs === 'syntax';
 }
 

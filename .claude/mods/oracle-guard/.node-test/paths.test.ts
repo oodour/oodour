@@ -51,7 +51,7 @@ test("a path rooted without a drive takes the base's drive", () => {
   assert.equal(resolvePath('D:\\repo', '\\tmp\\a'), 'D:\\tmp\\a');
 });
 
-test('a path rooted without a drive takes no drive from a base that does not start with one', () => {
+test('a path rooted without a drive, on a base without a drive the guard never passes, comes out relative', () => {
   assert.equal(resolvePath('\\repo\\x:y', '\\tmp\\a'), 'tmp\\a');
 });
 

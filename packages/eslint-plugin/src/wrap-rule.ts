@@ -16,16 +16,36 @@ interface UpstreamRule {
   readonly create: (context: Readonly<RuleContext<string, unknown[]>>) => RuleListener;
 }
 
-/** The module of an ESLint core rule, to hand to `wrapRule`. */
-export function coreRule(name: string): unknown {
+/** A rule to wrap: its ID, which the error names when it cannot be loaded, and its module as loaded, if it was. */
+export interface WrappedRule {
+  readonly id: string;
+  readonly module: unknown;
+}
+
+/** An ESLint core rule, to hand to `wrapRule`. */
+export function coreRule(name: string): WrappedRule {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
-  return builtinRules.get(name);
+  return { id: name, module: builtinRules.get(name) };
+}
+
+/** A rule of a plugin this package depends on, under the prefix its rule IDs take. */
+export function pluginRule(prefix: string, rules: Readonly<Record<string, unknown>>, ruleName: string): WrappedRule {
+  return { id: `${prefix}/${ruleName}`, module: rules[ruleName] };
 }
 
 const require = createRequire(import.meta.url);
 
-/** A rule of a plugin package the consumer may not have installed, to hand to `wrapRule`. */
-export function optionalPluginRule(packageName: string, ruleName: string, load: (id: string) => unknown = require): unknown {
+/** A rule of a plugin package the consumer may not have installed, under the prefix its rule IDs take. */
+export function optionalPluginRule(
+  prefix: string,
+  packageName: string,
+  ruleName: string,
+  load: (id: string) => unknown = require,
+): WrappedRule {
+  return { id: `${prefix}/${ruleName}`, module: loadedRule(packageName, ruleName, load) };
+}
+
+function loadedRule(packageName: string, ruleName: string, load: (id: string) => unknown): unknown {
   let plugin: unknown;
 
   try {
@@ -51,10 +71,8 @@ export function optionalPluginRule(packageName: string, ruleName: string, load: 
 
 export interface WrappedRuleDefinition<TOptions extends readonly unknown[]> {
   readonly name: string;
-  /** The ID of the rule it wraps, which the error names when that rule cannot be loaded. */
-  readonly wraps: string;
-  /** The wrapped rule's module as loaded, or `undefined` when its package is not installed. */
-  readonly upstream: unknown;
+  /** The rule it wraps; its module is `undefined` when its package is not installed. */
+  readonly upstream: WrappedRule;
   readonly docs: OopRuleDocs & { readonly description: string };
   readonly message: string;
   readonly defaultOptions: TOptions;
@@ -68,8 +86,9 @@ export interface WrappedRuleDefinition<TOptions extends readonly unknown[]> {
 export function wrapRule<TOptions extends readonly unknown[]>(
   definition: WrappedRuleDefinition<TOptions>,
 ): OopRuleModule<'found', TOptions> {
-  const { name, wraps, docs, message, defaultOptions } = definition;
-  const upstream = isUpstreamRule(definition.upstream) ? definition.upstream : undefined;
+  const { name, docs, message, defaultOptions } = definition;
+  const { id: wraps, module } = definition.upstream;
+  const upstream = isUpstreamRule(module) ? module : undefined;
 
   return createRule<TOptions, 'found'>({
     name,
@@ -123,6 +142,14 @@ function isUpstreamRule(value: unknown): value is UpstreamRule {
 }
 
 function isRuleContext(value: unknown): value is Readonly<RuleContext<string, unknown[]>> {
-  // Stryker disable next-line ConditionalExpression: always true of its one argument, which inherits from a rule context; the check proves the type
-  return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
+  // Stryker disable ConditionalExpression: `true` holds for its one argument, which inherits from a rule context; `false` throws for every wrapped rule, which every wrapper test kills
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'report' in value &&
+    typeof value.report === 'function' &&
+    'sourceCode' in value &&
+    typeof value.sourceCode === 'object'
+  );
+  // Stryker restore ConditionalExpression
 }
