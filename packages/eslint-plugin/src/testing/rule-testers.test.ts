@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import { createRule, type Remedy } from '../create-rule.ts';
 import { join } from 'node:path';
 import { cureContractProblem, testConfiguredRule, testConfiguredRules, testerConfigFor, testRule, testRuleWithTypes } from './rule-testers.ts';
@@ -14,15 +14,17 @@ test('testConfiguredRules refuses cases that leave a configured cue out', () => 
   );
 });
 
+// The testers below register suites of their own, so each runs in a suite: a test on Node.js 22 ends before the suites
+// registered inside it, and cancels them.
 // The catalog sets `props: true`, so a write to a parameter's property is reported where the rule's default passes it.
-test('testConfiguredRule runs the cases with the catalog options', () => {
+describe('testConfiguredRule runs the cases with the catalog options', () => {
   testConfiguredRule('no-param-reassign', {
     valid: ['function f(order) { return { ...order, total: 0 }; }'],
     invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
   });
 });
 
-test('testConfiguredRule gives a rule that needs type information the strict typed fixture', () => {
+describe('testConfiguredRule gives a rule that needs type information the strict typed fixture', () => {
   const shape = "type Shape = 'circle' | 'square';\ndeclare const shape: Shape;\n";
 
   testConfiguredRule('@typescript-eslint/switch-exhaustiveness-check', {
@@ -129,7 +131,7 @@ test('a rule that needs no type checking is tested without type information', ()
   assert.deepEqual(testerConfigFor(ruleWith({ kind: 'fix' }, false)), {});
 });
 
-test('testRule runs the cases against the rule as node:test subtests', () => {
+describe('testRule runs the cases against the rule as node:test subtests', () => {
   const reportsEveryProgram = createRule({
     name: 'reports-every-program',
     meta: {
