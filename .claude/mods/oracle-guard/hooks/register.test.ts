@@ -68,10 +68,11 @@ test('the store tools are denied the store from another folder', async ($, on) =
 
 const subagents = 'C:\\Users\\u\\.claude\\projects\\D--repo\\s1\\subagents';
 
-// Answers the metadata file beside each transcript, as Claude Code writes it.
+// Answers the metadata file beside each transcript, as Claude Code writes it. Off Windows the engine reads the path as
+// relative and puts the working folder before it, so the end of the path is what identifies the file.
 function transcripts(on: On, owners: Readonly<Record<string, string>>): void {
   on('fs.read', (_, e) => {
-    const owner = Object.entries(owners).find(([id]) => e.path === `${subagents}\\agent-${id}.meta.json`)?.[1];
+    const owner = Object.entries(owners).find(([id]) => e.path.endsWith(`${subagents}\\agent-${id}.meta.json`))?.[1];
 
     if (owner === undefined) {
       throw new Error(`ENOENT: ${e.path}`);
