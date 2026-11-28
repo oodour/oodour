@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
 
 const logicalAssignment = new Set(['&&=', '||=', '??=']);

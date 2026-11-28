@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: '1.1'
 name: real-stryker-json-reporter
 tags: [real, shape, roles]
 context:

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { aimedAtStore, keep, listsStore, shellOutput, storeLine, storeMention, withheld } from '../hooks/scrub.ts';
+import {
+  aimedAtStore,
+  keep,
+  listsStore,
+  shellOutput,
+  storeLine,
+  storeMention,
+  withheld,
+} from '../hooks/scrub.ts';
 
 test('a relative store path at the start of a line is a store mention', () => {
   assert.ok(storeMention.test('.oracle/entry/file.md'));
@@ -15,7 +23,10 @@ test('a Directory header with several blanks before the store path is a store li
 });
 
 test('the withheld notice says why and how to scope the command', () => {
-  assert.match(withheld, /^oracle-scrub: this output listed paths inside the sealed store \(\.oracle\/\) and was withheld\. Scope the command to the directory you mean/);
+  assert.match(
+    withheld,
+    /^oracle-scrub: this output listed paths inside the sealed store \(\.oracle\/\) and was withheld\. Scope the command to the directory you mean/,
+  );
 });
 
 test('a line that starts with a store path is a store line, in every listing shape', () => {
@@ -56,11 +67,19 @@ test('shell output lists the store when any line is a store line', () => {
 });
 
 test('shell output lists the store when a JSON line carries a store path', () => {
-  assert.ok(listsStore('{"type":"begin","data":{"path":{"text":".oracle\\\\x\\\\a.md"}}}'));
+  assert.ok(
+    listsStore(
+      '{"type":"begin","data":{"path":{"text":".oracle\\\\x\\\\a.md"}}}',
+    ),
+  );
 });
 
 test('shell output lists the store when a path inside it sits anywhere in a line', () => {
-  assert.ok(listsStore(' Directory of D:\\repo\\.oracle\\metz-talks\n\n01/01/2026  x.md'));
+  assert.ok(
+    listsStore(
+      ' Directory of D:\\repo\\.oracle\\metz-talks\n\n01/01/2026  x.md',
+    ),
+  );
   assert.ok(listsStore('match in "D:/repo/.oracle/x/a.md" at 3'));
   assert.ok(listsStore('C:\\Users\\Some User\\repo\\.oracle\\x.md:3:text'));
 });
@@ -73,7 +92,12 @@ test('shell output lists the store when a relative store path follows a space or
 });
 
 test('shell output that mentions the store in prose does not list it', () => {
-  assert.equal(listsStore('AGENTS.md:12:keep out of .oracle/ entirely\n`.oracle/` holds the full text\nrepo\\x.oracle\\a.md'), false);
+  assert.equal(
+    listsStore(
+      'AGENTS.md:12:keep out of .oracle/ entirely\n`.oracle/` holds the full text\nrepo\\x.oracle\\a.md',
+    ),
+    false,
+  );
 });
 
 test('shell output joins the text with stdout and stderr, and ignores a result that is not an object', () => {

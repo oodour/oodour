@@ -2,14 +2,23 @@ import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { cachedLocalPath, localPath, namesNetworkPath } from './below.ts';
 import { gitText } from './git-text.ts';
-import { assertLocalConfig, type ConfigCheck, type ConfigReader } from './metadata-config.ts';
+import {
+  assertLocalConfig,
+  type ConfigCheck,
+  type ConfigReader,
+} from './metadata-config.ts';
 import { readingsFrom, refuse } from './metadata-paths.ts';
 
 // Git opens the files its metadata names, wherever they are, and on Windows opening \\host\share sends the user's
 // credentials to that host. So the metadata is read here first, without git, and a network path in it refuses the
 // repository.
-export function assertLocalMetadata(folder: string, readConfig: ConfigReader): void {
-  const real = localPath(folder) ?? refuse(`${folder} is a network or device path, or leads to one`);
+export function assertLocalMetadata(
+  folder: string,
+  readConfig: ConfigReader,
+): void {
+  const real =
+    localPath(folder) ??
+    refuse(`${folder} is a network or device path, or leads to one`);
   // The top of the work tree, which Git reads a relative path in the config from, holds the folder.
   const workTreeTops = foldersUpFrom(real);
 
@@ -17,13 +26,17 @@ export function assertLocalMetadata(folder: string, readConfig: ConfigReader): v
   // than a copy of them would keep up with. So every folder it could take is checked.
   const check = { readConfig, local: cachedLocalPath() };
 
-  for (const gitFolder of workTreeTops.flatMap((folder) => gitFoldersIn(folder, workTreeTops))) {
+  for (const gitFolder of workTreeTops.flatMap((folder) =>
+    gitFoldersIn(folder, workTreeTops),
+  )) {
     assertLocalRepository(gitFolder, workTreeTops, check);
   }
 }
 
 const foldersUpFrom = (folder: string): readonly string[] =>
-  dirname(folder) === folder ? [folder] : [folder, ...foldersUpFrom(dirname(folder))];
+  dirname(folder) === folder
+    ? [folder]
+    : [folder, ...foldersUpFrom(dirname(folder))];
 
 function assertLocalRepository(
   gitFolder: string,
@@ -31,13 +44,18 @@ function assertLocalRepository(
   { readConfig, local }: Omit<ConfigCheck, 'places'>,
 ): void {
   const commondir =
-    localPath(join(gitFolder, 'commondir')) ?? refuse(`${join(gitFolder, 'commondir')} leads to a network path`);
+    localPath(join(gitFolder, 'commondir')) ??
+    refuse(`${join(gitFolder, 'commondir')} leads to a network path`);
   const pointed =
     lstatSync(commondir, { throwIfNoEntry: false })?.isFile() === true
       ? pointedFolders(commondir, commondirOf, gitFolder, workTreeTops)
       : [];
   const commonFolders = pointed.length === 0 ? [gitFolder] : pointed;
-  const check = { readConfig, local, places: [...new Set([...workTreeTops, gitFolder, ...commonFolders])] };
+  const check = {
+    readConfig,
+    local,
+    places: [...new Set([...workTreeTops, gitFolder, ...commonFolders])],
+  };
 
   for (const commonFolder of commonFolders) {
     assertLocalConfig(join(commonFolder, 'config'), check);
@@ -69,8 +87,13 @@ function assertLocalTables(reftable: string): void {
       refuse(`${file} names a network path (${line})`);
     }
 
-    // Stryker disable next-line ArrayDeclaration: a name from its drive is read from a folder only when the folder is on that drive, and the mutant's folder is on none
-    readingsFrom(reftable, line, [], `${file} names a path that leads to a network path (${line})`);
+    readingsFrom(
+      reftable,
+      line,
+      // Stryker disable next-line ArrayDeclaration: a name from its drive is read from a folder only when the folder is on that drive, and the mutant's folder is on none
+      [],
+      `${file} names a path that leads to a network path (${line})`,
+    );
   }
 }
 
@@ -91,15 +114,25 @@ function linesOf(file: string): readonly string[] {
 // of the folders that one names but not their alternates.
 const mostAlternates = 5;
 
-function assertLocalAlternates(objects: string, walked: Set<string>, cwds: readonly string[], depth = 0): void {
+function assertLocalAlternates(
+  objects: string,
+  walked: Set<string>,
+  cwds: readonly string[],
+  depth = 0,
+): void {
   if (depth > mostAlternates) {
     return;
   }
 
-  for (const file of [join(objects, 'info', 'alternates'), join(objects, 'info', 'http-alternates')]) {
+  for (const file of [
+    join(objects, 'info', 'alternates'),
+    join(objects, 'info', 'http-alternates'),
+  ]) {
     for (const line of linesOf(file)) {
       const refusal = `${file} names a network path (${line})`;
-      const lent = namesNetworkPath(line) ? refuse(refusal) : readingsFrom(objects, line, cwds, refusal);
+      const lent = namesNetworkPath(line)
+        ? refuse(refusal)
+        : readingsFrom(objects, line, cwds, refusal);
 
       for (const reading of lent) {
         assertLocalLinks(reading, walked);
@@ -112,7 +145,10 @@ function assertLocalAlternates(objects: string, walked: Set<string>, cwds: reado
 // readdirSync with `recursive` goes through links, so the folders are walked one at a time, a link is only read, and
 // the local folder a link leads to is walked in turn, once.
 function assertLocalLinks(folder: string, walked: Set<string>): void {
-  if (walked.has(folder) || lstatSync(folder, { throwIfNoEntry: false })?.isDirectory() !== true) {
+  if (
+    walked.has(folder) ||
+    lstatSync(folder, { throwIfNoEntry: false })?.isDirectory() !== true
+  ) {
     return;
   }
 
@@ -123,7 +159,10 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
 
     // Stryker disable next-line ConditionalExpression: `true` takes every entry for a link, and an entry that is none is its own local path, so it is walked or left all the same; `false`, which follows no link, is killed by "a link in the git folder that leads to a network path is refused before Git runs"
     if (entry.isSymbolicLink()) {
-      assertLocalLinks(localPath(path) ?? refuse(`${path} leads to a network path`), walked);
+      assertLocalLinks(
+        localPath(path) ?? refuse(`${path} leads to a network path`),
+        walked,
+      );
 
       continue;
     }
@@ -136,9 +175,14 @@ function assertLocalLinks(folder: string, walked: Set<string>): void {
 }
 
 // The folder's .git, then the folder itself as a bare repository.
-function gitFoldersIn(folder: string, cwds: readonly string[]): readonly string[] {
-  const has = (name: string): boolean => lstatSync(join(folder, name), { throwIfNoEntry: false }) !== undefined;
-  const bare = has('HEAD') && (has('commondir') || (has('objects') && has('refs')));
+function gitFoldersIn(
+  folder: string,
+  cwds: readonly string[],
+): readonly string[] {
+  const has = (name: string): boolean =>
+    lstatSync(join(folder, name), { throwIfNoEntry: false }) !== undefined;
+  const bare =
+    has('HEAD') && (has('commondir') || (has('objects') && has('refs')));
   // Stryker disable next-line ArrayDeclaration: a git folder that does not exist holds nothing to refuse
   const bareFolders = bare ? [folder] : [];
 
@@ -147,7 +191,10 @@ function gitFoldersIn(folder: string, cwds: readonly string[]): readonly string[
 
 // A .git folder by its name too: Git reads the relative names in it from there. A .git that does not exist holds
 // nothing to refuse, so it is looked into all the same.
-function dotGitFolders(folder: string, cwds: readonly string[]): readonly string[] {
+function dotGitFolders(
+  folder: string,
+  cwds: readonly string[],
+): readonly string[] {
   const named = join(folder, '.git');
   const dotGit = localPath(named) ?? refuse(`${named} leads to a network path`);
 
@@ -161,7 +208,9 @@ function dotGitFolders(folder: string, cwds: readonly string[]): readonly string
 // Git reads all of a .git file after `gitdir: `, and all of a commondir file, less the line ends at its end.
 const commondirOf = (text: string): string => text.replace(/[\r\n]+$/, '');
 const gitdirOf = (text: string): string | undefined =>
-  text.startsWith('gitdir: ') ? commondirOf(text.slice('gitdir: '.length)) : undefined;
+  text.startsWith('gitdir: ')
+    ? commondirOf(text.slice('gitdir: '.length))
+    : undefined;
 
 // A file such as .git or commondir that names another folder; a relative name is read from `base`.
 function pointedFolders(
@@ -181,5 +230,12 @@ function pointedFolders(
     refuse(`${file} points to a network path (${named})`);
   }
 
-  return [...readingsFrom(base, named, cwds, `${file} points to a path that leads to a network path (${named})`)];
+  return [
+    ...readingsFrom(
+      base,
+      named,
+      cwds,
+      `${file} points to a path that leads to a network path (${named})`,
+    ),
+  ];
 }

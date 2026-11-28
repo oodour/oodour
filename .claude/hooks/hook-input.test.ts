@@ -25,7 +25,11 @@ test('a hook input object is read into the fields the hooks use', () => {
 });
 
 test('fields of the wrong type are dropped, and a missing tool input is empty', () => {
-  const input = parseHookInput({ tool_name: 7, tool_input: ['x'], stop_hook_active: 'yes' });
+  const input = parseHookInput({
+    tool_name: 7,
+    tool_input: ['x'],
+    stop_hook_active: 'yes',
+  });
 
   assert.equal(input.toolName, undefined);
   assert.deepEqual(input.toolInput, {});
@@ -33,7 +37,10 @@ test('fields of the wrong type are dropped, and a missing tool input is empty', 
 });
 
 test('input that is not an object is refused', () => {
-  const refusal = { name: 'TypeError', message: 'hook input is not a JSON object' };
+  const refusal = {
+    name: 'TypeError',
+    message: 'hook input is not a JSON object',
+  };
 
   assert.throws(() => parseHookInput(null), refusal);
   assert.throws(() => parseHookInput([]), refusal);
@@ -41,6 +48,10 @@ test('input that is not an object is refused', () => {
 
 test('a deny is written in the PreToolUse decision shape', () => {
   assert.deepEqual(JSON.parse(denyOutput('no')), {
-    hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: 'no' },
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: 'no',
+    },
   });
 });

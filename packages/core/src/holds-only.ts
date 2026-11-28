@@ -1,5 +1,8 @@
 import type { Variable } from '@typescript-eslint/scope-manager';
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { withoutTypeAssertions } from './without-type-assertions.ts';
 
 /**
@@ -19,16 +22,25 @@ export interface HeldValue {
  * values the source does not show, so it fails. It does not check which function declares the variable or gives it each
  * value; a caller that cares checks that itself.
  */
-export function holdsOnly(variable: Pick<Variable, 'defs' | 'references'>, test: (value: HeldValue) => boolean): boolean {
+export function holdsOnly(
+  variable: Pick<Variable, 'defs' | 'references'>,
+  test: (value: HeldValue) => boolean,
+): boolean {
   const values: HeldValue[] = [];
 
   for (const { node } of variable.defs) {
-    if (node.type !== AST_NODE_TYPES.VariableDeclarator || isLoopVariable(node)) {
+    if (
+      node.type !== AST_NODE_TYPES.VariableDeclarator ||
+      isLoopVariable(node)
+    ) {
       return false;
     }
 
     if (node.init) {
-      values.push({ expressions: sameValue(node.init), part: node.id.type !== AST_NODE_TYPES.Identifier });
+      values.push({
+        expressions: sameValue(node.init),
+        part: node.id.type !== AST_NODE_TYPES.Identifier,
+      });
     }
   }
 
@@ -36,7 +48,10 @@ export function holdsOnly(variable: Pick<Variable, 'defs' | 'references'>, test:
     if (reference.isWrite() && reference.init !== true) {
       const { parent } = reference.identifier;
 
-      if (parent.type !== AST_NODE_TYPES.AssignmentExpression || !givesItsValue(parent.operator)) {
+      if (
+        parent.type !== AST_NODE_TYPES.AssignmentExpression ||
+        !givesItsValue(parent.operator)
+      ) {
         return false;
       }
 
@@ -48,12 +63,22 @@ export function holdsOnly(variable: Pick<Variable, 'defs' | 'references'>, test:
 }
 
 function isLoopVariable({ parent }: TSESTree.VariableDeclarator): boolean {
-  return parent.parent.type === AST_NODE_TYPES.ForOfStatement || parent.parent.type === AST_NODE_TYPES.ForInStatement;
+  return (
+    parent.parent.type === AST_NODE_TYPES.ForOfStatement ||
+    parent.parent.type === AST_NODE_TYPES.ForInStatement
+  );
 }
 
 /** Whether the assignment leaves its target holding the right-hand value or the one it held. */
-function givesItsValue(operator: TSESTree.AssignmentExpression['operator']): boolean {
-  return operator === '=' || operator === '||=' || operator === '&&=' || operator === '??=';
+function givesItsValue(
+  operator: TSESTree.AssignmentExpression['operator'],
+): boolean {
+  return (
+    operator === '=' ||
+    operator === '||=' ||
+    operator === '&&=' ||
+    operator === '??='
+  );
 }
 
 /** The expressions that hold the value: an assignment's target holds it too, and a plain `=` also its right side. */
@@ -64,5 +89,7 @@ function sameValue(expression: TSESTree.Expression): TSESTree.Expression[] {
     return [bare];
   }
 
-  return bare.operator === '=' ? [bare.left, ...sameValue(bare.right)] : [bare.left];
+  return bare.operator === '='
+    ? [bare.left, ...sameValue(bare.right)]
+    : [bare.left];
 }

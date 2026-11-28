@@ -4,7 +4,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { builtInMockForTest, folderWith, repositoryWith, runGit } from './fixtures.ts';
+import {
+  builtInMockForTest,
+  folderWith,
+  repositoryWith,
+  runGit,
+} from './fixtures.ts';
 
 test("the tests' Git reads neither the system's nor the developer's config", (context) => {
   const root = repositoryWith(context, []);
@@ -13,20 +18,28 @@ test("the tests' Git reads neither the system's nor the developer's config", (co
     .filter((line) => line !== '')
     .map((line) => line.slice(0, line.indexOf('\t')));
 
-  assert.deepEqual([...new Set(origins)], ['file:.git/config', 'command line:']);
+  assert.deepEqual(
+    [...new Set(origins)],
+    ['file:.git/config', 'command line:'],
+  );
 });
 
 test('a repository with the commits of one built before is a copy of it, made without starting Git', (context) => {
   const commits = [{ 'a.ts': 'one' }, { 'a.ts': 'two', 'b/c.ts': 'three' }];
   const first = repositoryWith(context, commits);
-  const started = builtInMockForTest(context, () => context.mock.method(childProcess, 'execFileSync'));
+  const started = builtInMockForTest(context, () =>
+    context.mock.method(childProcess, 'execFileSync'),
+  );
 
   const second = repositoryWith(context, commits);
 
   assert.equal(started.mock.callCount(), 0);
   started.mock.restore();
   syncBuiltinESMExports();
-  assert.equal(runGit(second, ['rev-parse', 'HEAD']), runGit(first, ['rev-parse', 'HEAD']));
+  assert.equal(
+    runGit(second, ['rev-parse', 'HEAD']),
+    runGit(first, ['rev-parse', 'HEAD']),
+  );
   assert.equal(readFileSync(join(second, 'b', 'c.ts'), 'utf8'), 'three');
   assert.equal(runGit(second, ['status', '--porcelain']), '');
 });
@@ -35,10 +48,14 @@ test('_OODOUR_INTERNAL_TEST_TEMP names the temporary folder of the tests and of 
   const temp = join(folderWith(context, {}), 'temp');
   const script = `await import(${JSON.stringify(new URL('fixtures.ts', import.meta.url).href)}); console.log((await import('node:os')).tmpdir());`;
 
-  const shown = childProcess.execFileSync(process.execPath, ['--input-type=module', '--eval', script], {
-    encoding: 'utf8',
-    env: { ...process.env, _OODOUR_INTERNAL_TEST_TEMP: temp },
-  });
+  const shown = childProcess.execFileSync(
+    process.execPath,
+    ['--input-type=module', '--eval', script],
+    {
+      encoding: 'utf8',
+      env: { ...process.env, _OODOUR_INTERNAL_TEST_TEMP: temp },
+    },
+  );
 
   assert.equal(shown.trim(), temp);
   assert.ok(existsSync(temp));

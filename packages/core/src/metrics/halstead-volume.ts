@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
 import type { Source } from '../source.ts';
 import type { Position } from '../units.ts';
@@ -31,7 +34,11 @@ interface Skipped {
 const skippedBySource = new WeakMap<Source, Skipped>();
 
 // A closing bracket belongs to its opening one, which is counted.
-const closingBrackets = new Set(['Punctuator )', 'Punctuator ]', 'Punctuator }']);
+const closingBrackets = new Set([
+  'Punctuator )',
+  'Punctuator ]',
+  'Punctuator }',
+]);
 const typeOnly = new Set<string>([
   AST_NODE_TYPES.TSTypeAnnotation,
   AST_NODE_TYPES.TSTypeParameterDeclaration,
@@ -67,23 +74,42 @@ export const halsteadVolume = defineMetric({
       skipped.types.push(node);
     }
   },
-  close: (skipped, { node }, source): HalsteadCounts => countsOf(node.range, skipped, source),
+  close: (skipped, { node }, source): HalsteadCounts =>
+    countsOf(node.range, skipped, source),
 });
 
 function isTypeOnly(node: TSESTree.Node, { parent, key }: Position): boolean {
-  // Stryker disable next-line ConditionalExpression: every other typeAnnotation key sits inside a node already type-only
-  return typeOnly.has(node.type) || (parent !== undefined && typeAssertions.has(parent.type) && key === 'typeAnnotation');
+  // Stryker disable ConditionalExpression: every other typeAnnotation key sits inside a node already type-only
+  return (
+    typeOnly.has(node.type) ||
+    (parent !== undefined &&
+      typeAssertions.has(parent.type) &&
+      key === 'typeAnnotation')
+  );
+  // Stryker restore ConditionalExpression
 }
 
-function countsOf(range: Range, { functions, types }: Skipped, { ast, file }: Source): HalsteadCounts {
+function countsOf(
+  range: Range,
+  { functions, types }: Skipped,
+  { ast, file }: Source,
+): HalsteadCounts {
   if (ast.tokens === undefined) {
-    throw new Error(`halstead-volume needs the tokens of ${file}, which its parse left out.`);
+    throw new Error(
+      `halstead-volume needs the tokens of ${file}, which its parse left out.`,
+    );
   }
 
-  const skip = [...within(functions, range).filter((nested) => nested.range !== range), ...within(types, range)];
+  const skip = [
+    ...within(functions, range).filter((nested) => nested.range !== range),
+    ...within(types, range),
+  ];
   // A token's type keeps an operand apart from an operator of the same text, such as a property named delete.
   const used = within(ast.tokens, range)
-    .filter(({ range: [start, end] }) => !skip.some(({ range: [from, to] }) => start >= from && end <= to))
+    .filter(
+      ({ range: [start, end] }) =>
+        !skip.some(({ range: [from, to] }) => start >= from && end <= to),
+    )
     .map((token) => `${token.type} ${token.value}`)
     .filter((token) => !closingBrackets.has(token));
   const length = used.length;
@@ -96,11 +122,18 @@ function countsOf(range: Range, { functions, types }: Skipped, { ast, file }: So
  * The items inside `range`. The items are tokens or nodes in source order: one that starts inside the range of a
  * function ends inside it too, so the first that ends past it is past it.
  */
-function within<TItem extends Ranged>(items: readonly TItem[], [start, end]: Range): TItem[] {
+function within<TItem extends Ranged>(
+  items: readonly TItem[],
+  [start, end]: Range,
+): TItem[] {
   const inside: TItem[] = [];
 
-  // Stryker disable next-line EqualityOperator: past the last item the index reads undefined, which ends the loop too
-  for (let index = firstAtOrAfter(items, start); index < items.length; index += 1) {
+  for (
+    let index = firstAtOrAfter(items, start);
+    // Stryker disable next-line EqualityOperator: past the last item the index reads undefined, which ends the loop too
+    index < items.length;
+    index += 1
+  ) {
     const item = items[index];
 
     if (item === undefined || item.range[1] > end) {

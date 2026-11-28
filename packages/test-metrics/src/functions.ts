@@ -1,5 +1,14 @@
-import { complexity, measure, parseSource, type Unit, unitName } from '@oodour/core';
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  complexity,
+  measure,
+  parseSource,
+  type Unit,
+  unitName,
+} from '@oodour/core';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 
 /** A place in a source file: a line from 1 and a column from 0, as ESLint counts them. */
 export interface Position {
@@ -24,7 +33,10 @@ export function within(inner: Range, outer: Range): boolean {
 }
 
 /** The other functions inside this one, at any depth. */
-export function nestedIn(site: FunctionSite, sites: readonly FunctionSite[]): FunctionSite[] {
+export function nestedIn(
+  site: FunctionSite,
+  sites: readonly FunctionSite[],
+): FunctionSite[] {
   return sites.filter((other) => other !== site && within(other, site));
 }
 
@@ -58,7 +70,9 @@ export function functionsIn(file: string, text: string): FunctionSite[] {
 
 function siteOf(unit: Unit, complexity: number): FunctionSite {
   const name = unitName(unit);
-  const variable = name.includes("'") ? undefined : variableHolding(unit.parent);
+  const variable = name.includes("'")
+    ? undefined
+    : variableHolding(unit.parent);
   const { loc } = unit.node;
   // A class field initializer or static block is its own body.
   const body = unit.kind === 'function' ? unit.node.body : unit.node;
@@ -84,8 +98,11 @@ function isPublicMethod(parent: TSESTree.Node | undefined): boolean {
 }
 
 /** The name of the variable the function is the value of, as in `const double = (n) => n * 2`. */
-function variableHolding(parent: TSESTree.Node | undefined): string | undefined {
-  return parent?.type === AST_NODE_TYPES.VariableDeclarator && parent.id.type === AST_NODE_TYPES.Identifier
+function variableHolding(
+  parent: TSESTree.Node | undefined,
+): string | undefined {
+  return parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+    parent.id.type === AST_NODE_TYPES.Identifier
     ? parent.id.name
     : undefined;
 }

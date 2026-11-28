@@ -8,11 +8,14 @@ const mostLinks = 40;
 export function pathBelow(root: string, path: string): string | undefined {
   const below = relative(root, resolve(root, path));
 
-  return below === '..' || below.startsWith(`..${sep}`) || isAbsolute(below) ? undefined : below;
+  return below === '..' || below.startsWith(`..${sep}`) || isAbsolute(below)
+    ? undefined
+    : below;
 }
 
 // Where the separator is a backslash, a slash separates too.
-const segmentsOf = (path: string): readonly string[] => path.split(sep).flatMap((part) => part.split('/'));
+const segmentsOf = (path: string): readonly string[] =>
+  path.split(sep).flatMap((part) => part.split('/'));
 
 interface Walk {
   readonly base: string;
@@ -35,7 +38,11 @@ function walk(
   let pending = [...start.segments];
   let links = 0;
 
-  for (let segment = pending.shift(); segment !== undefined; segment = pending.shift()) {
+  for (
+    let segment = pending.shift();
+    segment !== undefined;
+    segment = pending.shift()
+  ) {
     if (segment === '' || segment === '.') {
       continue;
     }
@@ -71,7 +78,9 @@ function walk(
     }
 
     links += 1;
-    const next = isAbsolute(target) ? startAbsolute(target) : { base, segments: [...walked, ...segmentsOf(target)] };
+    const next = isAbsolute(target)
+      ? startAbsolute(target)
+      : { base, segments: [...walked, ...segmentsOf(target)] };
 
     if (next === undefined) {
       return undefined;
@@ -96,11 +105,18 @@ export function placeBelow(root: string): (path: string) => Place | undefined {
     const plain = segments.slice(0, plainCount).join(sep);
     const below = isAbsolute(plain) ? pathBelow(root, plain) : undefined;
 
-    return below === undefined ? undefined : { base: root, segments: [...segmentsOf(below), ...segments.slice(plainCount)] };
+    return below === undefined
+      ? undefined
+      : {
+          base: root,
+          segments: [...segmentsOf(below), ...segments.slice(plainCount)],
+        };
   };
 
   return (path) => {
-    const start = isAbsolute(path) ? fromRoot(path) : { base: root, segments: segmentsOf(path) };
+    const start = isAbsolute(path)
+      ? fromRoot(path)
+      : { base: root, segments: segmentsOf(path) };
     const walked = start && walk(start, fromRoot, entryAt, 'leaves');
 
     return walked && (walked.links === 0 ? 'direct' : 'linked');
@@ -113,7 +129,8 @@ export const childPath = (folder: string, name: string): string =>
   folder.endsWith(sep) ? `${folder}${name}` : `${folder}${sep}${name}`;
 
 // \\host\share and //host/share name a network path; \\?\ and \\.\ are device paths that can name one too.
-export const namesNetworkPath = (path: string): boolean => /^[\\/]{2}/.test(path);
+export const namesNetworkPath = (path: string): boolean =>
+  /^[\\/]{2}/.test(path);
 
 const fromFilesystemRoot = (path: string): Walk | undefined => {
   if (namesNetworkPath(path)) {
@@ -125,7 +142,8 @@ const fromFilesystemRoot = (path: string): Walk | undefined => {
   return { base: root, segments: segmentsOf(path.slice(root.length)) };
 };
 
-export const localPath = (path: string): string | undefined => localPathWith(path, readEntry);
+export const localPath = (path: string): string | undefined =>
+  localPathWith(path, readEntry);
 
 // For many paths in a short time: each entry is read once, so a change made to it meanwhile goes unseen.
 export function cachedLocalPath(): (path: string) => string | undefined {
@@ -134,8 +152,13 @@ export function cachedLocalPath(): (path: string) => string | undefined {
   return (path) => localPathWith(path, entryAt);
 }
 
-function localPathWith(path: string, entryAt: (path: string) => Entry): string | undefined {
-  const start = fromFilesystemRoot(isAbsolute(path) ? path : childPath(process.cwd(), path));
+function localPathWith(
+  path: string,
+  entryAt: (path: string) => Entry,
+): string | undefined {
+  const start = fromFilesystemRoot(
+    isAbsolute(path) ? path : childPath(process.cwd(), path),
+  );
 
   // A `..` at the filesystem root names the root itself.
   return start && walk(start, fromFilesystemRoot, entryAt, 'stays')?.path;
@@ -153,9 +176,17 @@ function readEntry(path: string): Entry {
   try {
     const stats = lstatSync(path, { throwIfNoEntry: false });
 
-    return { exists: stats !== undefined, target: stats?.isSymbolicLink() === true ? readlinkSync(path) : undefined };
+    return {
+      exists: stats !== undefined,
+      target: stats?.isSymbolicLink() === true ? readlinkSync(path) : undefined,
+    };
   } catch (error) {
-    if (error instanceof Error && 'code' in error && typeof error.code === 'string' && unreachable.has(error.code)) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      unreachable.has(error.code)
+    ) {
       return { exists: false, target: undefined };
     }
 

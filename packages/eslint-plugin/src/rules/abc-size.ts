@@ -9,7 +9,12 @@ type Options = [{ readonly max: number }];
  * ABC size as 99 Bottles of OOP counts it: assignments, sends (calls and `new`) and conditions, combined as the length
  * of the vector. Each function is scored alone; a nested function's counts are its own.
  */
-export const abcSize = defineMetricRule<Options, 'found', AbcCounts, 'function'>({
+export const abcSize = defineMetricRule<
+  Options,
+  'found',
+  AbcCounts,
+  'function'
+>({
   name: 'abc-size',
   metric: abcSizeMetric,
   meta: {
@@ -46,13 +51,24 @@ export const abcSize = defineMetricRule<Options, 'found', AbcCounts, 'function'>
     ],
     defaultOptions: [{ max: 15 }],
   },
-  check({ unit, value: { assignments: a, sends: b, conditions: c } }, context, [{ max }]) {
+  check(
+    { unit, value: { assignments: a, sends: b, conditions: c } },
+    context,
+    [{ max }],
+  ) {
     const size = Math.hypot(a, b, c);
 
     if (size > max) {
-      const name = ASTUtils.getFunctionNameWithKind(unit.node, context.sourceCode);
+      const name = ASTUtils.getFunctionNameWithKind(
+        unit.node,
+        context.sourceCode,
+      );
 
-      context.report({ node: unit.node, messageId: 'found', data: { name, size: size.toFixed(1), a, b, c, max } });
+      context.report({
+        node: unit.node,
+        messageId: 'found',
+        data: { name, size: size.toFixed(1), a, b, c, max },
+      });
     }
   },
 });

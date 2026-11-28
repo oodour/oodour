@@ -29,15 +29,18 @@ export interface RuleSource {
   readonly rules: Readonly<Record<string, Stance>>;
 }
 
-// Stryker disable next-line StringLiteral: nothing reads a conflict's reason at run time; it is there for the catalog's reader
-const staticAdvice = 'Right signal, wrong advice: it suggests making the method static. @oodour/class-methods-use-this reports the same methods with advice that fits.';
+const staticAdvice =
+  // Stryker disable next-line StringLiteral: nothing reads a conflict's reason at run time; it is there for the catalog's reader
+  'Right signal, wrong advice: it suggests making the method static. @oodour/class-methods-use-this reports the same methods with advice that fits.';
 
 /** The one place this plugin takes a stance on a rule it does not own: one stance per rule name. */
 export const existingRules = {
   core: {
     prefix: '',
     rules: {
-      'max-lines-per-function': { duplicateOf: '@oodour/max-lines-per-function' },
+      'max-lines-per-function': {
+        duplicateOf: '@oodour/max-lines-per-function',
+      },
       'max-statements': { duplicateOf: '@oodour/max-statements' },
       'max-params': { duplicateOf: '@oodour/max-params' },
       complexity: { duplicateOf: '@oodour/complexity' },
@@ -45,7 +48,8 @@ export const existingRules = {
       'no-param-reassign': {
         cue: 'A query that changes state: writing to a property of a parameter.',
         tier: 'strict',
-        tierReason: 'It also fires on commands that update an object they were handed, which is ordinary code.',
+        tierReason:
+          'It also fires on commands that update an object they were handed, which is ordinary code.',
         options: [{ props: true }],
       },
       'no-else-return': {
@@ -54,7 +58,8 @@ export const existingRules = {
           'purpose.',
       },
       'max-classes-per-file': {
-        conflict: "A role's players and the factory that picks one of them belong in one module.",
+        conflict:
+          "A role's players and the factory that picks one of them belong in one module.",
       },
       'class-methods-use-this': { conflict: staticAdvice },
     },
@@ -66,28 +71,33 @@ export const existingRules = {
       'switch-exhaustiveness-check': {
         cue: 'A choosing switch must name every member of the union, so a new member cannot fall into `default`.',
         tier: 'recommended',
-        tierReason: 'It fires only on a switch over a union that misses a member.',
+        tierReason:
+          'It fires only on a switch over a union that misses a member.',
         options: [{ considerDefaultExhaustiveForUnions: false }],
       },
       'prefer-readonly': {
         cue: 'Private state that is never reassigned is an immutable value; say so.',
         tier: 'recommended',
-        tierReason: 'It fires only on a private member that nothing reassigns, and fixes it.',
+        tierReason:
+          'It fires only on a private member that nothing reassigns, and fixes it.',
       },
       'dot-notation': {
         cue: 'Bracket access to a private member gets past `private`; dot access makes it a compile error.',
         tier: 'recommended',
-        tierReason: 'It fires only on bracket access with a literal key, and fixes it.',
+        tierReason:
+          'It fires only on bracket access with a literal key, and fixes it.',
       },
       'parameter-properties': {
         cue: 'Private state is declared as a field, not hidden in the constructor signature.',
         tier: 'strict',
-        tierReason: 'Parameter properties are ordinary code in many frameworks.',
+        tierReason:
+          'Parameter properties are ordinary code in many frameworks.',
       },
       'no-unnecessary-condition': {
         cue: 'A leftover check for absence after a Null Object took its place.',
         tier: 'strict',
-        tierReason: 'It fires on many defensive checks in ordinary code, not only leftovers.',
+        tierReason:
+          'It fires on many defensive checks in ordinary code, not only leftovers.',
       },
       'no-extraneous-class': {
         cue: 'A class with no instance behaviour is a lazy or speculative element.',
@@ -117,7 +127,8 @@ export const existingRules = {
       'method-signature-style': {
         cue: 'A role written with property signatures lets the compiler reject a player that narrows a parameter.',
         tier: 'strict',
-        tierReason: 'It fires on every method signature, which is ordinary code.',
+        tierReason:
+          'It fires on every method signature, which is ordinary code.',
         options: ['property'],
       },
       'class-methods-use-this': { conflict: staticAdvice },
@@ -136,8 +147,19 @@ export const existingRules = {
           'A rule is broken only on purpose: a comment that turns a rule off says why, so the reason is there to ' +
           'review. Comments that turn nothing off need none.',
         tier: 'recommended',
-        tierReason: 'It fires only on a comment that turns a rule off without saying why.',
-        options: [{ ignore: ['eslint-enable', 'eslint-env', 'exported', 'global', 'globals'] }],
+        tierReason:
+          'It fires only on a comment that turns a rule off without saying why.',
+        options: [
+          {
+            ignore: [
+              'eslint-enable',
+              'eslint-env',
+              'exported',
+              'global',
+              'globals',
+            ],
+          },
+        ],
       },
     },
   },
@@ -147,12 +169,14 @@ export const existingRules = {
       'no-array-sort': {
         cue: 'A query that sorts its own array in place changes state.',
         tier: 'recommended',
-        tierReason: 'With its default options it fires only where the sorted array is used as a value.',
+        tierReason:
+          'With its default options it fires only where the sorted array is used as a value.',
       },
       'no-array-reverse': {
         cue: 'A query that reverses its own array in place changes state.',
         tier: 'recommended',
-        tierReason: 'With its default options it fires only where the reversed array is used as a value.',
+        tierReason:
+          'With its default options it fires only where the reversed array is used as a value.',
       },
       'no-array-splice': {
         cue: 'Splicing changes an array in place, which a query must not do.',
@@ -160,7 +184,8 @@ export const existingRules = {
         tierReason: 'It fires on every splice, commands included.',
       },
       'prefer-switch': {
-        conflict: 'It turns an if chain into a switch, a conditional OOdour would replace with objects instead.',
+        conflict:
+          'It turns an if chain into a switch, a conditional OOdour would replace with objects instead.',
       },
       'no-static-only-class': {
         conflict:
@@ -174,7 +199,8 @@ export const existingRules = {
     rules: {
       'cognitive-complexity': { duplicateOf: '@oodour/cognitive-complexity' },
       'bool-param-default': {
-        conflict: 'It asks for a default on a boolean parameter, which keeps a flag argument OOdour would remove.',
+        conflict:
+          'It asks for a default on a boolean parameter, which keeps a flag argument OOdour would remove.',
       },
     },
   },
@@ -184,14 +210,27 @@ export const existingRules = {
       'immutable-data': {
         cue: 'A query that changes data it was handed.',
         tier: 'strict',
-        tierReason: 'It fires on every mutation outside a class, commands included.',
+        tierReason:
+          'It fires on every mutation outside a class, commands included.',
         options: [{ ignoreClasses: 'fieldsOnly' }],
       },
-      'no-classes': { conflict: 'It bans classes, the unit OOdour designs with.' },
-      'no-this-expressions': { conflict: "It bans `this`, which an object's own methods need." },
-      'no-class-inheritance': { conflict: 'It bans inheritance, which OOdour allows for a shallow hierarchy.' },
-      'no-mixed-types': { conflict: 'It bans a type that holds both data and behaviour, which is what an object is.' },
-      'no-return-void': { conflict: 'It bans a void return, which a command has by design.' },
+      'no-classes': {
+        conflict: 'It bans classes, the unit OOdour designs with.',
+      },
+      'no-this-expressions': {
+        conflict: "It bans `this`, which an object's own methods need.",
+      },
+      'no-class-inheritance': {
+        conflict:
+          'It bans inheritance, which OOdour allows for a shallow hierarchy.',
+      },
+      'no-mixed-types': {
+        conflict:
+          'It bans a type that holds both data and behaviour, which is what an object is.',
+      },
+      'no-return-void': {
+        conflict: 'It bans a void return, which a command has by design.',
+      },
     },
   },
 } as const satisfies Readonly<Record<string, RuleSource>>;
@@ -201,13 +240,17 @@ export type SourceId = keyof typeof existingRules;
 type Catalog = typeof existingRules;
 
 type ConfiguredIdsOf<TSource extends SourceId> = {
-  [TName in keyof Catalog[TSource]['rules']]: Catalog[TSource]['rules'][TName] extends { readonly options: readonly unknown[] }
+  [TName in keyof Catalog[TSource]['rules']]: Catalog[TSource]['rules'][TName] extends {
+    readonly options: readonly unknown[];
+  }
     ? `${Catalog[TSource]['prefix']}${TName & string}`
     : never;
 }[keyof Catalog[TSource]['rules']];
 
 /** The ID of every cue the catalog sets options for: each needs RuleTester cases that pin those options. */
-export type ConfiguredRuleId = { [TSource in SourceId]: ConfiguredIdsOf<TSource> }[SourceId];
+export type ConfiguredRuleId = {
+  [TSource in SourceId]: ConfiguredIdsOf<TSource>;
+}[SourceId];
 
 /** One catalog entry with the rule ID a config uses for it. */
 export interface CatalogRow {
@@ -224,7 +267,12 @@ export function listExistingRules(): readonly CatalogRow[] {
     .flatMap((source) => {
       const { prefix, rules }: RuleSource = existingRules[source];
 
-      return Object.entries(rules).map(([name, stance]) => ({ source, name, id: `${prefix}${name}`, stance }));
+      return Object.entries(rules).map(([name, stance]) => ({
+        source,
+        name,
+        id: `${prefix}${name}`,
+        stance,
+      }));
     });
 }
 

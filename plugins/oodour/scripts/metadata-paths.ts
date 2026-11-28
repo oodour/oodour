@@ -37,8 +37,16 @@ export function from(base: string, name: string): readonly string[] {
 }
 
 // `cwds` are the folders Git may run in, which it reads a name such as `D:sub` from.
-export const pathsFrom = (base: string, name: string, cwds: readonly string[]): readonly string[] => [
-  ...new Set((driveRelative(name) === null ? [base] : [base, ...cwds]).flatMap((folder) => from(folder, name))),
+export const pathsFrom = (
+  base: string,
+  name: string,
+  cwds: readonly string[],
+): readonly string[] => [
+  ...new Set(
+    (driveRelative(name) === null ? [base] : [base, ...cwds]).flatMap(
+      (folder) => from(folder, name),
+    ),
+  ),
 ];
 
 export const readingsFrom = (
@@ -46,10 +54,22 @@ export const readingsFrom = (
   name: string,
   cwds: readonly string[],
   refusal: string,
-): ReadonlySet<string> => new Set(pathsFrom(base, name, cwds).flatMap((path) => [...readingsOf(path, refusal)]));
+): ReadonlySet<string> =>
+  new Set(
+    pathsFrom(base, name, cwds).flatMap((path) => [
+      ...readingsOf(path, refusal),
+    ]),
+  );
 
 // The system Git runs on takes a `..` by its text or after following the links before it, depending on the platform
 // and the call, so a path is read both ways.
-export function readingsOf(path: string, refusal = `${path} leads to a network path`): ReadonlySet<string> {
-  return new Set([path, normalize(path)].map((reading) => localPath(reading) ?? refuse(refusal)));
+export function readingsOf(
+  path: string,
+  refusal = `${path} leads to a network path`,
+): ReadonlySet<string> {
+  return new Set(
+    [path, normalize(path)].map(
+      (reading) => localPath(reading) ?? refuse(refusal),
+    ),
+  );
 }

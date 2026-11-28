@@ -16,7 +16,9 @@ function complexities(text: string): string[] {
 
 describe('complexity', () => {
   it('counts one path for a function without branches', () => {
-    assert.deepEqual(complexities('function f() { return 1; }'), ["Function 'f': 1"]);
+    assert.deepEqual(complexities('function f() { return 1; }'), [
+      "Function 'f': 1",
+    ]);
   });
 
   it('counts each branch construct the rule counts', () => {
@@ -44,20 +46,27 @@ describe('complexity', () => {
   });
 
   it('keeps a nested function out of the count of the function around it', () => {
-    assert.deepEqual(complexities('function f(a) { if (a) {} return () => (a ? 1 : 2); }'), [
-      "Function 'f': 2",
-      'Arrow function: 2',
-    ]);
+    assert.deepEqual(
+      complexities('function f(a) { if (a) {} return () => (a ? 1 : 2); }'),
+      ["Function 'f': 2", 'Arrow function: 2'],
+    );
   });
 
   it('counts a class field initializer and a static block as units of their own', () => {
-    const text = 'class A { x = this.a ?? 1; static { if (A) {} } m() { return 1; } }';
+    const text =
+      'class A { x = this.a ?? 1; static { if (A) {} } m() { return 1; } }';
 
-    assert.deepEqual(complexities(text), ['Class field initializer: 2', 'Class static block: 2', "Method 'm': 1"]);
+    assert.deepEqual(complexities(text), [
+      'Class field initializer: 2',
+      'Class static block: 2',
+      "Method 'm': 1",
+    ]);
   });
 
   it('counts a class field whose value is a function once, as the function', () => {
-    assert.deepEqual(complexities('class A { #run = (a) => a ?? 1; }'), ['Private method #run: 2']);
+    assert.deepEqual(complexities('class A { #run = (a) => a ?? 1; }'), [
+      'Private method #run: 2',
+    ]);
   });
 
   it('names units as the rule does', () => {

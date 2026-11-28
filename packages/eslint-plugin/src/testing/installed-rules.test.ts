@@ -20,10 +20,16 @@ Object.entries(notRuleModules).forEach(([what, value]) => {
 });
 
 test('installedRule finds a core rule by the name its catalog row gives', () => {
-  assert.equal(typeof installedRule({ source: 'core', name: 'complexity' })?.create, 'function');
+  assert.equal(
+    typeof installedRule({ source: 'core', name: 'complexity' })?.create,
+    'function',
+  );
 });
 
 test('installedRule has no rule for a name its package lacks, or one it only inherits', () => {
-  assert.equal(installedRule({ source: 'core', name: 'no-such-rule' }), undefined);
+  assert.equal(
+    installedRule({ source: 'core', name: 'no-such-rule' }),
+    undefined,
+  );
   assert.equal(installedRule({ source: 'core', name: 'toString' }), undefined);
 });

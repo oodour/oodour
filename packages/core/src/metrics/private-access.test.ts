@@ -17,7 +17,10 @@ function accesses(text: string): string[] {
   return measure(sourceOf(text), [privateAccess])
     .of(privateAccess)
     .flatMap(({ value }) => value)
-    .map(({ node, nonPublic, underscored }) => `${text.slice(...node.range)}: ${nonPublic ?? '-'} ${underscored ?? '-'}`);
+    .map(
+      ({ node, nonPublic, underscored }) =>
+        `${text.slice(...node.range)}: ${nonPublic ?? '-'} ${underscored ?? '-'}`,
+    );
 }
 
 describe('privateAccess', () => {
@@ -37,7 +40,12 @@ describe('privateAccess', () => {
   });
 
   it('passes a variable holding this when a function inside reads it, since it holds the same object', () => {
-    assert.deepEqual(accesses('class A { m() { const self = this; return function () { self._a; }; } }'), []);
+    assert.deepEqual(
+      accesses(
+        'class A { m() { const self = this; return function () { self._a; }; } }',
+      ),
+      [],
+    );
   });
 
   it('finds an access through a part of this, or a variable that holds something else too', () => {
@@ -52,13 +60,17 @@ describe('privateAccess', () => {
   });
 
   it('passes the name of a class around the access, an unnamed class expression by its variable', () => {
-    const text = 'class A { static m() { A._a; } } const C = class { static m() { C._b; } }; A._c;';
+    const text =
+      'class A { static m() { A._a; } } const C = class { static m() { C._b; } }; A._c;';
 
     assert.deepEqual(accesses(text), ['A._c: - _c']);
   });
 
   it('has no measurement for a file without such access, and goes by its name', () => {
-    assert.deepEqual(measure(sourceOf('o.a;'), [privateAccess]).of(privateAccess), []);
+    assert.deepEqual(
+      measure(sourceOf('o.a;'), [privateAccess]).of(privateAccess),
+      [],
+    );
     assert.equal(privateAccess.name, 'private-access');
   });
 });

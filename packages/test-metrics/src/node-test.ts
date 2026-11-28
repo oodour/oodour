@@ -12,11 +12,17 @@ import { shownPath } from './shown-path.ts';
  * call's result.
  */
 export function createTestMetricsReporter(options: TestMetricsOptions = {}) {
-  return async function* testMetrics(source: AsyncIterable<TestEvent>): AsyncGenerator<string> {
+  return async function* testMetrics(
+    source: AsyncIterable<TestEvent>,
+  ): AsyncGenerator<string> {
     for await (const event of source) {
       if (event.type === 'test:coverage') {
         const measured = event.data.summary.files.flatMap((file) =>
-          measuredFromNodeCoverage(shownPath(file.path), functionsIn(file.path, readFileSync(file.path, 'utf8')), file),
+          measuredFromNodeCoverage(
+            shownPath(file.path),
+            functionsIn(file.path, readFileSync(file.path, 'utf8')),
+            file,
+          ),
         );
         const { lines, failed } = testMetricsReport(measured, options);
 

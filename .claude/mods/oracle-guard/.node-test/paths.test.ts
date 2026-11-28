@@ -74,12 +74,23 @@ const samples = [
 
 test('the segments agree with node:path win32 normalize', () => {
   for (const sample of samples) {
-    assert.equal(pathSegments(sample).join('\\'), win32.normalize(sample).replace(/^\\|\\$/g, '').replace(/^\.$/, ''), sample);
+    assert.equal(
+      pathSegments(sample).join('\\'),
+      win32
+        .normalize(sample)
+        .replace(/^\\|\\$/g, '')
+        .replace(/^\.$/, ''),
+      sample,
+    );
   }
 });
 
 test('resolving agrees with node:path win32 resolve against an absolute base', () => {
   for (const sample of samples) {
-    assert.equal(resolvePath('D:\\repo\\sub', sample), win32.resolve('D:\\repo\\sub', sample), sample);
+    assert.equal(
+      resolvePath('D:\\repo\\sub', sample),
+      win32.resolve('D:\\repo\\sub', sample),
+      sample,
+    );
   }
 });

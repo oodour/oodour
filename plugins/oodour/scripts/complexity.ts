@@ -10,7 +10,9 @@ export interface FunctionComplexity {
   readonly complexity: number;
 }
 
-export type Complexity = { readonly functions: readonly FunctionComplexity[] } | { readonly parseError: string };
+export type Complexity =
+  | { readonly functions: readonly FunctionComplexity[] }
+  | { readonly parseError: string };
 
 export function functionComplexity(file: string, text: string): Complexity {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- ESLint 10 has no other route to a core rule's module
@@ -30,8 +32,10 @@ export function functionComplexity(file: string, text: string): Complexity {
     const paths = descriptor.data?.['complexity'];
 
     if (!node?.loc || typeof name !== 'string' || typeof paths !== 'number') {
-      // Stryker disable next-line StringLiteral: the pinned ESLint's rule reports all three, so nothing reaches this message
-      throw new Error("ESLint's complexity rule reported without a located function node, a name or a count.");
+      throw new Error(
+        // Stryker disable next-line StringLiteral: the pinned ESLint's rule reports all three, so nothing reaches this message
+        "ESLint's complexity rule reported without a located function node, a name or a count.",
+      );
     }
 
     if (!reported.has(node)) {
@@ -43,11 +47,15 @@ export function functionComplexity(file: string, text: string): Complexity {
     meta: complexity.meta,
     create(context) {
       // ESLint freezes the context, so an object that inherits from it shadows `report` instead.
-      const listening: unknown = Object.create(context, { report: { value: count } });
+      const listening: unknown = Object.create(context, {
+        report: { value: count },
+      });
 
       if (!isRuleContext(listening)) {
-        // Stryker disable next-line StringLiteral: an object that inherits from the context has both keys, so nothing reaches this message
-        throw new Error('The listening context lost the rule context it inherits from.');
+        throw new Error(
+          // Stryker disable next-line StringLiteral: an object that inherits from the context has both keys, so nothing reaches this message
+          'The listening context lost the rule context it inherits from.',
+        );
       }
 
       return complexity.create(listening);
@@ -55,26 +63,36 @@ export function functionComplexity(file: string, text: string): Complexity {
   };
 
   // Linted by its base name, the file sits below ESLint's cwd and in no folder its default ignores name.
-  const fatal = new Linter().verify(
-    text,
-    [
-      {
-        files: ['**'],
-        languageOptions: { parser },
-        linterOptions: { noInlineConfig: true },
-        plugins: { lz: { rules: { complexity: counting } } },
-        rules: { 'lz/complexity': ['error', 0] },
-      },
-    ],
-    basename(file),
-  ).find((message) => message.fatal === true);
+  const fatal = new Linter()
+    .verify(
+      text,
+      [
+        {
+          files: ['**'],
+          languageOptions: { parser },
+          linterOptions: { noInlineConfig: true },
+          plugins: { lz: { rules: { complexity: counting } } },
+          rules: { 'lz/complexity': ['error', 0] },
+        },
+      ],
+      basename(file),
+    )
+    .find((message) => message.fatal === true);
 
   return fatal
-    ? { parseError: `${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}` }
+    ? {
+        parseError: `${file}:${String(fatal.line)}:${String(fatal.column)} ${fatal.message}`,
+      }
     : { functions };
 }
 
 function isRuleContext(value: unknown): value is Rule.RuleContext {
-  // Stryker disable next-line ConditionalExpression: `true` holds for the one value checked, which inherits from ESLint's context; `false` throws on every file, which every complexity test kills
-  return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
+  // Stryker disable ConditionalExpression: `true` holds for the one value checked, which inherits from ESLint's context; `false` throws on every file, which every complexity test kills
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'report' in value &&
+    'sourceCode' in value
+  );
+  // Stryker restore ConditionalExpression
 }

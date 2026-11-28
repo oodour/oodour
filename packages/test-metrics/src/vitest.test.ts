@@ -7,29 +7,53 @@ import { functionsIn } from './functions.ts';
 import { TestMetricsReporter } from './vitest.ts';
 
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'vitest');
-const vitest = join(import.meta.dirname, '..', '..', '..', 'node_modules', 'vitest', 'vitest.mjs');
+const vitest = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  'node_modules',
+  'vitest',
+  'vitest.mjs',
+);
 // The reporter imports the core package, which this workspace runs from source under the condition this run was given.
 // Vite's default config loader bundles the config and resolves packages without Node's conditions; the native loader
 // leaves the import to Node.
-const vitestRun = [...process.execArgv.filter((flag) => flag.startsWith('--conditions')), vitest, 'run', '--configLoader', 'native'];
+const vitestRun = [
+  ...process.execArgv.filter((flag) => flag.startsWith('--conditions')),
+  vitest,
+  'run',
+  '--configLoader',
+  'native',
+];
 
 /** The fixture's coverage when no test called `classify`, its one listed function. */
 function uncalledClassify() {
   const path = join(fixture, 'src', 'order.ts');
-  const classify = functionsIn(path, readFileSync(path, 'utf8')).find(({ name }) => name === "Function 'classify'");
+  const classify = functionsIn(path, readFileSync(path, 'utf8')).find(
+    ({ name }) => name === "Function 'classify'",
+  );
 
   if (classify === undefined) {
     throw new Error("The fixture lost its function 'classify'.");
   }
 
   const loc = { start: classify.bodyStart, end: classify.end };
-  const file = { fnMap: { '0': { name: 'classify', loc } }, f: { '0': 0 }, statementMap: {}, s: {}, branchMap: {}, b: {} };
+  const file = {
+    fnMap: { '0': { name: 'classify', loc } },
+    f: { '0': 0 },
+    statementMap: {},
+    s: {},
+    branchMap: {},
+    b: {},
+  };
 
   return { [path]: file };
 }
 
 test('the Vitest and node:test fixtures measure the same source, so both runs can expect the same lines', () => {
-  const source = (runner: string) => readFileSync(join(fixture, '..', runner, 'src', 'order.ts'), 'utf8');
+  const source = (runner: string) =>
+    readFileSync(join(fixture, '..', runner, 'src', 'order.ts'), 'utf8');
 
   assert.equal(source('vitest'), source('node-test'));
 });
@@ -42,7 +66,12 @@ test('the reporter prints one line per finding and fails the run when a CRAP lin
     new TestMetricsReporter({ limit: 6 }).onCoverage(uncalledClassify());
 
     assert.deepEqual(
-      { printed: log.mock.calls.map(({ arguments: [text] }) => String(text).split('\n').length), exitCode: process.exitCode },
+      {
+        printed: log.mock.calls.map(
+          ({ arguments: [text] }) => String(text).split('\n').length,
+        ),
+        exitCode: process.exitCode,
+      },
       { printed: [1], exitCode: 1 },
     );
   } finally {
@@ -56,25 +85,41 @@ test('the reporter prints nothing and leaves the run passing when it finds nothi
 
   new TestMetricsReporter().onCoverage(uncalledClassify());
 
-  assert.deepEqual({ printed: log.mock.callCount(), exitCode: process.exitCode }, { printed: 0, exitCode: before });
+  assert.deepEqual(
+    { printed: log.mock.callCount(), exitCode: process.exitCode },
+    { printed: 0, exitCode: before },
+  );
 });
 
 test('the same Vitest run without coverage passes, so a failed run with coverage is the reporter failing it', () => {
-  const run = spawnSync(process.execPath, [...vitestRun, '--coverage.enabled=false'], {
-    cwd: fixture,
-    encoding: 'utf8',
-  });
+  const run = spawnSync(
+    process.execPath,
+    [...vitestRun, '--coverage.enabled=false'],
+    {
+      cwd: fixture,
+      encoding: 'utf8',
+    },
+  );
 
-  assert.deepEqual({ reported: run.stdout.includes('Stop and look'), status: run.status }, { reported: false, status: 0 });
+  assert.deepEqual(
+    { reported: run.stdout.includes('Stop and look'), status: run.status },
+    { reported: false, status: 0 },
+  );
 });
 
 for (const provider of ['v8', 'istanbul']) {
   test(`a Vitest run with ${provider} coverage reports each function at the CRAP limit and fails, and flags untested code`, () => {
-    const run = spawnSync(process.execPath, [...vitestRun, `--coverage.provider=${provider}`], {
-      cwd: fixture,
-      encoding: 'utf8',
-    });
-    const reports = run.stdout.split(/\r?\n/u).filter((line) => line.includes('Stop and look'));
+    const run = spawnSync(
+      process.execPath,
+      [...vitestRun, `--coverage.provider=${provider}`],
+      {
+        cwd: fixture,
+        encoding: 'utf8',
+      },
+    );
+    const reports = run.stdout
+      .split(/\r?\n/u)
+      .filter((line) => line.includes('Stop and look'));
 
     assert.deepEqual(
       { reports, status: run.status },

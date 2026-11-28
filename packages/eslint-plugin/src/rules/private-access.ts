@@ -1,19 +1,31 @@
-import { type PrivateAccess, privateAccess as privateAccessMetric } from '@oodour/core';
+import {
+  type PrivateAccess,
+  privateAccess as privateAccessMetric,
+} from '@oodour/core';
 import { defineMetricRule } from '../define-metric-rule.ts';
 
 type Options = [{ readonly underscore: boolean }];
 
-export const privateAccess = defineMetricRule<Options, 'found', readonly PrivateAccess[]>({
+export const privateAccess = defineMetricRule<
+  Options,
+  'found',
+  readonly PrivateAccess[]
+>({
   name: 'private-access',
   metric: privateAccessMetric,
   meta: {
     type: 'suggestion',
     docs: {
-      description: "Report code that reaches into another object's private member",
+      description:
+        "Report code that reaches into another object's private member",
       concept: 'Inappropriate Intimacy',
       cures: ['public message'],
       requiresTypeChecking: false,
-      remedy: { kind: 'none', because: 'which public message serves the need is a design decision no tool can make' },
+      remedy: {
+        kind: 'none',
+        because:
+          'which public message serves the need is a design decision no tool can make',
+      },
       tier: 'recommended',
       strictOptions: [{ underscore: true }],
       defaultsNeedTypes: true,

@@ -25,7 +25,10 @@ function characterAt(bytes: Uint8Array): readonly [string, number] {
     return [String.fromCharCode(lead), 1];
   }
 
-  const byItself = [lead >= 0xa0 ? String.fromCharCode(lead) : lead.toString(16), 1] as const;
+  const byItself = [
+    lead >= 0xa0 ? String.fromCharCode(lead) : lead.toString(16),
+    1,
+  ] as const;
 
   if (lead < 0xc2 || b === undefined) {
     return byItself;
@@ -43,9 +46,17 @@ function characterAt(bytes: Uint8Array): readonly [string, number] {
     return [String.fromCharCode(((lead & 0x0f) << 12) | (b << 6) | c), 3];
   }
 
-  if (d === undefined || lead >= 0xf5 || (lead === 0xf0 && second < 0x90) || (lead === 0xf4 && second >= 0x90)) {
+  if (
+    d === undefined ||
+    lead >= 0xf5 ||
+    (lead === 0xf0 && second < 0x90) ||
+    (lead === 0xf4 && second >= 0x90)
+  ) {
     return byItself;
   }
 
-  return [String.fromCodePoint(((lead & 0x07) << 18) | (b << 12) | (c << 6) | d), 4];
+  return [
+    String.fromCodePoint(((lead & 0x07) << 18) | (b << 12) | (c << 6) | d),
+    4,
+  ];
 }

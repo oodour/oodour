@@ -1,8 +1,19 @@
-import { type Dirent, lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import {
+  type Dirent,
+  lstatSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+} from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { placeBelow } from './below.ts';
 import { repositoryTop, type Repository } from './git.ts';
-import { type IgnoreFile, ignoreFileIn, isIgnored, isNamed } from './gitignore.ts';
+import {
+  type IgnoreFile,
+  ignoreFileIn,
+  isIgnored,
+  isNamed,
+} from './gitignore.ts';
 
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
 
@@ -25,7 +36,8 @@ export function isTest(file: string): boolean {
 }
 
 // Git never lists what is in .git, whatever its case where names have none; node_modules is left out by choice.
-const isNotWalked = (name: string): boolean => isNamed(name, '.git') || name === 'node_modules';
+const isNotWalked = (name: string): boolean =>
+  isNamed(name, '.git') || name === 'node_modules';
 
 export interface Walked {
   readonly files: readonly string[];
@@ -39,7 +51,8 @@ export interface Ignoring {
   readonly above: readonly IgnoreFile[];
 }
 
-const joined = (...parts: readonly string[]): string => parts.filter((part) => part !== '').join('/');
+const joined = (...parts: readonly string[]): string =>
+  parts.filter((part) => part !== '').join('/');
 
 // readdirSync names a link as a link, so the walk never enters one: on Windows, listing a folder a link leads to on
 // \\host\share sends the user's credentials to that host. globSync enters links on Node.js 22. A name ending in a dot
@@ -52,23 +65,38 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
   const files: string[] = [];
   const skipped: string[] = [];
   const ignored: string[] = [];
-  const folders: { readonly folder: string; readonly ignoreFiles: readonly IgnoreFile[] }[] = [
-    { folder: '', ignoreFiles: ignoring?.above ?? [] },
-  ];
+  const folders: {
+    readonly folder: string;
+    readonly ignoreFiles: readonly IgnoreFile[];
+  }[] = [{ folder: '', ignoreFiles: ignoring?.above ?? [] }];
 
   for (let next = folders.pop(); next !== undefined; next = folders.pop()) {
     const { folder } = next;
-    const entries = folder === '' ? readdirSync(root, { withFileTypes: true }) : listed(join(root, folder));
+    const entries =
+      folder === ''
+        ? readdirSync(root, { withFileTypes: true })
+        : listed(join(root, folder));
 
-    if (entries === undefined || (folder !== '' && entries.some((entry) => isNamed(entry.name, '.git')))) {
+    if (
+      entries === undefined ||
+      (folder !== '' && entries.some((entry) => isNamed(entry.name, '.git')))
+    ) {
       skipped.push(folder);
       continue;
     }
 
-    const ownName = entries.find((entry) => isNamed(entry.name, '.gitignore') && entry.isFile())?.name;
+    const ownName = entries.find(
+      (entry) => isNamed(entry.name, '.gitignore') && entry.isFile(),
+    )?.name;
     const ignoreFiles =
       ignoring !== undefined && ownName !== undefined
-        ? [...next.ignoreFiles, ignoreFileIn(joined(prefix, folder), readFileSync(join(root, folder, ownName), 'utf8'))]
+        ? [
+            ...next.ignoreFiles,
+            ignoreFileIn(
+              joined(prefix, folder),
+              readFileSync(join(root, folder, ownName), 'utf8'),
+            ),
+          ]
         : next.ignoreFiles;
 
     for (const entry of entries) {
@@ -80,7 +108,9 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
 
       if (entry.isSymbolicLink() || /[. ]$/.test(entry.name)) {
         skipped.push(path);
-      } else if (isIgnored(ignoreFiles, joined(prefix, path), entry.isDirectory())) {
+      } else if (
+        isIgnored(ignoreFiles, joined(prefix, path), entry.isDirectory())
+      ) {
         if (entry.isDirectory()) {
           ignored.push(path);
         }
@@ -92,16 +122,28 @@ export function filesBelow(root: string, ignoring?: Ignoring): Walked {
     }
   }
 
-  return { files: files.sort(), skipped: skipped.sort(), ignored: ignoring === undefined ? undefined : ignored.sort() };
+  return {
+    files: files.sort(),
+    skipped: skipped.sort(),
+    ignored: ignoring === undefined ? undefined : ignored.sort(),
+  };
 }
 
 // .git/info/exclude, then the .gitignore of each folder from the top down to the one above the scope (`root`). A folder
 // on the way that these ignore makes the whole scope ignored: Git re-includes nothing below an ignored folder.
-export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' {
+export function ignoringAt(
+  top: string,
+  root: string,
+): Ignoring | 'whole scope' {
   const prefix = withSlashes(relative(top, root));
   // At the top itself the prefix is '', which names the top a second time. The top and the scope's own .gitignore are
   // then read again here or by the walk, and the same rules applied twice decide the same.
-  const folders = ['', ...prefix.split('/').map((_, index, parts) => joined(...parts.slice(0, index + 1)))];
+  const folders = [
+    '',
+    ...prefix
+      .split('/')
+      .map((_, index, parts) => joined(...parts.slice(0, index + 1))),
+  ];
   let above = ignoreFileAt(top, '', '.git/info/exclude');
 
   for (const folder of folders) {
@@ -109,7 +151,10 @@ export function ignoringAt(top: string, root: string): Ignoring | 'whole scope' 
       return 'whole scope';
     }
 
-    above =[...above, ...ignoreFileAt(top, folder, joined(folder, '.gitignore'))];
+    above = [
+      ...above,
+      ...ignoreFileAt(top, folder, joined(folder, '.gitignore')),
+    ];
   }
 
   return { prefix, above };
@@ -130,7 +175,10 @@ function plainFileText(top: string, path: string): string | undefined {
     current = join(current, part);
     const stats = lstatSync(current, { throwIfNoEntry: false });
 
-    if (stats === undefined || !(index === parts.length - 1 ? stats.isFile() : stats.isDirectory())) {
+    if (
+      stats === undefined ||
+      !(index === parts.length - 1 ? stats.isFile() : stats.isDirectory())
+    ) {
       return undefined;
     }
   }
@@ -144,7 +192,12 @@ function listed(folder: string): Dirent[] | undefined {
   try {
     return readdirSync(folder, { withFileTypes: true });
   } catch (error) {
-    if (error instanceof Error && 'code' in error && typeof error.code === 'string' && unlistable.has(error.code)) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      unlistable.has(error.code)
+    ) {
       return undefined;
     }
 
@@ -152,7 +205,10 @@ function listed(folder: string): Dirent[] | undefined {
   }
 }
 
-export function sources(scope: string, repository: Repository | undefined): Sources {
+export function sources(
+  scope: string,
+  repository: Repository | undefined,
+): Sources {
   // A link, or a file below a linked folder, could lead outside the root, so it is checked before anything opens it.
   // A link that stays below the root is left out too: the file it leads to is listed under its own path.
   const isSourceOnDisk = (root: string) => {
@@ -180,7 +236,14 @@ export function sources(scope: string, repository: Repository | undefined): Sour
   }
 
   const { git, top, prefix } = repository;
-  const all = git(['ls-files', '--cached', '--others', '--exclude-standard', '--full-name', ':/'])
+  const all = git([
+    'ls-files',
+    '--cached',
+    '--others',
+    '--exclude-standard',
+    '--full-name',
+    ':/',
+  ])
     .split('\n')
     .filter(isSourceOnDisk(top));
 

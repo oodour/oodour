@@ -14,7 +14,11 @@ const corpusFolders = ['packages', 'plugins/oodour/scripts', 'tools'];
 function corpus(): string[] {
   return corpusFolders.flatMap((folder) =>
     readdirSync(join(workspace, folder), { recursive: true, encoding: 'utf8' })
-      .filter((path) => /\.[cm]?tsx?$/.test(path) && !/(^|[\\/])(node_modules|dist)[\\/]/.test(path))
+      .filter(
+        (path) =>
+          /\.[cm]?tsx?$/.test(path) &&
+          !/(^|[\\/])(node_modules|dist)[\\/]/.test(path),
+      )
       .map((path) => join(workspace, folder, path)),
   );
 }
@@ -44,10 +48,14 @@ function eslintUnits(file: string, text: string): string[] {
     meta: rule.meta,
     create(context) {
       // ESLint freezes the context, so an object that inherits from it shadows `report` instead.
-      const listening: unknown = Object.create(context, { report: { value: count } });
+      const listening: unknown = Object.create(context, {
+        report: { value: count },
+      });
 
       if (!isRuleContext(listening)) {
-        throw new Error('The listening context lost the rule context it inherits from.');
+        throw new Error(
+          'The listening context lost the rule context it inherits from.',
+        );
       }
 
       return rule.create(listening);
@@ -69,14 +77,18 @@ function eslintUnits(file: string, text: string): string[] {
     )
     .find((message) => message.fatal === true);
 
-  return fatal ? [`parse error ${String(fatal.line)}:${String(fatal.column)}`] : units.sort(byPosition);
+  return fatal
+    ? [`parse error ${String(fatal.line)}:${String(fatal.column)}`]
+    : units.sort(byPosition);
 }
 
 function coreUnits(file: string, text: string): string[] {
   const source = parseSource(text, file);
 
   if ('parseError' in source) {
-    return [`parse error ${/:(\d+:\d+) /.exec(source.parseError)?.[1] ?? source.parseError}`];
+    return [
+      `parse error ${/:(\d+:\d+) /.exec(source.parseError)?.[1] ?? source.parseError}`,
+    ];
   }
 
   return measure(source, [complexity])
@@ -90,7 +102,12 @@ function coreUnits(file: string, text: string): string[] {
 }
 
 function isRuleContext(value: unknown): value is Rule.RuleContext {
-  return typeof value === 'object' && value !== null && 'report' in value && 'sourceCode' in value;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'report' in value &&
+    'sourceCode' in value
+  );
 }
 
 function byPosition(a: string, b: string): number {
@@ -103,15 +120,34 @@ describe("complexity against ESLint's complexity rule", () => {
     const compared = files.map((file) => {
       const text = readFileSync(file, 'utf8');
 
-      return { file: relative(workspace, file), eslint: eslintUnits(file, text), core: coreUnits(file, text) };
+      return {
+        file: relative(workspace, file),
+        eslint: eslintUnits(file, text),
+        core: coreUnits(file, text),
+      };
     });
-    const units = compared.reduce((total, { eslint }) => total + eslint.length, 0);
-    const kinds = new Set(compared.flatMap(({ eslint }) => eslint.map((unit) => /^\S+ (\S+)/.exec(unit)?.[1])));
+    const units = compared.reduce(
+      (total, { eslint }) => total + eslint.length,
+      0,
+    );
+    const kinds = new Set(
+      compared.flatMap(({ eslint }) =>
+        eslint.map((unit) => /^\S+ (\S+)/.exec(unit)?.[1]),
+      ),
+    );
 
-    assert.ok(units > 1000, `ESLint reported ${String(units)} units over ${String(files.length)} files`);
-    assert.ok(kinds.has('Arrow') && kinds.has('Method') && kinds.has('Getter'), [...kinds].join(', '));
+    assert.ok(
+      units > 1000,
+      `ESLint reported ${String(units)} units over ${String(files.length)} files`,
+    );
+    assert.ok(
+      kinds.has('Arrow') && kinds.has('Method') && kinds.has('Getter'),
+      [...kinds].join(', '),
+    );
     assert.deepEqual(
-      compared.filter(({ eslint, core }) => eslint.join('\n') !== core.join('\n')),
+      compared.filter(
+        ({ eslint, core }) => eslint.join('\n') !== core.join('\n'),
+      ),
       [],
     );
   });

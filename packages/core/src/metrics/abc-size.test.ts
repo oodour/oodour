@@ -12,7 +12,10 @@ function counts(text: string): string[] {
 
   return measure(source, [abcSize])
     .of(abcSize)
-    .map(({ unit, value }) => `${unitName(unit)}: ${[value.assignments, value.sends, value.conditions].join('/')}`);
+    .map(
+      ({ unit, value }) =>
+        `${unitName(unit)}: ${[value.assignments, value.sends, value.conditions].join('/')}`,
+    );
 }
 
 const body = (code: string): string[] => counts(`function f(p, q) { ${code} }`);
@@ -23,7 +26,9 @@ describe('abcSize', () => {
   });
 
   it('counts a declaration with a value, an assignment and an update as assignments', () => {
-    assert.deepEqual(body('let u; let w = 1; p = 2; q++; p += 1;'), ["Function 'f': 4/0/0"]);
+    assert.deepEqual(body('let u; let w = 1; p = 2; q++; p += 1;'), [
+      "Function 'f': 4/0/0",
+    ]);
   });
 
   it('counts a call and a `new` as sends', () => {
@@ -31,15 +36,21 @@ describe('abcSize', () => {
   });
 
   it('counts each comparison operator, and no other binary operator', () => {
-    assert.deepEqual(body('p == q; p === q; p != q; p !== q; p < q; p > q; p <= q; p >= q; p + q; p in q;'), [
-      "Function 'f': 0/0/8",
-    ]);
+    assert.deepEqual(
+      body(
+        'p == q; p === q; p != q; p !== q; p < q; p > q; p <= q; p >= q; p + q; p in q;',
+      ),
+      ["Function 'f': 0/0/8"],
+    );
   });
 
   it('counts a test that is not a comparison, of each statement that tests', () => {
-    assert.deepEqual(body('if (p) {} while (p) {} do {} while (p); for (; p; ) {} p ? 1 : 2; for (;;) {}'), [
-      "Function 'f': 0/0/6",
-    ]);
+    assert.deepEqual(
+      body(
+        'if (p) {} while (p) {} do {} while (p); for (; p; ) {} p ? 1 : 2; for (;;) {}',
+      ),
+      ["Function 'f': 0/0/6"],
+    );
   });
 
   it('counts a comparison as a test once', () => {
@@ -47,9 +58,10 @@ describe('abcSize', () => {
   });
 
   it('counts an else, and a ternary alternate, but not an else-if as an alternate', () => {
-    assert.deepEqual(body('if (p) {} else {} if (p) {} else if (q) {} const r = p ? 1 : 2;'), [
-      "Function 'f': 1/0/6",
-    ]);
+    assert.deepEqual(
+      body('if (p) {} else {} if (p) {} else if (q) {} const r = p ? 1 : 2;'),
+      ["Function 'f': 1/0/6"],
+    );
   });
 
   it('counts a logical expression that is also a test twice', () => {
@@ -58,26 +70,34 @@ describe('abcSize', () => {
 
   it('counts cases, loops over keys and values, a catch, logical assignment and optional chaining', () => {
     assert.deepEqual(
-      body('switch (p) { case 1: default: } for (const k in p) {} for (const v of q) {} try {} catch {} p ||= 1; p &&= 1; p ??= 1; p?.a; p?.();'),
+      body(
+        'switch (p) { case 1: default: } for (const k in p) {} for (const v of q) {} try {} catch {} p ||= 1; p &&= 1; p ??= 1; p?.a; p?.();',
+      ),
       ["Function 'f': 3/1/10"],
     );
   });
 
   it('gives a nested function its own counts, a scored position included', () => {
-    assert.deepEqual(counts('function f(p) { g(); return p ? 1 : () => p && h(); }'), [
-      "Function 'f': 0/1/1",
-      'Arrow function: 0/1/2',
-    ]);
+    assert.deepEqual(
+      counts('function f(p) { g(); return p ? 1 : () => p && h(); }'),
+      ["Function 'f': 0/1/1", 'Arrow function: 0/1/2'],
+    );
   });
 
   it('names itself abc-size where a run left it out', () => {
     const source = parseSource('', 'file.ts');
 
     assert.ok(!('parseError' in source));
-    assert.throws(() => measure(source, []).of(abcSize), /^Error: The metric 'abc-size' was not measured/);
+    assert.throws(
+      () => measure(source, []).of(abcSize),
+      /^Error: The metric 'abc-size' was not measured/,
+    );
   });
 
   it('scores functions only, not class field initializers or static blocks', () => {
-    assert.deepEqual(counts('class A { x = g(); static { if (A) {} } m() { return 1; } }'), ["Method 'm': 0/0/0"]);
+    assert.deepEqual(
+      counts('class A { x = g(); static { if (A) {} } m() { return 1; } }'),
+      ["Method 'm': 0/0/0"],
+    );
   });
 });

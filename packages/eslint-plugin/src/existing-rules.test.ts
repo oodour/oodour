@@ -9,10 +9,17 @@ import { testConfiguredRules } from './testing/rule-testers.ts';
 testConfiguredRules({
   'no-param-reassign': {
     valid: ['function f(order) { return { ...order, total: 0 }; }'],
-    invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
+    invalid: [
+      {
+        code: 'function f(order) { order.total = 0; }',
+        errors: [{ messageId: 'assignmentToFunctionParamProp' }],
+      },
+    ],
   },
   '@typescript-eslint/switch-exhaustiveness-check': {
-    valid: ["declare const shape: 'circle' | 'square';\nswitch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n"],
+    valid: [
+      "declare const shape: 'circle' | 'square';\nswitch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n",
+    ],
     invalid: [
       {
         code: "declare const shape: 'circle' | 'square';\nswitch (shape) {\n  case 'circle':\n    break;\n  default:\n    break;\n}\n",
@@ -48,13 +55,26 @@ testConfiguredRules({
       '/* global answer */\nanswer;',
     ],
     invalid: [
-      { code: '// eslint-disable-next-line no-console\nconsole.log(1);', errors: [{ messageId: 'missingDescription' }] },
-      { code: '/* eslint no-console: "off" */\nconsole.log(1);', errors: [{ messageId: 'missingDescription' }] },
+      {
+        code: '// eslint-disable-next-line no-console\nconsole.log(1);',
+        errors: [{ messageId: 'missingDescription' }],
+      },
+      {
+        code: '/* eslint no-console: "off" */\nconsole.log(1);',
+        errors: [{ messageId: 'missingDescription' }],
+      },
     ],
   },
   'functional/immutable-data': {
-    valid: ['class Counter { count = 0; increment(): void { this.count = this.count + 1; } }'],
-    invalid: [{ code: 'function f(order: { total: number }): void { order.total = 0; }', errors: [{ messageId: 'generic' }] }],
+    valid: [
+      'class Counter { count = 0; increment(): void { this.count = this.count + 1; } }',
+    ],
+    invalid: [
+      {
+        code: 'function f(order: { total: number }): void { order.total = 0; }',
+        errors: [{ messageId: 'generic' }],
+      },
+    ],
   },
 });
 
@@ -78,14 +98,19 @@ test('no cue is deprecated in its installed package', () => {
 
 test('every duplicate is turned off in favour of a rule of this plugin, which reports it under our message', () => {
   const elsewhere = listExistingRules().flatMap(({ id, stance }) =>
-    'duplicateOf' in stance && !Object.hasOwn(rules, stance.duplicateOf.replace('@oodour/', '')) ? [id] : [],
+    'duplicateOf' in stance &&
+    !Object.hasOwn(rules, stance.duplicateOf.replace('@oodour/', ''))
+      ? [id]
+      : [],
   );
 
   assert.deepEqual(elsewhere, []);
 });
 
 test('each catalog row carries the rule ID its source prefix gives it', () => {
-  const row = listExistingRules().find(({ id }) => id === 'unicorn/no-array-sort');
+  const row = listExistingRules().find(
+    ({ id }) => id === 'unicorn/no-array-sort',
+  );
 
   assert.deepEqual(row, {
     source: 'unicorn',

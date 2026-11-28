@@ -3,7 +3,14 @@ import { spawnSync } from 'node:child_process';
 import { describe, test } from 'node:test';
 import { createRule, type Remedy } from '../create-rule.ts';
 import { join } from 'node:path';
-import { cureContractProblem, testConfiguredRule, testConfiguredRules, testerConfigFor, testRule, testRuleWithTypes } from './rule-testers.ts';
+import {
+  cureContractProblem,
+  testConfiguredRule,
+  testConfiguredRules,
+  testerConfigFor,
+  testRule,
+  testRuleWithTypes,
+} from './rule-testers.ts';
 
 const noCases = { valid: [], invalid: [] };
 
@@ -59,9 +66,15 @@ describe('testConfiguredRules runs the cases of every configured cue', () => {
 
   testConfiguredRules({
     'no-param-reassign': recording('no-param-reassign'),
-    '@typescript-eslint/switch-exhaustiveness-check': recording('@typescript-eslint/switch-exhaustiveness-check'),
-    '@typescript-eslint/method-signature-style': recording('@typescript-eslint/method-signature-style'),
-    '@eslint-community/eslint-comments/require-description': recording('@eslint-community/eslint-comments/require-description'),
+    '@typescript-eslint/switch-exhaustiveness-check': recording(
+      '@typescript-eslint/switch-exhaustiveness-check',
+    ),
+    '@typescript-eslint/method-signature-style': recording(
+      '@typescript-eslint/method-signature-style',
+    ),
+    '@eslint-community/eslint-comments/require-description': recording(
+      '@eslint-community/eslint-comments/require-description',
+    ),
     'functional/immutable-data': recording('functional/immutable-data'),
   });
 
@@ -80,15 +93,23 @@ describe('testConfiguredRules runs the cases of every configured cue', () => {
 describe('testConfiguredRule runs the cases with the catalog options', () => {
   testConfiguredRule('no-param-reassign', {
     valid: ['function f(order) { return { ...order, total: 0 }; }'],
-    invalid: [{ code: 'function f(order) { order.total = 0; }', errors: [{ messageId: 'assignmentToFunctionParamProp' }] }],
+    invalid: [
+      {
+        code: 'function f(order) { order.total = 0; }',
+        errors: [{ messageId: 'assignmentToFunctionParamProp' }],
+      },
+    ],
   });
 });
 
 describe('testConfiguredRule gives a rule that needs type information the strict typed fixture', () => {
-  const shape = "type Shape = 'circle' | 'square';\ndeclare const shape: Shape;\n";
+  const shape =
+    "type Shape = 'circle' | 'square';\ndeclare const shape: Shape;\n";
 
   testConfiguredRule('@typescript-eslint/switch-exhaustiveness-check', {
-    valid: [`${shape}switch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n`],
+    valid: [
+      `${shape}switch (shape) {\n  case 'circle':\n  case 'square':\n    break;\n}\n`,
+    ],
     invalid: [
       {
         code: `${shape}switch (shape) {\n  case 'circle':\n    break;\n  default:\n    break;\n}\n`,
@@ -135,7 +156,10 @@ test('a fix rule whose invalid cases show no output breaks the cure contract', (
     invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }],
   });
 
-  assert.equal(problem, 'some-rule declares remedy "fix", but no invalid case has an output.');
+  assert.equal(
+    problem,
+    'some-rule declares remedy "fix", but no invalid case has an output.',
+  );
 });
 
 test('a fix rule with an invalid case that shows its output keeps the cure contract', () => {
@@ -156,38 +180,66 @@ test('a fix rule whose only output is null, which says the fix changes nothing, 
     invalid: [{ code: 'a;', output: null, errors: [{ messageId: 'problem' }] }],
   });
 
-  assert.equal(problem, 'some-rule declares remedy "fix", but no invalid case has an output.');
+  assert.equal(
+    problem,
+    'some-rule declares remedy "fix", but no invalid case has an output.',
+  );
 });
 
 test('a suggestion rule whose errors list no suggestion breaks the cure contract', () => {
-  const problem = cureContractProblem(ruleWith({ kind: 'suggestion', because: 'a person confirms it' }), {
-    valid: [],
-    invalid: [{ code: 'a;', errors: [{ messageId: 'problem', suggestions: [] }] }],
-  });
+  const problem = cureContractProblem(
+    ruleWith({ kind: 'suggestion', because: 'a person confirms it' }),
+    {
+      valid: [],
+      invalid: [
+        { code: 'a;', errors: [{ messageId: 'problem', suggestions: [] }] },
+      ],
+    },
+  );
 
-  assert.equal(problem, 'some-rule declares remedy "suggestion", but no error of an invalid case has suggestions.');
+  assert.equal(
+    problem,
+    'some-rule declares remedy "suggestion", but no error of an invalid case has suggestions.',
+  );
 });
 
 test('a suggestion rule whose errors show no suggestions breaks the cure contract', () => {
-  const problem = cureContractProblem(ruleWith({ kind: 'suggestion', because: 'a person confirms it' }), {
-    valid: [],
-    invalid: [{ code: 'a;', output: 'b;', errors: [{ messageId: 'problem' }] }],
-  });
+  const problem = cureContractProblem(
+    ruleWith({ kind: 'suggestion', because: 'a person confirms it' }),
+    {
+      valid: [],
+      invalid: [
+        { code: 'a;', output: 'b;', errors: [{ messageId: 'problem' }] },
+      ],
+    },
+  );
 
-  assert.equal(problem, 'some-rule declares remedy "suggestion", but no error of an invalid case has suggestions.');
+  assert.equal(
+    problem,
+    'some-rule declares remedy "suggestion", but no error of an invalid case has suggestions.',
+  );
 });
 
 test('a suggestion rule with an error that shows its suggestions keeps the cure contract', () => {
-  const problem = cureContractProblem(ruleWith({ kind: 'suggestion', because: 'a person confirms it' }), {
-    valid: [],
-    invalid: [
-      { code: 'a;', errors: [{ messageId: 'problem' }] },
-      {
-        code: 'b;',
-        errors: [{ messageId: 'problem' }, { messageId: 'problem', suggestions: [{ messageId: 'problem', output: 'c;' }] }],
-      },
-    ],
-  });
+  const problem = cureContractProblem(
+    ruleWith({ kind: 'suggestion', because: 'a person confirms it' }),
+    {
+      valid: [],
+      invalid: [
+        { code: 'a;', errors: [{ messageId: 'problem' }] },
+        {
+          code: 'b;',
+          errors: [
+            { messageId: 'problem' },
+            {
+              messageId: 'problem',
+              suggestions: [{ messageId: 'problem', output: 'c;' }],
+            },
+          ],
+        },
+      ],
+    },
+  );
 
   assert.equal(problem, undefined);
 });
@@ -199,7 +251,13 @@ test('a rule that requires type checking is tested with the project service on t
     languageOptions: {
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture'),
+        tsconfigRootDir: join(
+          import.meta.dirname,
+          '..',
+          '..',
+          'tests',
+          'typed-fixture',
+        ),
       },
     },
   });
@@ -240,7 +298,11 @@ describe('testRule runs the cases against the rule as node:test subtests', () =>
     valid: [],
     invalid: [
       { code: 'const a: number = 1;', errors: [{ messageId: 'program' }] },
-      { code: 'const b: number = 2;', only: true, errors: [{ messageId: 'program' }] },
+      {
+        code: 'const b: number = 2;',
+        only: true,
+        errors: [{ messageId: 'program' }],
+      },
     ],
   });
 
@@ -252,18 +314,30 @@ describe('testRule runs the cases against the rule as node:test subtests', () =>
 test('testRule refuses cases that break the cure contract', () => {
   assert.throws(
     () => {
-      testRule(ruleWith({ kind: 'fix' }), { valid: [], invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }] });
+      testRule(ruleWith({ kind: 'fix' }), {
+        valid: [],
+        invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }],
+      });
     },
-    { message: 'some-rule declares remedy "fix", but no invalid case has an output.' },
+    {
+      message:
+        'some-rule declares remedy "fix", but no invalid case has an output.',
+    },
   );
 });
 
 test('testRuleWithTypes refuses cases that break the cure contract', () => {
   assert.throws(
     () => {
-      testRuleWithTypes(ruleWith({ kind: 'fix' }), { valid: [], invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }] });
+      testRuleWithTypes(ruleWith({ kind: 'fix' }), {
+        valid: [],
+        invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }],
+      });
     },
-    { message: 'some-rule declares remedy "fix", but no invalid case has an output.' },
+    {
+      message:
+        'some-rule declares remedy "fix", but no invalid case has an output.',
+    },
   );
 });
 
@@ -273,7 +347,8 @@ describe('testRuleWithTypes gives type information to a rule that does not requi
     meta: {
       type: 'suggestion',
       docs: {
-        description: 'Reports every program whose file came with a type checker',
+        description:
+          'Reports every program whose file came with a type checker',
         concept: 'Some concept',
         cures: ['Some cure'],
         requiresTypeChecking: false,
@@ -293,13 +368,25 @@ describe('testRuleWithTypes gives type information to a rule that does not requi
     }),
   });
 
-  testRuleWithTypes(readsTypes, { valid: [], invalid: [{ code: 'const a = 1;', errors: [{ messageId: 'typed' }] }] });
+  testRuleWithTypes(readsTypes, {
+    valid: [],
+    invalid: [{ code: 'const a = 1;', errors: [{ messageId: 'typed' }] }],
+  });
 
   test('a spec file that calls it reports a suite named after the rule, with type information', () => {
-    const spec = join(import.meta.dirname, '..', '..', 'tests', 'typed-suite', 'spec.ts');
+    const spec = join(
+      import.meta.dirname,
+      '..',
+      '..',
+      'tests',
+      'typed-suite',
+      'spec.ts',
+    );
     // Without the variables that make this process a test file of an outer run, the spec reports as a run of its own.
     const env = Object.fromEntries(
-      Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT' && name !== 'NODE_OPTIONS'),
+      Object.entries(process.env).filter(
+        ([name]) => name !== 'NODE_TEST_CONTEXT' && name !== 'NODE_OPTIONS',
+      ),
     );
     const { status, stdout, stderr } = spawnSync(
       process.execPath,
@@ -314,10 +401,13 @@ describe('testRuleWithTypes gives type information to a rule that does not requi
 });
 
 test('a rule with remedy "none" keeps the cure contract with plain invalid cases', () => {
-  const problem = cureContractProblem(ruleWith({ kind: 'none', because: 'a person decides' }), {
-    valid: [],
-    invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }],
-  });
+  const problem = cureContractProblem(
+    ruleWith({ kind: 'none', because: 'a person decides' }),
+    {
+      valid: [],
+      invalid: [{ code: 'a;', errors: [{ messageId: 'problem' }] }],
+    },
+  );
 
   assert.equal(problem, undefined);
 });

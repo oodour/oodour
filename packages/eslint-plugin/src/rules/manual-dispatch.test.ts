@@ -75,7 +75,9 @@ testRule(manualDispatch, {
           }
         }
       `,
-      errors: [{ messageId: 'found', line: 4, data: { subject: 'this.shape' } }],
+      errors: [
+        { messageId: 'found', line: 4, data: { subject: 'this.shape' } },
+      ],
     },
     {
       name: 'a chain that is the unbraced body of another if',

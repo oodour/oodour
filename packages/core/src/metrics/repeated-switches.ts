@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
 
 /** Switches of one file that choose among the same cases. */
@@ -26,7 +29,9 @@ export const repeatedSwitches = defineMetric({
   close(switches, _unit, { text }): readonly RepeatedSwitch[] | undefined {
     const casesOf = (node: TSESTree.SwitchStatement): string =>
       node.cases
-        .flatMap(({ test }) => (test === null ? [] : [text.slice(...test.range)]))
+        .flatMap(({ test }) =>
+          test === null ? [] : [text.slice(...test.range)],
+        )
         .toSorted()
         .join(', ');
     const repeated = [...Map.groupBy(switches, casesOf)]

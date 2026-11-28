@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { measure, parseSource, repeatedSwitches, type Source, unitName } from '../index.ts';
+import {
+  measure,
+  parseSource,
+  repeatedSwitches,
+  type Source,
+  unitName,
+} from '../index.ts';
 
 function sourceOf(text: string): Source {
   const source = parseSource(text, 'file.ts');
@@ -17,7 +23,10 @@ function groups(text: string): string[] {
   return measure(sourceOf(text), [repeatedSwitches])
     .of(repeatedSwitches)
     .flatMap(({ unit, value }) =>
-      value.map(({ cases, switches }) => `${unitName(unit)}: ${cases} at ${switches.map((node) => node.loc.start.line).join(' ')}`),
+      value.map(
+        ({ cases, switches }) =>
+          `${unitName(unit)}: ${cases} at ${switches.map((node) => node.loc.start.line).join(' ')}`,
+      ),
     );
 }
 
@@ -33,13 +42,17 @@ describe('repeatedSwitches', () => {
   });
 
   it('compares case labels as source text', () => {
-    assert.deepEqual(groups('switch (a) { case x.y: }\nswitch (b) { case x .y: }\nswitch (c) { case x.y: }'), [
-      'File: x.y at 1 3',
-    ]);
+    assert.deepEqual(
+      groups(
+        'switch (a) { case x.y: }\nswitch (b) { case x .y: }\nswitch (c) { case x.y: }',
+      ),
+      ['File: x.y at 1 3'],
+    );
   });
 
   it('reports each repeated choice of a file on its own', () => {
-    const text = 'switch (a) { case 1: }\nswitch (a) { case 2: }\nswitch (a) { case 1: }\nswitch (a) { case 2: }';
+    const text =
+      'switch (a) { case 1: }\nswitch (a) { case 2: }\nswitch (a) { case 1: }\nswitch (a) { case 2: }';
 
     assert.deepEqual(groups(text), ['File: 1 at 1 3', 'File: 2 at 2 4']);
   });
@@ -49,10 +62,18 @@ describe('repeatedSwitches', () => {
   });
 
   it('has nothing to report for a file whose switches all differ', () => {
-    assert.deepEqual(measure(sourceOf('switch (a) { case 1: }\nswitch (b) { case 2: }'), [repeatedSwitches]).of(repeatedSwitches), []);
+    assert.deepEqual(
+      measure(sourceOf('switch (a) { case 1: }\nswitch (b) { case 2: }'), [
+        repeatedSwitches,
+      ]).of(repeatedSwitches),
+      [],
+    );
   });
 
   it('names itself repeated-switches where a run left it out', () => {
-    assert.throws(() => measure(sourceOf(''), []).of(repeatedSwitches), /^Error: The metric 'repeated-switches' was not measured/);
+    assert.throws(
+      () => measure(sourceOf(''), []).of(repeatedSwitches),
+      /^Error: The metric 'repeated-switches' was not measured/,
+    );
   });
 });

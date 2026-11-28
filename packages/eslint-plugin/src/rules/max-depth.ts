@@ -6,7 +6,10 @@ export const maxDepth = wrapRule({
   docs: {
     description: 'Report blocks nested deeper than allowed',
     concept: 'Conditional Complexity',
-    cures: ['Replace Nested Conditional with Guard Clauses', 'Extract Function'],
+    cures: [
+      'Replace Nested Conditional with Guard Clauses',
+      'Extract Function',
+    ],
     requiresTypeChecking: false,
     remedy: sizeRemedy,
     tier: 'strict',

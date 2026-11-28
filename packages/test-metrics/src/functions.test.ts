@@ -7,7 +7,10 @@ test('a file outside the folder the run started in is counted too, as a coverage
   const outside = join(parse(process.cwd()).root, 'elsewhere', 'settle.ts');
 
   assert.deepEqual(
-    functionsIn(outside, 'export function settle(paid: boolean) { return paid ? 0 : 1; }').map(({ name }) => name),
+    functionsIn(
+      outside,
+      'export function settle(paid: boolean) { return paid ? 0 : 1; }',
+    ).map(({ name }) => name),
     ["Function 'settle'"],
   );
 });
@@ -42,16 +45,29 @@ test('a source that switches lint rules off in a comment is counted, whichever r
 });
 
 test('a class field whose value is a function is counted once, as that function', () => {
-  const source = ['export class Till {', '  handle = (kind: string) => {', "    if (kind === 'a') { return 1; }", '    return 0;', '  };', '}'].join('\n');
+  const source = [
+    'export class Till {',
+    '  handle = (kind: string) => {',
+    "    if (kind === 'a') { return 1; }",
+    '    return 0;',
+    '  };',
+    '}',
+  ].join('\n');
 
   assert.deepEqual(
-    functionsIn('src/till.ts', source).map(({ name, complexity }) => [name, complexity]),
+    functionsIn('src/till.ts', source).map(({ name, complexity }) => [
+      name,
+      complexity,
+    ]),
     [["Method 'handle'", 2]],
   );
 });
 
 test('a source ESLint cannot parse stops the count with the file and the parse error, rather than counting nothing', () => {
-  assert.throws(() => functionsIn('src/broken.ts', 'export function settle( {'), /src\/broken\.ts:1:\d+ .+/);
+  assert.throws(
+    () => functionsIn('src/broken.ts', 'export function settle( {'),
+    /src\/broken\.ts:1:\d+ .+/,
+  );
 });
 
 test("each function's complexity is the count ESLint's complexity rule gives, with where it starts, its body starts and it ends", () => {
@@ -128,7 +144,10 @@ test('a public method or accessor of a class is marked as one; private, protecte
   ].join('\n');
 
   assert.deepEqual(
-    functionsIn('shop.ts', source).map(({ name, publicMethod }) => [name, publicMethod]),
+    functionsIn('shop.ts', source).map(({ name, publicMethod }) => [
+      name,
+      publicMethod,
+    ]),
     [
       ['Constructor', false],
       ["Method 'price'", true],
@@ -144,7 +163,10 @@ test('a public method or accessor of a class is marked as one; private, protecte
 });
 
 test('an unnamed function takes the name of the variable it is the value of, and of nothing else that has a name', () => {
-  const source = ['export const double = (n: number) => n * 2;', 'class Base extends (function () {}) {}'].join('\n');
+  const source = [
+    'export const double = (n: number) => n * 2;',
+    'class Base extends (function () {}) {}',
+  ].join('\n');
 
   assert.deepEqual(
     functionsIn('base.ts', source).map(({ name }) => name),

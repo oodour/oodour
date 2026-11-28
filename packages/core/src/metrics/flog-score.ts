@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { visitorKeys } from '@typescript-eslint/visitor-keys';
 import { defineMetric } from '../metric.ts';
 
@@ -9,7 +12,10 @@ export interface FlogCounts {
   readonly c: number;
 }
 
-type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+type FunctionNode =
+  | TSESTree.ArrowFunctionExpression
+  | TSESTree.FunctionDeclaration
+  | TSESTree.FunctionExpression;
 
 /** A child and the depth it adds to the multiplier. */
 type Part = readonly [TSESTree.Node | null | undefined, number];
@@ -32,7 +38,8 @@ export const flogScore = defineMetric({
   needs: 'syntax',
   units: ['function'],
   open: () => undefined,
-  close: (_state, { node }): FlogCounts | undefined => (isCallback(node) ? undefined : score(node)),
+  close: (_state, { node }): FlogCounts | undefined =>
+    isCallback(node) ? undefined : score(node),
 });
 
 const isNode = (value: unknown): value is TSESTree.Node =>
@@ -48,10 +55,14 @@ function childrenOf(node: TSESTree.Node): TSESTree.Node[] {
 }
 
 const isFunction = (node: TSESTree.Node): node is FunctionNode =>
-  node.type === T.ArrowFunctionExpression || node.type === T.FunctionDeclaration || node.type === T.FunctionExpression;
+  node.type === T.ArrowFunctionExpression ||
+  node.type === T.FunctionDeclaration ||
+  node.type === T.FunctionExpression;
 
 /** A function passed straight to a call or `new`, which is scored into the function around it. */
-function isCallback(node: TSESTree.Node): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression {
+function isCallback(
+  node: TSESTree.Node,
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression {
   const { parent } = node;
 
   return (
@@ -72,16 +83,26 @@ const typeOnly = new Set<string>([
 function isTypeOnly(node: TSESTree.Node): boolean {
   const { parent } = node;
   const asserted =
-    parent?.type === T.TSAsExpression || parent?.type === T.TSSatisfiesExpression || parent?.type === T.TSTypeAssertion;
+    parent?.type === T.TSAsExpression ||
+    parent?.type === T.TSSatisfiesExpression ||
+    parent?.type === T.TSTypeAssertion;
 
-  return typeOnly.has(node.type) || (asserted && parent.typeAnnotation === node);
+  return (
+    typeOnly.has(node.type) || (asserted && parent.typeAnnotation === node)
+  );
 }
 
 const sends = new Set(['call', 'apply', 'bind']);
-const reflection = new Set(['defineProperty', 'defineProperties', 'setPrototypeOf']);
+const reflection = new Set([
+  'defineProperty',
+  'defineProperties',
+  'setPrototypeOf',
+]);
 
 /** Weights by name: dynamic evaluation 5, dynamic dispatch 3, reflection and `reduce` 2, any other call 1. */
-function callWeight({ callee }: TSESTree.CallExpression | TSESTree.NewExpression): number {
+function callWeight({
+  callee,
+}: TSESTree.CallExpression | TSESTree.NewExpression): number {
   if (callee.type === T.Identifier) {
     if (callee.name === 'eval' || callee.name === 'Function') {
       return 5;
@@ -95,13 +116,18 @@ function callWeight({ callee }: TSESTree.CallExpression | TSESTree.NewExpression
   }
 
   const name = callee.computed ? undefined : callee.property.name;
-  const owner = callee.object.type === T.Identifier ? callee.object.name : undefined;
+  const owner =
+    callee.object.type === T.Identifier ? callee.object.name : undefined;
 
   if (name === undefined || sends.has(name)) {
     return 3;
   }
 
-  return name === 'reduce' || owner === 'Reflect' || (owner === 'Object' && reflection.has(name)) ? 2 : 1;
+  return name === 'reduce' ||
+    owner === 'Reflect' ||
+    (owner === 'Object' && reflection.has(name))
+    ? 2
+    : 1;
 }
 
 /** A number literal other than 0 and -1, outside a `const` initializer. */
@@ -112,18 +138,26 @@ function isMagicNumber(node: TSESTree.Literal): boolean {
     return false;
   }
 
-  if (node.value === 1 && parent.type === T.UnaryExpression && parent.operator === '-') {
+  if (
+    node.value === 1 &&
+    parent.type === T.UnaryExpression &&
+    parent.operator === '-'
+  ) {
     return false;
   }
 
   // A literal right under a declarator is its initializer, since a declarator's name is never a literal.
-  return !(parent.type === T.VariableDeclarator && parent.parent.kind === 'const');
+  return !(
+    parent.type === T.VariableDeclarator && parent.parent.kind === 'const'
+  );
 }
 
 /** Compound assignments that branch; every other compound assignment is arithmetic or bitwise. */
 const logicalAssignment = new Set(['||=', '&&=', '??=']);
 
-function callEvent(node: TSESTree.CallExpression | TSESTree.NewExpression): Event {
+function callEvent(
+  node: TSESTree.CallExpression | TSESTree.NewExpression,
+): Event {
   const { callee } = node;
   const receiver: readonly Part[] =
     callee.type === T.MemberExpression
@@ -133,9 +167,16 @@ function callEvent(node: TSESTree.CallExpression | TSESTree.NewExpression): Even
         ]
       : [[callee, 0]];
   const callbacks = node.arguments.filter(isCallback);
-  const parts = node.arguments.map((argument): Part => (isCallback(argument) ? [argument.body, 0.1] : [argument, 0.2]));
+  const parts = node.arguments.map(
+    (argument): Part =>
+      isCallback(argument) ? [argument.body, 0.1] : [argument, 0.2],
+  );
 
-  return { b: callbacks.length, c: callWeight(node), parts: [...receiver, ...parts] };
+  return {
+    b: callbacks.length,
+    c: callWeight(node),
+    parts: [...receiver, ...parts],
+  };
 }
 
 /** The Flog event of one node: its A, B and C weights and where its children sit. */
@@ -192,9 +233,15 @@ function eventOf(node: TSESTree.Node): Event {
   }
 }
 
-const branch = (level: readonly Part[0][], deeper: readonly Part[0][]): Event => ({
+const branch = (
+  level: readonly Part[0][],
+  deeper: readonly Part[0][],
+): Event => ({
   b: 1,
-  parts: [...level.map((child): Part => [child, 0]), ...deeper.map((child): Part => [child, 0.1])],
+  parts: [
+    ...level.map((child): Part => [child, 0]),
+    ...deeper.map((child): Part => [child, 0.1]),
+  ],
 });
 
 /** A branch counts B 1 and puts its bodies one step deeper; Flog's `else` of a `case` stays at the case's depth. */
@@ -241,7 +288,8 @@ function score(fn: FunctionNode): FlogCounts {
     tally.b += b * multiplier;
     tally.c += c * multiplier;
 
-    for (const [child, deeper] of parts ?? childrenOf(node).map((child): Part => [child, 0])) {
+    for (const [child, deeper] of parts ??
+      childrenOf(node).map((child): Part => [child, 0])) {
       if (isNode(child)) {
         walk(child, multiplier + deeper);
       }

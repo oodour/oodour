@@ -5,7 +5,9 @@ import type { CreateNodes, TargetConfiguration } from '@nx/devkit';
 function jsonField(path: string, field: string): unknown {
   const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
 
-  return typeof parsed === 'object' && parsed !== null ? Object.entries(parsed).find(([key]) => key === field)?.[1] : undefined;
+  return typeof parsed === 'object' && parsed !== null
+    ? Object.entries(parsed).find(([key]) => key === field)?.[1]
+    : undefined;
 }
 
 function manifestName(workspaceRoot: string, manifest: string): string {
@@ -20,9 +22,13 @@ function manifestName(workspaceRoot: string, manifest: string): string {
 
 function dependencyNames(workspaceRoot: string, root: string): string[] {
   const manifest = join(workspaceRoot, root, 'package.json');
-  const dependencies = existsSync(manifest) ? jsonField(manifest, 'dependencies') : undefined;
+  const dependencies = existsSync(manifest)
+    ? jsonField(manifest, 'dependencies')
+    : undefined;
 
-  return typeof dependencies === 'object' && dependencies !== null ? Object.keys(dependencies) : [];
+  return typeof dependencies === 'object' && dependencies !== null
+    ? Object.keys(dependencies)
+    : [];
 }
 
 export const createNodes: CreateNodes = [
@@ -34,11 +40,14 @@ export const createNodes: CreateNodes = [
       const markdown = globSync('**/*.md', { cwd: join(workspaceRoot, root) })
         .map((file) => posix.join(root, file.replaceAll(sep, '/')))
         .sort();
-      const exists = (folder: string): boolean => existsSync(join(workspaceRoot, folder));
+      const exists = (folder: string): boolean =>
+        existsSync(join(workspaceRoot, folder));
 
       const scripts = `${root}/scripts`;
       const targets = {
-        ...(exists(scripts) ? scriptTargets(scripts, dependencyNames(workspaceRoot, root)) : {}),
+        ...(exists(scripts)
+          ? scriptTargets(scripts, dependencyNames(workspaceRoot, root))
+          : {}),
         ...pluginTargets(root, name, markdown, exists),
       };
 
@@ -59,7 +68,11 @@ export function assemble(plugin: string, evals: string, out: string): void {
 }
 
 // `claude plugin eval` reads cases only below the plugin root, and the cases stay out of the distributed plugin.
-function assembleTarget(root: string, evals: string, assembled: string): TargetConfiguration {
+function assembleTarget(
+  root: string,
+  evals: string,
+  assembled: string,
+): TargetConfiguration {
   return {
     command: `node tools/nx/claude-plugin.ts assemble ${root} ${evals} ${assembled}`,
     cache: true,
@@ -73,8 +86,15 @@ function assembleTarget(root: string, evals: string, assembled: string): TargetC
   };
 }
 
-export function scriptTargets(scripts: string, dependencies: readonly string[]): Record<string, TargetConfiguration> {
-  const files = [`{workspaceRoot}/${scripts}/**/*`, '{projectRoot}/package.json', 'sharedGlobals'];
+export function scriptTargets(
+  scripts: string,
+  dependencies: readonly string[],
+): Record<string, TargetConfiguration> {
+  const files = [
+    `{workspaceRoot}/${scripts}/**/*`,
+    '{projectRoot}/package.json',
+    'sharedGlobals',
+  ];
 
   return {
     typecheck: { command: `tsc -p ${scripts}/tsconfig.json` },
@@ -82,7 +102,11 @@ export function scriptTargets(scripts: string, dependencies: readonly string[]):
     test: {
       command: `node --test "${scripts}/*.test.ts"`,
       cache: true,
-      inputs: [...files, { externalDependencies: [...dependencies] }, { runtime: 'node --version' }],
+      inputs: [
+        ...files,
+        { externalDependencies: [...dependencies] },
+        { runtime: 'node --version' },
+      ],
       outputs: [],
     },
   };
@@ -122,7 +146,11 @@ export function pluginTargets(
     // The store is git-ignored, so Nx cannot hash it: a cached pass could hide a source added since.
     // Each eval folder that exists goes in whole: listing its files would pass the Windows command-line limit.
     overlap: {
-      command: ['node tools/source-overlap.ts --min-words 6', ...markdown, ...evalFolders].join(' '),
+      command: [
+        'node tools/source-overlap.ts --min-words 6',
+        ...markdown,
+        ...evalFolders,
+      ].join(' '),
       cache: false,
     },
     citations: {
@@ -137,8 +165,16 @@ export function pluginTargets(
 if (import.meta.main) {
   const [command, plugin, evals, out, ...rest] = process.argv.slice(2);
 
-  if (command !== 'assemble' || plugin === undefined || evals === undefined || out === undefined || rest.length > 0) {
-    console.error('usage: node tools/nx/claude-plugin.ts assemble <plugin> <evals> <out>');
+  if (
+    command !== 'assemble' ||
+    plugin === undefined ||
+    evals === undefined ||
+    out === undefined ||
+    rest.length > 0
+  ) {
+    console.error(
+      'usage: node tools/nx/claude-plugin.ts assemble <plugin> <evals> <out>',
+    );
     process.exitCode = 2;
   } else {
     assemble(plugin, evals, out);

@@ -1,16 +1,26 @@
 import type { MeasuredFunction } from './crap.ts';
-import { nestedIn, within, type FunctionSite, type Position, type Range } from './functions.ts';
+import {
+  nestedIn,
+  within,
+  type FunctionSite,
+  type Position,
+  type Range,
+} from './functions.ts';
 
 /**
  * The parts of an Istanbul file coverage the join reads: functions and statements, each with its hit count, and
  * branches, each with a hit count per path.
  */
 export interface IstanbulFileCoverage {
-  readonly fnMap: Readonly<Record<string, { readonly name: string; readonly loc: Range }>>;
+  readonly fnMap: Readonly<
+    Record<string, { readonly name: string; readonly loc: Range }>
+  >;
   readonly f: Readonly<Record<string, number>>;
   readonly statementMap: Readonly<Record<string, Range>>;
   readonly s: Readonly<Record<string, number>>;
-  readonly branchMap: Readonly<Record<string, { readonly loc: { readonly start: Position } }>>;
+  readonly branchMap: Readonly<
+    Record<string, { readonly loc: { readonly start: Position } }>
+  >;
   readonly b: Readonly<Record<string, readonly number[]>>;
 }
 
@@ -23,12 +33,14 @@ export function measuredFromIstanbul(
   sites: readonly FunctionSite[],
   coverage: IstanbulFileCoverage,
 ): MeasuredFunction[] {
-  const statements = Object.entries(coverage.statementMap).map(([id, range]) => {
-    // Stryker disable next-line LzJsNumericLiteral: Istanbul lists a count for every statement it maps, so the fallback is never read
-    const count = coverage.s[id] ?? 0;
+  const statements = Object.entries(coverage.statementMap).map(
+    ([id, range]) => {
+      // Stryker disable next-line LzJsNumericLiteral: Istanbul lists a count for every statement it maps, so the fallback is never read
+      const count = coverage.s[id] ?? 0;
 
-    return { range, ran: count > 0 };
-  });
+      return { range, ran: count > 0 };
+    },
+  );
   const branches = Object.entries(coverage.branchMap).map(([id, { loc }]) => ({
     range: { start: loc.start, end: loc.start },
     // Stryker disable next-line ArrayDeclaration: the mutant's one entry is a string, which the zero filter drops as it drops none
@@ -37,7 +49,9 @@ export function measuredFromIstanbul(
 
   return sites.flatMap((site) => {
     const { name, complexity, start, bodyStart, publicMethod } = site;
-    const listed = Object.entries(coverage.fnMap).find(([, { loc }]) => samePosition(loc.start, bodyStart));
+    const listed = Object.entries(coverage.fnMap).find(([, { loc }]) =>
+      samePosition(loc.start, bodyStart),
+    );
 
     if (listed === undefined) {
       return [];
@@ -46,15 +60,32 @@ export function measuredFromIstanbul(
     const [id] = listed;
     const nested = nestedIn(site, sites).map(bodyOf);
     const isOwn = ({ range }: { readonly range: Range }) =>
-      within(range, bodyOf(site)) && !nested.some((inner) => within(range, inner));
+      within(range, bodyOf(site)) &&
+      !nested.some((inner) => within(range, inner));
     const own = statements.filter(isOwn);
-    const untestedBranches = branches.filter(isOwn).reduce((sum, { untaken }) => sum + untaken, 0);
+    const untestedBranches = branches
+      .filter(isOwn)
+      .reduce((sum, { untaken }) => sum + untaken, 0);
     // Stryker disable next-line LzJsNumericLiteral: Istanbul lists a count for every function it maps, so the fallback is never read
     const calls = coverage.f[id] ?? 0;
     const called = calls > 0;
-    const share = own.length > 0 ? own.filter(({ ran }) => ran).length / own.length : Number(called);
+    const share =
+      own.length > 0
+        ? own.filter(({ ran }) => ran).length / own.length
+        : Number(called);
 
-    return [{ file, line: start.line, name, complexity, coverage: share, called, publicMethod, untestedBranches }];
+    return [
+      {
+        file,
+        line: start.line,
+        name,
+        complexity,
+        coverage: share,
+        called,
+        publicMethod,
+        untestedBranches,
+      },
+    ];
   });
 }
 
@@ -62,7 +93,9 @@ export function measuredFromIstanbul(
  * Each file's coverage, by path, from the coverage map Vitest hands a reporter. Vitest types that map `unknown`; it is
  * an Istanbul coverage map, read here through its JSON form and checked before the join trusts it.
  */
-export function parseCoverageMap(value: unknown): Map<string, IstanbulFileCoverage> {
+export function parseCoverageMap(
+  value: unknown,
+): Map<string, IstanbulFileCoverage> {
   const json = hasToJSON(value) ? value.toJSON() : value;
 
   if (!isRecord(json)) {
@@ -72,7 +105,9 @@ export function parseCoverageMap(value: unknown): Map<string, IstanbulFileCovera
   return new Map(
     Object.entries(json).map(([path, file]) => {
       if (!isFileCoverage(file)) {
-        throw new Error(`The coverage of ${path} is not an Istanbul file coverage.`);
+        throw new Error(
+          `The coverage of ${path} is not an Istanbul file coverage.`,
+        );
       }
 
       return [path, file];
@@ -81,23 +116,45 @@ export function parseCoverageMap(value: unknown): Map<string, IstanbulFileCovera
 }
 
 function hasToJSON(value: unknown): value is { toJSON: () => unknown } {
-  return typeof value === 'object' && value !== null && 'toJSON' in value && typeof value.toJSON === 'function';
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'toJSON' in value &&
+    typeof value.toJSON === 'function'
+  );
 }
 
 function isFileCoverage(value: unknown): value is IstanbulFileCoverage {
   return (
     isRecord(value) &&
-    isRecordOf(value['fnMap'], (entry) => isRecord(entry) && typeof entry['name'] === 'string' && isRange(entry['loc'])) &&
+    isRecordOf(
+      value['fnMap'],
+      (entry) =>
+        isRecord(entry) &&
+        typeof entry['name'] === 'string' &&
+        isRange(entry['loc']),
+    ) &&
     isRecordOf(value['f'], isCount) &&
     isRecordOf(value['statementMap'], isRange) &&
     isRecordOf(value['s'], isCount) &&
-    isRecordOf(value['branchMap'], (entry) => isRecord(entry) && isRecord(entry['loc']) && isPosition(entry['loc']['start'])) &&
-    isRecordOf(value['b'], (counts) => Array.isArray(counts) && counts.every(isCount))
+    isRecordOf(
+      value['branchMap'],
+      (entry) =>
+        isRecord(entry) &&
+        isRecord(entry['loc']) &&
+        isPosition(entry['loc']['start']),
+    ) &&
+    isRecordOf(
+      value['b'],
+      (counts) => Array.isArray(counts) && counts.every(isCount),
+    )
   );
 }
 
 function isRange(value: unknown): value is Range {
-  return isRecord(value) && isPosition(value['start']) && isPosition(value['end']);
+  return (
+    isRecord(value) && isPosition(value['start']) && isPosition(value['end'])
+  );
 }
 
 function isPosition(value: unknown): value is Position {
@@ -108,7 +165,10 @@ function isCount(value: unknown): value is number {
   return typeof value === 'number';
 }
 
-function isRecordOf(value: unknown, isEntry: (entry: unknown) => boolean): boolean {
+function isRecordOf(
+  value: unknown,
+  isEntry: (entry: unknown) => boolean,
+): boolean {
   return isRecord(value) && Object.values(value).every(isEntry);
 }
 

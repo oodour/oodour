@@ -81,7 +81,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function expect(condition: boolean, field: string): asserts condition {
   if (!condition) {
-    throw new Error(`not an eval result: ${field} is missing or has the wrong type`);
+    throw new Error(
+      `not an eval result: ${field} is missing or has the wrong type`,
+    );
   }
 }
 
@@ -99,16 +101,27 @@ function parseGrader(value: unknown, path: string): Grader {
   expect(typeof name === 'string', `${path}.name`);
   expect(typeof passed === 'boolean', `${path}.passed`);
 
-  return { name, passed, withOnly: withOnly === true, scored: scored === true, weight: typeof weight === 'number' ? weight : 1 };
+  return {
+    name,
+    passed,
+    withOnly: withOnly === true,
+    scored: scored === true,
+    weight: typeof weight === 'number' ? weight : 1,
+  };
 }
 
 // The tool's score is the weighted share of scored graders that passed; this one leaves the indicators out.
 function scoreWithoutIndicators(graders: readonly Grader[]): number {
-  const criteria = graders.filter((grader) => grader.scored && !isIndicator(grader));
-  // Stryker disable next-line ArithmeticOperator: subtracting flips the sign of both sums, and their quotient stays the same
-  const weightOf = (list: readonly Grader[]): number => list.reduce((sum, grader) => sum + grader.weight, 0);
+  const criteria = graders.filter(
+    (grader) => grader.scored && !isIndicator(grader),
+  );
+  const weightOf = (list: readonly Grader[]): number =>
+    // Stryker disable next-line ArithmeticOperator: subtracting flips the sign of both sums, and their quotient stays the same
+    list.reduce((sum, grader) => sum + grader.weight, 0);
 
-  return weightOf(criteria.filter((grader) => grader.passed)) / weightOf(criteria);
+  return (
+    weightOf(criteria.filter((grader) => grader.passed)) / weightOf(criteria)
+  );
 }
 
 function parseRun(value: unknown, path: string, threshold: number): Run {
@@ -117,8 +130,12 @@ function parseRun(value: unknown, path: string, threshold: number): Run {
   expect(typeof score === 'number', `${path}.score`);
   expect(typeof passed === 'boolean', `${path}.passed`);
   expect(Array.isArray(graders), `${path}.graders`);
-  const parsed = graders.map((grader, index) => parseGrader(grader, `${path}.graders[${String(index)}]`));
-  const indicatorsScored = parsed.some((grader) => grader.scored && isIndicator(grader));
+  const parsed = graders.map((grader, index) =>
+    parseGrader(grader, `${path}.graders[${String(index)}]`),
+  );
+  const indicatorsScored = parsed.some(
+    (grader) => grader.scored && isIndicator(grader),
+  );
   const rescored = indicatorsScored ? scoreWithoutIndicators(parsed) : score;
 
   return {
@@ -135,9 +152,13 @@ function rate(values: readonly boolean[]): number {
 
 function summariseArm(runs: readonly Run[]): ArmSummary {
   const all = runs.flatMap((run) => run.graders);
-  const scored = all.filter((grader) => !grader.withOnly && !isIndicator(grader));
+  const scored = all.filter(
+    (grader) => !grader.withOnly && !isIndicator(grader),
+  );
   const indicator = (name: string): number | undefined => {
-    const results = all.filter((grader) => grader.name === name).map((grader) => grader.passed);
+    const results = all
+      .filter((grader) => grader.name === name)
+      .map((grader) => grader.passed);
 
     return results.length > 0 ? rate(results) : undefined;
   };
@@ -149,14 +170,25 @@ function summariseArm(runs: readonly Run[]): ArmSummary {
     errored: runs.filter((run) => run.errored).length,
     meanScore: runs.reduce((sum, run) => sum + run.score, 0) / runs.length,
     criteria: Object.fromEntries(
-      names.map((name) => [name, rate(scored.filter((grader) => grader.name === name).map((grader) => grader.passed))]),
+      names.map((name) => [
+        name,
+        rate(
+          scored
+            .filter((grader) => grader.name === name)
+            .map((grader) => grader.passed),
+        ),
+      ]),
     ),
     skillFired: indicator('skill-fired'),
     leafRead: indicator('leaf-read'),
   };
 }
 
-function parseCase(value: unknown, path: string, threshold: number): CaseSummary {
+function parseCase(
+  value: unknown,
+  path: string,
+  threshold: number,
+): CaseSummary {
   expect(isRecord(value), path);
   const { name, arms } = value;
   expect(typeof name === 'string', `${path}.name`);
@@ -168,7 +200,14 @@ function parseCase(value: unknown, path: string, threshold: number): CaseSummary
       Object.entries(arms).map(([arm, runs]) => {
         expect(Array.isArray(runs), `${path}.arms.${arm}`);
 
-        return [arm, summariseArm(runs.map((run, index) => parseRun(run, `${path}.arms.${arm}[${String(index)}]`, threshold)))];
+        return [
+          arm,
+          summariseArm(
+            runs.map((run, index) =>
+              parseRun(run, `${path}.arms.${arm}[${String(index)}]`, threshold),
+            ),
+          ),
+        ];
       }),
     ),
   };
@@ -186,7 +225,13 @@ export function summarise(result: unknown): Summary {
     model: typeof modelOverride === 'string' ? modelOverride : undefined,
     judge: typeof judgeModel === 'string' ? judgeModel : undefined,
     costUsd,
-    cases: cases.map((item, index) => parseCase(item, `cases[${String(index)}]`, typeof threshold === 'number' ? threshold : 1)),
+    cases: cases.map((item, index) =>
+      parseCase(
+        item,
+        `cases[${String(index)}]`,
+        typeof threshold === 'number' ? threshold : 1,
+      ),
+    ),
   };
 }
 
@@ -195,10 +240,18 @@ function percent(value: number | undefined): string {
 }
 
 function mean(values: readonly number[]): number | undefined {
-  return values.length === 0 ? undefined : values.reduce((sum, value) => sum + value, 0) / values.length;
+  return values.length === 0
+    ? undefined
+    : values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function row(name: string, arm: string, counts: Pick<ArmSummary, 'runs' | 'passed' | 'errored'>, rates: readonly (number | undefined)[], weak: string): string {
+function row(
+  name: string,
+  arm: string,
+  counts: Pick<ArmSummary, 'runs' | 'passed' | 'errored'>,
+  rates: readonly (number | undefined)[],
+  weak: string,
+): string {
   return `| ${name} | ${arm} | ${String(counts.runs)} | ${String(counts.passed)} | ${String(counts.errored)} | ${rates.map(percent).join(' | ')} | ${weak} |`;
 }
 
@@ -240,19 +293,27 @@ export function formatReport(summary: Summary): string {
 
   for (const [arm, arms] of byArm) {
     const ran = arms.filter((stats) => stats.runs > 0);
-    const total = (key: 'runs' | 'passed' | 'errored'): number => arms.reduce((sum, stats) => sum + stats[key], 0);
-    const indicatorMean = (key: 'skillFired' | 'leafRead'): number | undefined =>
-      mean(arms.flatMap((stats) => stats[key] ?? []));
+    const total = (key: 'runs' | 'passed' | 'errored'): number =>
+      arms.reduce((sum, stats) => sum + stats[key], 0);
+    const indicatorMean = (
+      key: 'skillFired' | 'leafRead',
+    ): number | undefined => mean(arms.flatMap((stats) => stats[key] ?? []));
 
     lines.push(
       row(
         'overall',
         arm,
-        { runs: total('runs'), passed: total('passed'), errored: total('errored') },
+        {
+          runs: total('runs'),
+          passed: total('passed'),
+          errored: total('errored'),
+        },
         [
           mean(ran.map((stats) => stats.meanScore)),
           mean(ran.map((stats) => passAtK(stats.runs, stats.passed, 1))),
-          mean(ran.map((stats) => passHatK(stats.runs, stats.passed, stats.runs))),
+          mean(
+            ran.map((stats) => passHatK(stats.runs, stats.passed, stats.runs)),
+          ),
           indicatorMean('skillFired'),
           indicatorMean('leafRead'),
         ],
@@ -264,7 +325,10 @@ export function formatReport(summary: Summary): string {
   return lines.join('\n');
 }
 
-if (process.argv[1] !== undefined && basename(process.argv[1]) === 'eval-summary.ts') {
+if (
+  process.argv[1] !== undefined &&
+  basename(process.argv[1]) === 'eval-summary.ts'
+) {
   for (const file of process.argv.slice(2)) {
     const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
 

@@ -4,9 +4,17 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tempDir } from '../temp-dir.ts';
 import { test } from 'node:test';
-import { assemble, createNodes, pluginTargets, scriptTargets } from './claude-plugin.ts';
+import {
+  assemble,
+  createNodes,
+  pluginTargets,
+  scriptTargets,
+} from './claude-plugin.ts';
 
-function writeTree(root: string, files: Readonly<Record<string, string>>): void {
+function writeTree(
+  root: string,
+  files: Readonly<Record<string, string>>,
+): void {
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), text);
@@ -18,15 +26,27 @@ test('assemble copies the plugin, puts its eval cases under evals/ without past 
   const plugin = join(workspace, 'plugin');
   const evals = join(workspace, 'evals');
   const out = join(workspace, 'out');
-  writeTree(plugin, { '.claude-plugin/plugin.json': '{}', 'skills/a/SKILL.md': 'skill' });
-  writeTree(evals, { 'case-a/prompt.md': 'prompt', 'results/run-1/result.json': '{}' });
+  writeTree(plugin, {
+    '.claude-plugin/plugin.json': '{}',
+    'skills/a/SKILL.md': 'skill',
+  });
+  writeTree(evals, {
+    'case-a/prompt.md': 'prompt',
+    'results/run-1/result.json': '{}',
+  });
   writeTree(out, { 'stale.md': 'old' });
 
   assemble(plugin, evals, out);
 
   assert.equal(readFileSync(join(out, 'skills/a/SKILL.md'), 'utf8'), 'skill');
-  assert.equal(readFileSync(join(out, '.claude-plugin/plugin.json'), 'utf8'), '{}');
-  assert.equal(readFileSync(join(out, 'evals/case-a/prompt.md'), 'utf8'), 'prompt');
+  assert.equal(
+    readFileSync(join(out, '.claude-plugin/plugin.json'), 'utf8'),
+    '{}',
+  );
+  assert.equal(
+    readFileSync(join(out, 'evals/case-a/prompt.md'), 'utf8'),
+    'prompt',
+  );
   assert.equal(existsSync(join(out, 'evals/results')), false);
   assert.equal(existsSync(join(out, 'stale.md')), false);
 });
@@ -36,12 +56,22 @@ const noFolders = (): boolean => false;
 
 test('the assemble command assembles the folders it is given', () => {
   const workspace = tempDir('assemble-cli-');
-  writeTree(workspace, { 'plugin/README.md': 'readme', 'evals/case-a/prompt.md': 'prompt' });
+  writeTree(workspace, {
+    'plugin/README.md': 'readme',
+    'evals/case-a/prompt.md': 'prompt',
+  });
 
-  const run = spawnSync(process.execPath, [cli, 'assemble', 'plugin', 'evals', 'out'], { cwd: workspace });
+  const run = spawnSync(
+    process.execPath,
+    [cli, 'assemble', 'plugin', 'evals', 'out'],
+    { cwd: workspace },
+  );
 
   assert.equal(run.status, 0);
-  assert.equal(readFileSync(join(workspace, 'out/evals/case-a/prompt.md'), 'utf8'), 'prompt');
+  assert.equal(
+    readFileSync(join(workspace, 'out/evals/case-a/prompt.md'), 'utf8'),
+    'prompt',
+  );
 });
 
 test('a missing folder, an extra argument or another command prints the usage and exits 2', () => {
@@ -50,10 +80,15 @@ test('a missing folder, an extra argument or another command prints the usage an
     ['assemble', 'plugin', 'evals', 'out', 'extra'],
     ['build', 'plugin', 'evals', 'out'],
   ]) {
-    const run = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+    const run = spawnSync(process.execPath, [cli, ...args], {
+      encoding: 'utf8',
+    });
 
     assert.equal(run.status, 2, args.join(' '));
-    assert.match(run.stderr, /usage: node tools\/nx\/claude-plugin\.ts assemble <plugin> <evals> <out>/);
+    assert.match(
+      run.stderr,
+      /usage: node tools\/nx\/claude-plugin\.ts assemble <plugin> <evals> <out>/,
+    );
   }
 });
 
@@ -68,10 +103,14 @@ test('each plugin manifest becomes a project named after the plugin, with its Ma
   });
   const [pattern, infer] = createNodes;
 
-  const results = await infer(['plugins/demo/.claude-plugin/plugin.json'], undefined, {
-    workspaceRoot,
-    nxJsonConfiguration: {},
-  });
+  const results = await infer(
+    ['plugins/demo/.claude-plugin/plugin.json'],
+    undefined,
+    {
+      workspaceRoot,
+      nxJsonConfiguration: {},
+    },
+  );
 
   assert.equal(pattern, 'plugins/*/.claude-plugin/plugin.json');
   const project = results[0]?.[1].projects?.['plugins/demo'];
@@ -91,10 +130,14 @@ test("the overlap check also covers each of the plugin's eval case folders that 
     'evals/demo-real/case-b/prompt.md': 'prompt',
   });
 
-  const results = await createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, {
-    workspaceRoot,
-    nxJsonConfiguration: {},
-  });
+  const results = await createNodes[1](
+    ['plugins/demo/.claude-plugin/plugin.json'],
+    undefined,
+    {
+      workspaceRoot,
+      nxJsonConfiguration: {},
+    },
+  );
 
   assert.equal(
     results[0]?.[1].projects?.['plugins/demo']?.targets?.['overlap']?.command,
@@ -103,45 +146,82 @@ test("the overlap check also covers each of the plugin's eval case folders that 
 });
 
 test('an eval case folder that does not exist is left out of the overlap check', () => {
-  const { overlap } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md'], (folder) => folder === 'evals/demo-real');
+  const { overlap } = pluginTargets(
+    'plugins/demo',
+    'demo',
+    ['plugins/demo/README.md'],
+    (folder) => folder === 'evals/demo-real',
+  );
 
-  assert.equal(overlap?.command, 'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo-real');
+  assert.equal(
+    overlap?.command,
+    'node tools/source-overlap.ts --min-words 6 plugins/demo/README.md evals/demo-real',
+  );
 });
 
 test("a plugin's scripts are type-checked, linted and tested, the tests cached on the scripts, the packages and the Node.js version", () => {
-  const targets = scriptTargets('plugins/demo/scripts', ['eslint', 'typescript']);
-  const files = ['{workspaceRoot}/plugins/demo/scripts/**/*', '{projectRoot}/package.json', 'sharedGlobals'];
+  const targets = scriptTargets('plugins/demo/scripts', [
+    'eslint',
+    'typescript',
+  ]);
+  const files = [
+    '{workspaceRoot}/plugins/demo/scripts/**/*',
+    '{projectRoot}/package.json',
+    'sharedGlobals',
+  ];
 
-  assert.deepEqual(targets['typecheck'], { command: 'tsc -p plugins/demo/scripts/tsconfig.json' });
+  assert.deepEqual(targets['typecheck'], {
+    command: 'tsc -p plugins/demo/scripts/tsconfig.json',
+  });
   assert.equal(targets['lint']?.command, 'eslint plugins/demo/scripts');
-  assert.equal(targets['test']?.command, 'node --test "plugins/demo/scripts/*.test.ts"');
+  assert.equal(
+    targets['test']?.command,
+    'node --test "plugins/demo/scripts/*.test.ts"',
+  );
   assert.equal(targets['test'].cache, true);
-  assert.deepEqual(targets['test'].inputs, [...files, { externalDependencies: ['eslint', 'typescript'] }, { runtime: 'node --version' }]);
+  assert.deepEqual(targets['test'].inputs, [
+    ...files,
+    { externalDependencies: ['eslint', 'typescript'] },
+    { runtime: 'node --version' },
+  ]);
   assert.deepEqual(targets['test'].outputs, []);
 });
 
 async function targetsOf(files: Readonly<Record<string, string>>) {
   const workspaceRoot = tempDir('nodes-');
-  writeTree(workspaceRoot, { 'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }', ...files });
-  const results = await createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, {
-    workspaceRoot,
-    nxJsonConfiguration: {},
+  writeTree(workspaceRoot, {
+    'plugins/demo/.claude-plugin/plugin.json': '{ "name": "demo" }',
+    ...files,
   });
+  const results = await createNodes[1](
+    ['plugins/demo/.claude-plugin/plugin.json'],
+    undefined,
+    {
+      workspaceRoot,
+      nxJsonConfiguration: {},
+    },
+  );
 
   return results[0]?.[1].projects?.['plugins/demo']?.targets ?? {};
 }
 
 test("a plugin's scripts are cached on the packages its package.json depends on", async () => {
   const targets = await targetsOf({
-    'plugins/demo/package.json': '{ "name": "demo", "dependencies": { "left-pad": "1.3.0", "typescript": "6.0.3" } }',
+    'plugins/demo/package.json':
+      '{ "name": "demo", "dependencies": { "left-pad": "1.3.0", "typescript": "6.0.3" } }',
     'plugins/demo/scripts/a.ts': '',
   });
 
-  assert.deepEqual(targets['test']?.inputs?.[3], { externalDependencies: ['left-pad', 'typescript'] });
+  assert.deepEqual(targets['test']?.inputs?.[3], {
+    externalDependencies: ['left-pad', 'typescript'],
+  });
 });
 
 test("a plugin's scripts are cached on no package when its package.json lists no dependencies", async () => {
-  const targets = await targetsOf({ 'plugins/demo/package.json': '{ "name": "demo" }', 'plugins/demo/scripts/a.ts': '' });
+  const targets = await targetsOf({
+    'plugins/demo/package.json': '{ "name": "demo" }',
+    'plugins/demo/scripts/a.ts': '',
+  });
 
   assert.deepEqual(targets['test']?.inputs?.[3], { externalDependencies: [] });
 });
@@ -149,7 +229,10 @@ test("a plugin's scripts are cached on no package when its package.json lists no
 test('a plugin without a scripts folder gets no typecheck, lint or test target', async () => {
   const targets = await targetsOf({ 'plugins/demo/README.md': '' });
 
-  assert.deepEqual([targets['typecheck'], targets['lint'], targets['test']], [undefined, undefined, undefined]);
+  assert.deepEqual(
+    [targets['typecheck'], targets['lint'], targets['test']],
+    [undefined, undefined, undefined],
+  );
 });
 
 test('a manifest without a name is refused', () => {
@@ -157,7 +240,11 @@ test('a manifest without a name is refused', () => {
   writeTree(workspaceRoot, { 'plugins/demo/.claude-plugin/plugin.json': '{}' });
 
   assert.throws(
-    () => createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, { workspaceRoot, nxJsonConfiguration: {} }),
+    () =>
+      createNodes[1](['plugins/demo/.claude-plugin/plugin.json'], undefined, {
+        workspaceRoot,
+        nxJsonConfiguration: {},
+      }),
     /plugins\/demo\/\.claude-plugin\/plugin\.json names no plugin/,
   );
 });
@@ -165,14 +252,25 @@ test('a manifest without a name is refused', () => {
 test('a plugin validates strictly with the Claude Code CLI', () => {
   const { validate } = pluginTargets('plugins/demo', 'demo', [], noFolders);
 
-  assert.equal(validate?.command, 'claude plugin validate --strict plugins/demo');
+  assert.equal(
+    validate?.command,
+    'claude plugin validate --strict plugins/demo',
+  );
   assert.equal(validate.cache, true);
-  assert.deepEqual(validate.inputs, ['default', { runtime: 'claude --version' }]);
+  assert.deepEqual(validate.inputs, [
+    'default',
+    { runtime: 'claude --version' },
+  ]);
   assert.deepEqual(validate.outputs, []);
 });
 
 test('every Markdown file of a plugin is checked against the store at the six-word floor, never from cache', () => {
-  const { overlap } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/skills/a/SKILL.md'], noFolders);
+  const { overlap } = pluginTargets(
+    'plugins/demo',
+    'demo',
+    ['plugins/demo/README.md', 'plugins/demo/skills/a/SKILL.md'],
+    noFolders,
+  );
 
   assert.equal(
     overlap?.command,
@@ -182,18 +280,34 @@ test('every Markdown file of a plugin is checked against the store at the six-wo
 });
 
 test('every Markdown file of a plugin is checked for citations, cached on the files and the checker', () => {
-  const { citations } = pluginTargets('plugins/demo', 'demo', ['plugins/demo/README.md', 'plugins/demo/z.md'], noFolders);
+  const { citations } = pluginTargets(
+    'plugins/demo',
+    'demo',
+    ['plugins/demo/README.md', 'plugins/demo/z.md'],
+    noFolders,
+  );
 
-  assert.equal(citations?.command, 'node tools/citations.ts plugins/demo/README.md plugins/demo/z.md');
+  assert.equal(
+    citations?.command,
+    'node tools/citations.ts plugins/demo/README.md plugins/demo/z.md',
+  );
   assert.equal(citations.cache, true);
-  assert.deepEqual(citations.inputs, ['default', '{workspaceRoot}/tools/citations.ts']);
+  assert.deepEqual(citations.inputs, [
+    'default',
+    '{workspaceRoot}/tools/citations.ts',
+  ]);
   assert.deepEqual(citations.outputs, []);
 });
 
 test('pre-eval assembles the plugin and its eval cases outside the distributed plugin, cached on both', () => {
-  const preEval = pluginTargets('plugins/demo', 'demo', [], noFolders)['pre-eval'];
+  const preEval = pluginTargets('plugins/demo', 'demo', [], noFolders)[
+    'pre-eval'
+  ];
 
-  assert.equal(preEval?.command, 'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo dist/eval/demo');
+  assert.equal(
+    preEval?.command,
+    'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo dist/eval/demo',
+  );
   assert.equal(preEval.cache, true);
   assert.deepEqual(preEval.inputs, [
     'default',
@@ -205,17 +319,30 @@ test('pre-eval assembles the plugin and its eval cases outside the distributed p
 });
 
 test('eval runs the assembled copy after pre-eval and is never cached', () => {
-  const { eval: evaluate } = pluginTargets('plugins/demo', 'demo', [], noFolders);
+  const { eval: evaluate } = pluginTargets(
+    'plugins/demo',
+    'demo',
+    [],
+    noFolders,
+  );
 
-  assert.equal(evaluate?.command, 'claude plugin eval dist/eval/demo --allow-tools Write Edit');
+  assert.equal(
+    evaluate?.command,
+    'claude plugin eval dist/eval/demo --allow-tools Write Edit',
+  );
   assert.deepEqual(evaluate.dependsOn, ['pre-eval']);
   assert.equal(evaluate.cache, false);
 });
 
 test('pre-eval-real assembles the plugin with its real-repository cases beside the synthetic suite, cached on both', () => {
-  const preEvalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)['pre-eval-real'];
+  const preEvalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)[
+    'pre-eval-real'
+  ];
 
-  assert.equal(preEvalReal?.command, 'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo-real dist/eval/demo-real');
+  assert.equal(
+    preEvalReal?.command,
+    'node tools/nx/claude-plugin.ts assemble plugins/demo evals/demo-real dist/eval/demo-real',
+  );
   assert.equal(preEvalReal.cache, true);
   assert.deepEqual(preEvalReal.inputs, [
     'default',
@@ -223,13 +350,20 @@ test('pre-eval-real assembles the plugin with its real-repository cases beside t
     '!{workspaceRoot}/evals/demo-real/results/**/*',
     '{workspaceRoot}/tools/nx/claude-plugin.ts',
   ]);
-  assert.deepEqual(preEvalReal.outputs, ['{workspaceRoot}/dist/eval/demo-real']);
+  assert.deepEqual(preEvalReal.outputs, [
+    '{workspaceRoot}/dist/eval/demo-real',
+  ]);
 });
 
 test('eval-real runs the real-repository suite with its scaffold scripts after pre-eval-real, never cached', () => {
-  const evalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)['eval-real'];
+  const evalReal = pluginTargets('plugins/demo', 'demo', [], noFolders)[
+    'eval-real'
+  ];
 
-  assert.equal(evalReal?.command, 'claude plugin eval dist/eval/demo-real --scaffold');
+  assert.equal(
+    evalReal?.command,
+    'claude plugin eval dist/eval/demo-real --scaffold',
+  );
   assert.deepEqual(evalReal.dependsOn, ['pre-eval-real']);
   assert.equal(evalReal.cache, false);
 });

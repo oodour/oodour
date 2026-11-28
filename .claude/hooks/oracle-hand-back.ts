@@ -9,10 +9,26 @@
 
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import { type Corpus, describeRuns, findRuns, handBackMinWords, loadCorpus } from '../../tools/source-overlap.ts';
-import { denyOutput, type HookInput, isRecord, readHookInput, stringField } from './hook-input.ts';
+import {
+  type Corpus,
+  describeRuns,
+  findRuns,
+  handBackMinWords,
+  loadCorpus,
+} from '../../tools/source-overlap.ts';
+import {
+  denyOutput,
+  type HookInput,
+  isRecord,
+  readHookInput,
+  stringField,
+} from './hook-input.ts';
 
-const gated: ReadonlySet<string> = new Set(['oracle', 'oracle-reviewer', 'oracle-curator']);
+const gated: ReadonlySet<string> = new Set([
+  'oracle',
+  'oracle-reviewer',
+  'oracle-curator',
+]);
 
 function textBlocks(content: unknown): string {
   if (typeof content === 'string') {
@@ -24,7 +40,11 @@ function textBlocks(content: unknown): string {
   }
 
   return content
-    .flatMap((block: unknown) => (isRecord(block) && block['type'] === 'text' ? [stringField(block, 'text') ?? ''] : []))
+    .flatMap((block: unknown) =>
+      isRecord(block) && block['type'] === 'text'
+        ? [stringField(block, 'text') ?? '']
+        : [],
+    )
     .join('\n');
 }
 
@@ -41,12 +61,17 @@ function parseLine(line: string): unknown {
 export function lastAssistantText(transcript: string): string {
   const records = transcript.trim().split('\n').map(parseLine);
   const messages = records.flatMap((record) =>
-    isRecord(record) && record['type'] === 'assistant' ? [isRecord(record['message']) ? record['message'] : {}] : [],
+    isRecord(record) && record['type'] === 'assistant'
+      ? [isRecord(record['message']) ? record['message'] : {}]
+      : [],
   );
   const last = messages.at(-1);
 
   // A half-written last line may be the final report, so an earlier message must not stand in for it.
-  if (records.at(-1) === undefined || (last === undefined && records.includes(undefined))) {
+  if (
+    records.at(-1) === undefined ||
+    (last === undefined && records.includes(undefined))
+  ) {
     throw new Error('the transcript could not be parsed');
   }
 
@@ -55,21 +80,33 @@ export function lastAssistantText(transcript: string): string {
   }
 
   const id = last['id'];
-  const trailing = id === undefined ? [last] : messages.slice(messages.findLastIndex((message) => message['id'] !== id) + 1);
+  const trailing =
+    id === undefined
+      ? [last]
+      : messages.slice(
+          messages.findLastIndex((message) => message['id'] !== id) + 1,
+        );
 
   return trailing.map((message) => textBlocks(message['content'])).join('\n');
 }
 
 function report(input: HookInput): string {
   if (input.hookEventName === 'PreToolUse') {
-    return input.toolName === 'SubagentHandback' ? (stringField(input.toolInput, 'message') ?? '') : '';
+    return input.toolName === 'SubagentHandback'
+      ? (stringField(input.toolInput, 'message') ?? '')
+      : '';
   }
 
-  if (input.lastAssistantMessage !== undefined && input.lastAssistantMessage !== '') {
+  if (
+    input.lastAssistantMessage !== undefined &&
+    input.lastAssistantMessage !== ''
+  ) {
     return input.lastAssistantMessage;
   }
 
-  return input.agentTranscriptPath === undefined ? '' : lastAssistantText(readFileSync(input.agentTranscriptPath, 'utf8'));
+  return input.agentTranscriptPath === undefined
+    ? ''
+    : lastAssistantText(readFileSync(input.agentTranscriptPath, 'utf8'));
 }
 
 export function review(input: HookInput, corpus?: Corpus): string | undefined {
@@ -101,13 +138,20 @@ export function review(input: HookInput, corpus?: Corpus): string | undefined {
 }
 
 export function output(input: HookInput, reason: string): string {
-  return input.hookEventName === 'PreToolUse' ? denyOutput(reason) : JSON.stringify({ decision: 'block', reason });
+  return input.hookEventName === 'PreToolUse'
+    ? denyOutput(reason)
+    : JSON.stringify({ decision: 'block', reason });
 }
 
 // At PreToolUse a failed gate denies the hand-back, so nothing unchecked is delivered. At
 // SubagentStop it blocks the first stop, and lets the second through with a warning on stderr:
 // blocking every stop it cannot judge would hold the agent in a loop.
-export function run(read: () => HookInput, write: (output: string) => void, warn: (message: string) => void, corpus?: Corpus): void {
+export function run(
+  read: () => HookInput,
+  write: (output: string) => void,
+  warn: (message: string) => void,
+  corpus?: Corpus,
+): void {
   let input: HookInput | undefined;
 
   try {
@@ -121,16 +165,28 @@ export function run(read: () => HookInput, write: (output: string) => void, warn
     const message = `oracle-hand-back: the gate failed (${error instanceof Error ? error.message : String(error)}).`;
 
     if (input?.hookEventName === 'SubagentStop' && !input.stopHookActive) {
-      write(output(input, `${message} Your report was not checked. Send it again as your last message.`));
+      write(
+        output(
+          input,
+          `${message} Your report was not checked. Send it again as your last message.`,
+        ),
+      );
     } else if (input?.hookEventName === 'SubagentStop') {
       warn(message);
     } else {
-      write(denyOutput(`${message} Nothing was delivered; tell the driver the gate failed.`));
+      write(
+        denyOutput(
+          `${message} Nothing was delivered; tell the driver the gate failed.`,
+        ),
+      );
     }
   }
 }
 
-if (process.argv[1] !== undefined && basename(process.argv[1]) === 'oracle-hand-back.ts') {
+if (
+  process.argv[1] !== undefined &&
+  basename(process.argv[1]) === 'oracle-hand-back.ts'
+) {
   run(
     readHookInput,
     (text) => process.stdout.write(text),

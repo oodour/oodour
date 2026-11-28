@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { dataClumps, measure, parseSource, type Source, unitName } from '../index.ts';
+import {
+  dataClumps,
+  measure,
+  parseSource,
+  type Source,
+  unitName,
+} from '../index.ts';
 
 function sourceOf(text: string): Source {
   const source = parseSource(text, 'file.ts');
@@ -64,6 +70,9 @@ describe('dataClumps', () => {
   });
 
   it('names itself data-clumps where a run left it out', () => {
-    assert.throws(() => measure(sourceOf(''), []).of(dataClumps), /^Error: The metric 'data-clumps' was not measured/);
+    assert.throws(
+      () => measure(sourceOf(''), []).of(dataClumps),
+      /^Error: The metric 'data-clumps' was not measured/,
+    );
   });
 });

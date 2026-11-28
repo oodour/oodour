@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import ts from 'typescript';
 import { holdsOnly } from '../holds-only.ts';
 import { defineMetric } from '../metric.ts';
@@ -33,14 +36,21 @@ export const privateAccess = defineMetric({
     const nonPublic = nonPublicName(node, source);
     const underscored = underscoreName(node);
 
-    if ((nonPublic !== undefined || underscored !== undefined) && !namesEnclosingClass(node)) {
+    if (
+      (nonPublic !== undefined || underscored !== undefined) &&
+      !namesEnclosingClass(node)
+    ) {
       accesses.push({ node, nonPublic, underscored });
     }
   },
-  close: (accesses): readonly PrivateAccess[] | undefined => (accesses.length > 0 ? accesses : undefined),
+  close: (accesses): readonly PrivateAccess[] | undefined =>
+    accesses.length > 0 ? accesses : undefined,
 });
 
-function nonPublicName({ object, property, computed }: TSESTree.MemberExpression, source: Source): string | undefined {
+function nonPublicName(
+  { object, property, computed }: TSESTree.MemberExpression,
+  source: Source,
+): string | undefined {
   const name =
     !computed && property.type === T.Identifier
       ? property.name
@@ -54,26 +64,38 @@ function nonPublicName({ object, property, computed }: TSESTree.MemberExpression
 
   const { types } = source;
   const checker = types.program.getTypeChecker();
-  const type = checker.getNonNullableType(checker.getTypeAtLocation(types.esTreeNodeToTSNodeMap.get(object)));
+  const type = checker.getNonNullableType(
+    checker.getTypeAtLocation(types.esTreeNodeToTSNodeMap.get(object)),
+  );
   const isNonPublic = (declaration: ts.Declaration): boolean =>
-    (ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) !== 0;
+    (ts.getCombinedModifierFlags(declaration) &
+      (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) !==
+    0;
 
   return (type.isUnion() ? type.types : [type]).some(
-    (member) => member.getProperty(name)?.declarations?.some(isNonPublic) === true,
+    (member) =>
+      member.getProperty(name)?.declarations?.some(isNonPublic) === true,
   )
     ? name
     : undefined;
 }
 
-function underscoreName({ computed, property }: TSESTree.MemberExpression): string | undefined {
-  return !computed && property.type === T.Identifier && property.name.startsWith('_') && !property.name.startsWith('__')
+function underscoreName({
+  computed,
+  property,
+}: TSESTree.MemberExpression): string | undefined {
+  return !computed &&
+    property.type === T.Identifier &&
+    property.name.startsWith('_') &&
+    !property.name.startsWith('__')
     ? property.name
     : undefined;
 }
 
 function isOwnObject(object: TSESTree.Expression, source: Source): boolean {
   const bare = withoutTypeAssertions(object);
-  const variable = bare.type === T.Identifier ? variableOf(source, bare) : undefined;
+  const variable =
+    bare.type === T.Identifier ? variableOf(source, bare) : undefined;
 
   return (
     bare.type === T.ThisExpression ||
@@ -87,20 +109,29 @@ function isOwnObject(object: TSESTree.Expression, source: Source): boolean {
             (value) =>
               value.type === T.ThisExpression &&
               // Stryker disable next-line MethodExpression: holdsOnly accepts only declarators, and two declarators of one variable sit in one function or static block, so some and every agree
-              variable.defs.every(({ node }) => thisOwner(node) === thisOwner(value)),
+              variable.defs.every(
+                ({ node }) => thisOwner(node) === thisOwner(value),
+              ),
           ),
       ))
   );
 }
 
 /** Whether the object is the name of a class that encloses the access, which then reaches its own static member. */
-function namesEnclosingClass({ object, parent }: TSESTree.MemberExpression): boolean {
+function namesEnclosingClass({
+  object,
+  parent,
+}: TSESTree.MemberExpression): boolean {
   if (object.type !== T.Identifier) {
     return false;
   }
 
   // ESLint gives the program a null parent where typescript-estree leaves it undefined, so the loop tests for either.
-  for (let ancestor: TSESTree.Node | undefined = parent; ancestor; ancestor = ancestor.parent) {
+  for (
+    let ancestor: TSESTree.Node | undefined = parent;
+    ancestor;
+    ancestor = ancestor.parent
+  ) {
     if (classNameOf(ancestor) === object.name) {
       return true;
     }
@@ -137,7 +168,9 @@ function classNameOf(node: TSESTree.Node): string | undefined {
 
     return (
       node.id?.name ??
-      (holder.type === T.VariableDeclarator && holder.id.type === T.Identifier ? holder.id.name : undefined)
+      (holder.type === T.VariableDeclarator && holder.id.type === T.Identifier
+        ? holder.id.name
+        : undefined)
     );
   }
 

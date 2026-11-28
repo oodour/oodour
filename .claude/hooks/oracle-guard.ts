@@ -4,10 +4,19 @@
 
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import { decide, failedReason, metaPathOf, ownerFromMeta } from '../mods/oracle-guard/hooks/decide.ts';
+import {
+  decide,
+  failedReason,
+  metaPathOf,
+  ownerFromMeta,
+} from '../mods/oracle-guard/hooks/decide.ts';
 import { denyOutput, type HookInput, readHookInput } from './hook-input.ts';
 
-export { decide, type DecideOptions, storePath } from '../mods/oracle-guard/hooks/decide.ts';
+export {
+  decide,
+  type DecideOptions,
+  storePath,
+} from '../mods/oracle-guard/hooks/decide.ts';
 
 // Undefined when the metadata file beside the transcript cannot be read.
 function transcriptOwner(path: string): string | undefined {
@@ -18,13 +27,21 @@ function transcriptOwner(path: string): string | undefined {
   }
 }
 
-export function run(read: () => HookInput, write: (output: string) => void): void {
+export function run(
+  read: () => HookInput,
+  write: (output: string) => void,
+): void {
   let reason: string | undefined;
 
   try {
-    reason = decide(read(), { agentTypeOf: transcriptOwner, projectDir: process.env['CLAUDE_PROJECT_DIR'] });
+    reason = decide(read(), {
+      agentTypeOf: transcriptOwner,
+      projectDir: process.env['CLAUDE_PROJECT_DIR'],
+    });
   } catch (error) {
-    reason = failedReason(error instanceof Error ? error.message : String(error));
+    reason = failedReason(
+      error instanceof Error ? error.message : String(error),
+    );
   }
 
   if (reason !== undefined) {
@@ -32,6 +49,9 @@ export function run(read: () => HookInput, write: (output: string) => void): voi
   }
 }
 
-if (process.argv[1] !== undefined && basename(process.argv[1]) === 'oracle-guard.ts') {
+if (
+  process.argv[1] !== undefined &&
+  basename(process.argv[1]) === 'oracle-guard.ts'
+) {
   run(readHookInput, (output) => process.stdout.write(output));
 }

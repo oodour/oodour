@@ -7,11 +7,16 @@ export const dataClumps = defineMetricRule<[], 'found', readonly DataClump[]>({
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Report a group of parameters that travels together through three or more functions of one scope',
+      description:
+        'Report a group of parameters that travels together through three or more functions of one scope',
       concept: 'Data Clumps',
       cures: ['Introduce Parameter Object', 'Preserve Whole Object'],
       requiresTypeChecking: false,
-      remedy: { kind: 'none', because: 'which object the parameters become is a design decision no tool can make' },
+      remedy: {
+        kind: 'none',
+        because:
+          'which object the parameters become is a design decision no tool can make',
+      },
       tier: 'strict',
       skipsTestFiles: true,
     },
@@ -26,7 +31,11 @@ export const dataClumps = defineMetricRule<[], 'found', readonly DataClump[]>({
   },
   check({ value }, context) {
     for (const { names, holders } of value) {
-      context.report({ node: holders[0].node, messageId: 'found', data: { clump: names.join(', '), count: holders.length } });
+      context.report({
+        node: holders[0].node,
+        messageId: 'found',
+        data: { clump: names.join(', '), count: holders.length },
+      });
     }
   },
 });

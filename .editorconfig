@@ -1,4 +1,5 @@
 # Editor configuration, see http://editorconfig.org
+# Prettier reads its print width from max_line_length here.
 root = true
 
 [*]
@@ -7,11 +8,12 @@ indent_style = space
 indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
+max_line_length = 80
 
+[*.{json,jsonc,html,yml,yaml}]
+max_line_length = 120
+
+# Prettier leaves Markdown alone (.prettierignore), so its lines keep the width they were written at.
 [*.md]
 max_line_length = off
 trim_trailing_whitespace = false
-
-# The distributed plugin's Markdown wraps at 120 columns; Prettier reads the width from here.
-[plugins/**.md]
-max_line_length = 120

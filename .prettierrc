@@ -1,12 +1,3 @@
 {
-  "singleQuote": true,
-  "overrides": [
-    {
-      "files": "plugins/**/*.md",
-      "options": {
-        "proseWrap": "always",
-        "embeddedLanguageFormatting": "off"
-      }
-    }
-  ]
+  "singleQuote": true
 }

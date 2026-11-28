@@ -24,12 +24,19 @@ export const classLines = defineMetric({
 
 function linesOf({ loc }: TSESTree.Node, { ast, file }: Source): ClassLines {
   if (ast.tokens === undefined || ast.comments === undefined) {
-    throw new Error(`class-lines needs the tokens and comments of ${file}, which its parse left out.`);
+    throw new Error(
+      `class-lines needs the tokens and comments of ${file}, which its parse left out.`,
+    );
   }
 
-  const within = (line: number): boolean => line >= loc.start.line && line <= loc.end.line;
+  const within = (line: number): boolean =>
+    line >= loc.start.line && line <= loc.end.line;
   const code = new Set(ast.tokens.flatMap(spannedLines).filter(within));
-  const comments = new Set(ast.comments.flatMap(spannedLines).filter((line) => within(line) && !code.has(line)));
+  const comments = new Set(
+    ast.comments
+      .flatMap(spannedLines)
+      .filter((line) => within(line) && !code.has(line)),
+  );
 
   return {
     code: code.size,
@@ -38,6 +45,13 @@ function linesOf({ loc }: TSESTree.Node, { ast, file }: Source): ClassLines {
   };
 }
 
-function spannedLines({ loc }: { readonly loc: TSESTree.SourceLocation }): number[] {
-  return Array.from({ length: loc.end.line - loc.start.line + 1 }, (_, offset) => loc.start.line + offset);
+function spannedLines({
+  loc,
+}: {
+  readonly loc: TSESTree.SourceLocation;
+}): number[] {
+  return Array.from(
+    { length: loc.end.line - loc.start.line + 1 },
+    (_, offset) => loc.start.line + offset,
+  );
 }

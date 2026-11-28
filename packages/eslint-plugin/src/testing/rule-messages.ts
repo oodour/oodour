@@ -9,9 +9,17 @@ type Config = ReturnType<typeof defineConfig>;
  * Lints code with the recommended preset and one of the plugin's rules set to the given options, and returns the
  * messages that rule reports, so a test can check the full message text and the option schema.
  */
-export function ruleMessages(name: string): (code: string, options: Record<string, unknown>) => readonly string[] {
+export function ruleMessages(
+  name: string,
+): (code: string, options: Record<string, unknown>) => readonly string[] {
   return (code, options) =>
-    messagesOf(name, code, defineConfig(plugin.configs.recommended, { rules: { [ruleId(name)]: ['error', options] } }));
+    messagesOf(
+      name,
+      code,
+      defineConfig(plugin.configs.recommended, {
+        rules: { [ruleId(name)]: ['error', options] },
+      }),
+    );
 }
 
 /**
@@ -24,12 +32,20 @@ export function presetMessages(
   code: string,
   filename: string,
 ): readonly string[] {
-  const config = defineConfig({ files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } }, plugin.configs[preset]);
+  const config = defineConfig(
+    { files: ['**/*.ts'], languageOptions: { parser: tseslint.parser } },
+    plugin.configs[preset],
+  );
 
   return messagesOf(name, code, config, filename);
 }
 
-function messagesOf(name: string, code: string, config: Config, filename?: string): readonly string[] {
+function messagesOf(
+  name: string,
+  code: string,
+  config: Config,
+  filename?: string,
+): readonly string[] {
   return new Linter()
     .verify(code, config, filename)
     .filter((message) => message.ruleId === ruleId(name))

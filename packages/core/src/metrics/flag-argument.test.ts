@@ -22,7 +22,10 @@ function flags(text: string): string[] {
 
 describe('flagArgument', () => {
   it('reports a boolean parameter the body branches on', () => {
-    assert.deepEqual(flags('function f(fast: boolean) { if (fast) { g(); } }'), ['fast']);
+    assert.deepEqual(
+      flags('function f(fast: boolean) { if (fast) { g(); } }'),
+      ['fast'],
+    );
   });
 
   it('reports a union of literals, and a boolean or string default', () => {
@@ -35,7 +38,10 @@ describe('flagArgument', () => {
   it('passes an untyped parameter until a call in the file passes it a literal', () => {
     assert.deepEqual(flags('function f(on) { if (on) {} }'), []);
     assert.deepEqual(flags('function f(on) { if (on) {} } f(true);'), ['on']);
-    assert.deepEqual(flags('const o = { f(x, on) { switch (on) {} } }; o.f(1, 2);'), ['on']);
+    assert.deepEqual(
+      flags('const o = { f(x, on) { switch (on) {} } }; o.f(1, 2);'),
+      ['on'],
+    );
   });
 
   it('passes a parameter used only as a value', () => {
@@ -53,19 +59,34 @@ describe('flagArgument', () => {
   });
 
   it('lists the flags in source order', () => {
-    assert.deepEqual(flags('function f(a) { if (a) {} } function g(b: boolean) { if (b) {} } f(1);'), ['a', 'b']);
+    assert.deepEqual(
+      flags(
+        'function f(a) { if (a) {} } function g(b: boolean) { if (b) {} } f(1);',
+      ),
+      ['a', 'b'],
+    );
   });
 
   it('passes a function without a name, whatever calls without a name pass', () => {
-    assert.deepEqual(flags('[function (on) { if (on) {} }]; pick()(true);'), []);
+    assert.deepEqual(
+      flags('[function (on) { if (on) {} }]; pick()(true);'),
+      [],
+    );
   });
 
   it('reads every call of a function, not only the first', () => {
-    assert.deepEqual(flags('function f(on) { if (on) {} } f(x); f(true);'), ['on']);
+    assert.deepEqual(flags('function f(on) { if (on) {} } f(x); f(true);'), [
+      'on',
+    ]);
   });
 
   it('has no measurement for a file without flags, and goes by its name', () => {
-    assert.deepEqual(measure(sourceOf('function f(a) { return a; }'), [flagArgument]).of(flagArgument), []);
+    assert.deepEqual(
+      measure(sourceOf('function f(a) { return a; }'), [flagArgument]).of(
+        flagArgument,
+      ),
+      [],
+    );
     assert.equal(flagArgument.name, 'flag-argument');
   });
 });

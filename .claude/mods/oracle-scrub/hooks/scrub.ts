@@ -5,7 +5,8 @@ export const storePath = /(?<![A-Za-z0-9_-])\.oracle(?![A-Za-z0-9_-])/i;
 
 // A line whose first token is a path inside the store, as find, ls -R, rg and Get-ChildItem print
 // them. A line that only mentions the store further in, as this repository's docs do, is kept.
-export const storeLine = /^\s*(?:Directory:\s*)?(?:[A-Za-z]:)?(?:[^\s:]*[\\/])?\.oracle[\\/:]/i;
+export const storeLine =
+  /^\s*(?:Directory:\s*)?(?:[A-Za-z]:)?(?:[^\s:]*[\\/])?\.oracle[\\/:]/i;
 
 // A store path anywhere in a line: inside a folder path or a quoted string, with a separator after it,
 // as JSON output (rg --json) and cmd's `Directory of` headers print it; or a relative path that starts a
@@ -19,7 +20,9 @@ const colourCode = /\u001b\[[0-9;]*[A-Za-z]/g;
 export const withheld =
   'oracle-scrub: this output listed paths inside the sealed store (.oracle/) and was withheld. Scope the command to the directory you mean instead of the repository root (AGENTS.md, "Oracle firewall").';
 
-export const failClosed = { deny: 'oracle-scrub: its scrub failed, so the output was withheld.' } as const;
+export const failClosed = {
+  deny: 'oracle-scrub: its scrub failed, so the output was withheld.',
+} as const;
 
 export function keep(line: string): boolean {
   return !storeLine.test(line);
@@ -37,16 +40,22 @@ function field(result: unknown, key: 'stdout' | 'stderr'): string {
     return '';
   }
 
-  const value: unknown = Object.entries(result).find(([name]) => name === key)?.[1];
+  const value: unknown = Object.entries(result).find(
+    ([name]) => name === key,
+  )?.[1];
 
   return typeof value === 'string' ? value : '';
 }
 
 export function shellOutput(text: string | undefined, result: unknown): string {
-  return [text ?? '', field(result, 'stdout'), field(result, 'stderr')].join('\n');
+  return [text ?? '', field(result, 'stdout'), field(result, 'stderr')].join(
+    '\n',
+  );
 }
 
 // A call aimed at the store is the guard's to allow or deny; an oracle agent's own reads stay whole.
 export function aimedAtStore(values: readonly unknown[]): boolean {
-  return values.some((value) => typeof value === 'string' && storePath.test(value));
+  return values.some(
+    (value) => typeof value === 'string' && storePath.test(value),
+  );
 }

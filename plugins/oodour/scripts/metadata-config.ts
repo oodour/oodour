@@ -16,7 +16,11 @@ export interface ConfigCheck {
   readonly places: readonly string[];
 }
 
-export function assertLocalConfig(file: string, check: ConfigCheck, depth = 0): void {
+export function assertLocalConfig(
+  file: string,
+  check: ConfigCheck,
+  depth = 0,
+): void {
   for (const local of readingsOf(file)) {
     if (lstatSync(local, { throwIfNoEntry: false }) !== undefined) {
       assertLocalConfigReading(file, local, check, depth);
@@ -24,7 +28,12 @@ export function assertLocalConfig(file: string, check: ConfigCheck, depth = 0): 
   }
 }
 
-function assertLocalConfigReading(file: string, local: string, check: ConfigCheck, depth: number): void {
+function assertLocalConfigReading(
+  file: string,
+  local: string,
+  check: ConfigCheck,
+  depth: number,
+): void {
   if (depth > mostIncludes) {
     refuse(`${file} is included more than ${String(mostIncludes)} deep`);
   }
@@ -47,19 +56,30 @@ function assertLocalConfigReading(file: string, local: string, check: ConfigChec
         refuse(`${key} in ${local} names a network path (${value})`);
       }
 
-      const leadsToNetwork = (reading: string): boolean => check.local(reading) === undefined;
-      const readings = (fromHome ? [homedir()] : check.places).flatMap((place) => from(place, name));
+      const leadsToNetwork = (reading: string): boolean =>
+        check.local(reading) === undefined;
+      const readings = (fromHome ? [homedir()] : check.places).flatMap(
+        (place) => from(place, name),
+      );
 
-      if (readings.flatMap((reading) => [reading, normalize(reading)]).some(leadsToNetwork)) {
+      if (
+        readings
+          .flatMap((reading) => [reading, normalize(reading)])
+          .some(leadsToNetwork)
+      ) {
         refuse(`${key} in ${local} leads to a network path (${value})`);
       }
 
       // Git reads a relative include from the folder of the config file as it named it, before any link, and one
       // named from its drive from the folder Git runs in.
       if (key === 'include.path' || /^includeif\..+\.path$/.test(key)) {
-        const folders = fromHome ? [homedir()] : [dirname(file), dirname(local)];
+        const folders = fromHome
+          ? [homedir()]
+          : [dirname(file), dirname(local)];
 
-        for (const included of new Set(folders.flatMap((base) => pathsFrom(base, name, check.places)))) {
+        for (const included of new Set(
+          folders.flatMap((base) => pathsFrom(base, name, check.places)),
+        )) {
           assertLocalConfig(included, check, depth + 1);
         }
       }
@@ -72,5 +92,10 @@ function pathsIn(value: string): ReadonlySet<string> {
   const required = value.replace(/^:\(optional\)/, '');
   const unprefixed = required.replace(/^%\(prefix\)\//, '');
 
-  return new Set([value, required, unprefixed, unprefixed.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')]);
+  return new Set([
+    value,
+    required,
+    unprefixed,
+    unprefixed.replace(/^[a-z][a-z0-9+.-]*:\/\//i, ''),
+  ]);
 }

@@ -8,7 +8,15 @@
     "maxFileLines": 250,
     "thresholdOverrides": [
       {
-        "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**", "**/e2e/**"],
+        "files": [
+          "**/*.test.*",
+          "**/*.spec.*",
+          "**/__tests__/**",
+          "**/test/**",
+          "**/tests/**",
+          "**/spec/**",
+          "**/e2e/**"
+        ],
         "maxFileLines": 0
       }
     ]

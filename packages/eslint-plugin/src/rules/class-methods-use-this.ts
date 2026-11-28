@@ -27,7 +27,10 @@ export const classMethodsUseThis = wrapRule<Options>({
     concept: 'Feature Envy',
     cures: ['Move Function'],
     requiresTypeChecking: false,
-    remedy: { kind: 'none', because: "the method's new home is a design choice" },
+    remedy: {
+      kind: 'none',
+      because: "the method's new home is a design choice",
+    },
     tier: 'strict',
     // A test fake may put its behaviour on the static side.
     skipsTestFiles: true,
@@ -35,5 +38,10 @@ export const classMethodsUseThis = wrapRule<Options>({
   message:
     'Stop and look: Feature Envy, the {{name}} uses no state of its object. Look at whose data it reads. Cure: Move ' +
     'Function to that object, or to a module function for a pure calculation; keep `static` only for a method that builds an instance.',
-  defaultOptions: [{ ignoreOverrideMethods: true, ignoreClassesThatImplementAnInterface: true }],
+  defaultOptions: [
+    {
+      ignoreOverrideMethods: true,
+      ignoreClassesThatImplementAnInterface: true,
+    },
+  ],
 });

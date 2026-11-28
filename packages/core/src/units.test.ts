@@ -4,7 +4,10 @@ import { maxParams, measure, parseSource, unitName } from './index.ts';
 
 describe('unitName', () => {
   it('names an overload signature without a name, as an anonymous default export has', () => {
-    const source = parseSource('export default function (a: number): void;', 'file.ts');
+    const source = parseSource(
+      'export default function (a: number): void;',
+      'file.ts',
+    );
 
     assert.ok(!('parseError' in source));
     assert.deepEqual(

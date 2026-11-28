@@ -21,7 +21,12 @@ export interface TestMetricsOptions {
 /** The report lines for the measured functions, and whether the run fails. */
 export function testMetricsReport(
   functions: readonly MeasuredFunction[],
-  { limit = 30, crap = true, uncalledPublicMethods = true, untestedBranches: branches = true }: TestMetricsOptions = {},
+  {
+    limit = 30,
+    crap = true,
+    uncalledPublicMethods = true,
+    untestedBranches: branches = true,
+  }: TestMetricsOptions = {},
 ): TestMetricsReport {
   const reports = functions.map((measured) => {
     const { publicMethod, called, untestedBranches } = measured;
@@ -32,13 +37,20 @@ export function testMetricsReport(
       atLimit,
       lines: [
         ...(atLimit ? [crapLine(measured, score, limit)] : []),
-        ...(uncalledPublicMethods && publicMethod && !called ? [uncalledLine(measured)] : []),
-        ...(branches && called && untestedBranches > 0 ? [branchLine(measured)] : []),
+        ...(uncalledPublicMethods && publicMethod && !called
+          ? [uncalledLine(measured)]
+          : []),
+        ...(branches && called && untestedBranches > 0
+          ? [branchLine(measured)]
+          : []),
       ],
     };
   });
 
-  return { lines: reports.flatMap(({ lines }) => lines), failed: reports.some(({ atLimit }) => atLimit) };
+  return {
+    lines: reports.flatMap(({ lines }) => lines),
+    failed: reports.some(({ atLimit }) => atLimit),
+  };
 }
 
 /** How every line starts: the function's file and line, so editors and terminals link to it, then the concept. */
@@ -46,7 +58,11 @@ function stopAndLook({ file, line, name }: MeasuredFunction): string {
   return `${file}:${String(line)} Stop and look: Untested Code, ${name}`;
 }
 
-function crapLine(measured: MeasuredFunction, score: number, limit: number): string {
+function crapLine(
+  measured: MeasuredFunction,
+  score: number,
+  limit: number,
+): string {
   const rounded = String(Math.round(score * 10) / 10);
   const covered = String(Math.round(measured.coverage * 100));
 
@@ -60,7 +76,8 @@ function crapLine(measured: MeasuredFunction, score: number, limit: number): str
 
 function branchLine(measured: MeasuredFunction): string {
   const { untestedBranches } = measured;
-  const [paths, them] = untestedBranches === 1 ? ['path', 'it'] : ['paths', 'each of them'];
+  const [paths, them] =
+    untestedBranches === 1 ? ['path', 'it'] : ['paths', 'each of them'];
 
   return (
     `${stopAndLook(measured)} has ${String(untestedBranches)} branch ${paths} no test took. Cure: a test that drives ` +

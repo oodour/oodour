@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { analyze, ScopeType } from '@typescript-eslint/scope-manager';
-import { AST_NODE_TYPES as T, simpleTraverse, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  simpleTraverse,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { parseSource, scopesOf, type Source, variableOf } from './index.ts';
 
 function sourceOf(text: string): Source {
@@ -32,9 +36,14 @@ function identifiers(source: Source, name: string): TSESTree.Identifier[] {
 describe('parseSource', () => {
   it('reports a file nested too deep for the parser as a parse failure, as ESLint does', () => {
     const depth = 20_000;
-    const failure = parseSource(`const x = ${'['.repeat(depth)}${']'.repeat(depth)};`, 'deep.ts');
+    const failure = parseSource(
+      `const x = ${'['.repeat(depth)}${']'.repeat(depth)};`,
+      'deep.ts',
+    );
 
-    assert.deepEqual(failure, { parseError: 'deep.ts Maximum call stack size exceeded' });
+    assert.deepEqual(failure, {
+      parseError: 'deep.ts Maximum call stack size exceeded',
+    });
   });
 });
 

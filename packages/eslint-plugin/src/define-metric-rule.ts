@@ -1,7 +1,20 @@
-import { measure, type Measurement, type Measurements, type Metric, type UnitKind } from '@oodour/core';
+import {
+  measure,
+  type Measurement,
+  type Measurements,
+  type Metric,
+  type UnitKind,
+} from '@oodour/core';
 import { ESLintUtils } from '@typescript-eslint/utils';
-import type { RuleContext, SourceCode } from '@typescript-eslint/utils/ts-eslint';
-import { createRule, type OopRuleDefinition, type OopRuleModule } from './create-rule.ts';
+import type {
+  RuleContext,
+  SourceCode,
+} from '@typescript-eslint/utils/ts-eslint';
+import {
+  createRule,
+  type OopRuleDefinition,
+  type OopRuleModule,
+} from './create-rule.ts';
 
 /** The metrics the enabled rules asked for on one file, and their one walk once it ran. */
 interface Batch {
@@ -11,7 +24,9 @@ interface Batch {
 
 const batches = new WeakMap<SourceCode, Batch>();
 
-function needsSyntaxOnly(metric: Metric<unknown>): metric is Metric<unknown, UnitKind, 'syntax'> {
+function needsSyntaxOnly(
+  metric: Metric<unknown>,
+): metric is Metric<unknown, UnitKind, 'syntax'> {
   // Stryker disable next-line ConditionalExpression: `true` sends a metric that needs types down the syntax path only from a rule that does not require type checking, whose run fails with or without it; `false` measures no syntax rule without types, which every syntax rule's tests kill
   return metric.needs === 'syntax';
 }
@@ -41,7 +56,9 @@ export function defineMetricRule<
   TMessageIds extends string,
   TValue,
   TKind extends UnitKind = UnitKind,
->(definition: MetricRuleDefinition<TOptions, TMessageIds, TValue, TKind>): OopRuleModule<TMessageIds, TOptions> {
+>(
+  definition: MetricRuleDefinition<TOptions, TMessageIds, TValue, TKind>,
+): OopRuleModule<TMessageIds, TOptions> {
   const { metric, check, ...rule } = definition;
 
   return createRule({
@@ -75,7 +92,10 @@ export function defineMetricRule<
           // Without a program only the syntax metrics run; a rule whose metric needs types threw above.
           batch.measured ??=
             program && esTreeNodeToTSNodeMap
-              ? measure({ ...source, types: { program, esTreeNodeToTSNodeMap } }, [...batch.metrics])
+              ? measure(
+                  { ...source, types: { program, esTreeNodeToTSNodeMap } },
+                  [...batch.metrics],
+                )
               : measure(source, [...batch.metrics].filter(needsSyntaxOnly));
 
           for (const measurement of batch.measured.of(metric)) {

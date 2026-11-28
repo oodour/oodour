@@ -10,12 +10,17 @@ import { rules } from './index.ts';
 import { selectorRules } from './selector-rules.ts';
 
 const files = readdirSync(import.meta.dirname);
-const ruleFiles = files.filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts') && file !== 'index.ts');
+const ruleFiles = files.filter(
+  (file) =>
+    file.endsWith('.ts') && !file.endsWith('.test.ts') && file !== 'index.ts',
+);
 const selectorTable = 'selector-rules.ts';
 
 test('every rule file and every selector table row is registered under its name, and nothing else is', () => {
   const expected = [
-    ...ruleFiles.filter((file) => file !== selectorTable).map((file) => file.replace(/\.ts$/, '')),
+    ...ruleFiles
+      .filter((file) => file !== selectorTable)
+      .map((file) => file.replace(/\.ts$/, '')),
     ...selectorRules.map(({ name }) => name),
   ];
 
@@ -24,20 +29,33 @@ test('every rule file and every selector table row is registered under its name,
 
 test('every rule names the concept it prompts a look at and describes itself', () => {
   const undocumented = Object.entries(rules).flatMap(([name, { meta }]) =>
-    meta.docs.concept.length > 0 && meta.docs.description.length > 0 ? [] : [name],
+    meta.docs.concept.length > 0 && meta.docs.description.length > 0
+      ? []
+      : [name],
   );
 
   assert.deepEqual(undocumented, []);
 });
 
 test("every rule's concept is an entry, a name in bold, in the plugin's references", () => {
-  const referencesDir = join(import.meta.dirname, '..', '..', '..', '..', 'plugins', 'oodour', 'references');
+  const referencesDir = join(
+    import.meta.dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    'plugins',
+    'oodour',
+    'references',
+  );
   const references = readdirSync(referencesDir)
     .filter((file) => file.endsWith('.md'))
     .map((file) => readFileSync(join(referencesDir, file), 'utf8'))
     .join('\n');
   const uncatalogued = Object.entries(rules).flatMap(([name, { meta }]) =>
-    references.includes(`**${meta.docs.concept}**`) ? [] : [`${name}: ${meta.docs.concept}`],
+    references.includes(`**${meta.docs.concept}**`)
+      ? []
+      : [`${name}: ${meta.docs.concept}`],
   );
 
   assert.deepEqual(uncatalogued, []);
@@ -59,7 +77,16 @@ test('every rule lists the cures its report messages name, and names each in eve
 });
 
 test("every cure a rule lists is explained in the plugin's references", () => {
-  const referencesDir = join(import.meta.dirname, '..', '..', '..', '..', 'plugins', 'oodour', 'references');
+  const referencesDir = join(
+    import.meta.dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    'plugins',
+    'oodour',
+    'references',
+  );
   // Prettier wraps the references, so a name can break across lines.
   const references = readdirSync(referencesDir)
     .filter((file) => file.endsWith('.md'))
@@ -67,7 +94,9 @@ test("every cure a rule lists is explained in the plugin's references", () => {
     .join('\n')
     .replaceAll(/\s+/gu, ' ');
   const unexplained = Object.entries(rules).flatMap(([name, { meta }]) =>
-    meta.docs.cures.filter((cure) => !references.includes(cure)).map((cure) => `${name}: ${cure}`),
+    meta.docs.cures
+      .filter((cure) => !references.includes(cure))
+      .map((cure) => `${name}: ${cure}`),
   );
 
   assert.deepEqual(unexplained, []);
@@ -77,7 +106,8 @@ test('every report message is a stop-and-look message that names its concept and
   const nonConforming = Object.entries(rules).flatMap(([name, { meta }]) =>
     Object.entries(meta.messages).flatMap(([messageId, message]) =>
       messageId === 'suggestion' ||
-      (message.startsWith(`Stop and look: ${meta.docs.concept},`) && message.includes('Cure: '))
+      (message.startsWith(`Stop and look: ${meta.docs.concept},`) &&
+        message.includes('Cure: '))
         ? []
         : [`${name}:${messageId}`],
     ),
@@ -101,7 +131,10 @@ test('a rule says it requires type checking exactly when it fails on a file with
       );
     } catch (error) {
       // Only typescript-eslint's error for a file without type information counts; a rule that crashes fails the test.
-      if (error instanceof Error && /requires type information/.test(error.message)) {
+      if (
+        error instanceof Error &&
+        /requires type information/.test(error.message)
+      ) {
         return true;
       }
 
@@ -118,7 +151,9 @@ test('a rule says it requires type checking exactly when it fails on a file with
 });
 
 test('every rule file has a test file beside it', () => {
-  const untested = ruleFiles.filter((file) => !files.includes(file.replace(/\.ts$/, '.test.ts')));
+  const untested = ruleFiles.filter(
+    (file) => !files.includes(file.replace(/\.ts$/, '.test.ts')),
+  );
 
   assert.deepEqual(untested, []);
 });

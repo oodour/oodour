@@ -102,104 +102,201 @@ testRule(maxParams, {
     {
       name: 'five positional parameters are more than the default four',
       code: 'function f(a, b, c, d, e) {}',
-      errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "function 'f'", count: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'each key destructured in the signature counts as a parameter',
       code: 'function f({ a, b, c }, d, e) {}',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 3, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 3, max: 4 },
+        },
+      ],
     },
     {
       name: 'each element destructured from an array in the signature counts as a parameter',
       code: 'function f([a, b, c], d, e) {}',
-      errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "function 'f'", count: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'each key the body reads from an options object counts as a parameter',
       code: 'function f(options, x) { return options.a + options.b + options.c + options.d + x; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 4, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 4, max: 4 },
+        },
+      ],
     },
     {
       name: 'a key read with a literal in brackets counts as a parameter',
       code: "function f(options, x) { return options['a'] + options.b + options['c'] + options.d + x; }",
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 4, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 4, max: 4 },
+        },
+      ],
     },
     {
       name: 'each key the body destructures from an options object counts as a parameter',
       code: 'function f(options, x, y) { const { a, b, c } = options; return a + b + c + x + y; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 3, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 3, max: 4 },
+        },
+      ],
     },
     {
       name: 'each key a destructuring assignment takes from an options object counts as a parameter',
       code: 'function f(options, x, y) { let a, b, c; ({ a, b, c } = options); return a + b + c + x + y; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 3, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 3, max: 4 },
+        },
+      ],
     },
     {
       name: 'keys a nested function reads from an options object count for the outer function',
       code: 'function f(options, x) { return () => options.a + options.b + options.c + options.d + x; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 4, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 4, max: 4 },
+        },
+      ],
     },
     {
       name: 'keys read from an options object with a default value count as parameters',
       code: 'function f(options = {}, x) { return options.a + options.b + options.c + options.d + x; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 4, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 4, max: 4 },
+        },
+      ],
     },
     {
       name: 'keys read from a parameter of an inline object type count as parameters',
       code:
         'function f(options: { a: number; b: number; c: number; d: number; e: number }) { ' +
         'return options.a + options.b + options.c + options.d + options.e; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'keys read from an untyped parameter count as parameters',
       code: 'function f(options) { return options.a + options.b + options.c + options.d + options.e; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'one key read from an options object is reported as a key',
       code: 'function f(options, a, b, c, d) { return options.x + a + b + c + d; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 1, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 1, max: 4 },
+        },
+      ],
     },
     {
       name: 'a function called where it is defined is still checked',
       code: '(function f(a, b, c, d, e) {})(1);',
-      errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "function 'f'", count: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'an array pattern adds no options keys',
       code: 'function f([a, b], { c, d, e }) {}',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 3, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 3, max: 4 },
+        },
+      ],
     },
     {
       name: 'keys passed on as call arguments count as keys read',
       code: 'function f(options) { log(options.a, options.b, options.c, options.d, options.e); }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'a var that redeclares the parameter reads keys from the same object',
       code: 'function f(options) { var options; return options.a + options.b + options.c + options.d + options.e; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'an empty object pattern counts as one parameter',
       code: 'function f({}, a, b, c, d) {}',
-      errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "function 'f'", count: 5, max: 4 },
+        },
+      ],
     },
     {
       name: 'the rest of a body destructuring counts as one key',
       code: 'function f(options, x, y) { const { a, b, ...rest } = options; return [a, b, rest, x, y]; }',
-      errors: [{ messageId: 'foundKeys', data: { name: "function 'f'", count: 5, keys: 3, max: 4 } }],
+      errors: [
+        {
+          messageId: 'foundKeys',
+          data: { name: "function 'f'", count: 5, keys: 3, max: 4 },
+        },
+      ],
     },
     {
       name: 'a declared function without a name is named by its kind',
       code: 'export default function (a: number, b: number, c: number, d: number, e: number): void;',
-      errors: [{ messageId: 'found', data: { name: 'function', count: 5, max: 4 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'function', count: 5, max: 4 } },
+      ],
     },
     {
       name: 'a declared function without a body counts its parameters',
       code: 'declare function f(a: number, b: number, c: number, d: number, e: number): void;',
-      errors: [{ messageId: 'found', data: { name: "function 'f'", count: 5, max: 4 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "function 'f'", count: 5, max: 4 },
+        },
+      ],
     },
   ],
 });

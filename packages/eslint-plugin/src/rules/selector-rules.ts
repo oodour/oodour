@@ -1,5 +1,8 @@
 import { builtInConstructors as builtInNames } from '@oodour/core';
-import { defineSelectorRule, type SelectorRow } from '../define-selector-rule.ts';
+import {
+  defineSelectorRule,
+  type SelectorRow,
+} from '../define-selector-rule.ts';
 
 // Framework classes for a component's own form state and event streams, which frameworks create in place.
 const frameworkStateNames = [
@@ -29,10 +32,13 @@ const selectorRows = [
     concept: 'Switch Statements',
     cures: ['Replace Conditional with Polymorphism'],
     tier: 'strict',
-    selectors: ["SwitchStatement[discriminant.type='MemberExpression'][discriminant.property.name='kind']"],
+    selectors: [
+      "SwitchStatement[discriminant.type='MemberExpression'][discriminant.property.name='kind']",
+    ],
     message:
       "Stop and look: Switch Statements, this switch picks behaviour by the object's kind. Look for branches that do each kind's work rather than only choose an object. Cure: Replace Conditional with Polymorphism, an object per kind, chosen once by a factory.",
-    because: 'which objects take over each branch is a design decision no tool can make',
+    because:
+      'which objects take over each branch is a design decision no tool can make',
   },
   {
     name: 'module-let',
@@ -43,11 +49,13 @@ const selectorRows = [
     selectors: ["Program > VariableDeclaration[kind='let']"],
     message:
       'Stop and look: Global Data, this module keeps state that any function in it may change. Look for the functions that read and write it. Cure: Encapsulate Variable, then move the state into an object that is handed to the code that needs it.',
-    because: 'the cure moves the state into an object and changes every reader, which needs a person',
+    because:
+      'the cure moves the state into an object and changes every reader, which needs a person',
   },
   {
     name: 'new-collaborator',
-    description: 'Report a method or field initializer that creates its own collaborator',
+    description:
+      'Report a method or field initializer that creates its own collaborator',
     concept: 'Dependency Inversion',
     cures: ['Dependency Injection'],
     tier: 'strict',
@@ -66,10 +74,13 @@ const selectorRows = [
     concept: 'Conditional Complexity',
     cures: ['Introduce Special Case'],
     tier: 'strict',
-    selectors: ["MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']"],
+    selectors: [
+      "MemberExpression[optional=true][object.type='MemberExpression'][object.object.type='ThisExpression']",
+    ],
     message:
       'Stop and look: Conditional Complexity, this asks whether a collaborator is there before talking to it. Look for the same check in other methods. Cure: Introduce Special Case, a Null Object set when this object is built, so the code just sends the message.',
-    because: 'the cure needs a stand-in object whose behaviour a person decides',
+    because:
+      'the cure needs a stand-in object whose behaviour a person decides',
   },
   {
     name: 'optional-private-field',
@@ -77,10 +88,13 @@ const selectorRows = [
     concept: 'Temporary Field',
     cures: ['Extract Class'],
     tier: 'strict',
-    selectors: ["PropertyDefinition[optional=true][key.type='PrivateIdentifier']"],
+    selectors: [
+      "PropertyDefinition[optional=true][key.type='PrivateIdentifier']",
+    ],
     message:
       'Stop and look: Temporary Field, this private field holds a value for only part of the life of the object, so every method must ask whether it is there. Look for the fields set together. Cure: Extract Class for them, created when their values are known.',
-    because: 'which fields move into the new object, and who creates it, is for a person to decide',
+    because:
+      'which fields move into the new object, and who creates it, is for a person to decide',
   },
 ] as const satisfies readonly SelectorRow[];
 

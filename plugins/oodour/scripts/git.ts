@@ -37,7 +37,13 @@ const childOptions = () =>
   ({
     cwd: import.meta.dirname,
     encoding: 'utf8',
-    env: { ...process.env, GIT_ALLOW_PROTOCOL: 'none', GIT_NO_LAZY_FETCH: '1', LANGUAGE: 'C', LC_ALL: 'C' },
+    env: {
+      ...process.env,
+      GIT_ALLOW_PROTOCOL: 'none',
+      GIT_NO_LAZY_FETCH: '1',
+      LANGUAGE: 'C',
+      LC_ALL: 'C',
+    },
   }) as const;
 
 // Stryker disable next-line ArrayDeclaration: an empty list pipes all three streams, which keeps Git's errors off this process's stderr as well, and Git reads the end of input from a pipe nothing is written to as it does from no input
@@ -52,13 +58,23 @@ export interface Repository {
 // Read with no includes followed, so a file an include names is checked before git opens it.
 const readConfig: ConfigReader = (file) =>
   gitText(
-    execFileSync('git', ['config', '--file', file, '--list', '-z'], { ...childOptions(), encoding: 'buffer', stdio: quiet }),
+    execFileSync('git', ['config', '--file', file, '--list', '-z'], {
+      ...childOptions(),
+      encoding: 'buffer',
+      stdio: quiet,
+    }),
   );
 
 // Finds a repository the way Git starts to, by a `.git` entry in the folder or one above it, without starting Git.
 export function repositoryTop(folder: string): string | undefined {
-  for (let current = resolve(folder), above = dirname(current); ; current = above, above = dirname(current)) {
-    if (lstatSync(join(current, '.git'), { throwIfNoEntry: false }) !== undefined) {
+  for (
+    let current = resolve(folder), above = dirname(current);
+    ;
+    current = above, above = dirname(current)
+  ) {
+    if (
+      lstatSync(join(current, '.git'), { throwIfNoEntry: false }) !== undefined
+    ) {
       return current;
     }
 
@@ -68,7 +84,8 @@ export function repositoryTop(folder: string): string | undefined {
   }
 }
 
-const notInstalled = (error: unknown): boolean => error instanceof Error && 'code' in error && error.code === 'ENOENT';
+const notInstalled = (error: unknown): boolean =>
+  error instanceof Error && 'code' in error && error.code === 'ENOENT';
 
 // Each start of Git costs tens of milliseconds on Windows, so one rev-parse answers every question about the folder.
 export function gitIn(folder: string): Repository | undefined {
@@ -82,7 +99,11 @@ export function gitIn(folder: string): Repository | undefined {
     throw error;
   }
 
-  const probe = spawnSync('git', safely(folder, ['rev-parse', '--show-toplevel', '--show-prefix']), childOptions());
+  const probe = spawnSync(
+    'git',
+    safely(folder, ['rev-parse', '--show-toplevel', '--show-prefix']),
+    childOptions(),
+  );
 
   if (probe.error) {
     if (notInstalled(probe.error)) {
@@ -109,16 +130,25 @@ export function gitIn(folder: string): Repository | undefined {
   const [shownTop = '', prefix = ''] = shown;
   // Stryker disable next-line LzJsNumericLiteral: 1023 ** 3, 1025 ** 3 and 1024 ** 4 are each past the longest string Node.js holds, about half a gibibyte, so output between two of them fails either way; 1024 ** 2 is killed by "Git output past a mebibyte is read whole"
   const maxBuffer = 1024 ** 3;
-  const git: Git = (args) => execFileSync('git', safely(folder, args), { ...childOptions(), maxBuffer, stdio: quiet });
+  const git: Git = (args) =>
+    execFileSync('git', safely(folder, args), {
+      ...childOptions(),
+      maxBuffer,
+      stdio: quiet,
+    });
   // The repository's own config can set its work tree anywhere, a network share included.
   const top = resolve(shownTop);
 
   if (pathBelow(top, realpathSync.native(resolve(folder))) === undefined) {
-    throw new Error(`git: the repository's work tree ${top} does not hold ${folder}`);
+    throw new Error(
+      `git: the repository's work tree ${top} does not hold ${folder}`,
+    );
   }
 
   if (lstatSync(join(top, '.git'), { throwIfNoEntry: false }) === undefined) {
-    throw new Error(`git: the repository's work tree ${top} has no .git of its own, so its config moved it there`);
+    throw new Error(
+      `git: the repository's work tree ${top} has no .git of its own, so its config moved it there`,
+    );
   }
 
   // Git names the folder from the top folder itself, so a short or differently cased path to either cannot mislead it.

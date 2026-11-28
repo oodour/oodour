@@ -7,7 +7,11 @@ test('oodourRules holds every rule of this plugin that a config turns on', () =>
   const turnedOn = Object.values(plugin.configs)
     .flat()
     .flatMap(({ rules = {} }) => Object.entries(rules))
-    .flatMap(([id, setting]) => (id.startsWith(prefix) && setting !== 'off' ? [id.slice(prefix.length)] : []));
+    .flatMap(([id, setting]) =>
+      id.startsWith(prefix) && setting !== 'off'
+        ? [id.slice(prefix.length)]
+        : [],
+    );
 
   assert.deepEqual(
     [...new Set(turnedOn)].filter((name) => !Object.hasOwn(oodourRules, name)),

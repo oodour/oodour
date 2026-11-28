@@ -4,12 +4,24 @@ import { existsSync } from 'node:fs';
 import { test } from 'node:test';
 
 // Runs the statements in a child process after `const dir = tempDir(...)` and returns the child with the folder's path.
-function runWithTempDir(statements: string): { readonly status: number | null; readonly stderr: string; readonly dir: string } {
+function runWithTempDir(statements: string): {
+  readonly status: number | null;
+  readonly stderr: string;
+  readonly dir: string;
+} {
   const module = new URL('temp-dir.ts', import.meta.url).href;
   const script = `import { rmSync } from 'node:fs'; import { tempDir } from ${JSON.stringify(module)}; const dir = tempDir('temp-dir-test-'); console.log(dir); ${statements}`;
-  const child = spawnSync(process.execPath, ['--input-type=module', '--eval', script], { encoding: 'utf8' });
+  const child = spawnSync(
+    process.execPath,
+    ['--input-type=module', '--eval', script],
+    { encoding: 'utf8' },
+  );
 
-  return { status: child.status, stderr: child.stderr, dir: child.stdout.trim() };
+  return {
+    status: child.status,
+    stderr: child.stderr,
+    dir: child.stdout.trim(),
+  };
 }
 
 test('a folder made by tempDir is gone once the process exits', () => {

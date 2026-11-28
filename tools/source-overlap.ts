@@ -12,8 +12,22 @@
 // Exit 0 = no run at or above the threshold. Exit 1 = overlap found. Exit 2 = bad usage or a file
 // that cannot be read (the other files are still checked and their runs printed).
 
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  statSync,
+} from 'node:fs';
+import {
+  basename,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from 'node:path';
 
 // Not exported: an imported store path would let a script reach the store without naming it.
 const storeDir = resolve(import.meta.dirname, '..', '.oracle');
@@ -92,7 +106,17 @@ export function tokenize(text: string): readonly string[] {
 }
 
 // The prose and the example code a work holds.
-const textExtensions: ReadonlySet<string> = new Set(['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.jsx', '.tsx', '.rb']);
+const textExtensions: ReadonlySet<string> = new Set([
+  '.md',
+  '.txt',
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.ts',
+  '.jsx',
+  '.tsx',
+  '.rb',
+]);
 // A clone's history and its installed dependencies are not the work.
 const skippedFolders: ReadonlySet<string> = new Set(['.git', 'node_modules']);
 
@@ -104,7 +128,10 @@ function listTextFiles(dir: string): readonly string[] {
       return skippedFolders.has(entry.name) ? [] : listTextFiles(path);
     }
 
-    return entry.isFile() && textExtensions.has(extname(entry.name).toLowerCase()) ? [path] : [];
+    return entry.isFile() &&
+      textExtensions.has(extname(entry.name).toLowerCase())
+      ? [path]
+      : [];
   });
 }
 
@@ -117,7 +144,10 @@ function entryOf(dir: string, file: string): string {
 function isIndex(dir: string, file: string): boolean {
   const parts = relative(dir, file).split(sep);
 
-  return (parts.length === 1 && parts[0] === 'README.md') || (parts.length === 2 && parts[1] === 'index.md');
+  return (
+    (parts.length === 1 && parts[0] === 'README.md') ||
+    (parts.length === 2 && parts[1] === 'index.md')
+  );
 }
 
 function isSeparator(line: string): boolean {
@@ -148,7 +178,10 @@ function titleCells(index: string): readonly string[] {
 
     // Stryker disable next-line StringLiteral: the fallback after the last line is no separator, whatever its text
     if (isSeparator(lines[i + 1] ?? '')) {
-      column = Math.max(0, cells.findIndex((cell) => /^(title|talk)$/i.test(cell)));
+      column = Math.max(
+        0,
+        cells.findIndex((cell) => /^(title|talk)$/i.test(cell)),
+      );
 
       return;
     }
@@ -169,7 +202,9 @@ function isTitle(cell: string): boolean {
 
 function indexTitles(dir: string, files: readonly string[]): readonly string[] {
   return files
-    .filter((file) => isIndex(dir, file) && titledEntries.has(entryOf(dir, file)))
+    .filter(
+      (file) => isIndex(dir, file) && titledEntries.has(entryOf(dir, file)),
+    )
     .flatMap((file) => titleCells(readFileSync(file, 'utf8')))
     .flatMap((cell) => [cell, cell.replace(/\s*\([^)]*\)\s*$/, '')])
     .filter(isTitle);
@@ -177,7 +212,9 @@ function indexTitles(dir: string, files: readonly string[]): readonly string[] {
 
 export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
   if (!(Number.isInteger(minWords) && minWords >= handBackMinWords)) {
-    throw new Error(`source-overlap: a run must be at least ${String(handBackMinWords)} words, got ${String(minWords)}`);
+    throw new Error(
+      `source-overlap: a run must be at least ${String(handBackMinWords)} words, got ${String(minWords)}`,
+    );
   }
 
   const grams = new Map<string, string>();
@@ -201,13 +238,19 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
   }
 
   const corpus: Corpus = { minWords };
-  contents.set(corpus, { grams, phrases: [...permittedPhrases, ...indexTitles(dir, files)] });
+  contents.set(corpus, {
+    grams,
+    phrases: [...permittedPhrases, ...indexTitles(dir, files)],
+  });
 
   return corpus;
 }
 
 // The positions of the tokens that belong to a permitted phrase.
-function maskedPositions(tokens: readonly string[], phrases: readonly string[]): ReadonlySet<number> {
+function maskedPositions(
+  tokens: readonly string[],
+  phrases: readonly string[],
+): ReadonlySet<number> {
   const masked = new Set<number>();
 
   for (const words of phrases.map(tokenize)) {
@@ -238,7 +281,9 @@ export function findRuns(text: string, corpus: Corpus): readonly Run[] {
   // Stryker disable next-line ArithmeticOperator,LzJsNumericLiteral: a window past the end, or one from before the start, has fewer words than any gram, so it matches none
   for (let i = 0; i + corpus.minWords <= tokens.length; i++) {
     const window = tokens.slice(i, i + corpus.minWords);
-    const entry = window.some((_, k) => masked.has(i + k)) ? undefined : loaded.grams.get(window.join(' '));
+    const entry = window.some((_, k) => masked.has(i + k))
+      ? undefined
+      : loaded.grams.get(window.join(' '));
 
     if (entry === undefined) {
       current = undefined;
@@ -259,7 +304,8 @@ export function findRuns(text: string, corpus: Corpus): readonly Run[] {
 
 export function describeRuns(runs: readonly Run[]): readonly string[] {
   return runs.map(
-    (run) => `words ${String(run.start)}-${String(run.start + run.words - 1)} (${String(run.words)} words, entry ${run.entry})`,
+    (run) =>
+      `words ${String(run.start)}-${String(run.start + run.words - 1)} (${String(run.words)} words, entry ${run.entry})`,
   );
 }
 
@@ -285,11 +331,18 @@ export function parseArgs(args: readonly string[]): Options | undefined {
     }
   }
 
-  if (files.length === 0 || corpus === '' || !Number.isInteger(minWords) || minWords < handBackMinWords) {
+  if (
+    files.length === 0 ||
+    corpus === '' ||
+    !Number.isInteger(minWords) ||
+    minWords < handBackMinWords
+  ) {
     return undefined;
   }
 
-  return corpus === undefined ? { minWords, files } : { minWords, files, corpus };
+  return corpus === undefined
+    ? { minWords, files }
+    : { minWords, files, corpus };
 }
 
 // Undefined, with the reason on stderr, when the file cannot be read.
@@ -297,7 +350,9 @@ function readDraft(file: string): string | undefined {
   try {
     return readFileSync(file, 'utf8');
   } catch (error) {
-    console.error(`[ERROR] ${file}: cannot read it (${error instanceof Error ? error.message : String(error)})`);
+    console.error(
+      `[ERROR] ${file}: cannot read it (${error instanceof Error ? error.message : String(error)})`,
+    );
 
     return undefined;
   }
@@ -334,34 +389,50 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   const options = parseArgs(args);
 
   if (options === undefined) {
-    console.error('usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file or folder> [more]');
+    console.error(
+      'usage: node tools/source-overlap.ts [--min-words N>=6] [--corpus <folder>] <file or folder> [more]',
+    );
 
     return 2;
   }
 
   if (options.corpus !== undefined && isWithin(dir, options.corpus)) {
-    console.error('[ERROR] --corpus names the store or a folder inside it; leave --corpus out to check against the store');
+    console.error(
+      '[ERROR] --corpus names the store or a folder inside it; leave --corpus out to check against the store',
+    );
 
     return 2;
   }
 
   if (options.corpus !== undefined && !hasTextFiles(options.corpus)) {
-    console.error(`[ERROR] ${options.corpus}: not a folder with text files to compare against`);
+    console.error(
+      `[ERROR] ${options.corpus}: not a folder with text files to compare against`,
+    );
 
     return 2;
   }
 
   // Expanding such a folder would print the names of the store's files.
-  if (options.files.some((path) => isFolder(path) && (isWithin(dir, path) || isWithin(path, dir)))) {
-    console.error('[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it');
+  if (
+    options.files.some(
+      (path) => isFolder(path) && (isWithin(dir, path) || isWithin(path, dir)),
+    )
+  ) {
+    console.error(
+      '[ERROR] a draft folder names the store, a folder inside it, or a folder that holds it',
+    );
 
     return 2;
   }
 
-  const emptyFolder = options.files.find((path) => isFolder(path) && !hasTextFiles(path));
+  const emptyFolder = options.files.find(
+    (path) => isFolder(path) && !hasTextFiles(path),
+  );
 
   if (emptyFolder !== undefined) {
-    console.error(`[ERROR] ${emptyFolder}: a draft folder with no text files to check`);
+    console.error(
+      `[ERROR] ${emptyFolder}: a draft folder with no text files to check`,
+    );
 
     return 2;
   }
@@ -397,6 +468,9 @@ export function main(args: readonly string[], dir: string = storeDir): number {
   return found === 0 ? 0 : 1;
 }
 
-if (process.argv[1] !== undefined && basename(process.argv[1]) === 'source-overlap.ts') {
+if (
+  process.argv[1] !== undefined &&
+  basename(process.argv[1]) === 'source-overlap.ts'
+) {
   process.exitCode = main(process.argv.slice(2));
 }

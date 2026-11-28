@@ -12,7 +12,11 @@ const readers: ReadonlySet<string> = new Set(['oracle', 'oracle-reviewer']);
 const curators: ReadonlySet<string> = new Set(['oracle-curator']);
 const oracleAgents: ReadonlySet<string> = new Set([...readers, ...curators]);
 const readerTools: ReadonlySet<string> = new Set(['Read', 'Glob']);
-const shellTools: ReadonlySet<string> = new Set(['Bash', 'PowerShell', 'Monitor']);
+const shellTools: ReadonlySet<string> = new Set([
+  'Bash',
+  'PowerShell',
+  'Monitor',
+]);
 const searchTools: ReadonlySet<string> = new Set(['Glob', 'Grep']);
 // Free text in these carries an index path on the permitted route (a brief to the oracle), so it is not inspected.
 const messageTools: ReadonlySet<string> = new Set([
@@ -30,10 +34,13 @@ const messageTools: ReadonlySet<string> = new Set([
   'ExitPlanMode',
 ]);
 // Arguments are separated by spaces or tabs only: a newline or a shell operator would start a second command.
-const storeTools = /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
+const storeTools =
+  /^node[ \t]+tools[\\/](?:source-overlap|store-check)\.ts(?:[ \t]+[^\s|;&<>`$()]+)*[ \t]*$/;
 // An oracle agent's transcript holds the store text it read.
-const subagentsFolder = /[\\/]\.claude[\\/]projects[\\/](?:[^\\/]+[\\/])*subagents(?:[\\/]|$)/i;
-const transcripts = /[^\s"'|;&<>`]*[\\/]subagents[\\/]agent-[^\\/\s"'|;&<>`]+\.jsonl/gi;
+const subagentsFolder =
+  /[\\/]\.claude[\\/]projects[\\/](?:[^\\/]+[\\/])*subagents(?:[\\/]|$)/i;
+const transcripts =
+  /[^\s"'|;&<>`]*[\\/]subagents[\\/]agent-[^\\/\s"'|;&<>`]+\.jsonl/gi;
 
 const pathFields: Readonly<Record<string, readonly string[]>> = {
   Read: ['file_path'],
@@ -55,13 +62,18 @@ const deniedReason = [
   'import or change store files through the `oracle-curator` agent, or ask Lars to run the command with `!`.',
 ].join(' ');
 
-const writeTools: ReadonlySet<string> = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
+const writeTools: ReadonlySet<string> = new Set([
+  'Write',
+  'Edit',
+  'MultiEdit',
+  'NotebookEdit',
+]);
 
 const curatorWriteReason =
   'oracle-guard: the oracle-curator writes only inside the sealed store (.oracle/). A file it wrote anywhere else would carry store text to other agents.';
 
 const lowThresholdReason =
-  'oracle-guard: run `node tools/source-overlap.ts` with `--min-words` 6 or more. A lower threshold turns the tool into a probe of the source\'s wording.';
+  "oracle-guard: run `node tools/source-overlap.ts` with `--min-words` 6 or more. A lower threshold turns the tool into a probe of the source's wording.";
 
 // Fails closed: a guard that cannot decide denies the call rather than letting it through.
 export function failedReason(message: string): string {
@@ -78,17 +90,31 @@ export interface GuardCall {
 
 // A tool.call event spreads the tool's arguments beside keys of its own, which the classic hook's
 // tool_input never carries; another plugin may put any text in requestMeta.
-const eventKeys: ReadonlySet<string> = new Set(['tool', 'tool_use_id', 'agentId', 'requestMeta']);
+const eventKeys: ReadonlySet<string> = new Set([
+  'tool',
+  'tool_use_id',
+  'agentId',
+  'requestMeta',
+]);
 
-export function toolInputOf(event: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
-  return Object.fromEntries(Object.entries(event).filter(([key]) => !eventKeys.has(key)));
+export function toolInputOf(
+  event: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  return Object.fromEntries(
+    Object.entries(event).filter(([key]) => !eventKeys.has(key)),
+  );
 }
 
-export function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+export function isRecord(
+  value: unknown,
+): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function stringField(record: Readonly<Record<string, unknown>>, key: string): string | undefined {
+export function stringField(
+  record: Readonly<Record<string, unknown>>,
+  key: string,
+): string | undefined {
   const value = record[key];
 
   return typeof value === 'string' ? value : undefined;
@@ -97,11 +123,17 @@ export function stringField(record: Readonly<Record<string, unknown>>, key: stri
 // The listing is readable by anyone: a path whose only store segment is followed by README.md alone.
 function isListing(path: string): boolean {
   const segments = pathSegments(path);
-  const storeSegments = segments.filter((segment) => segment.toLowerCase() === '.oracle');
+  const storeSegments = segments.filter(
+    (segment) => segment.toLowerCase() === '.oracle',
+  );
   const last = segments.at(-1)?.toLowerCase();
   const beforeLast = segments.at(-2)?.toLowerCase();
 
-  return storeSegments.length === 1 && beforeLast === '.oracle' && last === 'readme.md';
+  return (
+    storeSegments.length === 1 &&
+    beforeLast === '.oracle' &&
+    last === 'readme.md'
+  );
 }
 
 // A missing or non-text field reads as empty.
@@ -142,7 +174,10 @@ function strings(value: unknown): readonly string[] {
     return [];
   }
 
-  return Object.entries(value).flatMap(([key, item]) => [key, ...strings(item)]);
+  return Object.entries(value).flatMap(([key, item]) => [
+    key,
+    ...strings(item),
+  ]);
 }
 
 // The subagent transcripts a call names, as decide() passes them to agentTypeOf.
@@ -166,8 +201,12 @@ export function ownerFromMeta(text: string): string | undefined {
   }
 }
 
-function readsOracleTranscript(call: GuardCall, agentTypeOf?: (path: string) => string | undefined): boolean {
-  const searched = call.toolName !== undefined && searchTools.has(call.toolName);
+function readsOracleTranscript(
+  call: GuardCall,
+  agentTypeOf?: (path: string) => string | undefined,
+): boolean {
+  const searched =
+    call.toolName !== undefined && searchTools.has(call.toolName);
 
   return (
     (searched && subagentsFolder.test(targets(call).join('/'))) ||
@@ -183,13 +222,23 @@ function readsOracleTranscript(call: GuardCall, agentTypeOf?: (path: string) => 
 function lowThreshold(command: string): boolean {
   return (
     command.includes('source-overlap') &&
-    [...command.matchAll(/--min-words(?:[ \t]+(\S*))?/g)].some(([, value]) => !(Number(value) >= 6 && Number.isInteger(Number(value))))
+    [...command.matchAll(/--min-words(?:[ \t]+(\S*))?/g)].some(
+      ([, value]) => !(Number(value) >= 6 && Number.isInteger(Number(value))),
+    )
   );
 }
 
 // Case-insensitive, as the Windows file systems this project runs on are.
-function isProjectDir(cwd: string | undefined, projectDir: string | undefined): boolean {
-  return cwd !== undefined && projectDir !== undefined && resolvePath(cwd, '').toLowerCase() === resolvePath(projectDir, '').toLowerCase();
+function isProjectDir(
+  cwd: string | undefined,
+  projectDir: string | undefined,
+): boolean {
+  return (
+    cwd !== undefined &&
+    projectDir !== undefined &&
+    resolvePath(cwd, '').toLowerCase() ===
+      resolvePath(projectDir, '').toLowerCase()
+  );
 }
 
 export interface DecideOptions {
@@ -200,7 +249,10 @@ export interface DecideOptions {
 }
 
 // The reason to deny the call, or undefined to let it run.
-export function decide(call: GuardCall, { agentTypeOf, projectDir }: DecideOptions = {}): string | undefined {
+export function decide(
+  call: GuardCall,
+  { agentTypeOf, projectDir }: DecideOptions = {},
+): string | undefined {
   // Stryker disable next-line StringLiteral: no tool set holds the fallback name, so a missing tool name is judged alike
   const toolName = call.toolName ?? '';
   // Stryker disable next-line StringLiteral: no agent set holds the fallback name, so a missing agent type is judged alike
@@ -216,15 +268,25 @@ export function decide(call: GuardCall, { agentTypeOf, projectDir }: DecideOptio
 
   // Inside means below this project's store folder, compared case-insensitively as Windows paths are.
   if (curators.has(agentType) && writeTools.has(toolName)) {
-    const store = projectDir === undefined ? undefined : `${resolvePath(projectDir, '.oracle').toLowerCase()}\\`;
-    // Stryker disable next-line StringLiteral: unreachable, since store is set only when projectDir is
-    const inside = (path: string): boolean => store !== undefined && resolvePath(call.cwd ?? projectDir ?? '', path).toLowerCase().startsWith(store);
+    const store =
+      projectDir === undefined
+        ? undefined
+        : `${resolvePath(projectDir, '.oracle').toLowerCase()}\\`;
+    const inside = (path: string): boolean =>
+      store !== undefined &&
+      // Stryker disable next-line StringLiteral: unreachable, since store is set only when projectDir is
+      resolvePath(call.cwd ?? projectDir ?? '', path)
+        .toLowerCase()
+        .startsWith(store);
 
     // Stryker disable next-line MethodExpression: every write tool names one path, so every and some agree
     return targets(call).every(inside) ? undefined : curatorWriteReason;
   }
 
-  if (curators.has(agentType) || (readers.has(agentType) && readerTools.has(toolName))) {
+  if (
+    curators.has(agentType) ||
+    (readers.has(agentType) && readerTools.has(toolName))
+  ) {
     return undefined;
   }
 
@@ -233,9 +295,15 @@ export function decide(call: GuardCall, { agentTypeOf, projectDir }: DecideOptio
   }
 
   // The tool paths are relative, so the exception holds only where they resolve to this project's tools.
-  if (shellTools.has(toolName) && isProjectDir(call.cwd, projectDir) && storeTools.test(inputText(call, 'command'))) {
+  if (
+    shellTools.has(toolName) &&
+    isProjectDir(call.cwd, projectDir) &&
+    storeTools.test(inputText(call, 'command'))
+  ) {
     return undefined;
   }
 
-  return targets(call).some((value) => storePath.test(value)) ? deniedReason : undefined;
+  return targets(call).some((value) => storePath.test(value))
+    ? deniedReason
+    : undefined;
 }

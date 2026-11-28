@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
 import type { ExistingTypes } from '../source.ts';
 
@@ -23,19 +26,29 @@ export const typeHoppingChain = defineMetric({
       return;
     }
 
-    const count = new Set(receiversOf(node).map((receiver) => typeName(receiver, types))).size;
+    const count = new Set(
+      receiversOf(node).map((receiver) => typeName(receiver, types)),
+    ).size;
 
     if (count > 1) {
       chains.push({ node, count });
     }
   },
-  close: (chains): readonly TypeHoppingChain[] | undefined => (chains.length > 0 ? chains : undefined),
+  close: (chains): readonly TypeHoppingChain[] | undefined =>
+    chains.length > 0 ? chains : undefined,
 });
 
-function typeName(receiver: TSESTree.Node, { program, esTreeNodeToTSNodeMap }: ExistingTypes): string {
+function typeName(
+  receiver: TSESTree.Node,
+  { program, esTreeNodeToTSNodeMap }: ExistingTypes,
+): string {
   const checker = program.getTypeChecker();
 
-  return checker.typeToString(checker.getApparentType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(receiver))));
+  return checker.typeToString(
+    checker.getApparentType(
+      checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(receiver)),
+    ),
+  );
 }
 
 /** True unless the access continues the chain: as the object of a member access, or as a called method that does. */
@@ -46,18 +59,31 @@ function isOutermost(node: TSESTree.MemberExpression): boolean {
     return false;
   }
 
-  return !(parent.type === T.CallExpression && parent.callee === node && parent.parent.type === T.MemberExpression);
+  return !(
+    parent.type === T.CallExpression &&
+    parent.callee === node &&
+    parent.parent.type === T.MemberExpression
+  );
 }
 
 /** The object of each member access along the chain, outermost first, leaving out `this`. */
-function receiversOf(chain: TSESTree.MemberExpression): readonly TSESTree.Node[] {
+function receiversOf(
+  chain: TSESTree.MemberExpression,
+): readonly TSESTree.Node[] {
   const receivers: TSESTree.Node[] = [];
   let current: TSESTree.Node = chain;
 
-  while (current.type === T.MemberExpression || current.type === T.CallExpression) {
-    const inner: TSESTree.Node = current.type === T.MemberExpression ? current.object : current.callee;
+  while (
+    current.type === T.MemberExpression ||
+    current.type === T.CallExpression
+  ) {
+    const inner: TSESTree.Node =
+      current.type === T.MemberExpression ? current.object : current.callee;
 
-    if (current.type === T.MemberExpression && inner.type !== T.ThisExpression) {
+    if (
+      current.type === T.MemberExpression &&
+      inner.type !== T.ThisExpression
+    ) {
       receivers.push(inner);
     }
 

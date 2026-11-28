@@ -56,8 +56,16 @@ testRule(repeatedSwitches, {
         }
       `,
       errors: [
-        { messageId: 'found', line: 3, data: { count: 2, cases: "'crate', 'letter'" } },
-        { messageId: 'found', line: 9, data: { count: 2, cases: "'crate', 'letter'" } },
+        {
+          messageId: 'found',
+          line: 3,
+          data: { count: 2, cases: "'crate', 'letter'" },
+        },
+        {
+          messageId: 'found',
+          line: 9,
+          data: { count: 2, cases: "'crate', 'letter'" },
+        },
       ],
     },
     {
@@ -67,8 +75,16 @@ testRule(repeatedSwitches, {
         function label(parcel) { switch (parcel.kind) { case 'crate': return 'C'; case 'letter': return 'L'; } }
       `,
       errors: [
-        { messageId: 'found', line: 2, data: { count: 2, cases: "'crate', 'letter'" } },
-        { messageId: 'found', line: 3, data: { count: 2, cases: "'crate', 'letter'" } },
+        {
+          messageId: 'found',
+          line: 2,
+          data: { count: 2, cases: "'crate', 'letter'" },
+        },
+        {
+          messageId: 'found',
+          line: 3,
+          data: { count: 2, cases: "'crate', 'letter'" },
+        },
       ],
     },
   ],

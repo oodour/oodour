@@ -1,17 +1,29 @@
-import { type ManualDispatch, manualDispatch as manualDispatchMetric } from '@oodour/core';
+import {
+  type ManualDispatch,
+  manualDispatch as manualDispatchMetric,
+} from '@oodour/core';
 import { defineMetricRule } from '../define-metric-rule.ts';
 
-export const manualDispatch = defineMetricRule<[], 'found', readonly ManualDispatch[]>({
+export const manualDispatch = defineMetricRule<
+  [],
+  'found',
+  readonly ManualDispatch[]
+>({
   name: 'manual-dispatch',
   metric: manualDispatchMetric,
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Report an if chain that picks what to do by testing which class an object is',
+      description:
+        'Report an if chain that picks what to do by testing which class an object is',
       concept: 'Manual Dispatch',
       cures: ['duck type'],
       requiresTypeChecking: false,
-      remedy: { kind: 'none', because: 'the message every class should answer is a design decision no tool can make' },
+      remedy: {
+        kind: 'none',
+        because:
+          'the message every class should answer is a design decision no tool can make',
+      },
       tier: 'strict',
       skipsTestFiles: true,
     },

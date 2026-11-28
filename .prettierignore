@@ -5,8 +5,11 @@
 /.nx/workspace-data
 package-lock.json
 
-# For now Prettier formats only the distributed plugin's Markdown; the rest of the repository keeps its current style.
-/*
-!/plugins/
-/plugins/**/*.*
-!/plugins/**/*.md
+# Planning records, kept as they were written.
+/.scratch
+
+# The test reporters' end-to-end tests expect the fixtures' code on the lines it is on now.
+/packages/test-metrics/fixtures
+
+# Markdown keeps the wrapping it was written with, so a reformat never churns prose.
+*.md

@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { gitText } from './git-text.ts';
 
-const named = (...bytes: readonly number[]): string => gitText(Uint8Array.from(bytes));
+const named = (...bytes: readonly number[]): string =>
+  gitText(Uint8Array.from(bytes));
 
 test('valid UTF-8 reads as UTF-8', () => {
   assert.equal(gitText(Buffer.from('a/é€\u{1F600}', 'utf8')), 'a/é€\u{1F600}');

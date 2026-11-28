@@ -1,11 +1,17 @@
 import type { Variable } from '@typescript-eslint/scope-manager';
-import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import type { Type } from 'typescript';
 import { defineMetric } from '../metric.ts';
 import { propertyName } from '../property-name.ts';
 import { isTyped, scopesOf, type Source } from '../source.ts';
 
-type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+type FunctionNode =
+  | TSESTree.ArrowFunctionExpression
+  | TSESTree.FunctionDeclaration
+  | TSESTree.FunctionExpression;
 
 /** A parameter the function branches on that can only hold a few constants. */
 export interface FlagArgument {
@@ -58,17 +64,29 @@ export const flagArgument = defineMetric({
     const called = unproven.filter(({ fn, index }) => {
       const name = functionName(fn);
 
-      return name !== undefined && (callsByName.get(name) ?? []).some((call) => isFlagLiteral(call.arguments[index]));
+      return (
+        name !== undefined &&
+        (callsByName.get(name) ?? []).some((call) =>
+          isFlagLiteral(call.arguments[index]),
+        )
+      );
     });
-    // Stryker disable next-line LzJsNumericLiteral: flag parameters never nest (one with a function in its default value is no flag), so either end of their ranges orders them the same
-    const byStart = (a: FlagArgument, b: FlagArgument): number => a.param.range[0] - b.param.range[0];
-    const flags = [...proven, ...called].map(({ param, fn, name }) => ({ param, fn, name })).sort(byStart);
+    const byStart = (a: FlagArgument, b: FlagArgument): number =>
+      // Stryker disable next-line LzJsNumericLiteral: flag parameters never nest (one with a function in its default value is no flag), so either end of their ranges orders them the same
+      a.param.range[0] - b.param.range[0];
+    const flags = [...proven, ...called]
+      .map(({ param, fn, name }) => ({ param, fn, name }))
+      .sort(byStart);
 
     return flags.length > 0 ? flags : undefined;
   },
 });
 
-function checkParameters(fn: FunctionNode, { returns, proven, unproven }: State, source: Source): void {
+function checkParameters(
+  fn: FunctionNode,
+  { returns, proven, unproven }: State,
+  source: Source,
+): void {
   const ownReturns = returns.pop() ?? [];
 
   if (isCallbackArgument(fn) || isFactory(ownReturns)) {
@@ -79,9 +97,16 @@ function checkParameters(fn: FunctionNode, { returns, proven, unproven }: State,
 
   fn.params.forEach((param, index) => {
     const binding = param.type === T.AssignmentPattern ? param.left : param;
-    const variable = declared.find(({ identifiers }) => identifiers.some((identifier) => identifier === binding));
+    const variable = declared.find(({ identifiers }) =>
+      identifiers.some((identifier) => identifier === binding),
+    );
 
-    if (binding.type !== T.Identifier || variable === undefined || !isBranchedOn(variable) || isAsserted(fn, binding.name)) {
+    if (
+      binding.type !== T.Identifier ||
+      variable === undefined ||
+      !isBranchedOn(variable) ||
+      isAsserted(fn, binding.name)
+    ) {
       return;
     }
 
@@ -96,7 +121,9 @@ function checkParameters(fn: FunctionNode, { returns, proven, unproven }: State,
 }
 
 const isFunction = (node: TSESTree.Node): node is FunctionNode =>
-  node.type === T.ArrowFunctionExpression || node.type === T.FunctionDeclaration || node.type === T.FunctionExpression;
+  node.type === T.ArrowFunctionExpression ||
+  node.type === T.FunctionDeclaration ||
+  node.type === T.FunctionExpression;
 
 /** By the checker, when type information is there: a union of literals, which `boolean` is to the checker. */
 function hasFlagType(binding: TSESTree.Identifier, source: Source): boolean {
@@ -106,9 +133,13 @@ function hasFlagType(binding: TSESTree.Identifier, source: Source): boolean {
 
   const { types } = source;
   const checker = types.program.getTypeChecker();
-  const type = checker.getTypeAtLocation(types.esTreeNodeToTSNodeMap.get(binding));
+  const type = checker.getTypeAtLocation(
+    types.esTreeNodeToTSNodeMap.get(binding),
+  );
   const isLiteral = (member: Type): boolean =>
-    member.isLiteral() || member === checker.getTrueType() || member === checker.getFalseType();
+    member.isLiteral() ||
+    member === checker.getTrueType() ||
+    member === checker.getFalseType();
 
   return type.isUnion() && type.types.every(isLiteral);
 }
@@ -127,12 +158,18 @@ function isAsserted(fn: FunctionNode, name: string): boolean {
 
 /** A factory branches only to choose which class to create: that choice belongs in it, and nowhere else. */
 function isFactory(returns: readonly TSESTree.ReturnStatement[]): boolean {
-  return returns.length > 0 && returns.every(({ argument }) => argument?.type === T.NewExpression);
+  return (
+    returns.length > 0 &&
+    returns.every(({ argument }) => argument?.type === T.NewExpression)
+  );
 }
 
 /** A function handed straight to a call, whose parameters the callee decides. */
 function isCallbackArgument(fn: FunctionNode): boolean {
-  return fn.parent.type === T.CallExpression && fn.parent.arguments.some((argument) => argument === fn);
+  return (
+    fn.parent.type === T.CallExpression &&
+    fn.parent.arguments.some((argument) => argument === fn)
+  );
 }
 
 // shortcut: calls match functions by name alone, so `a.render(true)` counts for every `render` in the file; resolve the
@@ -160,17 +197,29 @@ function functionName(fn: FunctionNode): string | undefined {
   return fn.id?.name;
 }
 
-function isFlagLiteral(argument: TSESTree.CallExpressionArgument | undefined): boolean {
-  return argument?.type === T.Literal && ['boolean', 'string', 'number'].includes(typeof argument.value);
+function isFlagLiteral(
+  argument: TSESTree.CallExpressionArgument | undefined,
+): boolean {
+  return (
+    argument?.type === T.Literal &&
+    ['boolean', 'string', 'number'].includes(typeof argument.value)
+  );
 }
 
 /** The parameter's declared type or default value marks it as a choice among a few constants. */
 function isFlagTyped(param: TSESTree.Parameter): boolean {
   if (param.type === T.AssignmentPattern) {
-    return param.right.type === T.Literal && ['boolean', 'string'].includes(typeof param.right.value);
+    return (
+      param.right.type === T.Literal &&
+      ['boolean', 'string'].includes(typeof param.right.value)
+    );
   }
 
-  return param.type === T.Identifier && param.typeAnnotation !== undefined && isFlagType(param.typeAnnotation.typeAnnotation);
+  return (
+    param.type === T.Identifier &&
+    param.typeAnnotation !== undefined &&
+    isFlagType(param.typeAnnotation.typeAnnotation)
+  );
 }
 
 /** `boolean`, or a union of literals such as `'fast' | 'safe'`. */
@@ -184,7 +233,9 @@ function isFlagType(type: TSESTree.TypeNode): boolean {
 
 /** The body tests the parameter's value to choose which code runs. */
 function isBranchedOn(variable: Variable): boolean {
-  return variable.references.some(({ identifier }) => isTest(conditionOf(identifier)));
+  return variable.references.some(({ identifier }) =>
+    isTest(conditionOf(identifier)),
+  );
 }
 
 /**
@@ -194,12 +245,15 @@ function isBranchedOn(variable: Variable): boolean {
 function conditionOf(node: TSESTree.Node): TSESTree.Node {
   const { parent } = node;
 
-  return parent !== undefined && carriesTruth(parent) ? conditionOf(parent) : node;
+  return parent !== undefined && carriesTruth(parent)
+    ? conditionOf(parent)
+    : node;
 }
 
 function carriesTruth(node: TSESTree.Node): boolean {
   return (
-    (node.type === T.BinaryExpression && equalityOperators.has(node.operator)) ||
+    (node.type === T.BinaryExpression &&
+      equalityOperators.has(node.operator)) ||
     (node.type === T.UnaryExpression && node.operator === '!') ||
     (node.type === T.LogicalExpression && node.operator !== '??')
   );

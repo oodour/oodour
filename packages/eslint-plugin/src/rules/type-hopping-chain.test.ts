@@ -7,7 +7,10 @@ import { typeHoppingChain } from './type-hopping-chain.ts';
 const lint = ruleMessages('type-hopping-chain');
 
 test('type-hopping-chain rejects an option it does not know and a limit below one', () => {
-  assert.throws(() => lint('', { maxInterfaces: 2, limit: 2 }), /additional properties/);
+  assert.throws(
+    () => lint('', { maxInterfaces: 2, limit: 2 }),
+    /additional properties/,
+  );
   assert.throws(() => lint('', { maxInterfaces: 0 }), /should be >= 1/);
 });
 
@@ -31,9 +34,16 @@ testRule(typeHoppingChain, {
   valid: [
     { code: `${shapes} order.customer;` },
     { code: `${shapes} order.customer;`, options: [{ maxInterfaces: 1 }] },
-    { code: `${shapes} list.filter((n) => n > 1).map((n) => n * 2).slice(0, 1);` },
-    { code: `${shapes} order.customer.address.city.name;`, options: [{ maxInterfaces: 4 }] },
-    { code: `${shapes} class Shop { order: Order = order; address() { return this.order.customer.address; } }` },
+    {
+      code: `${shapes} list.filter((n) => n > 1).map((n) => n * 2).slice(0, 1);`,
+    },
+    {
+      code: `${shapes} order.customer.address.city.name;`,
+      options: [{ maxInterfaces: 4 }],
+    },
+    {
+      code: `${shapes} class Shop { order: Order = order; address() { return this.order.customer.address; } }`,
+    },
   ],
   invalid: [
     {

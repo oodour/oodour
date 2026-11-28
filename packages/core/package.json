@@ -13,7 +13,9 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "typescript": ">=4.8.4 <6.1.0"
   },

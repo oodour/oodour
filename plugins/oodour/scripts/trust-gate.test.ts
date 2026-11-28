@@ -7,14 +7,27 @@ import { trustDecision } from './trust-gate.ts';
 const root = 'C:/plugins/oodour/1.0.0';
 const script = `${root}/scripts/oodour.ts`;
 const call = (command: string, mode = 'auto', tool = 'Bash'): string =>
-  JSON.stringify({ permission_mode: mode, tool_name: tool, tool_input: { command } });
+  JSON.stringify({
+    permission_mode: mode,
+    tool_name: tool,
+    tool_input: { command },
+  });
 
 test('in auto mode the trusted command asks the developer', () => {
-  assert.equal(trustDecision(call(`node ${script} --trusted-repository hotspots -- D:/repo`), root), 'ask');
+  assert.equal(
+    trustDecision(
+      call(`node ${script} --trusted-repository hotspots -- D:/repo`),
+      root,
+    ),
+    'ask',
+  );
 });
 
 test('in auto mode the untrusted command runs without asking', () => {
-  assert.equal(trustDecision(call(`node ${script} hotspots -- D:/repo`), root), undefined);
+  assert.equal(
+    trustDecision(call(`node ${script} hotspots -- D:/repo`), root),
+    undefined,
+  );
 });
 
 test('in auto mode any other call of an oodour.ts asks, since its words could reach the CLI as the trust flag', () => {
@@ -85,13 +98,28 @@ test('in auto mode a Bash path whose backslashes Bash would remove or change ask
 });
 
 test("without a plugin folder every call asks, since no script is then the plugin's own", () => {
-  assert.equal(trustDecision(call('node /scripts/oodour.ts hotspots -- D:/repo'), ''), 'ask');
-  assert.equal(trustDecision(call('node undefined/scripts/oodour.ts hotspots -- D:/repo'), undefined), 'ask');
+  assert.equal(
+    trustDecision(call('node /scripts/oodour.ts hotspots -- D:/repo'), ''),
+    'ask',
+  );
+  assert.equal(
+    trustDecision(
+      call('node undefined/scripts/oodour.ts hotspots -- D:/repo'),
+      undefined,
+    ),
+    'ask',
+  );
 });
 
 test('input the hook cannot read asks, since the hook runs only for calls that name oodour.ts', () => {
   assert.deepEqual(
-    [trustDecision(`{"tool_input": "node ${script} --trusted-repository hotspots`, root), trustDecision('not json', root)],
+    [
+      trustDecision(
+        `{"tool_input": "node ${script} --trusted-repository hotspots`,
+        root,
+      ),
+      trustDecision('not json', root),
+    ],
     ['ask', 'ask'],
   );
 });
@@ -103,10 +131,15 @@ test('run as a hook, it prints an ask with its reason for the trusted command an
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_PLUGIN_ROOT: root },
     });
-  const trusted = run(`node ${script} --trusted-repository hotspots -- D:/repo`);
+  const trusted = run(
+    `node ${script} --trusted-repository hotspots -- D:/repo`,
+  );
   const untrusted = run(`node ${script} hotspots -- D:/repo`);
 
-  assert.deepEqual([trusted.status, untrusted.status, untrusted.stdout], [0, 0, '']);
+  assert.deepEqual(
+    [trusted.status, untrusted.status, untrusted.stdout],
+    [0, 0, ''],
+  );
   assert.deepEqual(JSON.parse(trusted.stdout), {
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
@@ -118,5 +151,14 @@ test('run as a hook, it prints an ask with its reason for the trusted command an
 });
 
 test('outside auto mode the hook leaves the decision to the permission settings', () => {
-  assert.equal(trustDecision(call(`node ${script} --trusted-repository hotspots -- D:/repo`, 'default'), root), undefined);
+  assert.equal(
+    trustDecision(
+      call(
+        `node ${script} --trusted-repository hotspots -- D:/repo`,
+        'default',
+      ),
+      root,
+    ),
+    undefined,
+  );
 });

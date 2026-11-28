@@ -1,5 +1,8 @@
 import type { Variable } from '@typescript-eslint/scope-manager';
-import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES as T,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import type ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { holdsOnly } from '../holds-only.ts';
@@ -50,7 +53,10 @@ export const featureEnvy = defineMetric({
 
     if (node.type === T.MethodDefinition) {
       methods.push({ node, own: 0, uses: new Map() });
-    } else if (method !== undefined && (node.type === T.ThisExpression || node.type === T.Super)) {
+    } else if (
+      method !== undefined &&
+      (node.type === T.ThisExpression || node.type === T.Super)
+    ) {
       method.own += 1;
     } else if (method !== undefined && node.type === T.MemberExpression) {
       countUse(node, method, source);
@@ -67,12 +73,18 @@ export const featureEnvy = defineMetric({
       envies.push(...enviesOf(method));
     }
   },
-  close: ({ envies }): readonly Envy[] | undefined => (envies.length > 0 ? envies : undefined),
+  close: ({ envies }): readonly Envy[] | undefined =>
+    envies.length > 0 ? envies : undefined,
 });
 
-function countUse(node: TSESTree.MemberExpression, method: MethodUses, source: Source): void {
+function countUse(
+  node: TSESTree.MemberExpression,
+  method: MethodUses,
+  source: Source,
+): void {
   const object = withoutTypeAssertions(node.object);
-  const variable = object.type === T.Identifier ? variableOf(source, object) : undefined;
+  const variable =
+    object.type === T.Identifier ? variableOf(source, object) : undefined;
 
   if (variable?.scope.variableScope.block !== method.node.value) {
     return;
@@ -92,12 +104,20 @@ function enviesOf({ node, own, uses }: MethodUses): Envy[] {
   }
 
   // A spread of every count would pass one argument per local and overflow the stack in generated code.
-  // Stryker disable next-line LzJsNumericLiteral: every count is at least 1, so a start of 1 or below finds the same highest count
-  const most = [...uses.values()].reduce((highest, count) => Math.max(highest, count), 0);
+  const most = [...uses.values()].reduce(
+    (highest, count) => Math.max(highest, count),
+    // Stryker disable next-line LzJsNumericLiteral: every count is at least 1, so a start of 1 or below finds the same highest count
+    0,
+  );
 
   return [...uses]
     .filter(([, count]) => count === most && count - own >= minimumLead)
-    .map(([variable, count]) => ({ method: node, name: variable.name, count, own }));
+    .map(([variable, count]) => ({
+      method: node,
+      name: variable.name,
+      count,
+      own,
+    }));
 }
 
 /** Whether, by the program's types, every type the variable may hold is declared only outside the project. */
@@ -110,9 +130,13 @@ function cannotTakeAMove(variable: Variable, source: Source): boolean {
 
   const { program, esTreeNodeToTSNodeMap } = source.types;
   const checker = program.getTypeChecker();
-  const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(definition.name)));
+  const type = checker.getNonNullableType(
+    checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(definition.name)),
+  );
   const outsideTheProject = (member: ts.Type): boolean => {
-    const declarations = checker.getPropertiesOfType(member).flatMap((property) => property.declarations ?? []);
+    const declarations = checker
+      .getPropertiesOfType(member)
+      .flatMap((property) => property.declarations ?? []);
 
     return (
       declarations.length > 0 &&
@@ -134,7 +158,9 @@ function cannotTakeAMove(variable: Variable, source: Source): boolean {
 function isTemporary(variable: Variable): boolean {
   return holdsOnly(
     variable,
-    ({ expressions, part }) => !part && expressions.some((value) => createsScratch(value) || isOwnField(value)),
+    ({ expressions, part }) =>
+      !part &&
+      expressions.some((value) => createsScratch(value) || isOwnField(value)),
   );
 }
 
@@ -150,8 +176,11 @@ function createsScratch(init: TSESTree.Expression): boolean {
 function createsCollection(init: TSESTree.Expression): boolean {
   return (
     init.type === T.ArrayExpression ||
-    (init.type === T.NewExpression && init.callee.type === T.Identifier && builtInConstructors.has(init.callee.name)) ||
-    (init.type === T.LogicalExpression && createsCollection(withoutTypeAssertions(init.right)))
+    (init.type === T.NewExpression &&
+      init.callee.type === T.Identifier &&
+      builtInConstructors.has(init.callee.name)) ||
+    (init.type === T.LogicalExpression &&
+      createsCollection(withoutTypeAssertions(init.right)))
   );
 }
 
@@ -165,15 +194,17 @@ function holdsOwnField(variable: Variable): boolean {
     variable.defs.some(
       ({ name }) =>
         name.parent.type === T.TSParameterProperty ||
-        (name.parent.type === T.AssignmentPattern && name.parent.parent.type === T.TSParameterProperty),
-    ) ||
-    holdsOnly(variable, ({ expressions }) => expressions.some(isOwnField))
+        (name.parent.type === T.AssignmentPattern &&
+          name.parent.parent.type === T.TSParameterProperty),
+    ) || holdsOnly(variable, ({ expressions }) => expressions.some(isOwnField))
   );
 }
 
 /** Whether the value is the method's own object or one of its fields. */
 function isOwnField(value: TSESTree.Expression): boolean {
   return (
-    value.type === T.ThisExpression || (value.type === T.MemberExpression && value.object.type === T.ThisExpression)
+    value.type === T.ThisExpression ||
+    (value.type === T.MemberExpression &&
+      value.object.type === T.ThisExpression)
   );
 }

@@ -3,7 +3,10 @@ import { test } from 'node:test';
 import { Linter } from 'eslint';
 import tseslint from 'typescript-eslint';
 import { testRule } from './testing/rule-testers.ts';
-import { defineSelectorRule, type SelectorRow } from './define-selector-rule.ts';
+import {
+  defineSelectorRule,
+  type SelectorRow,
+} from './define-selector-rule.ts';
 
 const debuggerRow: SelectorRow = {
   name: 'debugger-statement',
@@ -44,7 +47,12 @@ testRule(defineSelectorRule(removeDebuggerRow), {
   invalid: [
     {
       code: 'debugger;',
-      errors: [{ messageId: 'found', suggestions: [{ messageId: 'suggestion', output: '' }] }],
+      errors: [
+        {
+          messageId: 'found',
+          suggestions: [{ messageId: 'suggestion', output: '' }],
+        },
+      ],
     },
   ],
 });
@@ -62,16 +70,24 @@ const fixDebuggerRow: SelectorRow = {
 
 testRule(defineSelectorRule(fixDebuggerRow), {
   valid: [],
-  invalid: [{ code: 'debugger;', output: '', errors: [{ messageId: 'found' }] }],
+  invalid: [
+    { code: 'debugger;', output: '', errors: [{ messageId: 'found' }] },
+  ],
 });
 
 test('a row with a fix declares remedy "fix"', () => {
-  assert.deepEqual(defineSelectorRule(fixDebuggerRow).meta.docs.remedy, { kind: 'fix' });
+  assert.deepEqual(defineSelectorRule(fixDebuggerRow).meta.docs.remedy, {
+    kind: 'fix',
+  });
 });
 
 test('a selector with a child step inside :has is refused, because esquery matches nothing for a longer one', () => {
   assert.throws(
-    () => defineSelectorRule({ ...debuggerRow, selectors: ['ClassBody:has(> MethodDefinition > FunctionExpression)'] }),
+    () =>
+      defineSelectorRule({
+        ...debuggerRow,
+        selectors: ['ClassBody:has(> MethodDefinition > FunctionExpression)'],
+      }),
     /debugger-statement: .*:has\(>/,
   );
 });
@@ -95,11 +111,17 @@ test('the installed esquery still matches nothing for a two-step child chain in 
 });
 
 test("a suggestion is offered in the row's own words", () => {
-  assert.equal(defineSelectorRule(removeDebuggerRow).meta.messages.suggestion, 'Remove the debugger statement.');
+  assert.equal(
+    defineSelectorRule(removeDebuggerRow).meta.messages.suggestion,
+    'Remove the debugger statement.',
+  );
 });
 
 test('a row with only a reason declares remedy "none" with that reason', () => {
-  assert.deepEqual(defineSelectorRule(debuggerRow).meta.docs.remedy, { kind: 'none', because: 'a person decides' });
+  assert.deepEqual(defineSelectorRule(debuggerRow).meta.docs.remedy, {
+    kind: 'none',
+    because: 'a person decides',
+  });
 });
 
 test('a row with a suggestion declares remedy "suggestion" with its reason', () => {

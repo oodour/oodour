@@ -17,11 +17,18 @@ interface Sources {
 /** The source a metric's handlers receive. */
 export type SourceFor<TNeeds extends Needs> = Sources[TNeeds];
 
-const admitted: { readonly [TNeeds in Needs]: (source: Source, metric: string) => Sources[TNeeds] } = {
+const admitted: {
+  readonly [TNeeds in Needs]: (
+    source: Source,
+    metric: string,
+  ) => Sources[TNeeds];
+} = {
   syntax: (source) => source,
   types(source, metric) {
     if (!isTyped(source)) {
-      throw new Error(`The metric '${metric}' needs the types of a program, which ${source.file} came without.`);
+      throw new Error(
+        `The metric '${metric}' needs the types of a program, which ${source.file} came without.`,
+      );
     }
 
     return source;
@@ -41,17 +48,36 @@ const admitted: { readonly [TNeeds in Needs]: (source: Source, metric: string) =
  *    and `leave` are not called.
  * 3. Children are visited in typescript-eslint's visitor-key order, the order ESLint walks them in.
  */
-export interface MetricDefinition<TValue, TState, TKind extends UnitKind, TNeeds extends Needs> {
+export interface MetricDefinition<
+  TValue,
+  TState,
+  TKind extends UnitKind,
+  TNeeds extends Needs,
+> {
   /** Also the name the measuring command prints. */
   readonly name: string;
   /** `'types'` keeps the metric off a source that is not a `TypedSource`, at compile time. */
   readonly needs: TNeeds;
   readonly units: readonly TKind[];
   readonly open: (unit: UnitOf<TKind>, source: SourceFor<TNeeds>) => TState;
-  readonly enter?: (node: TSESTree.Node, state: TState, at: Position, source: SourceFor<TNeeds>) => void;
-  readonly leave?: (node: TSESTree.Node, state: TState, at: Position, source: SourceFor<TNeeds>) => void;
+  readonly enter?: (
+    node: TSESTree.Node,
+    state: TState,
+    at: Position,
+    source: SourceFor<TNeeds>,
+  ) => void;
+  readonly leave?: (
+    node: TSESTree.Node,
+    state: TState,
+    at: Position,
+    source: SourceFor<TNeeds>,
+  ) => void;
   /** `undefined` means the unit has nothing to report. */
-  readonly close: (state: TState, unit: UnitOf<TKind>, source: SourceFor<TNeeds>) => TValue | undefined;
+  readonly close: (
+    state: TState,
+    unit: UnitOf<TKind>,
+    source: SourceFor<TNeeds>,
+  ) => TValue | undefined;
 }
 
 /** The units of the given kinds. An intersection, not `Extract`, so a metric of fewer kinds fits where any is taken. */
@@ -76,23 +102,35 @@ const start: unique symbol = Symbol('start');
 const read: unique symbol = Symbol('read');
 
 /** A defined metric. Its state type is gone, so metrics of different shapes sit in one array. */
-export interface Metric<TValue, TKind extends UnitKind = UnitKind, TNeeds extends Needs = Needs> {
+export interface Metric<
+  TValue,
+  TKind extends UnitKind = UnitKind,
+  TNeeds extends Needs = Needs,
+> {
   readonly name: string;
   readonly needs: TNeeds;
   readonly units: readonly TKind[];
   /** Starts this metric's pass over one file, filed under the walk it belongs to. */
   readonly [start]: (source: Source, walk: object) => Run<TValue, TKind>;
   /** This metric's measurements from a walk, or undefined when the walk did not include it. */
-  readonly [read]: (walk: object) => readonly Measurement<TValue, TKind>[] | undefined;
+  readonly [read]: (
+    walk: object,
+  ) => readonly Measurement<TValue, TKind>[] | undefined;
 }
 
 /** The one way to make a metric. */
-export function defineMetric<TValue, TState, TKind extends UnitKind, TNeeds extends Needs>(
+export function defineMetric<
+  TValue,
+  TState,
+  TKind extends UnitKind,
+  TNeeds extends Needs,
+>(
   definition: MetricDefinition<TValue, TState, TKind, TNeeds>,
 ): Metric<TValue, TKind, TNeeds> {
   const { name, needs, units, open, enter, leave, close } = definition;
   const measures = new Set<UnitKind>(units);
-  const isMeasured = (unit: Unit): unit is UnitOf<TKind> => measures.has(unit.kind);
+  const isMeasured = (unit: Unit): unit is UnitOf<TKind> =>
+    measures.has(unit.kind);
   const runs = new WeakMap<object, Run<TValue, TKind>>();
 
   return {
@@ -102,7 +140,11 @@ export function defineMetric<TValue, TState, TKind extends UnitKind, TNeeds exte
     [read]: (walk) => runs.get(walk)?.measurements,
     [start]: (anySource, walk) => {
       const source = admitted[needs](anySource, name);
-      const states: { readonly unit: UnitOf<TKind>; readonly state: TState; readonly at: number }[] = [];
+      const states: {
+        readonly unit: UnitOf<TKind>;
+        readonly state: TState;
+        readonly at: number;
+      }[] = [];
       const slots: (Measurement<TValue, TKind> | undefined)[] = [];
       const run: Run<TValue, TKind> = {
         open(unit) {
@@ -134,7 +176,8 @@ export function defineMetric<TValue, TState, TKind extends UnitKind, TNeeds exte
 
           states.pop();
           const value = close(top.state, top.unit, source);
-          slots[top.at] = value === undefined ? undefined : { unit: top.unit, value };
+          slots[top.at] =
+            value === undefined ? undefined : { unit: top.unit, value };
         },
         get measurements() {
           return slots.filter((slot) => slot !== undefined);
@@ -150,16 +193,27 @@ export function defineMetric<TValue, TState, TKind extends UnitKind, TNeeds exte
 
 export interface Measurements {
   /** In source order of where each unit starts. Throws for a metric that was not in the run. */
-  of<TValue, TKind extends UnitKind>(metric: Metric<TValue, TKind>): readonly Measurement<TValue, TKind>[];
+  of<TValue, TKind extends UnitKind>(
+    metric: Metric<TValue, TKind>,
+  ): readonly Measurement<TValue, TKind>[];
 }
 
 /**
  * One walk of the tree for all the given metrics. A `Source` takes syntax metrics only; a `TypedSource` takes any.
  * No I/O either way.
  */
-export function measure(source: TypedSource, metrics: readonly Metric<unknown>[]): Measurements;
-export function measure(source: Source, metrics: readonly Metric<unknown, UnitKind, 'syntax'>[]): Measurements;
-export function measure(source: Source, metrics: readonly Metric<unknown>[]): Measurements {
+export function measure(
+  source: TypedSource,
+  metrics: readonly Metric<unknown>[],
+): Measurements;
+export function measure(
+  source: Source,
+  metrics: readonly Metric<unknown, UnitKind, 'syntax'>[],
+): Measurements;
+export function measure(
+  source: Source,
+  metrics: readonly Metric<unknown>[],
+): Measurements {
   const thisWalk = {};
   const runs = metrics.map((metric) => metric[start](source, thisWalk));
 
@@ -170,7 +224,9 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
       const measurements = metric[read](thisWalk);
 
       if (measurements === undefined) {
-        throw new Error(`The metric '${metric.name}' was not measured in this run.`);
+        throw new Error(
+          `The metric '${metric.name}' was not measured in this run.`,
+        );
       }
 
       return measurements;
@@ -178,7 +234,11 @@ export function measure(source: Source, metrics: readonly Metric<unknown>[]): Me
   };
 }
 
-function walk(node: TSESTree.Node, at: Position, runs: readonly Run<unknown, UnitKind>[]): void {
+function walk(
+  node: TSESTree.Node,
+  at: Position,
+  runs: readonly Run<unknown, UnitKind>[],
+): void {
   const units = unitsAt(node, at);
 
   for (const unit of units) {

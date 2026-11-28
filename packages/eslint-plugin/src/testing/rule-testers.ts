@@ -1,6 +1,10 @@
 import { join } from 'node:path';
 import * as nodeTest from 'node:test';
-import { RuleTester, type RuleTesterConfig, type RunTests } from '@typescript-eslint/rule-tester';
+import {
+  RuleTester,
+  type RuleTesterConfig,
+  type RunTests,
+} from '@typescript-eslint/rule-tester';
 import { RuleTester as ESLintRuleTester } from 'eslint';
 import tseslint from 'typescript-eslint';
 import type { OopRuleModule } from '../create-rule.ts';
@@ -23,7 +27,13 @@ ESLintRuleTester.describe = RuleTester.describe;
 ESLintRuleTester.it = RuleTester.it;
 ESLintRuleTester.itOnly = RuleTester.itOnly;
 
-const typedFixture = join(import.meta.dirname, '..', '..', 'tests', 'typed-fixture');
+const typedFixture = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  'tests',
+  'typed-fixture',
+);
 const typedTesterConfig: RuleTesterConfig = {
   languageOptions: {
     parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
@@ -32,17 +42,29 @@ const typedTesterConfig: RuleTesterConfig = {
 
 /** RuleTester cases for a configured existing rule. They carry no options: the catalog's are added to each. */
 export interface ConfiguredCases {
-  readonly valid: readonly (string | Omit<ESLintRuleTester.ValidTestCase, 'options'>)[];
-  readonly invalid: readonly Omit<ESLintRuleTester.InvalidTestCase, 'options'>[];
+  readonly valid: readonly (
+    | string
+    | Omit<ESLintRuleTester.ValidTestCase, 'options'>
+  )[];
+  readonly invalid: readonly Omit<
+    ESLintRuleTester.InvalidTestCase,
+    'options'
+  >[];
 }
 
 /**
  * Runs the cases of every configured existing rule. The record's type comes from the catalog, so a cue with options and
  * no cases does not compile.
  */
-export function testConfiguredRules(cases: Readonly<Record<ConfiguredRuleId, ConfiguredCases>>): void {
-  const configured = listExistingRules().filter(({ stance }) => 'cue' in stance && stance.options !== undefined);
-  const missing = configured.filter(({ id }) => !Object.hasOwn(cases, id)).map(({ id }) => id);
+export function testConfiguredRules(
+  cases: Readonly<Record<ConfiguredRuleId, ConfiguredCases>>,
+): void {
+  const configured = listExistingRules().filter(
+    ({ stance }) => 'cue' in stance && stance.options !== undefined,
+  );
+  const missing = configured
+    .filter(({ id }) => !Object.hasOwn(cases, id))
+    .map(({ id }) => id);
 
   if (missing.length > 0) {
     throw new Error(`Configured cues without cases: ${missing.join(', ')}.`);
@@ -65,7 +87,10 @@ export function testConfiguredRule(id: string, cases: ConfiguredCases): void {
 
   // One typed setup for every existing rule: it parses TypeScript, and the rules that need no types ignore the program.
   const tester = new ESLintRuleTester({
-    languageOptions: { parser: tseslint.parser, parserOptions: { projectService: true, tsconfigRootDir: typedFixture } },
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { projectService: true, tsconfigRootDir: typedFixture },
+    },
   });
   const filename = join(typedFixture, 'file.ts');
 
@@ -75,7 +100,11 @@ export function testConfiguredRule(id: string, cases: ConfiguredCases): void {
       filename,
       options: [...options],
     })),
-    invalid: cases.invalid.map((item) => ({ ...item, filename, options: [...options] })),
+    invalid: cases.invalid.map((item) => ({
+      ...item,
+      filename,
+      options: [...options],
+    })),
   });
 }
 
@@ -83,7 +112,10 @@ export function testConfiguredRule(id: string, cases: ConfiguredCases): void {
  * Why the cases do not exercise the rule's declared remedy, or `undefined` when they do: a `fix` rule needs an invalid
  * case with `output`, a `suggestion` rule an error with `suggestions`.
  */
-export function cureContractProblem<TMessageIds extends string, TOptions extends readonly unknown[]>(
+export function cureContractProblem<
+  TMessageIds extends string,
+  TOptions extends readonly unknown[],
+>(
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
 ): string | undefined {
@@ -104,7 +136,10 @@ export function cureContractProblem<TMessageIds extends string, TOptions extends
  * Runs RuleTester cases against one of this plugin's rules, as node:test tests, under the tester its
  * `requiresTypeChecking` asks for.
  */
-export function testRule<TMessageIds extends string, TOptions extends readonly unknown[]>(
+export function testRule<
+  TMessageIds extends string,
+  TOptions extends readonly unknown[],
+>(
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
 ): void {
@@ -115,14 +150,25 @@ export function testRule<TMessageIds extends string, TOptions extends readonly u
  * Runs RuleTester cases against one of this plugin's rules with type information, whatever its `requiresTypeChecking`
  * says, for a rule that reports without types and narrows its reports when they are there.
  */
-export function testRuleWithTypes<TMessageIds extends string, TOptions extends readonly unknown[]>(
+export function testRuleWithTypes<
+  TMessageIds extends string,
+  TOptions extends readonly unknown[],
+>(
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
 ): void {
-  runCases(rule, cases, typedTesterConfig, `${rule.name} with type information`);
+  runCases(
+    rule,
+    cases,
+    typedTesterConfig,
+    `${rule.name} with type information`,
+  );
 }
 
-function runCases<TMessageIds extends string, TOptions extends readonly unknown[]>(
+function runCases<
+  TMessageIds extends string,
+  TOptions extends readonly unknown[],
+>(
   rule: OopRuleModule<TMessageIds, TOptions>,
   cases: RunTests<TMessageIds, TOptions>,
   config: RuleTesterConfig,
@@ -142,12 +188,21 @@ export function testerConfigFor(rule: OopRuleModule): RuleTesterConfig {
   return rule.meta.docs.requiresTypeChecking ? typedTesterConfig : {};
 }
 
-function showsOutput({ invalid }: RunTests<string, readonly unknown[]>): boolean {
+function showsOutput({
+  invalid,
+}: RunTests<string, readonly unknown[]>): boolean {
   return invalid.some(({ output }) => output !== undefined && output !== null);
 }
 
-function showsSuggestions({ invalid }: RunTests<string, readonly unknown[]>): boolean {
+function showsSuggestions({
+  invalid,
+}: RunTests<string, readonly unknown[]>): boolean {
   return invalid.some(({ errors }) =>
-    errors.some(({ suggestions }) => suggestions !== undefined && suggestions !== null && suggestions.length > 0),
+    errors.some(
+      ({ suggestions }) =>
+        suggestions !== undefined &&
+        suggestions !== null &&
+        suggestions.length > 0,
+    ),
   );
 }

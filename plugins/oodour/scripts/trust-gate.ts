@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 export type TrustDecision = 'ask' | undefined;
 
 function fieldOf(value: unknown, name: string): unknown {
-  return typeof value === 'object' && value !== null ? Object.entries(value).find(([key]) => key === name)?.[1] : undefined;
+  return typeof value === 'object' && value !== null
+    ? Object.entries(value).find(([key]) => key === name)?.[1]
+    : undefined;
 }
 
 // The plugin's own script, then the command name as the first argument: the CLI reads trust only from the first one.
@@ -14,7 +16,11 @@ const untrustedForm =
 const withSlashes = (path: string): string => path.replaceAll('\\', '/');
 
 // Bash removes a backslash outside quotes, so there the path Node opens is not the one written.
-function isUntrustedForm(command: string, pluginRoot: string | undefined, tool: unknown): boolean {
+function isUntrustedForm(
+  command: string,
+  pluginRoot: string | undefined,
+  tool: unknown,
+): boolean {
   const script = untrustedForm.exec(command)?.groups;
   const bare = script?.['bare'];
   const path = script?.['quoted'] ?? bare;
@@ -36,7 +42,10 @@ function parsedOrUndefined(input: string): unknown {
   }
 }
 
-export function trustDecision(input: string, pluginRoot: string | undefined): TrustDecision {
+export function trustDecision(
+  input: string,
+  pluginRoot: string | undefined,
+): TrustDecision {
   const parsed = parsedOrUndefined(input);
 
   if (parsed === undefined) {
@@ -47,7 +56,8 @@ export function trustDecision(input: string, pluginRoot: string | undefined): Tr
 
   if (
     fieldOf(parsed, 'permission_mode') !== 'auto' ||
-    (typeof command === 'string' && isUntrustedForm(command, pluginRoot, fieldOf(parsed, 'tool_name')))
+    (typeof command === 'string' &&
+      isUntrustedForm(command, pluginRoot, fieldOf(parsed, 'tool_name')))
   ) {
     return undefined;
   }

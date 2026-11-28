@@ -1,6 +1,11 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
 import packageJson from '../package.json' with { type: 'json' };
-import type { RuleContext, RuleListener, RuleMetaDataDocs, RuleModule } from '@typescript-eslint/utils/ts-eslint';
+import type {
+  RuleContext,
+  RuleListener,
+  RuleMetaDataDocs,
+  RuleModule,
+} from '@typescript-eslint/utils/ts-eslint';
 
 /**
  * How a reader gets from a report to changed code, in order of preference. Every kind after `fix` says why nothing
@@ -49,13 +54,19 @@ export type Companion = 'unicorn' | 'sonarjs' | 'functional';
  * `hasSuggestions` come from `docs.remedy` and `defaultOptions` lives in `meta`. `createRule` builds the module itself
  * rather than through `RuleCreator`, whose result types `meta.docs` as optional.
  */
-export interface OopRuleDefinition<TOptions extends readonly unknown[], TMessageIds extends string> {
+export interface OopRuleDefinition<
+  TOptions extends readonly unknown[],
+  TMessageIds extends string,
+> {
   readonly name: string;
   readonly meta: Omit<
     ESLintUtils.NamedCreateRuleMeta<TMessageIds, OopRuleDocs, TOptions>,
     'fixable' | 'hasSuggestions' | 'defaultOptions'
   > & { readonly defaultOptions: TOptions };
-  readonly create: (context: Readonly<RuleContext<TMessageIds, TOptions>>, options: Readonly<TOptions>) => RuleListener;
+  readonly create: (
+    context: Readonly<RuleContext<TMessageIds, TOptions>>,
+    options: Readonly<TOptions>,
+  ) => RuleListener;
 }
 
 export type OopRuleModule<
@@ -70,13 +81,18 @@ export type OopRuleModule<
  * The one way to define a rule in this package. Sets the docs URL, derives `fixable` and `hasSuggestions` from the
  * remedy, and ends every message of a `none` rule with the reason no automatic change exists.
  */
-export function createRule<TOptions extends readonly unknown[], TMessageIds extends string>(
+export function createRule<
+  TOptions extends readonly unknown[],
+  TMessageIds extends string,
+>(
   definition: OopRuleDefinition<TOptions, TMessageIds>,
 ): OopRuleModule<TMessageIds, TOptions> {
   const { remedy } = definition.meta.docs;
-  const sentence = remedy.kind === 'none' ? ` No automatic change: ${remedy.because}.` : '';
+  const sentence =
+    remedy.kind === 'none' ? ` No automatic change: ${remedy.because}.` : '';
   const messages: Record<TMessageIds, string> = { ...definition.meta.messages };
-  const isMessageId = (key: string): key is TMessageIds => Object.hasOwn(messages, key);
+  const isMessageId = (key: string): key is TMessageIds =>
+    Object.hasOwn(messages, key);
 
   Object.keys(messages)
     .filter(isMessageId)
@@ -94,6 +110,12 @@ export function createRule<TOptions extends readonly unknown[], TMessageIds exte
       messages,
     },
     create: (context: Readonly<RuleContext<TMessageIds, TOptions>>) =>
-      definition.create(context, ESLintUtils.applyDefault<TOptions, TOptions>(definition.meta.defaultOptions, context.options)),
+      definition.create(
+        context,
+        ESLintUtils.applyDefault<TOptions, TOptions>(
+          definition.meta.defaultOptions,
+          context.options,
+        ),
+      ),
   };
 }

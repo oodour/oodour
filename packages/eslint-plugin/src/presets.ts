@@ -17,7 +17,9 @@ export interface OopConfig {
   readonly name: string;
   readonly plugins?: Readonly<Record<string, object>>;
   readonly ignores?: string[];
-  readonly rules?: Readonly<Record<string, 'error' | 'off' | ['error', ...unknown[]]>>;
+  readonly rules?: Readonly<
+    Record<string, 'error' | 'off' | ['error', ...unknown[]]>
+  >;
 }
 
 /**
@@ -56,7 +58,11 @@ export type OopConfigs = {
 
 /** What a preset registers under `pluginNamespace`: the plugin object itself. */
 export interface RegisteredPlugin {
-  readonly meta: { readonly name: string; readonly version: string; readonly namespace: string };
+  readonly meta: {
+    readonly name: string;
+    readonly version: string;
+    readonly namespace: string;
+  };
   readonly rules: Readonly<Record<string, OopRuleModule>>;
 }
 
@@ -85,8 +91,18 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
       ),
     },
   ];
-  const layers = (name: string, keep: (entry: PresetEntry) => boolean, strict: boolean): OopConfig[] => [
-    { name, rules: rulesOf(entries.filter((entry) => keep(entry) && !entry.skipsTestFiles), strict) },
+  const layers = (
+    name: string,
+    keep: (entry: PresetEntry) => boolean,
+    strict: boolean,
+  ): OopConfig[] => [
+    {
+      name,
+      rules: rulesOf(
+        entries.filter((entry) => keep(entry) && !entry.skipsTestFiles),
+        strict,
+      ),
+    },
     {
       name: `${name}/outside-test-files`,
       ignores: testFileGlobs,
@@ -97,20 +113,36 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
     },
   ];
   const untyped = (entry: PresetEntry): boolean => !entry.typed;
-  const recommendedTier = (entry: PresetEntry): boolean => entry.tier === 'recommended';
+  const recommendedTier = (entry: PresetEntry): boolean =>
+    entry.tier === 'recommended';
   const conflicts = turnedOff('oodour/conflicts', 'conflict');
   const duplicates = turnedOff('oodour/duplicates', 'duplicateOf');
-  const preset = (name: string, keep: (entry: PresetEntry) => boolean, strict = false): OopConfig[] => [
+  const preset = (
+    name: string,
+    keep: (entry: PresetEntry) => boolean,
+    strict = false,
+  ): OopConfig[] => [
     plugins,
     ...layers(name, keep, strict),
     duplicates,
     conflicts,
   ];
-  const recommendedTypeChecked = preset('oodour/recommended-type-checked', recommendedTier);
-  const strictTypeChecked = preset('oodour/strict-type-checked', () => true, true);
+  const recommendedTypeChecked = preset(
+    'oodour/recommended-type-checked',
+    recommendedTier,
+  );
+  const strictTypeChecked = preset(
+    'oodour/strict-type-checked',
+    () => true,
+    true,
+  );
 
   return {
-    recommended: preset('oodour/recommended', (entry) => recommendedTier(entry) && untyped(entry) && !entry.defaultsNeedTypes),
+    recommended: preset(
+      'oodour/recommended',
+      (entry) =>
+        recommendedTier(entry) && untyped(entry) && !entry.defaultsNeedTypes,
+    ),
     'recommended-type-checked': recommendedTypeChecked,
     strict: preset('oodour/strict', untyped, true),
     'strict-type-checked': strictTypeChecked,
@@ -127,13 +159,23 @@ export function buildConfigs(plugin: RegisteredPlugin): OopConfigs {
 function turnedOff(name: string, key: 'conflict' | 'duplicateOf'): OopConfig {
   return {
     name,
-    rules: Object.fromEntries(listExistingRules().flatMap(({ id, stance }) => (key in stance ? [[id, 'off']] : []))),
+    rules: Object.fromEntries(
+      listExistingRules().flatMap(({ id, stance }) =>
+        key in stance ? [[id, 'off']] : [],
+      ),
+    ),
   };
 }
 
-function rulesOf(entries: readonly PresetEntry[], strict: boolean): NonNullable<OopConfig['rules']> {
+function rulesOf(
+  entries: readonly PresetEntry[],
+  strict: boolean,
+): NonNullable<OopConfig['rules']> {
   return Object.fromEntries(
-    entries.map(({ id, setting, strictSetting }) => [id, strict ? (strictSetting ?? setting) : setting]),
+    entries.map(({ id, setting, strictSetting }) => [
+      id,
+      strict ? (strictSetting ?? setting) : setting,
+    ]),
   );
 }
 
@@ -160,7 +202,12 @@ function ownRuleEntries(plugin: RegisteredPlugin): readonly PresetEntry[] {
     setting: 'error',
     ...(rule.meta.docs.strictOptions === undefined
       ? {}
-      : { strictSetting: ['error', ...rule.meta.docs.strictOptions] satisfies PresetEntry['setting'] }),
+      : {
+          strictSetting: [
+            'error',
+            ...rule.meta.docs.strictOptions,
+          ] satisfies PresetEntry['setting'],
+        }),
     tier: rule.meta.docs.tier,
     typed: rule.meta.docs.requiresTypeChecking,
     defaultsNeedTypes: rule.meta.docs.defaultsNeedTypes === true,

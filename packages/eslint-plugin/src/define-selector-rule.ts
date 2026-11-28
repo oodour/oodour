@@ -11,13 +11,25 @@ export type SelectorFix = (
 
 /** The remedy is derived from which of these a row has: `fix`, `suggest`, or only the `because` of `none`. */
 type SelectorRemedyFields =
-  | { readonly fix: SelectorFix; readonly suggest?: never; readonly because?: never }
   | {
-      readonly suggest: { readonly message: string; readonly because: string; readonly fix: SelectorFix };
+      readonly fix: SelectorFix;
+      readonly suggest?: never;
+      readonly because?: never;
+    }
+  | {
+      readonly suggest: {
+        readonly message: string;
+        readonly because: string;
+        readonly fix: SelectorFix;
+      };
       readonly fix?: never;
       readonly because?: never;
     }
-  | { readonly because: string; readonly fix?: never; readonly suggest?: never };
+  | {
+      readonly because: string;
+      readonly fix?: never;
+      readonly suggest?: never;
+    };
 
 /** One measured esquery selector, or a few that find the same thing, as one rule of this plugin. */
 export type SelectorRow = {
@@ -44,7 +56,9 @@ function remedyOf(row: SelectorRemedyFields): Remedy {
   return { kind: 'fix' };
 }
 
-export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMessageId, []> {
+export function defineSelectorRule(
+  row: SelectorRow,
+): OopRuleModule<SelectorMessageId, []> {
   const { fix, suggest } = row;
 
   return defineMetricRule<[], SelectorMessageId, readonly TSESTree.Node[]>({
@@ -62,7 +76,10 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
         skipsTestFiles: true,
       },
       // A row without a suggestion never reports `suggestion`; the id exists so every row shares one message type.
-      messages: { found: row.message, suggestion: row.suggest?.message ?? row.message },
+      messages: {
+        found: row.message,
+        suggestion: row.suggest?.message ?? row.message,
+      },
       schema: [],
       defaultOptions: [],
     },
@@ -71,11 +88,19 @@ export function defineSelectorRule(row: SelectorRow): OopRuleModule<SelectorMess
         context.report({
           node,
           messageId: 'found',
-          ...(fix === undefined ? {} : { fix: (fixer) => fix(node, fixer, context.sourceCode) }),
+          ...(fix === undefined
+            ? {}
+            : { fix: (fixer) => fix(node, fixer, context.sourceCode) }),
           ...(suggest === undefined
             ? {}
             : {
-                suggest: [{ messageId: 'suggestion', fix: (fixer) => suggest.fix(node, fixer, context.sourceCode) }],
+                suggest: [
+                  {
+                    messageId: 'suggestion',
+                    fix: (fixer) =>
+                      suggest.fix(node, fixer, context.sourceCode),
+                  },
+                ],
               }),
         });
       }

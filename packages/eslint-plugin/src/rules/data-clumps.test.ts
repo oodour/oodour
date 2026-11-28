@@ -76,7 +76,9 @@ testRule(dataClumps, {
         function area(x, y) { return x * y; }
         export const dots = (x, y) => x + y;
       `,
-      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 2 }],
+      errors: [
+        { messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 2 },
+      ],
     },
     {
       name: 'a clump that class-field functions share with a method',
@@ -89,7 +91,9 @@ testRule(dataClumps, {
           count;
         }
       `,
-      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 }],
+      errors: [
+        { messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 },
+      ],
     },
     {
       name: 'a clump that only all three methods share, each pair sharing one more name',
@@ -100,7 +104,9 @@ testRule(dataClumps, {
           dots(x, y, b, c) { return [x, y, b, c]; }
         }
       `,
-      errors: [{ messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 }],
+      errors: [
+        { messageId: 'found', data: { clump: 'x, y', count: 3 }, line: 3 },
+      ],
     },
     {
       name: 'a clump and a smaller clump inside it, reported once as the larger',
@@ -112,7 +118,9 @@ testRule(dataClumps, {
           flat(x, y) { return [x, y]; }
         }
       `,
-      errors: [{ messageId: 'found', data: { clump: 'x, y, z', count: 3 }, line: 3 }],
+      errors: [
+        { messageId: 'found', data: { clump: 'x, y, z', count: 3 }, line: 3 },
+      ],
     },
     {
       name: 'two parameters taken by three methods of one class',
@@ -123,7 +131,13 @@ testRule(dataClumps, {
           span(start, end) { return end - start; }
         }
       `,
-      errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 3 }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { clump: 'end, start', count: 3 },
+          line: 3,
+        },
+      ],
     },
     {
       name: 'the clump in three of four methods',
@@ -135,7 +149,13 @@ testRule(dataClumps, {
           span(start, end) { return end - start; }
         }
       `,
-      errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 3 }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { clump: 'end, start', count: 3 },
+          line: 3,
+        },
+      ],
     },
     {
       name: 'a clump member with a default value',
@@ -155,7 +175,13 @@ testRule(dataClumps, {
         export function free(start, end) { return [start, end]; }
         export const span = (start, end) => end - start;
       `,
-      errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 2 }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { clump: 'end, start', count: 3 },
+          line: 2,
+        },
+      ],
     },
     {
       name: 'two parameters taken by three functions of one module, one of them a function expression',
@@ -164,7 +190,13 @@ testRule(dataClumps, {
         export function free(start, end) { return [start, end]; }
         export const span = function (start, end) { return end - start; };
       `,
-      errors: [{ messageId: 'found', data: { clump: 'end, start', count: 3 }, line: 2 }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { clump: 'end, start', count: 3 },
+          line: 2,
+        },
+      ],
     },
     {
       name: 'two clumps that share a name, neither inside the other',

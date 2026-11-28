@@ -28,9 +28,16 @@ const runnerOptions: PartialStrykerOptions =
   nodeTestRunner === undefined
     ? {
         testRunner: 'command',
-        commandRunner: { command: ['node', '--test', skipPattern, ...testFiles].map((part) => `"${part}"`).join(' ') },
+        commandRunner: {
+          command: ['node', '--test', skipPattern, ...testFiles]
+            .map((part) => `"${part}"`)
+            .join(' '),
+        },
       }
-    : { ...(await nodeTestRunnerOptions(nodeTestRunner)), lzNodeTest: { testFiles, nodeArgs: [skipPattern] } };
+    : {
+        ...(await nodeTestRunnerOptions(nodeTestRunner)),
+        lzNodeTest: { testFiles, nodeArgs: [skipPattern] },
+      };
 
 const config: PartialStrykerOptions = {
   ...sharedOptions,

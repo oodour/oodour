@@ -11,9 +11,18 @@ export function leafReadPattern(grader: string): string {
   return quoted.replaceAll("''", "'");
 }
 
-export function uncoveredLeaves(leaves: readonly string[], patterns: readonly string[]): string[] {
-  const matched = (pattern: string): string[] => leaves.filter((leaf) => new RegExp(pattern).test(`references/${leaf}.md`));
-  const covered = new Set(patterns.map(matched).filter((names) => names.length === 1).flat());
+export function uncoveredLeaves(
+  leaves: readonly string[],
+  patterns: readonly string[],
+): string[] {
+  const matched = (pattern: string): string[] =>
+    leaves.filter((leaf) => new RegExp(pattern).test(`references/${leaf}.md`));
+  const covered = new Set(
+    patterns
+      .map(matched)
+      .filter((names) => names.length === 1)
+      .flat(),
+  );
 
   return leaves.filter((leaf) => !covered.has(leaf));
 }

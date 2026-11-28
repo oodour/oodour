@@ -1,4 +1,7 @@
-import { type HalsteadCounts, halsteadVolume as halsteadVolumeMetric } from '@oodour/core';
+import {
+  type HalsteadCounts,
+  halsteadVolume as halsteadVolumeMetric,
+} from '@oodour/core';
 import { ASTUtils } from '@typescript-eslint/utils';
 import { defineMetricRule } from '../define-metric-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
@@ -9,7 +12,12 @@ type Options = [{ readonly max: number }];
  * Halstead volume of each function: its length (operators and operands used) times the base-2 logarithm of its
  * vocabulary (distinct operators and operands). A nested function and type-only syntax are left out of the count.
  */
-export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts, 'function'>({
+export const halsteadVolume = defineMetricRule<
+  Options,
+  'found',
+  HalsteadCounts,
+  'function'
+>({
   name: 'halstead-volume',
   metric: halsteadVolumeMetric,
   meta: {
@@ -17,7 +25,11 @@ export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts,
     docs: {
       description: 'Report a function whose Halstead volume is above the limit',
       concept: 'Long Function',
-      cures: ['Extract Function', 'Replace Temp with Query', 'Introduce Parameter Object'],
+      cures: [
+        'Extract Function',
+        'Replace Temp with Query',
+        'Introduce Parameter Object',
+      ],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
@@ -41,7 +53,10 @@ export const halsteadVolume = defineMetricRule<Options, 'found', HalsteadCounts,
   },
   check({ unit, value: { length, vocabulary, volume } }, context, [{ max }]) {
     if (volume > max) {
-      const name = ASTUtils.getFunctionNameWithKind(unit.node, context.sourceCode);
+      const name = ASTUtils.getFunctionNameWithKind(
+        unit.node,
+        context.sourceCode,
+      );
 
       context.report({
         node: unit.node,

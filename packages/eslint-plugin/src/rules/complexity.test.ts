@@ -20,5 +20,15 @@ test('the strict preset reports a function with too many paths with a message th
 
 testRule(complexity, {
   valid: [ifs(3)],
-  invalid: [{ code: ifs(4), errors: [{ messageId: 'found', data: { name: "Function 'f'", complexity: 5, max: 4 } }] }],
+  invalid: [
+    {
+      code: ifs(4),
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "Function 'f'", complexity: 5, max: 4 },
+        },
+      ],
+    },
+  ],
 });

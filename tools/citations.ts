@@ -22,7 +22,11 @@ function matches(text: string, patterns: readonly RegExp[]): ChapterCitation[] {
     patterns
       .flatMap((pattern) => [...lineText.matchAll(pattern)])
       .sort((left, right) => left.index - right.index)
-      .map((match) => ({ line: index + 1, column: match.index + 1, citation: match[0] })),
+      .map((match) => ({
+        line: index + 1,
+        column: match.index + 1,
+        citation: match[0],
+      })),
   );
 }
 
@@ -34,8 +38,7 @@ export function attributedTitles(text: string): string[] {
     .flatMap((line) => {
       const books = [...line.matchAll(/_([^_]+)_/g)].map(
         // Stryker disable next-line StringLiteral: the group always takes part in a match, so the default never applies
-        ([, title = '']) =>
-          title.replace(/:.*/, ''),
+        ([, title = '']) => title.replace(/:.*/, ''),
       );
 
       if (books.length > 0) {
@@ -44,22 +47,34 @@ export function attributedTitles(text: string): string[] {
 
       const works = line.slice(line.indexOf(': ') + 2).split('; ');
 
-      return works.flatMap((work) => /(.+) \(\d{4}\)\.?$/.exec(work.trim())?.[1] ?? []);
+      return works.flatMap(
+        (work) => /(.+) \(\d{4}\)\.?$/.exec(work.trim())?.[1] ?? [],
+      );
     })
     .map((title) => title.trim())
     .filter((title) => /\s/.test(title));
 }
 
-export function sourceMentions(text: string, titles: readonly string[]): ChapterCitation[] {
+export function sourceMentions(
+  text: string,
+  titles: readonly string[],
+): ChapterCitation[] {
   const standIns = /\b(?:she|hers?|the (?:book|talk|article))\b/gi;
   const named = titles.map(
-    (title) => new RegExp(`(?<![\\w])${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w])`, 'g'),
+    (title) =>
+      new RegExp(
+        `(?<![\\w])${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w])`,
+        'g',
+      ),
   );
 
   return matches(text, [standIns, ...named]);
 }
 
-function citationsIn(file: string, titles: readonly string[] | undefined): ChapterCitation[] {
+function citationsIn(
+  file: string,
+  titles: readonly string[] | undefined,
+): ChapterCitation[] {
   const text = readFileSync(file, 'utf8');
 
   if (titles === undefined) {
@@ -74,21 +89,32 @@ function citationsIn(file: string, titles: readonly string[] | undefined): Chapt
 // The distributed plugin names a practice and cites no source: no chapter number, title, stand-in such as "the book",
 // or "her" for an author; ATTRIBUTION.md credits the works once (Lars, 2026-11-15 and 2026-11-19; AGENTS.md, "What
 // you write").
-export function main(files: readonly string[], print: (line: string) => void): number {
+export function main(
+  files: readonly string[],
+  print: (line: string) => void,
+): number {
   const attribution = files.find((file) => basename(file) === 'ATTRIBUTION.md');
-  // Stryker disable next-line ArrayDeclaration: a seeded title differs only for a file that quotes the seeded text itself
-  const titles = attribution === undefined ? [] : attributedTitles(readFileSync(attribution, 'utf8'));
+  const titles =
+    attribution === undefined
+      ? // Stryker disable next-line ArrayDeclaration: a seeded title differs only for a file that quotes the seeded text itself
+        []
+      : attributedTitles(readFileSync(attribution, 'utf8'));
   let count = 0;
 
   for (const file of files) {
-    for (const { line, column, citation } of citationsIn(file, file === attribution ? undefined : titles)) {
+    for (const { line, column, citation } of citationsIn(
+      file,
+      file === attribution ? undefined : titles,
+    )) {
       print(`${file}:${String(line)}:${String(column)}: ${citation}`);
       count++;
     }
   }
 
   if (count > 0) {
-    print(`[ERROR] ${String(count)} citation(s); name the practice instead and credit the work in ATTRIBUTION.md`);
+    print(
+      `[ERROR] ${String(count)} citation(s); name the practice instead and credit the work in ATTRIBUTION.md`,
+    );
 
     return 1;
   }

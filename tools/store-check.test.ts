@@ -28,16 +28,21 @@ function store(): string {
   );
   mkdirSync(join(dir, 'book'));
   writeFileSync(join(dir, 'book', 'ch1-a-chapter-heading.md'), 'text');
-  writeFileSync(join(dir, 'book', 'index.md'), '| Ch | File |\n| --- | --- |\n| 1 | `ch1-a-chapter-heading.md` |\n');
+  writeFileSync(
+    join(dir, 'book', 'index.md'),
+    '| Ch | File |\n| --- | --- |\n| 1 | `ch1-a-chapter-heading.md` |\n',
+  );
 
   return dir;
 }
 
 test('index cells are the backticked paths of table rows only', () => {
-  assert.deepEqual(indexedPaths('see `x.md`\n| a | `b.md` | `c d` | `https://x` | `kind_of?` |\n| `repo/lib` |'), [
-    'b.md',
-    'repo/lib',
-  ]);
+  assert.deepEqual(
+    indexedPaths(
+      'see `x.md`\n| a | `b.md` | `c d` | `https://x` | `kind_of?` |\n| `repo/lib` |',
+    ),
+    ['b.md', 'repo/lib'],
+  );
 });
 
 test('index cells also include relative link targets and bare file cells', () => {
@@ -82,23 +87,43 @@ test('a collection names its problems, a book gives counts alone', () => {
     '  empty: empty.md',
     '  unindexed: stray.md',
   ]);
-  assert.deepEqual(describe(checkEntry(dir, 'book') ?? assert.fail()), ['[ERROR] book: 1 indexed, 0 missing, 0 empty, 1 unindexed']);
+  assert.deepEqual(describe(checkEntry(dir, 'book') ?? assert.fail()), [
+    '[ERROR] book: 1 indexed, 0 missing, 0 empty, 1 unindexed',
+  ]);
 });
 
 test('a missing cell that is not a file or folder name is counted but not printed', () => {
-  const report = { entry: 'metz-talks', indexed: 2, missing: ['gone.md', 'obj.method'], empty: [], unindexed: [] };
+  const report = {
+    entry: 'metz-talks',
+    indexed: 2,
+    missing: ['gone.md', 'obj.method'],
+    empty: [],
+    unindexed: [],
+  };
 
-  assert.deepEqual(describe(report), ['[ERROR] metz-talks: 2 indexed, 2 missing, 0 empty, 0 unindexed', '  missing: gone.md']);
+  assert.deepEqual(describe(report), [
+    '[ERROR] metz-talks: 2 indexed, 2 missing, 0 empty, 0 unindexed',
+    '  missing: gone.md',
+  ]);
 });
 
 test('a missing folder cell is printed', () => {
-  const report = { entry: 'metz-written', indexed: 1, missing: ['github/poodr/', 'github/poodr'], empty: [], unindexed: [] };
+  const report = {
+    entry: 'metz-written',
+    indexed: 1,
+    missing: ['github/poodr/', 'github/poodr'],
+    empty: [],
+    unindexed: [],
+  };
 
   assert.deepEqual(describe(report).slice(1), ['  missing: github/poodr/']);
 });
 
 test('links to an anchor or a URL are dropped, and a colon after a path segment is kept', () => {
-  assert.deepEqual(indexedPaths('- [Top](#top)\n- [Mail](mailto:x)\n- [Odd](notes/a:b.md)'), ['notes/a:b.md']);
+  assert.deepEqual(
+    indexedPaths('- [Top](#top)\n- [Mail](mailto:x)\n- [Odd](notes/a:b.md)'),
+    ['notes/a:b.md'],
+  );
 });
 
 test('a row without a closing pipe is still a table row', () => {
@@ -109,14 +134,20 @@ test("a cell resolves against a folder at the top of the entry, such as a clone'
   const dir = tempDir('oracle-store-check-');
   mkdirSync(join(dir, '99bottles-js', 'repo', 'lib'), { recursive: true });
   writeFileSync(join(dir, '99bottles-js', 'repo', 'lib', 'bottles.js'), 'code');
-  writeFileSync(join(dir, '99bottles-js', 'index.md'), '| Code | `lib/bottles.js` |');
+  writeFileSync(
+    join(dir, '99bottles-js', 'index.md'),
+    '| Code | `lib/bottles.js` |',
+  );
 
   assert.deepEqual(checkEntry(dir, '99bottles-js')?.missing, []);
 });
 
 test('a folder cell resolves with any number of trailing separators', () => {
   const dir = store();
-  writeFileSync(join(dir, 'metz-written', 'index.md'), '| Repo | `github/poodr//` |\n| A | `a.md` |\n| E | `empty.md` |\n| S | `stray.md` |');
+  writeFileSync(
+    join(dir, 'metz-written', 'index.md'),
+    '| Repo | `github/poodr//` |\n| A | `a.md` |\n| E | `empty.md` |\n| S | `stray.md` |',
+  );
 
   assert.deepEqual(checkEntry(dir, 'metz-written')?.missing, []);
 });
@@ -139,26 +170,55 @@ test('a cell with a leading dot folder or a trailing separator still indexes its
   mkdirSync(join(dir, 'metz-written'));
   writeFileSync(join(dir, 'metz-written', 'a.md'), 'body');
   writeFileSync(join(dir, 'metz-written', 'b.md'), 'body');
-  writeFileSync(join(dir, 'metz-written', 'index.md'), '| A | `./a.md` |\n| B | `b.md/` |');
+  writeFileSync(
+    join(dir, 'metz-written', 'index.md'),
+    '| A | `./a.md` |\n| B | `b.md/` |',
+  );
 
   assert.deepEqual(checkEntry(dir, 'metz-written')?.unindexed, []);
 });
 
 test('the companion code entry names its problems like a collection', () => {
-  const report = { entry: '99bottles-js', indexed: 1, missing: ['gone.md'], empty: [], unindexed: [] };
+  const report = {
+    entry: '99bottles-js',
+    indexed: 1,
+    missing: ['gone.md'],
+    empty: [],
+    unindexed: [],
+  };
 
-  assert.deepEqual(describe(report), ['[ERROR] 99bottles-js: 1 indexed, 1 missing, 0 empty, 0 unindexed', '  missing: gone.md']);
+  assert.deepEqual(describe(report), [
+    '[ERROR] 99bottles-js: 1 indexed, 1 missing, 0 empty, 0 unindexed',
+    '  missing: gone.md',
+  ]);
 });
 
 test('an entry is OK only with no problem of any kind', () => {
-  const report = (entry: string, missing: readonly string[], empty: readonly string[]) => ({ entry, indexed: 2, missing, empty, unindexed: [] });
+  const report = (
+    entry: string,
+    missing: readonly string[],
+    empty: readonly string[],
+  ) => ({ entry, indexed: 2, missing, empty, unindexed: [] });
 
-  assert.deepEqual(describe(report('book', ['a.md'], ['b.md'])), ['[ERROR] book: 2 indexed, 1 missing, 1 empty, 0 unindexed']);
-  assert.deepEqual(describe({ entry: 'book', indexed: 1, missing: ['a.md'], empty: [], unindexed: ['b.md'] }), [
-    '[ERROR] book: 1 indexed, 1 missing, 0 empty, 1 unindexed',
+  assert.deepEqual(describe(report('book', ['a.md'], ['b.md'])), [
+    '[ERROR] book: 2 indexed, 1 missing, 1 empty, 0 unindexed',
   ]);
-  assert.deepEqual(describe(report('book', [], [])), ['[OK] book: 2 indexed, 0 missing, 0 empty, 0 unindexed']);
-  assert.deepEqual(describe(report('metz-written', [], [])), ['[OK] metz-written: 2 indexed, 0 missing, 0 empty, 0 unindexed']);
+  assert.deepEqual(
+    describe({
+      entry: 'book',
+      indexed: 1,
+      missing: ['a.md'],
+      empty: [],
+      unindexed: ['b.md'],
+    }),
+    ['[ERROR] book: 1 indexed, 1 missing, 0 empty, 1 unindexed'],
+  );
+  assert.deepEqual(describe(report('book', [], [])), [
+    '[OK] book: 2 indexed, 0 missing, 0 empty, 0 unindexed',
+  ]);
+  assert.deepEqual(describe(report('metz-written', [], [])), [
+    '[OK] metz-written: 2 indexed, 0 missing, 0 empty, 0 unindexed',
+  ]);
 });
 
 test('the command prints each report line, and names the missing store', (t) => {
@@ -173,12 +233,18 @@ test('the command prints each report line, and names the missing store', (t) => 
   main(clean);
   main(join(clean, 'nowhere'));
 
-  assert.deepEqual(printed, ['[OK] book: 1 indexed, 0 missing, 0 empty, 0 unindexed', '[ERROR] no store at .oracle/']);
+  assert.deepEqual(printed, [
+    '[OK] book: 1 indexed, 0 missing, 0 empty, 0 unindexed',
+    '[ERROR] no store at .oracle/',
+  ]);
 });
 
 test('the command fails on a missing file beside an unindexed one, and on a missing file beside an empty one', (t) => {
   t.mock.method(console, 'log', () => undefined);
-  const entry = (index: string, files: Readonly<Record<string, string>>): string => {
+  const entry = (
+    index: string,
+    files: Readonly<Record<string, string>>,
+  ): string => {
     const dir = tempDir('oracle-store-check-');
     mkdirSync(join(dir, 'book'));
     writeFileSync(join(dir, 'book', 'index.md'), index);
@@ -190,11 +256,18 @@ test('the command fails on a missing file beside an unindexed one, and on a miss
   };
 
   assert.equal(main(entry('| `gone.md` |', { 'stray.md': 'text' })), 1);
-  assert.equal(main(entry('| `gone.md` |\n| `empty.md` |', { 'empty.md': '' })), 1);
+  assert.equal(
+    main(entry('| `gone.md` |\n| `empty.md` |', { 'empty.md': '' })),
+    1,
+  );
 });
 
 test('run as a command, it prints a report', () => {
-  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'store-check.ts')], { encoding: 'utf8' });
+  const run = spawnSync(
+    process.execPath,
+    [join(import.meta.dirname, 'store-check.ts')],
+    { encoding: 'utf8' },
+  );
 
   assert.notEqual(`${run.stdout}${run.stderr}`, '');
 });
@@ -211,5 +284,8 @@ test('the command exits 0 when consistent, 1 on a problem and 2 with no store', 
   assert.equal(main(clean), 0);
   assert.equal(main(store()), 1);
   assert.equal(main(join(clean, 'nowhere')), 2);
-  assert.ok(printed.every((line) => !line.includes('chapter-heading')), 'a book file name is never printed');
+  assert.ok(
+    printed.every((line) => !line.includes('chapter-heading')),
+    'a book file name is never printed',
+  );
 });

@@ -233,9 +233,15 @@ published as `@oodour/<name>`). Run Nx as `npm exec -- nx`.
   request, shared out into jobs of under 15 minutes each (Lars, 2026-11-28: "Every CI job above 15 minutes is too
   long."); the scripts' jobs run on Windows. A newer push replaces a running mutation run; to keep the result for one
   commit, start the workflow by hand with that commit as its `ref`, which no later run cancels.
-- Prettier formats the distributed plugin's Markdown only, wrapping prose at the 120 columns `.editorconfig` sets for
-  it; `.prettierignore` keeps the rest of the repository out for now. Fix a failing format check with
-  `npm exec -- nx format:write --all`. The Prettier version range and the base `.editorconfig`, `.prettierrc` and
+- Prettier formats everything but Markdown, the planning records in `.scratch/` and the test reporters' fixtures, at
+  the print width `.editorconfig` sets: 80 columns, 120 for JSON, HTML and YAML (Lars, 2026-11-28: "Prettier should
+  cover almost everything the repo with a print width of 80 (JSON, HTML, Markdown, and YAML may be extended to 120 or
+  no line limit), configured by a root EditorConfig. I would suggest excluding Markdown from Prettier formatting to
+  prevent formatting churn."). `.git-blame-ignore-revs` lists the commit that reformatted the repository. A
+  `// Stryker disable next-line` comment covers only the line below it, so when Prettier splits a statement, move the
+  comment to the line that holds the mutant, or wrap the statement in a `// Stryker disable <Mutator>` and
+  `// Stryker restore <Mutator>` pair. Fix a failing format check with `npm exec -- nx format:write --all`. The
+  Prettier version range and the base `.editorconfig`, `.prettierrc` and
   `.prettierignore` follow what Nx 24.0.6 generates for a new workspace (Lars, 2026-11-16: "align EditorConfig and
   Prettier configs with Nx defaults"; "~3.6.2 it is").
 - `npm exec -- nx run oodour:eval -- <claude plugin eval options>` runs the eval suite. Its `pre-eval` step copies

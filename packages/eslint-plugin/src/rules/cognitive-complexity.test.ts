@@ -6,5 +6,12 @@ const ifs = (count: number): string =>
 
 testRule(cognitiveComplexity, {
   valid: [ifs(4)],
-  invalid: [{ code: ifs(5), errors: [{ messageId: 'found', data: { complexityAmount: 5, threshold: 4 } }] }],
+  invalid: [
+    {
+      code: ifs(5),
+      errors: [
+        { messageId: 'found', data: { complexityAmount: 5, threshold: 4 } },
+      ],
+    },
+  ],
 });

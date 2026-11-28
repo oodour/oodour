@@ -35,12 +35,22 @@ testRuleWithTypes(flagArgument, {
     {
       name: 'a parameter whose named type is a union of literals, tested by a switch',
       code: "type Mode = 'fast' | 'safe'; function render(mode: Mode) { switch (mode) { case 'fast': return 1; default: return 2; } }",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'a parameter whose named type is boolean, tested by an if',
       code: 'type Compact = boolean; function render(compact: Compact) { if (compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
   ],
 });
@@ -65,7 +75,7 @@ testRule(flagArgument, {
     },
     {
       name: 'a factory whose branches only choose which class to create',
-      code: "function bottleNumber(count: 0 | 1 | 2) { switch (count) { case 0: return new NoMore(); case 1: return new One(); default: return new Many(count); } }",
+      code: 'function bottleNumber(count: 0 | 1 | 2) { switch (count) { case 0: return new NoMore(); case 1: return new One(); default: return new Many(count); } }',
     },
     {
       name: 'an untyped parameter tested by an if, which no call in the file passes a literal',
@@ -108,127 +118,252 @@ testRule(flagArgument, {
     {
       name: 'a boolean parameter tested by an if',
       code: 'function render(compact: boolean) { if (compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a function that creates an object on one branch only and returns something else on another',
       code: 'function make(cached: boolean) { if (cached) { return lastMade; } return new Report(); }',
-      errors: [{ messageId: 'found', data: { function: "function 'make'", name: 'cached' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'make'", name: 'cached' },
+        },
+      ],
     },
     {
       name: 'a parameter tested twice is reported once',
       code: 'function render(compact: boolean) { if (compact) { return 1; } return compact ? 2 : 3; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a parameter with a boolean default tested by an if',
       code: 'function render(compact = false) { if (compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter compared to a literal in an if',
       code: 'function render(compact: boolean) { if (compact === false) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a parameter with a string default compared in an if',
       code: "function render(mode = 'fast') { if (mode === 'safe') { return 1; } return 2; }",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'a comparison of the parameter joined with another condition in an if',
       code: "function render(mode: 'fast' | 'safe', wide) { if (wide && mode === 'fast') { return 1; } return 2; }",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'a parameter typed as a union of string literals compared in an if',
       code: "function render(mode: 'fast' | 'safe') { if (mode === 'fast') { return 1; } return 2; }",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'a literal-union parameter that a switch tests',
       code: "function render(mode: 'fast' | 'safe') { switch (mode) { case 'fast': return 1; default: return 2; } }",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter that a ternary tests',
       code: 'const render = (compact: boolean) => (compact ? 1 : 2);',
-      errors: [{ messageId: 'found', data: { function: "arrow function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "arrow function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter that a loop tests',
       code: 'function poll(waiting: boolean) { while (waiting) { waiting = check(); } }',
-      errors: [{ messageId: 'found', data: { function: "function 'poll'", name: 'waiting' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'poll'", name: 'waiting' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter negated in an if',
       code: 'function render(compact: boolean) { if (!compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter joined with another condition in an if',
       code: 'function render(compact: boolean, wide) { if (wide && compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'an untyped parameter tested by an if, to which a call in the file passes a literal',
       code: 'function render(compact) { if (compact) { return 1; } return 2; } render(true);',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'an untyped parameter a switch tests, to which a call in the file passes a string',
       code: "function render(size, mode) { switch (mode) { case 'fast': return size; default: return 0; } } render(1, 'fast');",
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'mode' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'mode' },
+        },
+      ],
     },
     {
       name: 'an untyped parameter compared in an if, to which a call in the file passes a number',
       code: 'function render(level) { if (level === 2) { return 1; } return 0; } render(2);',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'level' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'level' },
+        },
+      ],
     },
     {
       name: 'an arrow function held by a const, to which a call in the file passes a literal',
       code: 'const render = (compact) => (compact ? 1 : 2); render(false);',
-      errors: [{ messageId: 'found', data: { function: "arrow function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "arrow function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a method that a sibling method calls with a literal',
       code: 'class Page { show() { return this.render(true); } render(compact) { return compact ? 1 : 2; } }',
-      errors: [{ messageId: 'found', data: { function: "method 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "method 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'an object literal method that a call in the file passes a literal',
       code: 'const page = { render(compact) { return compact ? 1 : 2; } }; page.render(true);',
-      errors: [{ messageId: 'found', data: { function: "method 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "method 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a function called where it is written, which is not a callback',
       code: '((compact: boolean) => (compact ? 1 : 2))(true);',
-      errors: [{ messageId: 'found', data: { function: 'arrow function', name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: 'arrow function', name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a parameter of an assertion function other than the one it asserts',
       code: 'function expect(condition: boolean, strict: boolean): asserts condition { if (strict) { log(); } if (!condition) { throw new Error(); } }',
-      errors: [{ messageId: 'found', data: { function: "function 'expect'", name: 'strict' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'expect'", name: 'strict' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter that the body declares again with var',
       code: 'function render(compact: boolean) { var compact; if (compact) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter compared with !== in an if',
       code: 'function render(compact: boolean) { if (compact !== false) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter compared with == in an if',
       code: 'function render(compact: boolean) { if (compact == false) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
     {
       name: 'a boolean parameter compared with != in an if',
       code: 'function render(compact: boolean) { if (compact != false) { return 1; } return 2; }',
-      errors: [{ messageId: 'found', data: { function: "function 'render'", name: 'compact' } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { function: "function 'render'", name: 'compact' },
+        },
+      ],
     },
   ],
 });

@@ -12,7 +12,13 @@ const gbPerUnit = 0.3;
 const reservedGb = 4;
 
 export const sharedOptions = {
-  concurrency: Math.max(2, Math.min(availableParallelism() - 1, Math.floor((freemem() / 2 ** 30 - reservedGb) / gbPerUnit))),
+  concurrency: Math.max(
+    2,
+    Math.min(
+      availableParallelism() - 1,
+      Math.floor((freemem() / 2 ** 30 - reservedGb) / gbPerUnit),
+    ),
+  ),
   checkers: ['typescript'],
   reporters: ['clear-text', 'progress', 'html'],
   ignorePatterns: ['/.oracle', '/plans', '/reports', '/dist', '/.nx', '/evals'],
@@ -59,7 +65,11 @@ export async function runnerOptions({
   if (nodeTestRunner === undefined) {
     const files = testFiles.map((pattern) => `"${pattern}"`).join(' ');
 
-    return { testRunner: 'command', commandRunner: { command: `node ${args.join(' ')} --test ${files}` }, timeoutMS: commandTimeoutMS };
+    return {
+      testRunner: 'command',
+      commandRunner: { command: `node ${args.join(' ')} --test ${files}` },
+      timeoutMS: commandTimeoutMS,
+    };
   }
 
   return {
@@ -75,18 +85,38 @@ export async function runnerOptions({
  * adding that checkout's Node.js mutators and numeric-literal mutator to Stryker's own. Its packages load from source
  * only under lz-node-test's own export condition, `@layzee/source`, so every `mutate` command passes it beside ours.
  */
-export async function nodeTestRunnerOptions(runner: string): Promise<PartialStrykerOptions> {
+export async function nodeTestRunnerOptions(
+  runner: string,
+): Promise<PartialStrykerOptions> {
   const packages = new URL('../../', pathToFileURL(runner));
 
-  await callExport(new URL('stryker-node-mutators/src/index.ts', packages), 'lzNodeMutators');
-  await callExport(new URL('stryker-js-mutators/src/index.ts', packages), 'lzJsMutators', { LzJsNumericLiteral: true });
+  await callExport(
+    new URL('stryker-node-mutators/src/index.ts', packages),
+    'lzNodeMutators',
+  );
+  await callExport(
+    new URL('stryker-js-mutators/src/index.ts', packages),
+    'lzJsMutators',
+    { LzJsNumericLiteral: true },
+  );
 
-  return { testRunner: 'lz-node-test', appendPlugins: [runner], coverageAnalysis: 'perTest' };
+  return {
+    testRunner: 'lz-node-test',
+    appendPlugins: [runner],
+    coverageAnalysis: 'perTest',
+  };
 }
 
-async function callExport(module: URL, name: string, ...args: unknown[]): Promise<void> {
+async function callExport(
+  module: URL,
+  name: string,
+  ...args: unknown[]
+): Promise<void> {
   const exports: unknown = await import(module.href);
-  const exported: unknown = typeof exports === 'object' && exports !== null ? Reflect.get(exports, name) : undefined;
+  const exported: unknown =
+    typeof exports === 'object' && exports !== null
+      ? Reflect.get(exports, name)
+      : undefined;
 
   if (typeof exported !== 'function') {
     throw new TypeError(`${module.href} exports no function named ${name}.`);

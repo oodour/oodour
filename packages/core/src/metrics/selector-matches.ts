@@ -15,7 +15,9 @@ export function defineSelectorMetric(
   name: string,
   selectors: readonly [string, ...string[]],
 ): Metric<readonly TSESTree.Node[], 'file', 'syntax'> {
-  const childStepInHas = selectors.find((selector) => /:has\(\s*>/.test(selector));
+  const childStepInHas = selectors.find((selector) =>
+    /:has\(\s*>/.test(selector),
+  );
 
   if (childStepInHas !== undefined) {
     throw new Error(
@@ -36,8 +38,10 @@ export function defineSelectorMetric(
       }
 
       const matches = parsed.flatMap((selector) =>
-        // Stryker disable next-line ObjectLiteral: without the keys esquery iterates each node's own keys and reaches the same nodes
-        esquery.match(node, selector, { visitorKeys: keys }).flatMap((match: unknown) => (isTreeNode(match) ? [match] : [])),
+        esquery
+          // Stryker disable next-line ObjectLiteral: without the keys esquery iterates each node's own keys and reaches the same nodes
+          .match(node, selector, { visitorKeys: keys })
+          .flatMap((match: unknown) => (isTreeNode(match) ? [match] : [])),
       );
 
       return matches.length > 0 ? matches : undefined;
@@ -48,8 +52,13 @@ export function defineSelectorMetric(
 // esquery's types describe ESTree nodes and typescript-estree's describe its superset; at run time both are the same
 // objects, which esquery reads only by their `type` and the visitor keys.
 function isEstreeNode(value: object): value is EstreeNode {
-  // Stryker disable next-line ConditionalExpression: true for every node of a parsed tree; the check carries the type across
-  return 'type' in value && typeof value.type === 'string' && Object.hasOwn(keys, value.type);
+  // Stryker disable ConditionalExpression: true for every node of a parsed tree; the check carries the type across
+  return (
+    'type' in value &&
+    typeof value.type === 'string' &&
+    Object.hasOwn(keys, value.type)
+  );
+  // Stryker restore ConditionalExpression
 }
 
 function isTreeNode(value: unknown): value is TSESTree.Node {
@@ -59,5 +68,7 @@ function isTreeNode(value: unknown): value is TSESTree.Node {
 
 /** The visitor keys of every node type, without the entries the map's type allows to be missing. */
 const keys = Object.fromEntries(
-  Object.entries(visitorKeys).flatMap(([type, nodeKeys]) => (nodeKeys === undefined ? [] : [[type, nodeKeys] as const])),
+  Object.entries(visitorKeys).flatMap(([type, nodeKeys]) =>
+    nodeKeys === undefined ? [] : [[type, nodeKeys] as const],
+  ),
 );

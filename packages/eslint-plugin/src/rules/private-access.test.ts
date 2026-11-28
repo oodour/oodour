@@ -8,17 +8,25 @@ const underscore = [{ underscore: true }] as const;
 const lint = ruleMessages('private-access');
 
 test('private-access rejects an option it does not know', () => {
-  assert.throws(() => lint('', { underscore: true, prefix: '_' }), /additional properties/);
+  assert.throws(
+    () => lint('', { underscore: true, prefix: '_' }),
+    /additional properties/,
+  );
 });
 
 test('private-access reports with a message that names the smell, the member and the cure', () => {
-  assert.deepEqual(lint('function settle(account) { return account._audit(); }', { underscore: true }), [
-    "Stop and look: Inappropriate Intimacy, this reaches into the private member '_audit' of another object. Look " +
-      'for why this code needs it. Cure: ask its class for a public message named for that need; only when none can ' +
-      'exist, confine this access to one place. A test sends public messages and tests private code only while that ' +
-      "code's design is unsettled, apart from the public tests; settled private code that needs tests may move into a " +
-      'collaborator. No automatic change: which public message serves the need is a design decision no tool can make.',
-  ]);
+  assert.deepEqual(
+    lint('function settle(account) { return account._audit(); }', {
+      underscore: true,
+    }),
+    [
+      "Stop and look: Inappropriate Intimacy, this reaches into the private member '_audit' of another object. Look " +
+        'for why this code needs it. Cure: ask its class for a public message named for that need; only when none can ' +
+        'exist, confine this access to one place. A test sends public messages and tests private code only while that ' +
+        "code's design is unsettled, apart from the public tests; settled private code that needs tests may move into a " +
+        'collaborator. No automatic change: which public message serves the need is a design decision no tool can make.',
+    ],
+  );
 });
 
 testRule(privateAccess, {

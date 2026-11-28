@@ -183,17 +183,23 @@ testRule(featureEnvy, {
           }
         }
       `,
-      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a parameter used through non-null and type assertions',
       code: 'class Cart { price(item: Item | undefined) { return item!.base + (item as Item).tax - item!.discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a local variable used more than its own object',
       code: 'class Cart { total(id) { const order = this.orders.find(id); return order.base + order.tax - order.discount; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'two names used equally often, each more than its own object',
@@ -212,77 +218,107 @@ testRule(featureEnvy, {
     {
       name: 'only the most used of two envied names',
       code: 'class Cart { tax(item, rate) { return item.a + item.b + item.c + item.d + item.e + rate.x + rate.y + rate.z + this.r; } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 5, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 5, own: 1 } },
+      ],
     },
     {
       name: 'a local that holds a field of its own object, counted once per use as its own object',
       code: 'class Cart { total(item) { const cache = this.cache; return item.a + item.b + item.c + item.d + item.e + cache.x; } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 5, own: 2 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 5, own: 2 } },
+      ],
     },
     {
       name: "a local that holds a field of another object, which is not the method's own",
       code: 'class Cart { total(item) { const order = item.order; return order.a + order.b + order.c + this.d; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a parameter with a default value, which is not a field of its own object',
       code: 'class Cart { price(item = blank) { return item.base + item.tax - item.discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 3, own: 1 } },
+      ],
     },
     {
       name: "a local that holds a caller's object, or else an empty object literal",
       code: 'class Cart { total(input) { const order = input ?? {}; return order.a + order.b + order.c + this.d; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: "a parameter given an empty array in place of a missing value, which still holds the caller's object",
       code: 'class Cart { total(order) { order = order || []; return order.a + order.b + order.c + this.d; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: "a loop variable given an empty array in place of a missing value, which still holds the collection's objects",
       code: 'class Cart { total(orders) { for (let order of orders) { order = order || []; return order.a + order.b + order.c + this.d; } } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: "a loop variable over an object's keys given an empty array in place of a missing value",
       code: 'class Cart { total(orders) { for (let order in orders) { order = order || []; return order.a + order.b + order.c + this.d; } } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a local declared without a value and never given one',
       code: 'class Cart { total() { let order; return order.a + order.b + order.c + this.d; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a local that held a field of its own object and then had more added to it, which no longer holds that field',
       code: 'class Tag { render(item) { let label = this.label; label += this.suffix; return label.a + label.b + label.c + label.d + item.e; } }',
-      errors: [{ messageId: 'found', data: { name: 'label', count: 4, own: 2 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'label', count: 4, own: 2 } },
+      ],
     },
     {
       name: "a local that a destructuring takes out of a new array, which holds the caller's object it was built from",
       code: 'class Cart { total(input) { const [order] = [input]; return order.a + order.b + order.c + this.d; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a local that held a field of its own object and now holds another object',
       code: 'class Cart { total(item) { let cache = this.cache; cache = item.order; return cache.a + cache.b + cache.c + cache.d + this.e; } }',
-      errors: [{ messageId: 'found', data: { name: 'cache', count: 4, own: 2 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'cache', count: 4, own: 2 } },
+      ],
     },
     {
       name: 'a parameter used through satisfies',
       code: 'class Cart { price(item) { return (item satisfies Item).base + (item satisfies Item).tax + (item satisfies Item).fee + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method whose class expression inside uses this, which counts for the inner method only',
       code: 'class Cart { price(item) { return item.a + item.b + item.c + this.d + new (class { run() { return this.x + this.y; } })().run(); } }',
-      errors: [{ messageId: 'found', data: { name: 'item', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'item', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method of a class expression inside another method, which envies its own parameter',
       code: 'class Cart { price() { return new (class { cost(part) { return part.a + part.b + part.c + this.d; } })(); } }',
-      errors: [{ messageId: 'found', data: { name: 'part', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'part', count: 3, own: 1 } },
+      ],
     },
   ],
 });
@@ -334,32 +370,44 @@ testRuleWithTypes(featureEnvy, {
     {
       name: 'a method that works through an object of a class the project declares',
       code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order: Order) { return order.base + order.tax - order.discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method that works through an object of a project class that may be undefined',
       code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order?: Order) { return order!.base + order!.tax - order!.discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method that works through a value that is either a project object or a string',
       code: 'class Order { base = 0; tax = 0; discount = 0; } class Cart { fee = 0; price(order: Order | string) { return (order as Order).base + (order as Order).tax - (order as Order).discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: "a method that works through a library utility type over a project class, whose fields are the project's",
       code: "class Order { base = 0; tax = 0; discount = 0; id = ''; } class Cart { fee = 0; price(order: Omit<Order, 'id'>) { return order.base + order.tax - order.discount + this.fee; } }",
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method that works through a project type that extends a library type',
       code: 'interface Shift extends Date { base: number; tax: number; } class Roster { fee = 0; cost(shift: Shift) { return shift.base + shift.tax + shift.getHours() + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'shift', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'shift', count: 3, own: 1 } },
+      ],
     },
     {
       name: 'a method that works through a value whose type the checker cannot tell',
       code: 'class Cart { fee = 0; price(order: any) { return order.base + order.tax - order.discount + this.fee; } }',
-      errors: [{ messageId: 'found', data: { name: 'order', count: 3, own: 1 } }],
+      errors: [
+        { messageId: 'found', data: { name: 'order', count: 3, own: 1 } },
+      ],
     },
   ],
 });

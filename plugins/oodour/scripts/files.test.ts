@@ -1,10 +1,28 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import fs, { chmodSync, type Dirent, existsSync, mkdirSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs, {
+  chmodSync,
+  type Dirent,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { userInfo } from 'node:os';
 import { join } from 'node:path';
 import { test, type TestContext } from 'node:test';
-import { builtInMockForTest, folderWith, outsideAnyRepository, repositoryWith, runGit, setForTest, writeFiles } from './fixtures.ts';
+import {
+  builtInMockForTest,
+  folderWith,
+  outsideAnyRepository,
+  repositoryWith,
+  runGit,
+  setForTest,
+  writeFiles,
+} from './fixtures.ts';
 import { filesBelow, isTest, sources } from './files.ts';
 import { gitIn } from './git.ts';
 import { ignoreFileIn, isIgnored } from './gitignore.ts';
@@ -12,7 +30,10 @@ import { ignoreFileIn, isIgnored } from './gitignore.ts';
 const lockFor = (folder: string, on: boolean): void => {
   if (process.platform === 'win32') {
     const user = userInfo().username;
-    spawnSync('icacls', [folder, ...(on ? ['/deny', `${user}:(RD)`] : ['/remove:d', user])]);
+    spawnSync('icacls', [
+      folder,
+      ...(on ? ['/deny', `${user}:(RD)`] : ['/remove:d', user]),
+    ]);
   } else {
     chmodSync(folder, on ? 0o000 : 0o755);
   }
@@ -31,16 +52,23 @@ const readsPastLock = (folder: string): boolean => {
 
 // Lists folders through `listing` for the test, which gets the folder and a way to list it as it is: for what no
 // account or no system can set up on disk.
-function listFoldersWith(context: TestContext, listing: (folder: string, asItIs: () => Dirent[]) => Dirent[]): void {
+function listFoldersWith(
+  context: TestContext,
+  listing: (folder: string, asItIs: () => Dirent[]) => Dirent[],
+): void {
   const original = fs.readdirSync;
   builtInMockForTest(context, () =>
-    context.mock.method(fs, 'readdirSync', (folder: string, options: { readonly withFileTypes: true }) =>
-      listing(folder, () => original(folder, options)),
+    context.mock.method(
+      fs,
+      'readdirSync',
+      (folder: string, options: { readonly withFileTypes: true }) =>
+        listing(folder, () => original(folder, options)),
     ),
   );
 }
 
-const refusal = (code: string): Error => Object.assign(new Error(`${code}: refused`), { code });
+const refusal = (code: string): Error =>
+  Object.assign(new Error(`${code}: refused`), { code });
 
 test("a repository's JavaScript and TypeScript files are its sources, named from its top folder", (context) => {
   const root = folderWith(context, {
@@ -63,7 +91,11 @@ test("a repository's JavaScript and TypeScript files are its sources, named from
 });
 
 test('a folder of a repository scopes the sources to the files below it', (context) => {
-  const root = folderWith(context, { 'lib/a.ts': '', 'lib-two/b.ts': '', 'c.ts': '' });
+  const root = folderWith(context, {
+    'lib/a.ts': '',
+    'lib-two/b.ts': '',
+    'c.ts': '',
+  });
   runGit(root, ['init', '-q']);
   const scope = join(root, 'lib');
 
@@ -78,9 +110,15 @@ test('a file Git still lists but the working tree no longer has is no source', (
 });
 
 test("listing the sources runs no program the repository's own config names", (context) => {
-  const hook = folderWith(context, { 'hook.sh': 'touch "$(dirname "$0")/ran"\n' });
+  const hook = folderWith(context, {
+    'hook.sh': 'touch "$(dirname "$0")/ran"\n',
+  });
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
-  runGit(root, ['config', 'core.fsmonitor', `sh "${hook.replaceAll('\\', '/')}/hook.sh"`]);
+  runGit(root, [
+    'config',
+    'core.fsmonitor',
+    `sh "${hook.replaceAll('\\', '/')}/hook.sh"`,
+  ]);
 
   sources(root, gitIn(root));
 
@@ -89,7 +127,9 @@ test("listing the sources runs no program the repository's own config names", (c
 
 test("a file the user's own global exclude file ignores is no source", (context) => {
   const home = folderWith(context, { ignored: 'b.ts\n' });
-  writeFiles(home, { gitconfig: `[core]\n\texcludesFile = ${join(home, 'ignored').replaceAll('\\', '/')}\n` });
+  writeFiles(home, {
+    gitconfig: `[core]\n\texcludesFile = ${join(home, 'ignored').replaceAll('\\', '/')}\n`,
+  });
   setForTest(context, 'GIT_CONFIG_GLOBAL', join(home, 'gitconfig'));
   const root = repositoryWith(context, [{ 'a.ts': '' }]);
   writeFiles(root, { 'b.ts': '' });
@@ -117,14 +157,22 @@ test('outside a repository a linked file or folder is no source either', (contex
 });
 
 test('in a repository not trusted, a file its .gitignore ignores is no source, as Git would leave it out', (context) => {
-  const root = folderWith(context, { '.gitignore': 'dist/\n', 'dist/a.js': '', 'src/b.ts': '' });
+  const root = folderWith(context, {
+    '.gitignore': 'dist/\n',
+    'dist/a.js': '',
+    'src/b.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(root, undefined).all, ['src/b.ts']);
 });
 
 test("in a repository not trusted, a scope folder's own .gitignore applies to the files below it", (context) => {
-  const root = folderWith(context, { 'lib/.gitignore': 'out/\n', 'lib/out/a.js': '', 'lib/b.ts': '' });
+  const root = folderWith(context, {
+    'lib/.gitignore': 'out/\n',
+    'lib/out/a.js': '',
+    'lib/b.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(join(root, 'lib'), undefined).all, ['b.ts']);
@@ -138,10 +186,18 @@ test('in a repository not trusted, a file not named .gitignore is not read as on
 });
 
 test("in a repository not trusted, a deeper .gitignore's anchored rule applies only below its own folder", (context) => {
-  const root = folderWith(context, { 'lib/.gitignore': '/gen/\n', 'gen/a.ts': '', 'lib/gen/b.ts': '', 'lib/c.ts': '' });
+  const root = folderWith(context, {
+    'lib/.gitignore': '/gen/\n',
+    'gen/a.ts': '',
+    'lib/gen/b.ts': '',
+    'lib/c.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+  assert.deepEqual(
+    sources(root, undefined).all,
+    sources(root, gitIn(root)).all,
+  );
 });
 
 test('in a repository not trusted, the ignore files above the scope and in .git/info/exclude apply too', (context) => {
@@ -158,7 +214,11 @@ test('in a repository not trusted, the ignore files above the scope and in .git/
 });
 
 test('in a repository not trusted, a scope inside an ignored folder holds no source, as Git re-includes nothing there', (context) => {
-  const root = folderWith(context, { '.gitignore': 'a/\n', 'a/.gitignore': '!*.ts\n', 'a/b/x.ts': '' });
+  const root = folderWith(context, {
+    '.gitignore': 'a/\n',
+    'a/.gitignore': '!*.ts\n',
+    'a/b/x.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(join(root, 'a', 'b'), undefined).all, []);
@@ -175,22 +235,36 @@ test('in a repository not trusted, the listing names the folders it left out as 
   });
   runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(join(root, 'lib'), undefined).ignored, ['dist', 'sub/gen']);
+  assert.deepEqual(sources(join(root, 'lib'), undefined).ignored, [
+    'dist',
+    'sub/gen',
+  ]);
 });
 
 test('in a repository not trusted, .git is never named an ignored folder, as Git never ignores it', (context) => {
-  const root = folderWith(context, { '.gitignore': '.*\n!.gitignore\n', '.cache/x.ts': '', 'a.ts': '' });
+  const root = folderWith(context, {
+    '.gitignore': '.*\n!.gitignore\n',
+    '.cache/x.ts': '',
+    'a.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(root, undefined).ignored, ['.cache']);
 });
 
-test('a node_modules folder named in another case is walked, as Git lists its files', { skip: process.platform === 'linux' }, (context) => {
-  const root = folderWith(context, { 'a.ts': '', 'NODE_MODULES/b.ts': '' });
-  runGit(root, ['init', '-q']);
+test(
+  'a node_modules folder named in another case is walked, as Git lists its files',
+  { skip: process.platform === 'linux' },
+  (context) => {
+    const root = folderWith(context, { 'a.ts': '', 'NODE_MODULES/b.ts': '' });
+    runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
-});
+    assert.deepEqual(
+      sources(root, undefined).all,
+      sources(root, gitIn(root)).all,
+    );
+  },
+);
 
 test('a repository nested below the scope is reported, not walked, as Git lists it as one entry', (context) => {
   const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
@@ -202,20 +276,34 @@ test('a repository nested below the scope is reported, not walked, as Git lists 
   assert.deepEqual({ all, skipped }, { all: ['a.ts'], skipped: ['n'] });
 });
 
-test('a nested repository whose .git is named in another case is not walked where Git reads it so', { skip: process.platform === 'linux' }, (context) => {
-  const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
-  runGit(root, ['init', '-q']);
-  runGit(join(root, 'n'), ['init', '-q']);
-  renameSync(join(root, 'n', '.git'), join(root, 'n', '.GIT'));
+test(
+  'a nested repository whose .git is named in another case is not walked where Git reads it so',
+  { skip: process.platform === 'linux' },
+  (context) => {
+    const root = folderWith(context, { 'a.ts': '', 'n/b.ts': '' });
+    runGit(root, ['init', '-q']);
+    runGit(join(root, 'n'), ['init', '-q']);
+    renameSync(join(root, 'n', '.git'), join(root, 'n', '.GIT'));
 
-  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
-});
+    assert.deepEqual(
+      sources(root, undefined).all,
+      sources(root, gitIn(root)).all,
+    );
+  },
+);
 
 test('in a repository not trusted, an ignore file named in another case is read where Git reads it', (context) => {
-  const root = folderWith(context, { 'sub/.GITIGNORE': 'out/\n', 'sub/out/a.ts': '', 'sub/b.ts': '' });
+  const root = folderWith(context, {
+    'sub/.GITIGNORE': 'out/\n',
+    'sub/out/a.ts': '',
+    'sub/b.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+  assert.deepEqual(
+    sources(root, undefined).all,
+    sources(root, gitIn(root)).all,
+  );
 });
 
 test('in a repository not trusted, the sources are the files Git itself would list', (context) => {
@@ -278,12 +366,16 @@ test('in a repository not trusted, the sources are the files Git itself would li
   });
   runGit(root, ['init', '-q']);
 
-  assert.deepEqual(sources(root, undefined).all, sources(root, gitIn(root)).all);
+  assert.deepEqual(
+    sources(root, undefined).all,
+    sources(root, gitIn(root)).all,
+  );
 });
 
 test('outside a repository a folder whose name ends in a dot holds no source and is reported', (context) => {
   const root = folderWith(context, { 'a.ts': '' });
-  const exact = (path: string) => (process.platform === 'win32' ? `\\\\?\\${path}` : path);
+  const exact = (path: string) =>
+    process.platform === 'win32' ? `\\\\?\\${path}` : path;
   mkdirSync(exact(join(root, 'odd.')));
   writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
   outsideAnyRepository(context);
@@ -297,12 +389,16 @@ test('outside a repository a folder whose name ends in a dot holds no source and
   });
 });
 
-test('a folder renamed only in case outside Git keeps its sources', { skip: process.platform === 'linux' }, (context) => {
-  const root = repositoryWith(context, [{ 'src/a.ts': '' }]);
-  renameSync(join(root, 'src'), join(root, 'Src'));
+test(
+  'a folder renamed only in case outside Git keeps its sources',
+  { skip: process.platform === 'linux' },
+  (context) => {
+    const root = repositoryWith(context, [{ 'src/a.ts': '' }]);
+    renameSync(join(root, 'src'), join(root, 'Src'));
 
-  assert.deepEqual(sources(root, gitIn(root)).all, ['src/a.ts']);
-});
+    assert.deepEqual(sources(root, gitIn(root)).all, ['src/a.ts']);
+  },
+);
 
 test('the walk enters no link, so no file behind one is listed', (context) => {
   const outside = folderWith(context, { 'x.ts': '' });
@@ -313,7 +409,11 @@ test('the walk enters no link, so no file behind one is listed', (context) => {
 });
 
 test('the walk lists nothing in a .git or node_modules folder', (context) => {
-  const root = folderWith(context, { 'a.ts': '', '.git/hooks/b.ts': '', 'node_modules/x/c.ts': '' });
+  const root = folderWith(context, {
+    'a.ts': '',
+    '.git/hooks/b.ts': '',
+    'node_modules/x/c.ts': '',
+  });
 
   const { files, skipped } = filesBelow(root);
 
@@ -328,19 +428,26 @@ test('the walk reports the links it did not enter, so nothing reads through them
 
   const { files, skipped } = filesBelow(root);
 
-  assert.deepEqual({ files, skipped }, { files: ['sub/a.ts'], skipped: ['b.ts', 'sub/linked'] });
+  assert.deepEqual(
+    { files, skipped },
+    { files: ['sub/a.ts'], skipped: ['b.ts', 'sub/linked'] },
+  );
 });
 
 test('the walk reports a name ending in a dot or a space, which Windows may open as another name', (context) => {
   const root = folderWith(context, { 'odd/a.ts': '' });
-  const exact = (path: string) => (process.platform === 'win32' ? `\\\\?\\${path}` : path);
+  const exact = (path: string) =>
+    process.platform === 'win32' ? `\\\\?\\${path}` : path;
   mkdirSync(exact(join(root, 'odd.')));
   writeFileSync(exact(join(root, 'odd.', 'x.ts')), '');
   writeFileSync(exact(join(root, 'b.ts ')), '');
 
   const { files, skipped } = filesBelow(root);
 
-  assert.deepEqual({ files, skipped }, { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] });
+  assert.deepEqual(
+    { files, skipped },
+    { files: ['odd/a.ts'], skipped: ['b.ts ', 'odd.'] },
+  );
 });
 
 test('the walk reports a folder it may not list instead of failing', (context) => {
@@ -357,7 +464,10 @@ test('the walk reports a folder it may not list instead of failing', (context) =
 
     const { files, skipped } = filesBelow(root);
 
-    assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: ['locked'] });
+    assert.deepEqual(
+      { files, skipped },
+      { files: ['a.ts'], skipped: ['locked'] },
+    );
   } finally {
     lockFor(locked, false);
   }
@@ -374,21 +484,31 @@ test('the walk fails on a scope it may not list, rather than report it empty', (
       return;
     }
 
-    assert.throws(() => filesBelow(root), { code: process.platform === 'win32' ? 'EPERM' : 'EACCES' });
+    assert.throws(() => filesBelow(root), {
+      code: process.platform === 'win32' ? 'EPERM' : 'EACCES',
+    });
   } finally {
     lockFor(root, false);
   }
 });
 
-test('the walk lists no FIFO or other file that is neither a plain file nor a folder', { skip: process.platform === 'win32' }, (context) => {
-  const root = folderWith(context, { 'a.ts': '' });
-  spawnSync('mkfifo', [join(root, 'pipe.ts')]);
+test(
+  'the walk lists no FIFO or other file that is neither a plain file nor a folder',
+  { skip: process.platform === 'win32' },
+  (context) => {
+    const root = folderWith(context, { 'a.ts': '' });
+    spawnSync('mkfifo', [join(root, 'pipe.ts')]);
 
-  assert.deepEqual(filesBelow(root).files, ['a.ts']);
-});
+    assert.deepEqual(filesBelow(root).files, ['a.ts']);
+  },
+);
 
 test('the walk reports a folder the system refuses to list, for either reason it gives, whatever the account may list', (context) => {
-  const root = folderWith(context, { 'a.ts': '', 'denied/x.ts': '', 'forbidden/y.ts': '' });
+  const root = folderWith(context, {
+    'a.ts': '',
+    'denied/x.ts': '',
+    'forbidden/y.ts': '',
+  });
   const codes = new Map([
     [join(root, 'denied'), 'EPERM'],
     [join(root, 'forbidden'), 'EACCES'],
@@ -405,7 +525,10 @@ test('the walk reports a folder the system refuses to list, for either reason it
 
   const { files, skipped } = filesBelow(root);
 
-  assert.deepEqual({ files, skipped }, { files: ['a.ts'], skipped: ['denied', 'forbidden'] });
+  assert.deepEqual(
+    { files, skipped },
+    { files: ['a.ts'], skipped: ['denied', 'forbidden'] },
+  );
 });
 
 test('the walk fails on a folder the system cannot list for another reason than a refusal', (context) => {
@@ -437,7 +560,11 @@ test('the walk fails on a scope the system refuses to list, whatever the account
 test('the walk lists no entry that is neither a plain file nor a folder, on any system', (context) => {
   const root = folderWith(context, { 'a.ts': '', 'pipe.ts': '' });
   listFoldersWith(context, (_, asItIs) =>
-    asItIs().map((entry) => (entry.name === 'pipe.ts' ? Object.assign(entry, { isFile: () => false }) : entry)),
+    asItIs().map((entry) =>
+      entry.name === 'pipe.ts'
+        ? Object.assign(entry, { isFile: () => false })
+        : entry,
+    ),
   );
 
   assert.deepEqual(filesBelow(root).files, ['a.ts']);
@@ -453,7 +580,11 @@ test('the walk reports what it skipped in order, wherever it found it', (context
 });
 
 test('outside a repository a .gitignore leaves no file out, as no Git reads it', (context) => {
-  const root = folderWith(context, { '.gitignore': 'b.ts\n', 'a.ts': '', 'b.ts': '' });
+  const root = folderWith(context, {
+    '.gitignore': 'b.ts\n',
+    'a.ts': '',
+    'b.ts': '',
+  });
   outsideAnyRepository(context);
 
   assert.deepEqual(sources(root, undefined).all, ['a.ts', 'b.ts']);
@@ -464,7 +595,13 @@ test('in a repository not trusted, a scope folder its parent .gitignore ignores 
   runGit(root, ['init', '-q']);
   const scope = join(root, 'b');
 
-  assert.deepEqual(sources(scope, undefined), { root: scope, all: [], inScope: [], skipped: [], ignored: 'whole scope' });
+  assert.deepEqual(sources(scope, undefined), {
+    root: scope,
+    all: [],
+    inScope: [],
+    skipped: [],
+    ignored: 'whole scope',
+  });
 });
 
 test('in a repository not trusted, a .git/info/exclude that ignores everything but sources keeps them', (context) => {
@@ -472,18 +609,29 @@ test('in a repository not trusted, a .git/info/exclude that ignores everything b
   runGit(root, ['init', '-q']);
   writeFiles(root, { '.git/info/exclude': '*\n!*.ts\n' });
 
-  assert.deepEqual({ ours: sources(root, undefined).all, git: sources(root, gitIn(root)).all }, { ours: ['a.ts'], git: ['a.ts'] });
+  assert.deepEqual(
+    { ours: sources(root, undefined).all, git: sources(root, gitIn(root)).all },
+    { ours: ['a.ts'], git: ['a.ts'] },
+  );
 });
 
 test('in a repository not trusted, the listing names the ignored folders in order, wherever it found them', (context) => {
-  const root = folderWith(context, { '.gitignore': 'zdist/\ngen/\n', 'zdist/x.ts': '', 'a/gen/y.ts': '', 'a/b.ts': '' });
+  const root = folderWith(context, {
+    '.gitignore': 'zdist/\ngen/\n',
+    'zdist/x.ts': '',
+    'a/gen/y.ts': '',
+    'a/b.ts': '',
+  });
   runGit(root, ['init', '-q']);
 
   assert.deepEqual(sources(root, undefined).ignored, ['a/gen', 'zdist']);
 });
 
 test("an ignore file's rules apply only to paths below its own folder", () => {
-  assert.equal(isIgnored([ignoreFileIn('lib', 'x.ts\n')], 'other/x.ts', false), false);
+  assert.equal(
+    isIgnored([ignoreFileIn('lib', 'x.ts\n')], 'other/x.ts', false),
+    false,
+  );
 });
 
 test('a test file is named .test or .spec, or sits in a __tests__ folder', () => {
@@ -499,11 +647,26 @@ test('a test file is named .test or .spec, or sits in a __tests__ folder', () =>
     'src/e.test.json',
   ];
 
-  assert.deepEqual(files.map(isTest), [true, true, true, true, true, false, false, false, false]);
+  assert.deepEqual(files.map(isTest), [
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+  ]);
 });
 
 test('outside a repository the sources are the files below the scope, without node_modules or folders', (context) => {
-  const root = folderWith(context, { 'src/a.ts': '', 'node_modules/x/index.js': '', 'b.mjs': '', 'chart.js/README.md': '' });
+  const root = folderWith(context, {
+    'src/a.ts': '',
+    'node_modules/x/index.js': '',
+    'b.mjs': '',
+    'chart.js/README.md': '',
+  });
   outsideAnyRepository(context);
 
   assert.deepEqual(sources(root, undefined), {

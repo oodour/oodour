@@ -1,7 +1,18 @@
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules/**', '.oracle/**', '**/.claude-plugin/types/**', '.claude/worktrees/**', '.stryker-tmp/**', '**/dist/**', '.nx/**', 'packages/*/tests/**'] },
+  {
+    ignores: [
+      'node_modules/**',
+      '.oracle/**',
+      '**/.claude-plugin/types/**',
+      '.claude/worktrees/**',
+      '.stryker-tmp/**',
+      '**/dist/**',
+      '.nx/**',
+      'packages/*/tests/**',
+    ],
+  },
   {
     files: [
       '.claude/hooks/**/*.ts',
@@ -14,13 +25,27 @@ export default tseslint.config(
       'plugins/*/scripts/*.ts',
     ],
     extends: [tseslint.configs.strictTypeChecked],
-    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
-      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        { assertionStyle: 'never' },
+      ],
       '@typescript-eslint/no-floating-promises': [
         'error',
         {
-          allowForKnownSafeCalls: [{ from: 'package', name: ['describe', 'it', 'suite', 'test'], package: 'node:test' }],
+          allowForKnownSafeCalls: [
+            {
+              from: 'package',
+              name: ['describe', 'it', 'suite', 'test'],
+              package: 'node:test',
+            },
+          ],
         },
       ],
     },
@@ -30,6 +55,11 @@ export default tseslint.config(
     // which this check walks for each call: minutes per file against 1 s for tsc. Hooks return
     // `Result | Promise<Result>`, never void, so the check cannot fire on them.
     files: ['.claude/mods/*/hooks/**/*.ts'],
-    rules: { '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }] },
+    rules: {
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { arguments: false } },
+      ],
+    },
   },
 );

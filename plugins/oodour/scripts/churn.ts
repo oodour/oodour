@@ -13,12 +13,17 @@ export function churn(git: Git, since: string): Churn | Uncountable {
   const config = git(['config', '--list']);
 
   // A treeless clone would have to fetch the older commits' file lists before it could name the files they changed.
-  if (/^remote\..+\.partialclonefilter=(?:combine:(?:[^+\n]*\+)*)?tree:/m.test(config)) {
+  if (
+    /^remote\..+\.partialclonefilter=(?:combine:(?:[^+\n]*\+)*)?tree:/m.test(
+      config,
+    )
+  ) {
     return 'treeless';
   }
 
   // Finding a rename compares file contents, and a partial clone would fetch the old ones from its remote.
-  const partial = promisorIn(config) || /^extensions\.partialclone=./m.test(config);
+  const partial =
+    promisorIn(config) || /^extensions\.partialclone=./m.test(config);
   // Finding a rename reads the attributes of the files it compares, from the work tree unless attr.tree names a tree,
   // and a link in the work tree can lead to a share. The empty tree holds none; with no input, hash-object names it in
   // the repository's own hash. Git before 2.43 has no attr.tree and still reads the work tree.
@@ -36,11 +41,15 @@ export function churn(git: Git, since: string): Churn | Uncountable {
     '--',
   ]);
 
-  const shallow = git(['rev-parse', '--is-shallow-repository']).trim() === 'true';
+  const shallow =
+    git(['rev-parse', '--is-shallow-repository']).trim() === 'true';
 
   return {
     commits: commitsPerCurrentPath(log),
-    limits: [...(shallow ? ['shallow' as const] : []), ...(partial ? ['partial' as const] : [])],
+    limits: [
+      ...(shallow ? ['shallow' as const] : []),
+      ...(partial ? ['partial' as const] : []),
+    ],
   };
 }
 
@@ -54,10 +63,18 @@ const promisorIn = (config: string): boolean =>
     .some((entry) => {
       const value = entry?.[1];
 
-      return entry !== null && (value === undefined || /^(?:true|yes|on|[-+]?(?:0x0*[1-9a-f][\da-f]*|0*[1-9]\d*)[kmg]?)$/i.test(value));
+      return (
+        entry !== null &&
+        (value === undefined ||
+          /^(?:true|yes|on|[-+]?(?:0x0*[1-9a-f][\da-f]*|0*[1-9]\d*)[kmg]?)$/i.test(
+            value,
+          ))
+      );
     });
 
-export function commitsPerCurrentPath(newestFirstLog: string): Map<string, number> {
+export function commitsPerCurrentPath(
+  newestFirstLog: string,
+): Map<string, number> {
   const commits = new Map<string, number>();
   const laterPath = new Map<string, string>();
 

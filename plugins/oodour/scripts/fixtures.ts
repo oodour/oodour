@@ -23,7 +23,9 @@ type Files = Readonly<Record<string, string>>;
 // The tests' Git, and the Git the code under test starts, read no system or developer config and no Git variable of
 // the shell that started the tests. Git for Windows refuses the null device as a config file; a missing file reads as
 // empty.
-for (const variable of Object.keys(process.env).filter((name) => name.startsWith('GIT_') && !name.startsWith('GIT_CONFIG_'))) {
+for (const variable of Object.keys(process.env).filter(
+  (name) => name.startsWith('GIT_') && !name.startsWith('GIT_CONFIG_'),
+)) {
   Reflect.deleteProperty(process.env, variable);
 }
 
@@ -40,14 +42,23 @@ if (testTemp !== undefined && testTemp !== '') {
 }
 
 process.env['GIT_CONFIG_NOSYSTEM'] = '1';
-process.env['GIT_CONFIG_GLOBAL'] = join(tmpdir(), 'oodour-tests-read-no-global-git-config');
+process.env['GIT_CONFIG_GLOBAL'] = join(
+  tmpdir(),
+  'oodour-tests-read-no-global-git-config',
+);
 
 let gitVersion: readonly number[] | undefined;
 
 // Whether the installed Git is this version or later, for tests of what older Git cannot do. Only the test files that
 // ask start Git for its version.
 export function gitAtLeast(major: number, minor: number): boolean {
-  gitVersion ??= (/(\d+)\.(\d+)/.exec(execFileSync('git', ['--version'], { encoding: 'utf8' })) ?? []).slice(1).map(Number);
+  gitVersion ??= (
+    /(\d+)\.(\d+)/.exec(
+      execFileSync('git', ['--version'], { encoding: 'utf8' }),
+    ) ?? []
+  )
+    .slice(1)
+    .map(Number);
   const [gitMajor = 0, gitMinor = 0] = gitVersion;
 
   return gitMajor > major || (gitMajor === major && gitMinor >= minor);
@@ -55,7 +66,10 @@ export function gitAtLeast(major: number, minor: number): boolean {
 
 // A share on a host that cannot exist, in the form the system names one; elsewhere than Windows a backslash is part of
 // a name, so a link to `\\host\share` would be an ordinary relative link.
-export const networkShare = process.platform === 'win32' ? '\\\\oodour-test.invalid\\share' : '//oodour-test.invalid/share';
+export const networkShare =
+  process.platform === 'win32'
+    ? '\\\\oodour-test.invalid\\share'
+    : '//oodour-test.invalid/share';
 
 export function folderWith(context: TestContext, files: Files): string {
   const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'oodour-')));
@@ -74,13 +88,29 @@ export function writeFiles(root: string, files: Files): void {
   }
 }
 
-export function runGit(root: string, args: readonly string[], date = '2026-11-01T12:00:00Z'): string {
+export function runGit(
+  root: string,
+  args: readonly string[],
+  date = '2026-11-01T12:00:00Z',
+): string {
   // A commit would otherwise start a second Git in the background for auto maintenance.
-  return execFileSync('git', ['-c', 'user.name=oodour', '-c', 'user.email=oodour', '-c', 'maintenance.auto=false', ...args], {
-    cwd: root,
-    encoding: 'utf8',
-    env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date },
-  });
+  return execFileSync(
+    'git',
+    [
+      '-c',
+      'user.name=oodour',
+      '-c',
+      'user.email=oodour',
+      '-c',
+      'maintenance.auto=false',
+      ...args,
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date },
+    },
+  );
 }
 
 export function commitFiles(root: string, files: Files, date?: string): void {
@@ -92,13 +122,31 @@ export function commitFiles(root: string, files: Files, date?: string): void {
 // Each repository a test builds is kept here, and a later test, in this process or another, that asks for the same
 // commits copies it: on Windows, starting Git costs several times what copying its files does. Stryker's sandboxes link
 // to the same node_modules folder.
-const keptRepositories = join(import.meta.dirname, '..', '..', '..', 'node_modules', '.cache', 'oodour-fixtures');
+const keptRepositories = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  'node_modules',
+  '.cache',
+  'oodour-fixtures',
+);
 let keyBase: string | undefined;
 
 function keptRepository(commits: readonly Files[]): string {
-  keyBase ??= JSON.stringify([readFileSync(import.meta.filename, 'utf8'), process.platform, installedGit()]);
+  keyBase ??= JSON.stringify([
+    readFileSync(import.meta.filename, 'utf8'),
+    process.platform,
+    installedGit(),
+  ]);
 
-  return join(keptRepositories, createHash('sha256').update(keyBase).update(JSON.stringify(commits)).digest('hex'));
+  return join(
+    keptRepositories,
+    createHash('sha256')
+      .update(keyBase)
+      .update(JSON.stringify(commits))
+      .digest('hex'),
+  );
 }
 
 // The Git on the path, by where it is, its size and when it was written, so that another Git builds its own
@@ -117,7 +165,10 @@ function installedGit(): string {
   return '';
 }
 
-export function repositoryWith(context: TestContext, commits: readonly Files[]): string {
+export function repositoryWith(
+  context: TestContext,
+  commits: readonly Files[],
+): string {
   const root = folderWith(context, {});
   const kept = keptRepository(commits);
 
@@ -160,10 +211,20 @@ export function repositoryHolding(context: TestContext, files: Files): string {
   return root;
 }
 
-export function partialCloneOf(context: TestContext, origin: string, filter = 'blob:none'): string {
+export function partialCloneOf(
+  context: TestContext,
+  origin: string,
+  filter = 'blob:none',
+): string {
   runGit(origin, ['config', 'uploadpack.allowFilter', 'true']);
   const clone = folderWith(context, {});
-  runGit(clone, ['clone', '-q', `--filter=${filter}`, pathToFileURL(origin).href, '.']);
+  runGit(clone, [
+    'clone',
+    '-q',
+    `--filter=${filter}`,
+    pathToFileURL(origin).href,
+    '.',
+  ]);
   rmSync(origin, { recursive: true, force: true });
 
   return clone;
@@ -179,10 +240,9 @@ export function refusedByGit(context: TestContext): void {
 
 // Puts a mock of a built-in's method in place for the rest of the test. A module that imported the method by name sees
 // the mock, and the original again once the test ends, only after syncBuiltinESMExports.
-export function builtInMockForTest<TMock extends { readonly mock: { restore(): void } }>(
-  context: TestContext,
-  install: () => TMock,
-): TMock {
+export function builtInMockForTest<
+  TMock extends { readonly mock: { restore(): void } },
+>(context: TestContext, install: () => TMock): TMock {
   const mocked = install();
   syncBuiltinESMExports();
   context.after(() => {
@@ -193,7 +253,11 @@ export function builtInMockForTest<TMock extends { readonly mock: { restore(): v
   return mocked;
 }
 
-export function setForTest(context: TestContext, variable: string, value: string | undefined): void {
+export function setForTest(
+  context: TestContext,
+  variable: string,
+  value: string | undefined,
+): void {
   const previous = process.env[variable];
   setVariable(variable, value);
   context.after(() => {

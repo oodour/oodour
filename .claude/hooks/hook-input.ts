@@ -41,6 +41,10 @@ export function readHookInput(): HookInput {
 
 export function denyOutput(reason: string): string {
   return JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason,
+    },
   });
 }

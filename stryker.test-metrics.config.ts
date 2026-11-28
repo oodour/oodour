@@ -14,10 +14,16 @@ import { runnerOptions, sharedOptions } from './stryker.shared.ts';
 
 const config: PartialStrykerOptions = {
   ...sharedOptions,
-  ...(await runnerOptions({ testFiles: ['packages/test-metrics/src/**/*.test.ts'], commandTimeoutMS: 60000 })),
+  ...(await runnerOptions({
+    testFiles: ['packages/test-metrics/src/**/*.test.ts'],
+    commandTimeoutMS: 60000,
+  })),
   tsconfigFile: 'packages/test-metrics/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/test-metrics.html' },
-  mutate: ['packages/test-metrics/src/**/*.ts', '!packages/test-metrics/src/**/*.test.ts'],
+  mutate: [
+    'packages/test-metrics/src/**/*.ts',
+    '!packages/test-metrics/src/**/*.test.ts',
+  ],
   // The default puts `// @ts-nocheck` atop every file in the sandbox, which moves each fixture line the end-to-end
   // tests expect down by one.
   disableTypeChecks: 'packages/test-metrics/src/**/*.ts',

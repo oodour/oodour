@@ -1,5 +1,13 @@
-import { maxParams as maxParamsMetric, type ParameterCount, type UnitOf } from '@oodour/core';
-import { AST_NODE_TYPES, ASTUtils, type TSESLint } from '@typescript-eslint/utils';
+import {
+  maxParams as maxParamsMetric,
+  type ParameterCount,
+  type UnitOf,
+} from '@oodour/core';
+import {
+  AST_NODE_TYPES,
+  ASTUtils,
+  type TSESLint,
+} from '@typescript-eslint/utils';
 import { defineMetricRule } from '../define-metric-rule.ts';
 import { sizeRemedy } from '../wrap-rule.ts';
 
@@ -11,7 +19,12 @@ type MeasuredKind = 'function' | 'declared-function';
  * Counts parameters as values the function depends on, as the core's `maxParams` does: the keys of a pattern or of an
  * options object the body only reads, one for a parameter of a named type. A callback argument is not checked.
  */
-export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', ParameterCount, MeasuredKind>({
+export const maxParams = defineMetricRule<
+  Options,
+  'found' | 'foundKeys',
+  ParameterCount,
+  MeasuredKind
+>({
   name: 'max-params',
   metric: maxParamsMetric,
   meta: {
@@ -21,7 +34,11 @@ export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', Parame
         'Report a function that depends on more values than allowed, counting the keys read from an untyped or ' +
         'inline-typed options object',
       concept: 'Long Parameter List',
-      cures: ['Introduce Parameter Object', 'Preserve Whole Object', 'Remove Flag Argument'],
+      cures: [
+        'Introduce Parameter Object',
+        'Preserve Whole Object',
+        'Remove Flag Argument',
+      ],
       requiresTypeChecking: false,
       remedy: sizeRemedy,
       tier: 'recommended',
@@ -51,12 +68,19 @@ export const maxParams = defineMetricRule<Options, 'found' | 'foundKeys', Parame
     if (count > max) {
       const name = nameOf(unit.node, context.sourceCode);
 
-      context.report({ node: unit.node, messageId: keys > 0 ? 'foundKeys' : 'found', data: { name, count, keys, max } });
+      context.report({
+        node: unit.node,
+        messageId: keys > 0 ? 'foundKeys' : 'found',
+        data: { name, count, keys, max },
+      });
     }
   },
 });
 
-function nameOf(node: UnitOf<MeasuredKind>['node'], sourceCode: Readonly<TSESLint.SourceCode>): string {
+function nameOf(
+  node: UnitOf<MeasuredKind>['node'],
+  sourceCode: Readonly<TSESLint.SourceCode>,
+): string {
   if (node.type === AST_NODE_TYPES.TSDeclareFunction) {
     return node.id === null ? 'function' : `function '${node.id.name}'`;
   }

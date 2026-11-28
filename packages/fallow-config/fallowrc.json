@@ -18,7 +18,15 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**", "**/e2e/**"],
+      "files": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/__tests__/**",
+        "**/test/**",
+        "**/tests/**",
+        "**/spec/**",
+        "**/e2e/**"
+      ],
       "rules": {
         "complexity-crap": "off"
       }

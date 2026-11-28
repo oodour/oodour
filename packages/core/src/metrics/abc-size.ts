@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
 import type { Position } from '../units.ts';
 
@@ -18,7 +21,10 @@ const tested = new Set<string>([
   AST_NODE_TYPES.DoWhileStatement,
   AST_NODE_TYPES.ForStatement,
 ]);
-const branching = new Set<string>([AST_NODE_TYPES.IfStatement, AST_NODE_TYPES.ConditionalExpression]);
+const branching = new Set<string>([
+  AST_NODE_TYPES.IfStatement,
+  AST_NODE_TYPES.ConditionalExpression,
+]);
 
 /**
  * ABC size: assignments, sends (calls and `new`) and conditions, per function; a nested function's counts are its own.
@@ -32,7 +38,11 @@ export const abcSize = defineMetric({
   open: () => ({ assignments: 0, sends: 0, conditions: 0 }),
   enter: (node, counts, at) => {
     counts.assignments += isAssignment(node) ? 1 : 0;
-    counts.sends += node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.NewExpression ? 1 : 0;
+    counts.sends +=
+      node.type === AST_NODE_TYPES.CallExpression ||
+      node.type === AST_NODE_TYPES.NewExpression
+        ? 1
+        : 0;
     counts.conditions += conditionsOf(node, at);
   },
   close: (counts): AbcCounts => counts,
@@ -58,8 +68,16 @@ function isAssignment(node: TSESTree.Node): boolean {
 function conditionsOf(node: TSESTree.Node, { parent, key }: Position): number {
   const comparison = isComparison(node);
   const fromPosition =
-    (key === 'test' && parent !== undefined && tested.has(parent.type) && !comparison ? 1 : 0) +
-    (key === 'alternate' && parent !== undefined && branching.has(parent.type) && node.type !== AST_NODE_TYPES.IfStatement
+    (key === 'test' &&
+    parent !== undefined &&
+    tested.has(parent.type) &&
+    !comparison
+      ? 1
+      : 0) +
+    (key === 'alternate' &&
+    parent !== undefined &&
+    branching.has(parent.type) &&
+    node.type !== AST_NODE_TYPES.IfStatement
       ? 1
       : 0);
 
@@ -67,7 +85,10 @@ function conditionsOf(node: TSESTree.Node, { parent, key }: Position): number {
 }
 
 function isComparison(node: TSESTree.Node): boolean {
-  return node.type === AST_NODE_TYPES.BinaryExpression && comparisons.has(node.operator);
+  return (
+    node.type === AST_NODE_TYPES.BinaryExpression &&
+    comparisons.has(node.operator)
+  );
 }
 
 function conditionsOfType(node: TSESTree.Node): number {

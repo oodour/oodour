@@ -1,4 +1,7 @@
-import { type TypeHoppingChain, typeHoppingChain as typeHoppingChainMetric } from '@oodour/core';
+import {
+  type TypeHoppingChain,
+  typeHoppingChain as typeHoppingChainMetric,
+} from '@oodour/core';
 import { defineMetricRule } from '../define-metric-rule.ts';
 
 type Options = [{ readonly maxInterfaces: number }];
@@ -7,13 +10,18 @@ type Options = [{ readonly maxInterfaces: number }];
  * Law of Demeter by the number of distinct types a chain steps through, not by dots: a fluent pipeline on one array
  * type passes, a walk from an order through its customer to an address does not.
  */
-export const typeHoppingChain = defineMetricRule<Options, 'chain', readonly TypeHoppingChain[]>({
+export const typeHoppingChain = defineMetricRule<
+  Options,
+  'chain',
+  readonly TypeHoppingChain[]
+>({
   name: 'type-hopping-chain',
   metric: typeHoppingChainMetric,
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Report a chain that steps through more distinct types than allowed',
+      description:
+        'Report a chain that steps through more distinct types than allowed',
       concept: 'Message Chains',
       cures: ['Hide Delegate'],
       requiresTypeChecking: true,
@@ -42,7 +50,11 @@ export const typeHoppingChain = defineMetricRule<Options, 'chain', readonly Type
   check({ value: chains }, context, [{ maxInterfaces }]) {
     for (const { node, count } of chains) {
       if (count > maxInterfaces) {
-        context.report({ node, messageId: 'chain', data: { count: String(count) } });
+        context.report({
+          node,
+          messageId: 'chain',
+          data: { count: String(count) },
+        });
       }
     }
   },

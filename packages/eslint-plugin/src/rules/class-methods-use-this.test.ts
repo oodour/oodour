@@ -5,7 +5,12 @@ import { testRule } from '../testing/rule-testers.ts';
 import { classMethodsUseThis } from './class-methods-use-this.ts';
 
 test('the strict preset reports a method that uses no state with a message that names the smell, the cure and why no change is automatic', () => {
-  const messages = presetMessages('strict', 'class-methods-use-this', 'class NoDiscount { rate() { return 0; } }', 'discount.ts');
+  const messages = presetMessages(
+    'strict',
+    'class-methods-use-this',
+    'class NoDiscount { rate() { return 0; } }',
+    'discount.ts',
+  );
 
   assert.deepEqual(messages, [
     "Stop and look: Feature Envy, the method 'rate' uses no state of its object. Look at whose data it reads. Cure: " +

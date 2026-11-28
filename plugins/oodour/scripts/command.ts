@@ -16,7 +16,8 @@ export interface CommandResult {
   readonly stderr: string;
 }
 
-const usage = 'usage: node oodour.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
+const usage =
+  'usage: node oodour.ts [--trusted-repository] hotspots [--since <date>] [--limit <count>] [-- <folder>]\n';
 const trustFlag = '--trusted-repository';
 
 function parseCommand(args: readonly string[]): HotspotsCommand | string {
@@ -91,8 +92,21 @@ export function runCommand(args: readonly string[]): CommandResult {
   try {
     const measured = measureScope(folder, since, trusted);
 
-    return { status: 0, stdout: renderHotspots(scope, since, measured, rankHotspots(measured.files, limit)), stderr: '' };
+    return {
+      status: 0,
+      stdout: renderHotspots(
+        scope,
+        since,
+        measured,
+        rankHotspots(measured.files, limit),
+      ),
+      stderr: '',
+    };
   } catch (error) {
-    return { status: 1, stdout: '', stderr: `oodour: ${error instanceof Error ? error.message : String(error)}\n` };
+    return {
+      status: 1,
+      stdout: '',
+      stderr: `oodour: ${error instanceof Error ? error.message : String(error)}\n`,
+    };
   }
 }

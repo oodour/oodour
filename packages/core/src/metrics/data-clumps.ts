@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 import { defineMetric, type UnitOf } from '../metric.ts';
 
 /** A function of a scope and the names of its parameters. */
@@ -44,24 +47,35 @@ function holdersOf(unit: UnitOf<'class' | 'file'>): readonly ClumpHolder[] {
     }
 
     case 'file': {
-      return moduleFunctions(unit.node).map((fn) => ({ node: fn, names: parameterNames(fn) }));
+      return moduleFunctions(unit.node).map((fn) => ({
+        node: fn,
+        names: parameterNames(fn),
+      }));
     }
   }
 }
 
 /** The function a class member runs: a method with a body, or a field that holds a function. */
-function memberFunction(member: TSESTree.ClassElement): TSESTree.FunctionLike | undefined {
+function memberFunction(
+  member: TSESTree.ClassElement,
+): TSESTree.FunctionLike | undefined {
   if (member.type === AST_NODE_TYPES.MethodDefinition) {
-    return member.value.type === AST_NODE_TYPES.TSEmptyBodyFunctionExpression ? undefined : member.value;
+    return member.value.type === AST_NODE_TYPES.TSEmptyBodyFunctionExpression
+      ? undefined
+      : member.value;
   }
 
-  return member.type === AST_NODE_TYPES.PropertyDefinition && member.value && isFunctionExpression(member.value)
+  return member.type === AST_NODE_TYPES.PropertyDefinition &&
+    member.value &&
+    isFunctionExpression(member.value)
     ? member.value
     : undefined;
 }
 
 /** The functions a module declares at its top level, exported or not, including those a `const` holds. */
-function moduleFunctions(program: TSESTree.Program): readonly TSESTree.FunctionLike[] {
+function moduleFunctions(
+  program: TSESTree.Program,
+): readonly TSESTree.FunctionLike[] {
   return program.body
     .map((statement) =>
       (statement.type === AST_NODE_TYPES.ExportNamedDeclaration ||
@@ -71,12 +85,17 @@ function moduleFunctions(program: TSESTree.Program): readonly TSESTree.FunctionL
         : statement,
     )
     .flatMap<TSESTree.FunctionLike>((statement) => {
-      if (statement.type === AST_NODE_TYPES.FunctionDeclaration || isFunctionExpression(statement)) {
+      if (
+        statement.type === AST_NODE_TYPES.FunctionDeclaration ||
+        isFunctionExpression(statement)
+      ) {
         return [statement];
       }
 
       if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
-        return statement.declarations.flatMap(({ init }) => (init && isFunctionExpression(init) ? [init] : []));
+        return statement.declarations.flatMap(({ init }) =>
+          init && isFunctionExpression(init) ? [init] : [],
+        );
       }
 
       return [];
@@ -86,13 +105,22 @@ function moduleFunctions(program: TSESTree.Program): readonly TSESTree.FunctionL
 function isFunctionExpression(
   node: TSESTree.Node,
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression {
-  return node.type === AST_NODE_TYPES.ArrowFunctionExpression || node.type === AST_NODE_TYPES.FunctionExpression;
+  return (
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionExpression
+  );
 }
 
 function parameterNames(fn: TSESTree.FunctionLike): readonly string[] {
   return fn.params
-    .map((param) => (param.type === AST_NODE_TYPES.AssignmentPattern ? param.left : param))
-    .flatMap((param) => (param.type === AST_NODE_TYPES.Identifier && param.name !== 'this' ? [param.name] : []));
+    .map((param) =>
+      param.type === AST_NODE_TYPES.AssignmentPattern ? param.left : param,
+    )
+    .flatMap((param) =>
+      param.type === AST_NODE_TYPES.Identifier && param.name !== 'this'
+        ? [param.name]
+        : [],
+    );
 }
 
 /**
@@ -162,7 +190,9 @@ function largestClumps(functions: readonly ClumpHolder[]): DataClump[] {
       .flatMap((list) => list.holders.map(({ fn }) => fn));
     const [first, ...others] = holders;
 
-    return first && holders.length >= 3 ? [{ names, holders: [first, ...others] }] : [];
+    return first && holders.length >= 3
+      ? [{ names, holders: [first, ...others] }]
+      : [];
   });
   // A larger clump that holds a clump holds its first name too.
   const clumpsHolding = Map.groupBy(
@@ -178,7 +208,9 @@ function largestClumps(functions: readonly ClumpHolder[]): DataClump[] {
     (clump) =>
       // Stryker disable next-line StringLiteral,LzJsNumericLiteral: a clump has two or more names, and a larger clump that holds it holds each of them
       !(clumpsHolding.get(clump.names[0] ?? '') ?? []).some(
-        (other) => other.names.size > clump.names.length && clump.names.every((name) => other.names.has(name)),
+        (other) =>
+          other.names.size > clump.names.length &&
+          clump.names.every((name) => other.names.has(name)),
       ),
   );
 }

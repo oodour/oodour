@@ -9,10 +9,14 @@ type Resolve = NonNullable<RegisterHooksOptions['resolve']>;
 
 /** `@oodour/core` from the core's source under `directory`; every other specifier as before. */
 export function resolveCoreFrom(directory: string): Resolve {
-  const core = pathToFileURL(join(directory, 'packages/core/src/index.ts')).href;
+  const core = pathToFileURL(
+    join(directory, 'packages/core/src/index.ts'),
+  ).href;
 
   return (specifier, context, nextResolve) =>
-    specifier === '@oodour/core' ? { url: core, shortCircuit: true } : nextResolve(specifier, context);
+    specifier === '@oodour/core'
+      ? { url: core, shortCircuit: true }
+      : nextResolve(specifier, context);
 }
 
 registerHooks({ resolve: resolveCoreFrom(process.cwd()) });

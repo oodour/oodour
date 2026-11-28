@@ -33,13 +33,21 @@ test('a function whose CRAP score reaches the default limit of 30 gets its CRAP 
 });
 
 test('a function whose CRAP score stays below the limit gets no CRAP line, and the run passes', () => {
-  assert.deepEqual(testMetricsReport([{ ...settle, coverage: 0.1 }]), { lines: [], failed: false });
+  assert.deepEqual(testMetricsReport([{ ...settle, coverage: 0.1 }]), {
+    lines: [],
+    failed: false,
+  });
 });
 
 test('a lower limit reports a function the default would pass, and names that limit', () => {
-  const [line] = testMetricsReport([{ ...settle, coverage: 0.1 }], { limit: 20 }).lines;
+  const [line] = testMetricsReport([{ ...settle, coverage: 0.1 }], {
+    limit: 20,
+  }).lines;
 
-  assert.match(line ?? '', /scores CRAP 23\.2 \(limit 20\): 5 paths, 10% of it run by tests\./u);
+  assert.match(
+    line ?? '',
+    /scores CRAP 23\.2 \(limit 20\): 5 paths, 10% of it run by tests\./u,
+  );
 });
 
 test('a CRAP line rounds the score to a tenth and the share run to a whole percent', () => {
@@ -51,8 +59,14 @@ test('a CRAP line rounds the score to a tenth and the share run to a whole perce
     { limit: 20 },
   ).lines;
 
-  assert.match(down ?? '', /scores CRAP 21\.6 \(limit 20\): 6 paths, 24% of it run by tests\./u);
-  assert.match(up ?? '', /scores CRAP 21\.4 \(limit 20\): 6 paths, 25% of it run by tests\./u);
+  assert.match(
+    down ?? '',
+    /scores CRAP 21\.6 \(limit 20\): 6 paths, 24% of it run by tests\./u,
+  );
+  assert.match(
+    up ?? '',
+    /scores CRAP 21\.4 \(limit 20\): 6 paths, 25% of it run by tests\./u,
+  );
 });
 
 test('a public method no test called gets a stop-and-look line of its own, and the run passes', () => {
@@ -82,11 +96,23 @@ test('a called function with branch paths no test took gets a stop-and-look line
 
 test("each function's lines come together, CRAP first, in the order the functions were measured", () => {
   const unsent = { ...settle, coverage: 0, called: false };
-  const partial = { ...settle, line: 9, name: "Method 'total'", complexity: 6, coverage: 0.1, untestedBranches: 2 };
+  const partial = {
+    ...settle,
+    line: 9,
+    name: "Method 'total'",
+    complexity: 6,
+    coverage: 0.1,
+    untestedBranches: 2,
+  };
   const { lines } = testMetricsReport([unsent, partial]);
 
   assert.deepEqual(
-    lines.map((line) => /^\S+ Stop and look: Untested Code, Method '(\w+)' (\w+)/.exec(line)?.slice(1).join(' ')),
+    lines.map((line) =>
+      /^\S+ Stop and look: Untested Code, Method '(\w+)' (\w+)/
+        .exec(line)
+        ?.slice(1)
+        .join(' '),
+    ),
     ['settle scores', 'settle is', 'total scores', 'total has'],
   );
 });
@@ -104,11 +130,19 @@ test('with CRAP switched off, a function at the limit gets no CRAP line and the 
 test('with uncalled public methods switched off, a public method no test called gets no line', () => {
   const unsent = { ...settle, complexity: 1, coverage: 0, called: false };
 
-  assert.deepEqual(testMetricsReport([unsent], { uncalledPublicMethods: false }).lines, []);
+  assert.deepEqual(
+    testMetricsReport([unsent], { uncalledPublicMethods: false }).lines,
+    [],
+  );
 });
 
 test('with untested branches switched off, a called function with untaken paths gets no line', () => {
-  assert.deepEqual(testMetricsReport([{ ...settle, untestedBranches: 2 }], { untestedBranches: false }).lines, []);
+  assert.deepEqual(
+    testMetricsReport([{ ...settle, untestedBranches: 2 }], {
+      untestedBranches: false,
+    }).lines,
+    [],
+  );
 });
 
 test('one branch path no test took reads in the singular', () => {
@@ -122,7 +156,14 @@ test('one branch path no test took reads in the singular', () => {
 });
 
 test('a function no test called gets no branch line, whatever its untaken paths', () => {
-  const unrun = { ...settle, complexity: 1, coverage: 0, called: false, publicMethod: false, untestedBranches: 2 };
+  const unrun = {
+    ...settle,
+    complexity: 1,
+    coverage: 0,
+    called: false,
+    publicMethod: false,
+    untestedBranches: 2,
+  };
 
   assert.deepEqual(testMetricsReport([unrun]).lines, []);
 });

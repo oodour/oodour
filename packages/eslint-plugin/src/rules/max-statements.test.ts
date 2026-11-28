@@ -6,7 +6,12 @@ testRule(maxStatements, {
   invalid: [
     {
       code: 'function f() { let a = 1; a += 1; a += 1; a += 1; a += 1; return a; }',
-      errors: [{ messageId: 'found', data: { name: "Function 'f'", count: 6, max: 5 } }],
+      errors: [
+        {
+          messageId: 'found',
+          data: { name: "Function 'f'", count: 6, max: 5 },
+        },
+      ],
     },
   ],
 });

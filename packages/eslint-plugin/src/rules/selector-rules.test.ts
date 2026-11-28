@@ -132,7 +132,10 @@ const selectorCases = {
     ],
   },
   'optional-private-field': {
-    valid: ['class Badge { @Input() caption?: string; }', 'class ServerOptions { port?: number; host?: string; }'],
+    valid: [
+      'class Badge { @Input() caption?: string; }',
+      'class ServerOptions { port?: number; host?: string; }',
+    ],
     invalid: [
       {
         code: `

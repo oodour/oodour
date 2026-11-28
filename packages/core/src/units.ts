@@ -1,4 +1,7 @@
-import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-estree';
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree';
 
 /**
  * The kinds of unit the walk opens and closes; a metric names the kinds it measures.
@@ -12,9 +15,18 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/typescript-est
  * - `class`: a class declaration or class expression.
  * - `file`: the whole file, its `Program` node.
  */
-export type UnitKind = 'function' | 'declared-function' | 'field-initializer' | 'static-block' | 'class' | 'file';
+export type UnitKind =
+  | 'function'
+  | 'declared-function'
+  | 'field-initializer'
+  | 'static-block'
+  | 'class'
+  | 'file';
 
-type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+type FunctionNode =
+  | TSESTree.ArrowFunctionExpression
+  | TSESTree.FunctionDeclaration
+  | TSESTree.FunctionExpression;
 type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
 
 interface UnitAt<TKind extends UnitKind, TNode extends TSESTree.Node> {
@@ -40,7 +52,10 @@ export interface Position {
 }
 
 /** The units a node opens, outermost first: a class that is a field's value opens the field initializer, then the class. */
-export function unitsAt(node: TSESTree.Node, { parent, key }: Position): readonly Unit[] {
+export function unitsAt(
+  node: TSESTree.Node,
+  { parent, key }: Position,
+): readonly Unit[] {
   if (isFunction(node)) {
     return [{ kind: 'function', node, parent }];
   }
@@ -58,9 +73,14 @@ export function unitsAt(node: TSESTree.Node, { parent, key }: Position): readonl
   }
 
   const units: Unit[] =
-    parent?.type === AST_NODE_TYPES.PropertyDefinition && key === 'value' ? [{ kind: 'field-initializer', node, parent }] : [];
+    parent?.type === AST_NODE_TYPES.PropertyDefinition && key === 'value'
+      ? [{ kind: 'field-initializer', node, parent }]
+      : [];
 
-  if (node.type === AST_NODE_TYPES.ClassDeclaration || node.type === AST_NODE_TYPES.ClassExpression) {
+  if (
+    node.type === AST_NODE_TYPES.ClassDeclaration ||
+    node.type === AST_NODE_TYPES.ClassExpression
+  ) {
     units.push({ kind: 'class', node, parent });
   }
 
@@ -90,7 +110,9 @@ export function unitName(unit: Unit): string {
     }
 
     case 'class': {
-      return unit.node.id === null ? 'Anonymous class' : `Class '${unit.node.id.name}'`;
+      return unit.node.id === null
+        ? 'Anonymous class'
+        : `Class '${unit.node.id.name}'`;
     }
 
     case 'file': {
@@ -98,7 +120,9 @@ export function unitName(unit: Unit): string {
     }
 
     case 'declared-function': {
-      return unit.node.id === null ? 'Function' : `Function '${unit.node.id.name}'`;
+      return unit.node.id === null
+        ? 'Function'
+        : `Function '${unit.node.id.name}'`;
     }
 
     case 'function': {
@@ -109,7 +133,10 @@ export function unitName(unit: Unit): string {
   }
 }
 
-type Member = TSESTree.MethodDefinition | TSESTree.Property | TSESTree.PropertyDefinition;
+type Member =
+  | TSESTree.MethodDefinition
+  | TSESTree.Property
+  | TSESTree.PropertyDefinition;
 
 function memberOf(parent: TSESTree.Node | undefined): Member | undefined {
   switch (parent?.type) {
@@ -126,7 +153,10 @@ function memberOf(parent: TSESTree.Node | undefined): Member | undefined {
 }
 
 /** ESLint's `getFunctionNameWithKind`, for the function nodes the walk opens units for. */
-function functionNameWithKind(node: FunctionNode, parent: TSESTree.Node | undefined): string {
+function functionNameWithKind(
+  node: FunctionNode,
+  parent: TSESTree.Node | undefined,
+): string {
   const member = memberOf(parent);
   const words: string[] = [];
 
@@ -135,7 +165,10 @@ function functionNameWithKind(node: FunctionNode, parent: TSESTree.Node | undefi
       words.push('static');
     }
 
-    if (!member.computed && member.key.type === AST_NODE_TYPES.PrivateIdentifier) {
+    if (
+      !member.computed &&
+      member.key.type === AST_NODE_TYPES.PrivateIdentifier
+    ) {
       words.push('private');
     }
   }
@@ -167,10 +200,19 @@ function functionNameWithKind(node: FunctionNode, parent: TSESTree.Node | undefi
   } else if (member.kind === 'constructor') {
     return 'constructor';
   } else {
-    words.push(member.kind === 'get' ? 'getter' : member.kind === 'set' ? 'setter' : 'method');
+    words.push(
+      member.kind === 'get'
+        ? 'getter'
+        : member.kind === 'set'
+          ? 'setter'
+          : 'method',
+    );
   }
 
-  if (!member.computed && member.key.type === AST_NODE_TYPES.PrivateIdentifier) {
+  if (
+    !member.computed &&
+    member.key.type === AST_NODE_TYPES.PrivateIdentifier
+  ) {
     words.push(`#${member.key.name}`);
   } else {
     const name = staticPropertyName(member);
@@ -196,7 +238,9 @@ function staticPropertyName({ key, computed }: Member): string | undefined {
     }
 
     case AST_NODE_TYPES.TemplateLiteral: {
-      return key.expressions.length === 0 ? (key.quasis[0]?.value.cooked ?? undefined) : undefined;
+      return key.expressions.length === 0
+        ? (key.quasis[0]?.value.cooked ?? undefined)
+        : undefined;
     }
 
     default: {

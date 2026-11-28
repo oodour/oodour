@@ -24,7 +24,10 @@ const config: PartialStrykerOptions = {
   })),
   tsconfigFile: 'packages/eslint-plugin/tsconfig.json',
   htmlReporter: { fileName: 'reports/mutation/eslint-plugin.html' },
-  mutate: ['packages/eslint-plugin/src/**/*.ts', '!packages/eslint-plugin/src/**/*.test.ts'],
+  mutate: [
+    'packages/eslint-plugin/src/**/*.ts',
+    '!packages/eslint-plugin/src/**/*.test.ts',
+  ],
   incrementalFile: 'reports/stryker-incremental/eslint-plugin.json',
 };
 

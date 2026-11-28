@@ -19,7 +19,11 @@ export class TestMetricsReporter implements Reporter {
 
   onCoverage(coverage: unknown): void {
     const measured = [...parseCoverageMap(coverage)].flatMap(([path, file]) =>
-      measuredFromIstanbul(shownPath(path), functionsIn(path, readFileSync(path, 'utf8')), file),
+      measuredFromIstanbul(
+        shownPath(path),
+        functionsIn(path, readFileSync(path, 'utf8')),
+        file,
+      ),
     );
     const { lines, failed } = testMetricsReport(measured, this.#options);
 

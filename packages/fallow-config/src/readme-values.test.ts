@@ -16,7 +16,9 @@ describe('presetValues', () => {
   });
 
   it('lists a nested key by its dotted path', () => {
-    const values = presetValues({ health: { maxCyclomatic: 10, changeCoupling: { minDegree: 0.25 } } });
+    const values = presetValues({
+      health: { maxCyclomatic: 10, changeCoupling: { minDegree: 0.25 } },
+    });
 
     assert.deepEqual(values, [
       ['health.maxCyclomatic', '10'],
@@ -25,7 +27,10 @@ describe('presetValues', () => {
   });
 
   it('leaves out the editor-only $schema key', () => {
-    const values = presetValues({ $schema: 'https://example.test/schema.json', minimumVersion: '3.43.2' });
+    const values = presetValues({
+      $schema: 'https://example.test/schema.json',
+      minimumVersion: '3.43.2',
+    });
 
     assert.deepEqual(values, [['minimumVersion', '"3.43.2"']]);
   });
@@ -33,7 +38,12 @@ describe('presetValues', () => {
 
 describe('readmeValues', () => {
   it('lists nothing for a values table with no rows', () => {
-    const markdown = ['<!-- preset-values:start -->', '| Key | Value |', '| --- | --- |', '<!-- preset-values:end -->'];
+    const markdown = [
+      '<!-- preset-values:start -->',
+      '| Key | Value |',
+      '| --- | --- |',
+      '<!-- preset-values:end -->',
+    ];
 
     const values = readmeValues(markdown.join('\n'));
 
@@ -77,7 +87,10 @@ describe('readmeValues', () => {
   });
 
   it('throws when the table has a start marker and no end marker', () => {
-    const markdown = ['<!-- preset-values:start -->', '| `health.maxCyclomatic` | `10` | a reason |'];
+    const markdown = [
+      '<!-- preset-values:start -->',
+      '| `health.maxCyclomatic` | `10` | a reason |',
+    ];
 
     assert.throws(() => readmeValues(markdown.join('\n')), /preset-values/);
   });

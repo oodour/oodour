@@ -7,7 +7,9 @@ import { createTestMetricsReporter } from './node-test.ts';
 
 const fixture = join(import.meta.dirname, '..', 'fixtures', 'node-test');
 // A run started from inside `node --test` inherits NODE_TEST_CONTEXT and reports to its parent instead of running alone.
-const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'));
+const env = Object.fromEntries(
+  Object.entries(process.env).filter(([name]) => name !== 'NODE_TEST_CONTEXT'),
+);
 // The reporter imports the core package, which this workspace runs from source under the condition this run was given.
 const testRun = [
   ...process.execArgv.filter((flag) => flag.startsWith('--conditions')),
@@ -48,12 +50,17 @@ function uncalledClassify(): TestEvent {
           {
             path,
             ...totals,
-            functions: [{ name: 'classify', line: classifyLines.first, count: 0 }],
+            functions: [
+              { name: 'classify', line: classifyLines.first, count: 0 },
+            ],
             branches: [],
-            lines: Array.from({ length: classifyLines.last - classifyLines.first + 1 }, (_, index) => ({
-              line: classifyLines.first + index,
-              count: 0,
-            })),
+            lines: Array.from(
+              { length: classifyLines.last - classifyLines.first + 1 },
+              (_, index) => ({
+                line: classifyLines.first + index,
+                count: 0,
+              }),
+            ),
           },
         ],
       },
@@ -61,8 +68,16 @@ function uncalledClassify(): TestEvent {
   };
 }
 
-async function linesOf(reporter: ReturnType<typeof createTestMetricsReporter>): Promise<string[]> {
-  const events: TestEvent[] = [{ type: 'test:diagnostic', data: { nesting: 0, message: 'tests 1', level: 'info' } }, uncalledClassify()];
+async function linesOf(
+  reporter: ReturnType<typeof createTestMetricsReporter>,
+): Promise<string[]> {
+  const events: TestEvent[] = [
+    {
+      type: 'test:diagnostic',
+      data: { nesting: 0, message: 'tests 1', level: 'info' },
+    },
+    uncalledClassify(),
+  ];
   const lines: string[] = [];
 
   for await (const line of reporter(ReadableStream.from(events))) {
@@ -79,7 +94,12 @@ test('the reporter writes one line per finding from the coverage event and fails
     const lines = await linesOf(createTestMetricsReporter({ limit: 6 }));
 
     assert.deepEqual(
-      { lines: lines.map((line) => /order\.ts:13 Stop and look: .+ scores CRAP 12 /u.test(line)), exitCode: process.exitCode },
+      {
+        lines: lines.map((line) =>
+          /order\.ts:13 Stop and look: .+ scores CRAP 12 /u.test(line),
+        ),
+        exitCode: process.exitCode,
+      },
       { lines: [true], exitCode: 1 },
     );
   } finally {
@@ -91,22 +111,38 @@ test('the reporter writes nothing and leaves the run passing when it finds nothi
   const before = process.exitCode;
   const lines = await linesOf(createTestMetricsReporter());
 
-  assert.deepEqual({ lines, exitCode: process.exitCode }, { lines: [], exitCode: before });
+  assert.deepEqual(
+    { lines, exitCode: process.exitCode },
+    { lines: [], exitCode: before },
+  );
 });
 
 test('the same node:test run without coverage passes, so a failed run with coverage is the reporter failing it', () => {
-  const run = spawnSync(process.execPath, testRun, { cwd: fixture, env, encoding: 'utf8' });
-
-  assert.deepEqual({ reported: run.stdout.includes('Stop and look'), status: run.status }, { reported: false, status: 0 });
-});
-
-test('a node:test run with coverage reports each function at the CRAP limit and fails, and flags untested code', () => {
-  const run = spawnSync(process.execPath, ['--experimental-test-coverage', ...testRun], {
+  const run = spawnSync(process.execPath, testRun, {
     cwd: fixture,
     env,
     encoding: 'utf8',
   });
-  const reports = run.stdout.split(/\r?\n/u).filter((line) => line.includes('Stop and look'));
+
+  assert.deepEqual(
+    { reported: run.stdout.includes('Stop and look'), status: run.status },
+    { reported: false, status: 0 },
+  );
+});
+
+test('a node:test run with coverage reports each function at the CRAP limit and fails, and flags untested code', () => {
+  const run = spawnSync(
+    process.execPath,
+    ['--experimental-test-coverage', ...testRun],
+    {
+      cwd: fixture,
+      env,
+      encoding: 'utf8',
+    },
+  );
+  const reports = run.stdout
+    .split(/\r?\n/u)
+    .filter((line) => line.includes('Stop and look'));
 
   assert.deepEqual(
     { reports, status: run.status },

@@ -14,7 +14,10 @@ import { titledEntries } from './source-overlap.ts';
 // Stryker disable next-line StringLiteral: a mutation run and CI hold no store, so the command finds none at either folder and prints the same line
 const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 
-const namedEntries: ReadonlySet<string> = new Set([...titledEntries, '99bottles-js']);
+const namedEntries: ReadonlySet<string> = new Set([
+  ...titledEntries,
+  '99bottles-js',
+]);
 
 export interface EntryReport {
   readonly entry: string;
@@ -48,11 +51,17 @@ export function indexedPaths(index: string): readonly string[] {
 
     const ticked = [...line.matchAll(/`([^`]+)`/g)]
       .flatMap((match) => match.slice(1))
-      .filter((cell) => /[./]/.test(cell) && !/\s/.test(cell) && !cell.startsWith('http'));
+      .filter(
+        (cell) =>
+          /[./]/.test(cell) && !/\s/.test(cell) && !cell.startsWith('http'),
+      );
     const bare = line
       .split('|')
       .map((cell) => cell.trim())
-      .filter((cell) => /^[^`\s()[\]]+(\.md|\/)$/.test(cell) && !cell.startsWith('http'));
+      .filter(
+        (cell) =>
+          /^[^`\s()[\]]+(\.md|\/)$/.test(cell) && !cell.startsWith('http'),
+      );
 
     return [...links, ...ticked, ...bare];
   });
@@ -66,12 +75,20 @@ function size(path: string): number {
 
 // A cell resolves against the entry folder, or against a folder at its top (a clone's `repo/`).
 function resolveCell(entryDir: string, cell: string): string | undefined {
-  const roots = [entryDir, ...readdirSync(entryDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => join(entryDir, d.name))];
+  const roots = [
+    entryDir,
+    ...readdirSync(entryDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => join(entryDir, d.name)),
+  ];
 
   return roots.map((root) => join(root, cell)).find((path) => existsSync(path));
 }
 
-export function checkEntry(dir: string, entry: string): EntryReport | undefined {
+export function checkEntry(
+  dir: string,
+  entry: string,
+): EntryReport | undefined {
   const entryDir = join(dir, entry);
   const indexPath = join(entryDir, 'index.md');
 
@@ -80,21 +97,31 @@ export function checkEntry(dir: string, entry: string): EntryReport | undefined 
   }
 
   const cells = [...new Set(indexedPaths(readFileSync(indexPath, 'utf8')))];
-  const resolved = cells.map((cell) => ({ cell, path: resolveCell(entryDir, cell) }));
+  const resolved = cells.map((cell) => ({
+    cell,
+    path: resolveCell(entryDir, cell),
+  }));
   const named = new Set(cells.map((cell) => basename(cell)));
-  const topFiles = readdirSync(entryDir).filter((name) => name.endsWith('.md') && name !== 'index.md');
+  const topFiles = readdirSync(entryDir).filter(
+    (name) => name.endsWith('.md') && name !== 'index.md',
+  );
 
   return {
     entry,
     indexed: cells.length,
-    missing: resolved.flatMap(({ cell, path }) => (path === undefined ? [cell] : [])),
-    empty: resolved.flatMap(({ cell, path }) => (path !== undefined && size(path) === 0 ? [cell] : [])),
+    missing: resolved.flatMap(({ cell, path }) =>
+      path === undefined ? [cell] : [],
+    ),
+    empty: resolved.flatMap(({ cell, path }) =>
+      path !== undefined && size(path) === 0 ? [cell] : [],
+    ),
     unindexed: topFiles.filter((name) => !named.has(name)),
   };
 }
 
 export function describe(report: EntryReport): readonly string[] {
-  const problems = report.missing.length + report.empty.length + report.unindexed.length;
+  const problems =
+    report.missing.length + report.empty.length + report.unindexed.length;
   const head = `${report.entry}: ${String(report.indexed)} indexed, ${String(report.missing.length)} missing, ${String(report.empty.length)} empty, ${String(report.unindexed.length)} unindexed`;
 
   if (problems === 0 || !namedEntries.has(report.entry)) {
@@ -104,7 +131,9 @@ export function describe(report: EntryReport): readonly string[] {
   return [
     `[ERROR] ${head}`,
     // Any other cell could be a code token from a work.
-    ...report.missing.filter((name) => /(?:\.md|\/)$/.test(name)).map((name) => `  missing: ${name}`),
+    ...report.missing
+      .filter((name) => /(?:\.md|\/)$/.test(name))
+      .map((name) => `  missing: ${name}`),
     ...report.empty.map((name) => `  empty: ${name}`),
     ...report.unindexed.map((name) => `  unindexed: ${name}`),
   ];
@@ -126,9 +155,16 @@ export function main(dir: string = storeDir): number {
     console.log(line);
   }
 
-  return reports.every((r) => r.missing.length + r.empty.length + r.unindexed.length === 0) ? 0 : 1;
+  return reports.every(
+    (r) => r.missing.length + r.empty.length + r.unindexed.length === 0,
+  )
+    ? 0
+    : 1;
 }
 
-if (process.argv[1] !== undefined && basename(process.argv[1]) === 'store-check.ts') {
+if (
+  process.argv[1] !== undefined &&
+  basename(process.argv[1]) === 'store-check.ts'
+) {
   process.exitCode = main();
 }
