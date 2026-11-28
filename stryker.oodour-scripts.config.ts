@@ -16,6 +16,8 @@ const config: PartialStrykerOptions = {
   htmlReporter: { fileName: 'reports/mutation/oodour-scripts.html' },
   mutate: ['plugins/oodour/scripts/*.ts', '!plugins/oodour/scripts/*.test.ts', '!plugins/oodour/scripts/fixtures.ts'],
   incrementalFile: 'reports/stryker-incremental/oodour-scripts.json',
+  // Every mutant is killed or carries a reasoned disable, so a survivor fails the run.
+  thresholds: { high: 100, low: 100, break: 100 },
 };
 
 export default config;
