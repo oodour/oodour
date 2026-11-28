@@ -2,7 +2,7 @@ import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescrip
 import ts from 'typescript';
 import { holdsOnly } from '../holds-only.ts';
 import { defineMetric } from '../metric.ts';
-import { type Source, variableOf } from '../source.ts';
+import { isTyped, type Source, variableOf } from '../source.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 /** A member access on another object that names a member its owner keeps to itself. */
@@ -22,6 +22,7 @@ export interface PrivateAccess {
  */
 export const privateAccess = defineMetric({
   name: 'private-access',
+  needs: 'syntax',
   units: ['file'],
   open: (): PrivateAccess[] => [],
   enter(node, accesses, _at, source) {
@@ -39,7 +40,7 @@ export const privateAccess = defineMetric({
   close: (accesses): readonly PrivateAccess[] | undefined => (accesses.length > 0 ? accesses : undefined),
 });
 
-function nonPublicName({ object, property, computed }: TSESTree.MemberExpression, { types }: Source): string | undefined {
+function nonPublicName({ object, property, computed }: TSESTree.MemberExpression, source: Source): string | undefined {
   const name =
     !computed && property.type === T.Identifier
       ? property.name
@@ -47,10 +48,11 @@ function nonPublicName({ object, property, computed }: TSESTree.MemberExpression
         ? property.value
         : undefined;
 
-  if (types === undefined || name === undefined) {
+  if (!isTyped(source) || name === undefined) {
     return undefined;
   }
 
+  const { types } = source;
   const checker = types.program.getTypeChecker();
   const type = checker.getNonNullableType(checker.getTypeAtLocation(types.esTreeNodeToTSNodeMap.get(object)));
   const isNonPublic = (declaration: ts.Declaration): boolean =>

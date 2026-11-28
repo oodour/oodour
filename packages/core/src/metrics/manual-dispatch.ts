@@ -16,6 +16,7 @@ export interface ManualDispatch {
  */
 export const manualDispatch = defineMetric({
   name: 'manual-dispatch',
+  needs: 'syntax',
   units: ['file'],
   open: (): ManualDispatch[] => [],
   enter(node, dispatches, { key }, { text }) {

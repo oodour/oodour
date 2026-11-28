@@ -6,6 +6,7 @@ const logicalAssignment = new Set(['&&=', '||=', '??=']);
 /** Cyclomatic complexity as ESLint's `complexity` rule counts it (the classic variant), held there by a differential test. */
 export const complexity = defineMetric({
   name: 'complexity',
+  needs: 'syntax',
   units: ['function', 'field-initializer', 'static-block'],
   open: () => ({ paths: 1 }),
   enter: (node, state) => {

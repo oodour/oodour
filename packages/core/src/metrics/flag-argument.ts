@@ -3,7 +3,7 @@ import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescrip
 import type { Type } from 'typescript';
 import { defineMetric } from '../metric.ts';
 import { propertyName } from '../property-name.ts';
-import { scopesOf, type Source } from '../source.ts';
+import { isTyped, scopesOf, type Source } from '../source.ts';
 
 type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
 
@@ -36,6 +36,7 @@ interface State {
  */
 export const flagArgument = defineMetric({
   name: 'flag-argument',
+  needs: 'syntax',
   units: ['file'],
   open: (): State => ({ returns: [], proven: [], unproven: [], calls: [] }),
   enter(node, { returns, calls }) {
@@ -98,11 +99,12 @@ const isFunction = (node: TSESTree.Node): node is FunctionNode =>
   node.type === T.ArrowFunctionExpression || node.type === T.FunctionDeclaration || node.type === T.FunctionExpression;
 
 /** By the checker, when type information is there: a union of literals, which `boolean` is to the checker. */
-function hasFlagType(binding: TSESTree.Identifier, { types }: Source): boolean {
-  if (types === undefined) {
+function hasFlagType(binding: TSESTree.Identifier, source: Source): boolean {
+  if (!isTyped(source)) {
     return false;
   }
 
+  const { types } = source;
   const checker = types.program.getTypeChecker();
   const type = checker.getTypeAtLocation(types.esTreeNodeToTSNodeMap.get(binding));
   const isLiteral = (member: Type): boolean =>

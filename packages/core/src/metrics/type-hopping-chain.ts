@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES as T, type TSESTree } from '@typescript-eslint/typescript-estree';
 import { defineMetric } from '../metric.ts';
-import type { ExistingTypes, Source } from '../source.ts';
+import type { ExistingTypes } from '../source.ts';
 
 /** A chain of member accesses and the number of distinct types it steps through. */
 export interface TypeHoppingChain {
@@ -11,14 +11,15 @@ export interface TypeHoppingChain {
 /**
  * The chains in each file that step through two or more distinct types: the Law of Demeter by types rather than dots,
  * so a fluent pipeline on one array type has nothing to report, while a walk from an order through its customer to an
- * address does. Needs the program's types; without them it has nothing to report.
+ * address does. Needs the program's types, so only a typed source takes it.
  */
 export const typeHoppingChain = defineMetric({
   name: 'type-hopping-chain',
+  needs: 'types',
   units: ['file'],
   open: (): TypeHoppingChain[] => [],
-  enter(node, chains, _at, { types }: Source) {
-    if (types === undefined || node.type !== T.MemberExpression || !isOutermost(node)) {
+  enter(node, chains, _at, { types }) {
+    if (node.type !== T.MemberExpression || !isOutermost(node)) {
       return;
     }
 

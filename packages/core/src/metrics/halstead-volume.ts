@@ -52,6 +52,7 @@ const typeAssertions = new Set<string>([
  */
 export const halsteadVolume = defineMetric({
   name: 'halstead-volume',
+  needs: 'syntax',
   units: ['function'],
   open: ({ node }, source): Skipped => {
     const skipped = skippedBySource.get(source) ?? { functions: [], types: [] };

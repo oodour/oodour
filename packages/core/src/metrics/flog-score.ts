@@ -29,6 +29,7 @@ interface Event {
  */
 export const flogScore = defineMetric({
   name: 'flog-score',
+  needs: 'syntax',
   units: ['function'],
   open: () => undefined,
   close: (_state, { node }): FlogCounts | undefined => (isCallback(node) ? undefined : score(node)),

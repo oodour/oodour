@@ -15,6 +15,7 @@ export interface RepeatedSwitch {
  */
 export const repeatedSwitches = defineMetric({
   name: 'repeated-switches',
+  needs: 'syntax',
   units: ['file'],
   open: (): TSESTree.SwitchStatement[] => [],
   enter(node, switches) {

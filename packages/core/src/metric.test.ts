@@ -15,6 +15,7 @@ function sourceOf(text: string): Source {
 /** Records, per function, every node it enters and leaves, with the slot each fills. */
 const trace = defineMetric({
   name: 'trace',
+  needs: 'syntax',
   units: ['function'],
   open: (): { events: string[] } => ({ events: [] }),
   enter: (node, state, at) => {
@@ -63,6 +64,7 @@ describe('measure', () => {
     const events: string[] = [];
     const order = defineMetric({
       name: 'order',
+      needs: 'syntax',
       units: ['field-initializer', 'class'],
       open: (unit) => {
         events.push(`open ${unitName(unit)}`);
@@ -87,7 +89,13 @@ describe('measure', () => {
   });
 
   it('names an anonymous class', () => {
-    const classes = defineMetric({ name: 'classes', units: ['class'], open: () => undefined, close: () => 1 });
+    const classes = defineMetric({
+      name: 'classes',
+      needs: 'syntax',
+      units: ['class'],
+      open: () => undefined,
+      close: () => 1,
+    });
 
     assert.deepEqual(
       measure(sourceOf('const A = class {};'), [classes])

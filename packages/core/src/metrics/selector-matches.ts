@@ -14,7 +14,7 @@ type EstreeNode = Parameters<typeof esquery.match>[0];
 export function defineSelectorMetric(
   name: string,
   selectors: readonly [string, ...string[]],
-): Metric<readonly TSESTree.Node[], 'file'> {
+): Metric<readonly TSESTree.Node[], 'file', 'syntax'> {
   const childStepInHas = selectors.find((selector) => /:has\(\s*>/.test(selector));
 
   if (childStepInHas !== undefined) {
@@ -27,6 +27,7 @@ export function defineSelectorMetric(
 
   return defineMetric({
     name,
+    needs: 'syntax',
     units: ['file'],
     open: () => undefined,
     close: (_state, { node }): readonly TSESTree.Node[] | undefined => {

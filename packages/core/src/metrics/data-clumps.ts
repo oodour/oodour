@@ -23,6 +23,7 @@ export interface DataClump {
  */
 export const dataClumps = defineMetric({
   name: 'data-clumps',
+  needs: 'syntax',
   units: ['class', 'file'],
   open: () => undefined,
   close: (_state, unit): readonly DataClump[] | undefined => {

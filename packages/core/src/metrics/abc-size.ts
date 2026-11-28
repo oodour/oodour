@@ -27,6 +27,7 @@ const branching = new Set<string>([AST_NODE_TYPES.IfStatement, AST_NODE_TYPES.Co
  */
 export const abcSize = defineMetric({
   name: 'abc-size',
+  needs: 'syntax',
   units: ['function'],
   open: () => ({ assignments: 0, sends: 0, conditions: 0 }),
   enter: (node, counts, at) => {

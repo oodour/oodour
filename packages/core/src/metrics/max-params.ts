@@ -20,6 +20,7 @@ export interface ParameterCount {
  */
 export const maxParams = defineMetric({
   name: 'max-params',
+  needs: 'syntax',
   units: ['function', 'declared-function'],
   open: () => undefined,
   close: (_state, unit, source): ParameterCount | undefined => {

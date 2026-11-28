@@ -11,8 +11,17 @@ export interface Source {
   readonly ast: TSESTree.Program;
   /** The scope analysis of a caller that already has one, such as ESLint's; `scopesOf` builds it otherwise. */
   readonly scopes?: ScopeManager;
-  /** The program of a caller that type-checked the file, such as ESLint's typed linting; the core never builds one. */
-  readonly types?: ExistingTypes;
+}
+
+/** A source whose caller type-checked the file, such as ESLint's typed linting. Only this kind feeds a metric that needs types. */
+export interface TypedSource extends Source {
+  /** The caller's program; the core never builds one. */
+  readonly types: ExistingTypes;
+}
+
+/** True when the caller handed over a program. A syntax metric uses this to sharpen a result when types are there. */
+export function isTyped(source: Source): source is TypedSource {
+  return 'types' in source;
 }
 
 /** A program and the map from this tree's nodes to its nodes; structurally typescript-eslint's parser services. */

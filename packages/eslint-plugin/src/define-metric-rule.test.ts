@@ -60,6 +60,7 @@ test('two metric rules on one file share one walk', () => {
   const tracing = (label: string): Metric<number> =>
     defineMetric({
       name: label,
+      needs: 'syntax',
       units: ['function'],
       open: () => 0,
       enter: (node) => {

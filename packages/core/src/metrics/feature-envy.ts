@@ -4,7 +4,7 @@ import type ts from 'typescript';
 import { builtInConstructors } from '../built-in-constructors.ts';
 import { holdsOnly } from '../holds-only.ts';
 import { defineMetric } from '../metric.ts';
-import { type Source, variableOf } from '../source.ts';
+import { isTyped, type Source, variableOf } from '../source.ts';
 import { withoutTypeAssertions } from '../without-type-assertions.ts';
 
 /** A method that uses another object, held in one of its variables, more than it uses its own. */
@@ -42,6 +42,7 @@ interface State {
  */
 export const featureEnvy = defineMetric({
   name: 'feature-envy',
+  needs: 'syntax',
   units: ['file'],
   open: (): State => ({ methods: [], envies: [] }),
   enter(node, { methods }, _at, source) {
@@ -100,14 +101,14 @@ function enviesOf({ node, own, uses }: MethodUses): Envy[] {
 }
 
 /** Whether, by the program's types, every type the variable may hold is declared only outside the project. */
-function cannotTakeAMove(variable: Variable, { types }: Source): boolean {
+function cannotTakeAMove(variable: Variable, source: Source): boolean {
   const [definition] = variable.defs;
 
-  if (types === undefined || definition === undefined) {
+  if (!isTyped(source) || definition === undefined) {
     return false;
   }
 
-  const { program, esTreeNodeToTSNodeMap } = types;
+  const { program, esTreeNodeToTSNodeMap } = source.types;
   const checker = program.getTypeChecker();
   const type = checker.getNonNullableType(checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(definition.name)));
   const outsideTheProject = (member: ts.Type): boolean => {

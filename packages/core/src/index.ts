@@ -6,6 +6,8 @@ export {
   type Measurements,
   type Metric,
   type MetricDefinition,
+  type Needs,
+  type SourceFor,
   type UnitOf,
 } from './metric.ts';
 export { type AbcCounts, abcSize } from './metrics/abc-size.ts';
@@ -24,10 +26,12 @@ export { defineSelectorMetric } from './metrics/selector-matches.ts';
 export { type TypeHoppingChain, typeHoppingChain } from './metrics/type-hopping-chain.ts';
 export {
   type ExistingTypes,
+  isTyped,
   parseSource,
   type ParseFailure,
   scopesOf,
   type Source,
+  type TypedSource,
   variableOf,
 } from './source.ts';
 export { type Position, type Unit, type UnitKind, unitName } from './units.ts';

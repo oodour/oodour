@@ -11,6 +11,10 @@ interface Batch {
 
 const batches = new WeakMap<SourceCode, Batch>();
 
+function needsSyntaxOnly(metric: Metric<unknown>): metric is Metric<unknown, UnitKind, 'syntax'> {
+  return metric.needs === 'syntax';
+}
+
 export interface MetricRuleDefinition<
   TOptions extends readonly unknown[],
   TMessageIds extends string,
@@ -60,16 +64,18 @@ export function defineMetricRule<
           const program = parserServices?.program;
           const esTreeNodeToTSNodeMap = parserServices?.esTreeNodeToTSNodeMap;
 
-          batch.measured ??= measure(
-            {
-              file: context.filename,
-              text: sourceCode.text,
-              ast: sourceCode.ast,
-              ...(scopeManager === null ? {} : { scopes: scopeManager }),
-              ...(program && esTreeNodeToTSNodeMap ? { types: { program, esTreeNodeToTSNodeMap } } : {}),
-            },
-            [...batch.metrics],
-          );
+          const source = {
+            file: context.filename,
+            text: sourceCode.text,
+            ast: sourceCode.ast,
+            ...(scopeManager === null ? {} : { scopes: scopeManager }),
+          };
+
+          // Without a program only the syntax metrics run; a rule whose metric needs types threw above.
+          batch.measured ??=
+            program && esTreeNodeToTSNodeMap
+              ? measure({ ...source, types: { program, esTreeNodeToTSNodeMap } }, [...batch.metrics])
+              : measure(source, [...batch.metrics].filter(needsSyntaxOnly));
 
           for (const measurement of batch.measured.of(metric)) {
             check(measurement, context, options);

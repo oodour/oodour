@@ -3,10 +3,10 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { parseAndGenerateServices, simpleTraverse } from '@typescript-eslint/typescript-estree';
 import ts from 'typescript';
-import { measure, parseSource, type Source, typeHoppingChain } from '../index.ts';
+import { isTyped, measure, parseSource, typeHoppingChain, type TypedSource } from '../index.ts';
 
 /** A source with the types of a program that holds only this text, read from memory. */
-function typedSource(text: string): Source {
+function typedSource(text: string): TypedSource {
   const file = join(process.cwd(), 'typed-source.ts').replaceAll('\\', '/');
   const host = ts.createCompilerHost({});
   const readSourceFile = host.getSourceFile.bind(host);
@@ -41,11 +41,21 @@ const declarations = [
 ].join('\n');
 
 describe('typeHoppingChain', () => {
-  it('has nothing to report without the types of a program', () => {
+  it('refuses a source that came without the types of a program', () => {
     const source = parseSource('order.customer.address.city;', 'file.ts');
 
     assert.ok(!('parseError' in source));
-    assert.deepEqual(measure(source, [typeHoppingChain]).of(typeHoppingChain), []);
+    assert.equal(isTyped(source), false);
+    assert.throws(
+      // @ts-expect-error a source without types takes syntax metrics only
+      () => measure(source, [typeHoppingChain]),
+      /^Error: The metric 'type-hopping-chain' needs the types of a program, which file\.ts came without\.$/,
+    );
+  });
+
+  it('says what it needs', () => {
+    assert.equal(typeHoppingChain.needs, 'types');
+    assert.equal(isTyped(typedSource('')), true);
   });
 
   it('goes by its name', () => {

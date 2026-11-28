@@ -16,6 +16,7 @@ export interface ClassLines {
  */
 export const classLines = defineMetric({
   name: 'class-lines',
+  needs: 'syntax',
   units: ['class'],
   open: () => undefined,
   close: (_state, { node }, source): ClassLines => linesOf(node, source),
