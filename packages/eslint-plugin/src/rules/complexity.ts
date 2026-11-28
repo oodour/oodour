@@ -3,7 +3,7 @@ import { coreRule, sizeRemedy, wrapRule } from '../wrap-rule.ts';
 export const complexity = wrapRule({
   name: 'complexity',
   // Stryker disable next-line StringLiteral: read only by the error for a rule that could not be loaded, and ESLint core has this one
-  wraps:'complexity',
+  wraps: 'complexity',
   upstream: coreRule('complexity'),
   docs: {
     description: 'Report a function with more paths through it than allowed',

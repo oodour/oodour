@@ -3,7 +3,7 @@ import { coreRule, sizeRemedy, wrapRule } from '../wrap-rule.ts';
 export const maxStatements = wrapRule({
   name: 'max-statements',
   // Stryker disable next-line StringLiteral: read only by the error for a rule that could not be loaded, and ESLint core has this one
-  wraps:'max-statements',
+  wraps: 'max-statements',
   upstream: coreRule('max-statements'),
   docs: {
     description: 'Report a function with more statements than allowed',
