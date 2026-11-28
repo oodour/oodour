@@ -80,11 +80,12 @@ export function measureScope(
   const measured = production
     .filter((file) => modules.get(file)?.reexportsOnly !== true)
     .map((file) => {
-      // Stryker disable next-line ArrayDeclaration: every file listed has its facts, so no fallback is taken
+      // Stryker disable ArrayDeclaration: every file listed has its facts, so no fallback is taken
       const { concreteClasses, concreteClassesNamed } = modules.get(file) ?? {
         concreteClasses: [],
         concreteClassesNamed: [],
       };
+      // Stryker restore ArrayDeclaration
       // Stryker disable next-line ArrayDeclaration: every file listed has its dependents, an empty list at least
       const importers = dependents.get(file) ?? [];
       const complexity = functionComplexity(

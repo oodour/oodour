@@ -37,12 +37,13 @@ export function defineSelectorMetric(
         return undefined;
       }
 
+      // Stryker disable ObjectLiteral: without the keys esquery iterates each node's own keys and reaches the same nodes
       const matches = parsed.flatMap((selector) =>
         esquery
-          // Stryker disable next-line ObjectLiteral: without the keys esquery iterates each node's own keys and reaches the same nodes
           .match(node, selector, { visitorKeys: keys })
           .flatMap((match: unknown) => (isTreeNode(match) ? [match] : [])),
       );
+      // Stryker restore ObjectLiteral
 
       return matches.length > 0 ? matches : undefined;
     },
