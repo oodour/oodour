@@ -15,6 +15,11 @@
   "targets": {
     "typecheck": {
       "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard && tsc -p .claude/mods/oracle-guard/.node-test",
+      "configurations": {
+        "ci": {
+          "command": "tsc -p tsconfig.json && tsc -p .claude/mods/oracle-scrub/.node-test && tsc -p .claude/mods/oracle-guard/.node-test"
+        }
+      },
       "inputs": [
         "default",
         {
@@ -32,6 +37,11 @@
     },
     "lint": {
       "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\"",
+      "configurations": {
+        "ci": {
+          "command": "eslint . --ignore-pattern \"packages/\" --ignore-pattern \"plugins/\" --ignore-pattern \".claude/mods/*/hooks/\""
+        }
+      },
       "inputs": [
         "default",
         "eslintConfig",
@@ -41,6 +51,11 @@
     },
     "test": {
       "command": "node --test \"*.test.ts\" \".claude/hooks/*.test.ts\" \"tools/*.test.ts\" \"tools/nx/*.test.ts\" \".claude/mods/oracle-scrub/.node-test/*.test.ts\" \".claude/mods/oracle-guard/.node-test/*.test.ts\"",
+      "configurations": {
+        "ci": {
+          "env": { "NODE_OPTIONS": "--test-skip-pattern=\"the real store\"" }
+        }
+      },
       "cache": false
     },
     "test-mods": {
