@@ -19,7 +19,7 @@ const notInstalled = (id: string): never => {
 test('a rule of a plugin package that is not installed loads as undefined, under its ID', () => {
   assert.deepEqual(
     optionalPluginRule(
-      'absent',
+      'absent/',
       'eslint-plugin-absent',
       'some-rule',
       notInstalled,
@@ -38,7 +38,12 @@ test('an installed plugin package that fails to load throws its error', () => {
 
   assert.throws(
     () =>
-      optionalPluginRule('broken', 'eslint-plugin-broken', 'some-rule', broken),
+      optionalPluginRule(
+        'broken/',
+        'eslint-plugin-broken',
+        'some-rule',
+        broken,
+      ),
     SyntaxError,
   );
 });
@@ -53,7 +58,7 @@ test('an installed plugin package that fails to load with another error code thr
   assert.throws(
     () =>
       optionalPluginRule(
-        'unreadable',
+        'unreadable/',
         'eslint-plugin-unreadable',
         'some-rule',
         unreadable,
@@ -66,7 +71,7 @@ test('an installed plugin package that fails to load with another error code thr
 
 test('a plugin package whose rules are not an object has no rule to load', () => {
   assert.equal(
-    optionalPluginRule('odd', 'eslint-plugin-odd', 'some-rule', () => ({
+    optionalPluginRule('odd/', 'eslint-plugin-odd', 'some-rule', () => ({
       rules: null,
     })).module,
     undefined,
@@ -77,7 +82,7 @@ test('a rule of an installed plugin package loads as the module the package hold
   const someRule = { create: () => ({}) };
 
   assert.equal(
-    optionalPluginRule('some', 'eslint-plugin-some', 'some-rule', () => ({
+    optionalPluginRule('some/', 'eslint-plugin-some', 'some-rule', () => ({
       rules: { 'some-rule': someRule },
     })).module,
     someRule,
@@ -88,7 +93,7 @@ test("a rule of a plugin this package depends on is the plugin's module under it
   const someRule = { create: () => ({}) };
 
   assert.deepEqual(
-    pluginRule('@some', { 'some-rule': someRule }, 'some-rule'),
+    pluginRule('@some/', { 'some-rule': someRule }, 'some-rule'),
     {
       id: '@some/some-rule',
       module: someRule,
@@ -130,7 +135,7 @@ function lintWith(
 }
 
 const missingRule = optionalPluginRule(
-  'absent',
+  'absent/',
   'eslint-plugin-absent',
   'some-limit',
   notInstalled,

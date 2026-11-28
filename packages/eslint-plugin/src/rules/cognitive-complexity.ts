@@ -1,10 +1,10 @@
+import { existingRules } from '../existing-rules.ts';
 import { optionalPluginRule, sizeRemedy, wrapRule } from '../wrap-rule.ts';
 
 export const cognitiveComplexity = wrapRule({
   name: 'cognitive-complexity',
   upstream: optionalPluginRule(
-    // Stryker disable next-line StringLiteral: the prefix shows only in the error for a missing eslint-plugin-sonarjs, which every test run installs; wrap-rule.test.ts covers that error
-    'sonarjs',
+    existingRules.sonarjs.prefix,
     'eslint-plugin-sonarjs',
     'cognitive-complexity',
   ),

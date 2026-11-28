@@ -40,18 +40,18 @@ export function coreRule(name: string): WrappedRule {
   return { id: name, module: builtinRules.get(name) };
 }
 
-/** A rule of a plugin this package depends on, under the prefix its rule IDs take. */
+/** A rule of a plugin this package depends on, under the prefix its rule IDs take, such as `'unicorn/'`. */
 export function pluginRule(
   prefix: string,
   rules: Readonly<Record<string, unknown>>,
   ruleName: string,
 ): WrappedRule {
-  return { id: `${prefix}/${ruleName}`, module: rules[ruleName] };
+  return { id: `${prefix}${ruleName}`, module: rules[ruleName] };
 }
 
 const require = createRequire(import.meta.url);
 
-/** A rule of a plugin package the consumer may not have installed, under the prefix its rule IDs take. */
+/** A rule of a plugin package the consumer may not have installed, under the prefix its rule IDs take, such as `'unicorn/'`. */
 export function optionalPluginRule(
   prefix: string,
   packageName: string,
@@ -59,7 +59,7 @@ export function optionalPluginRule(
   load: (id: string) => unknown = require,
 ): WrappedRule {
   return {
-    id: `${prefix}/${ruleName}`,
+    id: `${prefix}${ruleName}`,
     module: loadedRule(packageName, ruleName, load),
   };
 }

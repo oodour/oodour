@@ -1,4 +1,5 @@
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
+import { existingRules } from '../existing-rules.ts';
 import { pluginRule, wrapRule } from '../wrap-rule.ts';
 
 type Options = [
@@ -17,8 +18,7 @@ type Options = [
 export const classMethodsUseThis = wrapRule<Options>({
   name: 'class-methods-use-this',
   upstream: pluginRule(
-    // Stryker disable next-line StringLiteral: the prefix shows only in the error for a rule that could not load, and typescript-eslint's plugin is a dependency, so it always loads
-    '@typescript-eslint',
+    existingRules['@typescript-eslint'].prefix,
     tseslintPlugin.rules,
     'class-methods-use-this',
   ),
