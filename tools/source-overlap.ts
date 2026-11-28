@@ -190,7 +190,7 @@ export function loadCorpus(minWords: number, dir: string = storeDir): Corpus {
     // Stryker disable next-line ArrayDeclaration: one token is below the six-word floor, so it adds no gram
     const tokens = text.includes('\u0000') ? [] : tokenize(text);
 
-    // Stryker disable next-line ArithmeticOperator: a gram past the end has fewer words than every window findRuns looks up, so it matches none
+    // Stryker disable next-line ArithmeticOperator,LzJsNumericLiteral: a gram past the end, or one from before the start, has fewer words than every window findRuns looks up, so it matches none
     for (let i = 0; i + minWords <= tokens.length; i++) {
       const gram = tokens.slice(i, i + minWords).join(' ');
 
@@ -211,7 +211,7 @@ function maskedPositions(tokens: readonly string[], phrases: readonly string[]):
   const masked = new Set<number>();
 
   for (const words of phrases.map(tokenize)) {
-    // Stryker disable next-line ArithmeticOperator: positions past the end read undefined, which matches no word
+    // Stryker disable next-line ArithmeticOperator,LzJsNumericLiteral: positions past the end or before the start read undefined, which matches no word
     for (let i = 0; i + words.length <= tokens.length; i++) {
       if (words.every((word, k) => tokens[i + k] === word)) {
         words.forEach((_, k) => masked.add(i + k));
@@ -235,7 +235,7 @@ export function findRuns(text: string, corpus: Corpus): readonly Run[] {
   const runs: { start: number; words: number; entry: string }[] = [];
   let current: { start: number; words: number; entry: string } | undefined;
 
-  // Stryker disable next-line ArithmeticOperator: a window past the end has fewer words than any gram, so it matches none
+  // Stryker disable next-line ArithmeticOperator,LzJsNumericLiteral: a window past the end, or one from before the start, has fewer words than any gram, so it matches none
   for (let i = 0; i + corpus.minWords <= tokens.length; i++) {
     const window = tokens.slice(i, i + corpus.minWords);
     const entry = window.some((_, k) => masked.has(i + k)) ? undefined : loaded.grams.get(window.join(' '));

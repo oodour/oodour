@@ -33,8 +33,10 @@ test('fields of the wrong type are dropped, and a missing tool input is empty', 
 });
 
 test('input that is not an object is refused', () => {
-  assert.throws(() => parseHookInput(null), TypeError);
-  assert.throws(() => parseHookInput([]), TypeError);
+  const refusal = { name: 'TypeError', message: 'hook input is not a JSON object' };
+
+  assert.throws(() => parseHookInput(null), refusal);
+  assert.throws(() => parseHookInput([]), refusal);
 });
 
 test('a deny is written in the PreToolUse decision shape', () => {

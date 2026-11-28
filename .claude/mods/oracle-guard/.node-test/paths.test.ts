@@ -31,6 +31,14 @@ test('a parent segment at a root without a drive stays at the root', () => {
   assert.deepEqual(pathSegments('\\..\\x'), ['x']);
 });
 
+test('a parent segment removes a named segment that follows a kept parent segment', () => {
+  assert.deepEqual(pathSegments('../a/..'), ['..']);
+});
+
+test('a drive after the first segment does not root the path', () => {
+  assert.deepEqual(pathSegments('..\\D:\\x'), ['..', 'D:', 'x']);
+});
+
 test('a relative path resolves below the base', () => {
   assert.equal(resolvePath('D:\\repo', 'notes/x'), 'D:\\repo\\notes\\x');
 });
@@ -41,6 +49,15 @@ test('a path with a drive root ignores the base', () => {
 
 test("a path rooted without a drive takes the base's drive", () => {
   assert.equal(resolvePath('D:\\repo', '\\tmp\\a'), 'D:\\tmp\\a');
+});
+
+test('a path rooted without a drive takes no drive from a base that does not start with one', () => {
+  assert.equal(resolvePath('\\repo\\x:y', '\\tmp\\a'), 'tmp\\a');
+});
+
+test('only a bare drive gets a separator after it', () => {
+  assert.equal(resolvePath('D:\\repo', '..'), 'D:\\');
+  assert.equal(resolvePath('D:\\repo', 'x:'), 'D:\\repo\\x:');
 });
 
 const samples = [

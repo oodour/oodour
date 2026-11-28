@@ -11,6 +11,7 @@ import { basename, join, resolve } from 'node:path';
 import { titledEntries } from './source-overlap.ts';
 
 // Not exported or shared: an imported store path would let a script reach the store without naming it.
+// Stryker disable next-line StringLiteral: a mutation run and CI hold no store, so the command finds none at either folder and prints the same line
 const storeDir = resolve(import.meta.dirname, '..', '.oracle');
 
 const namedEntries: ReadonlySet<string> = new Set([...titledEntries, '99bottles-js']);
@@ -37,7 +38,7 @@ function decoded(target: string): string {
 export function indexedPaths(index: string): readonly string[] {
   return index.split('\n').flatMap((line) => {
     const links = [...line.matchAll(/\]\(([^)\s]+)\)/g)]
-      .flatMap((match) => match.slice(1, 2))
+      .flatMap((match) => match.slice(1))
       .map((target) => decoded(target.replace(/#.*/, '')))
       .filter((target) => target !== '' && !/^[a-z]+:/i.test(target));
 
@@ -46,7 +47,7 @@ export function indexedPaths(index: string): readonly string[] {
     }
 
     const ticked = [...line.matchAll(/`([^`]+)`/g)]
-      .flatMap((match) => match.slice(1, 2))
+      .flatMap((match) => match.slice(1))
       .filter((cell) => /[./]/.test(cell) && !/\s/.test(cell) && !cell.startsWith('http'));
     const bare = line
       .split('|')

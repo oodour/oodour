@@ -133,11 +133,17 @@ async function targetsOf(files: Readonly<Record<string, string>>) {
 
 test("a plugin's scripts are cached on the packages its package.json depends on", async () => {
   const targets = await targetsOf({
-    'plugins/demo/package.json': '{ "dependencies": { "left-pad": "1.3.0", "typescript": "6.0.3" } }',
+    'plugins/demo/package.json': '{ "name": "demo", "dependencies": { "left-pad": "1.3.0", "typescript": "6.0.3" } }',
     'plugins/demo/scripts/a.ts': '',
   });
 
   assert.deepEqual(targets['test']?.inputs?.[3], { externalDependencies: ['left-pad', 'typescript'] });
+});
+
+test("a plugin's scripts are cached on no package when its package.json lists no dependencies", async () => {
+  const targets = await targetsOf({ 'plugins/demo/package.json': '{ "name": "demo" }', 'plugins/demo/scripts/a.ts': '' });
+
+  assert.deepEqual(targets['test']?.inputs?.[3], { externalDependencies: [] });
 });
 
 test('a plugin without a scripts folder gets no typecheck, lint or test target', async () => {

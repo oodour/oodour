@@ -244,6 +244,25 @@ test('titles come from the title column, not from another first column', () => {
   assert.deepEqual(findRuns('seven and small objects walk far as before', corpus), []);
 });
 
+const gardens = 'one two patient gardens grow slowly three four';
+
+test('the cited articles and the essays list their titles as names too', () => {
+  for (const entry of ['metz-cited-articles', 'beck-writing']) {
+    const dir = storeWith(`${entry}/t.md`, gardens);
+    writeFileSync(join(dir, entry, 'index.md'), '| Title | File |\n| --- | --- |\n| Patient Gardens Grow Slowly | `t.md` |\n');
+
+    assert.deepEqual(findRuns(gardens, loadCorpus(6, dir)), [], entry);
+  }
+});
+
+test('titles come from the first column when no header names a title column, or when there is no header', () => {
+  for (const header of ['| Name | Venue |\n| --- | --- |\n', '']) {
+    const dir = talksWithIndex(`${header}| Patient Gardens Grow Slowly | Big Conf Hall |\n`, gardens);
+
+    assert.deepEqual(findRuns(gardens, loadCorpus(6, dir)), [], header);
+  }
+});
+
 test('arguments parse into a threshold and files, and bad usage is refused', () => {
   assert.deepEqual(parseArgs(['a.md']), { minWords: 8, files: ['a.md'] });
   assert.deepEqual(parseArgs(['--min-words', '6', 'a.md', 'b.md']), { minWords: 6, files: ['a.md', 'b.md'] });
@@ -598,6 +617,18 @@ test('run as a command with no arguments, it prints its usage and exits 2', () =
 
   assert.equal(run.status, 2);
   assert.match(run.stderr, /^usage: /);
+});
+
+test('run as a command, it checks the files it is given', () => {
+  const other = tempDir('open-corpus-');
+  writeFileSync(join(other, 'page.md'), 'nothing in common with the draft at all here');
+  const draft = join(tempDir('oracle-drafts-'), 'clean.md');
+  writeFileSync(draft, 'A fox leaps a sleepy hound.');
+
+  const run = spawnSync(process.execPath, [join(import.meta.dirname, 'source-overlap.ts'), '--corpus', other, draft], { encoding: 'utf8' });
+
+  assert.equal(run.status, 0, run.stderr);
+  assert.equal(run.stdout, `[OK] no run of 8+ words shared with ${other}\n`);
 });
 
 const repositoryStore = join(dirname(import.meta.dirname), '.oracle');
