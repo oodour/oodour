@@ -45,13 +45,12 @@ interface Run {
   readonly graders: readonly Grader[];
 }
 
-function choose(n: number, k: number): number {
+// The chance that k runs drawn from n without replacement all come from the given `from` of them.
+function drawnFrom(from: number, n: number, k: number): number {
   let result = 1;
 
   for (let i = 0; i < k; i++) {
-    result *= n - i;
-    // Stryker disable next-line AssignmentOperator: every caller divides two choose() values of the same k, so a k!-squared factor cancels
-    result /= i + 1;
+    result *= (from - i) / (n - i);
   }
 
   return result;
@@ -67,13 +66,13 @@ function checkK(n: number, k: number): void {
 export function passAtK(n: number, c: number, k: number): number {
   checkK(n, k);
 
-  return 1 - choose(n - c, k) / choose(n, k);
+  return 1 - drawnFrom(n - c, n, k);
 }
 
 export function passHatK(n: number, c: number, k: number): number {
   checkK(n, k);
 
-  return choose(c, k) / choose(n, k);
+  return drawnFrom(c, n, k);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -106,6 +105,7 @@ function parseGrader(value: unknown, path: string): Grader {
 // The tool's score is the weighted share of scored graders that passed; this one leaves the indicators out.
 function scoreWithoutIndicators(graders: readonly Grader[]): number {
   const criteria = graders.filter((grader) => grader.scored && !isIndicator(grader));
+  // Stryker disable next-line ArithmeticOperator: subtracting flips the sign of both sums, and their quotient stays the same
   const weightOf = (list: readonly Grader[]): number => list.reduce((sum, grader) => sum + grader.weight, 0);
 
   return weightOf(criteria.filter((grader) => grader.passed)) / weightOf(criteria);

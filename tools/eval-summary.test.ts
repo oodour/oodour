@@ -104,6 +104,20 @@ test('a run whose indicators were scored passes when its new score reaches the s
   assert.equal(summarise(run(0.8)).cases[0]?.arms['with']?.passed, 0);
 });
 
+test('a grader without a weight weighs one when a run is scored again', () => {
+  const graders = [{ ...grader('c1', true), weight: 3 }, { name: 'c2', passed: false, scored: true }, grader('skill-fired', false)];
+  const run = { suite: { ablation: 'none', threshold: 1 }, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 0, passed: false, graders }] } }] };
+
+  assert.equal(summarise(run).cases[0]?.arms['with']?.meanScore, 0.75);
+});
+
+test('without a suite threshold, a run that is scored again passes only at a full score', () => {
+  const run = (c2: boolean) => ({ suite: { ablation: 'none' }, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 0, passed: !c2, graders: [grader('c1', true), grader('c2', c2), grader('skill-fired', false)] }] } }] });
+
+  assert.equal(summarise(run(true)).cases[0]?.arms['with']?.passed, 1);
+  assert.equal(summarise(run(false)).cases[0]?.arms['with']?.passed, 0);
+});
+
 test('a with-only grader is left out of the criteria whatever its name', () => {
   const run = { suite: {}, costUsd: 0, cases: [{ name: 'x', arms: { with: [{ score: 1, passed: true, graders: [grader('c1', true), grader('read-source', false, true)] }] } }] };
 
